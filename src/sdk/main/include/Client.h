@@ -386,6 +386,12 @@ public:
   Client& setMirrorNetwork(const std::vector<std::string>& network);
 
   /**
+   * Populate this Client's consensus network by getting the address book from this Client's mirror network. This
+   * requires a mirror network to be manually set already.
+   */
+  void populateNetworkFromMirrorNodeAddressBook();
+
+  /**
    * Get the list of mirror nodes on this Client's network.
    *
    * @return The list of mirror nodes on this Client's network.
