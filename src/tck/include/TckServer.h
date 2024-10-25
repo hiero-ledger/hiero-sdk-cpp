@@ -20,26 +20,35 @@
 #ifndef HEDERA_TCK_CPP_TCK_SERVER_H_
 #define HEDERA_TCK_CPP_TCK_SERVER_H_
 
-#include "JsonTypeMapper.h"
-
+#include <functional>
 #include <httplib.h>
 #include <nlohmann/json_fwd.hpp>
 #include <string>
-#include <string_view>
 #include <unordered_map>
-#include <vector>
 
 namespace Hedera::TCK
 {
-class JsonRpcException;
-
 /**
  * Class encompassing all HTTP and JSON processing of TCK requests.
  */
 class TckServer
 {
 public:
+  /**
+   * The default port on which to listen for HTTP requests from the TCK.
+   */
   [[maybe_unused]] constexpr static const int DEFAULT_HTTP_PORT = 80;
+
+  /**
+   * Methods involve taking JSON parameters, doing a function, then returning the status of the execution in another
+   * JSON object.
+   */
+  using MethodHandle = std::function<nlohmann::json(const nlohmann::json&)>;
+
+  /**
+   * Notifications involve taking JSON parameters, doing a function, and then reporting nothing back.
+   */
+  using NotificationHandle = std::function<void(const nlohmann::json&)>;
 
   /**
    * Construct a TckServer with the default HTTP port.
@@ -56,25 +65,45 @@ public:
   /**
    * Add a JSON RPC method function.
    *
-   * @param name   The name of the function.
-   * @param func   The function to run.
-   * @param params The parameters to input into the function.
+   * @param name The name of the function.
+   * @param func The function to run.
    */
-  void add(const std::string& name, const MethodHandle& func, const std::vector<std::string>& params = {});
+  void add(const std::string& name, const MethodHandle& func);
 
   /**
    * Add a JSON RPC notification function.
    *
-   * @param name   The name of the function.
-   * @param func   The function to run.
-   * @param params The parameters to input into the function.
+   * @param name The name of the function.
+   * @param func The function to run.
    */
-  void add(const std::string& name, const NotificationHandle& func, const std::vector<std::string>& params = {});
+  void add(const std::string& name, const NotificationHandle& func);
 
   /**
    * Start listening for HTTP requests. All JSON RPC functions should be added before this is called.
    */
   void startServer();
+
+  /**
+   * Create a method handle for the input method. The created method handles creating the method inputs from the
+   * provided JSON.
+   *
+   * @tparam ParamsType The parameters to pass into to method.
+   * @param  method     The method of which to get the handle.
+   * @return The handle for the method.
+   */
+  template<typename ParamsType>
+  MethodHandle getHandle(nlohmann::json (*method)(const ParamsType&));
+
+  /**
+   * Create a notification handle for the input notification. The created notification handles creating the notification
+   * inputs from the provided JSON.
+   *
+   * @tparam ParamsType   The parameters to pass into to notification.
+   * @param  notification The notification of which to get the handle.
+   * @return The handle for the notification.
+   */
+  template<typename ParamsType>
+  [[maybe_unused]] NotificationHandle getHandle(void (*notification)(const ParamsType&));
 
 private:
   /**
@@ -91,7 +120,7 @@ private:
    * @param request The JSON request to handle.
    * @return The response to the request.
    */
-  std::string handleJsonRequest(std::string_view request);
+  std::string handleJsonRequest(const std::string& request);
 
   /**
    * Handle a single JSON request.
@@ -100,46 +129,6 @@ private:
    * @return The JSON response.
    */
   [[nodiscard]] nlohmann::json handleSingleRequest(const nlohmann::json& request);
-
-  /**
-   * Execute a method request.
-   *
-   * @param method The name and method function to execute.
-   * @param params The parameters to pass into the method function.
-   * @return The result of the JSON RPC execution.
-   * @throws JsonRpcException If there's an issue executing the method function.
-   */
-  [[nodiscard]] nlohmann::json executeMethod(
-    const std::unordered_map<std::string, MethodHandle>::const_iterator& method,
-    const nlohmann::json& params) const;
-
-  /**
-   * Execute a notification request.
-   *
-   * @param notification The name and notification function to execute.
-   * @param params       The parameters to pass into the notification function.
-   * @throws JsonRpcException If there's an issue executing the notification function.
-   */
-  void executeNotification(const std::unordered_map<std::string, NotificationHandle>::const_iterator& notification,
-                           const nlohmann::json& params) const;
-
-  /**
-   * Normalize parameters to a JSON list.
-   *
-   * @param name   The name of the function.
-   * @param params The parameters to normalize.
-   * @return The parameters in a JSON list.
-   */
-  [[nodiscard]] nlohmann::json normalizeParameters(const std::string& name, const nlohmann::json& params) const;
-
-  /**
-   * Process an error thrown when trying to map JSON parameters to function inputs.
-   *
-   * @param name      The name of the function being executed that threw.
-   * @param exception The JsonRpcException that threw.
-   * @return The updated JsonRpcException.
-   */
-  [[nodiscard]] JsonRpcException processTypeError(const std::string& name, const JsonRpcException& exception) const;
 
   /**
    * Set up the handler for the HTTP server.
@@ -155,11 +144,6 @@ private:
    * Map of function names to their corresponding notifications.
    */
   std::unordered_map<std::string, NotificationHandle> mNotifications;
-
-  /**
-   * Map of function names to the corresponding function's parameters.
-   */
-  std::unordered_map<std::string, std::vector<std::string>> mParameters;
 
   /**
    * The HTTP server to use to receive JSON requests.

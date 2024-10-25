@@ -17,31 +17,15 @@
  * limitations under the License.
  *
  */
-#include "JsonRpcException.h"
+#include "json/JsonRpcException.h"
+#include "json/JsonErrorType.h"
 
-#include "JsonUtils.h"
+#include <nlohmann/json.hpp>
+#include <string>
 #include <utility>
 
 namespace Hedera::TCK
 {
-//-----
-JsonRpcException JsonRpcException::fromJson(const nlohmann::json& json)
-{
-  if (hasKeyType(json, "code", nlohmann::json::value_t::number_integer) &&
-      hasKeyType(json, "message", nlohmann::json::value_t::string))
-  {
-    if (hasKey(json, "data"))
-    {
-      return { json["code"], json["message"].get<std::string_view>(), json["data"] };
-    }
-
-    return { json["code"], json["message"].get<std::string_view>() };
-  }
-
-  return { JsonErrorType::INTERNAL_ERROR,
-           R"(invalid error response: "code" (negative number) and "message" (string) are required)" };
-}
-
 //-----
 JsonRpcException::JsonRpcException(JsonErrorType code, std::string_view message) noexcept
   : mCode(code)

@@ -17,26 +17,23 @@
  * limitations under the License.
  *
  */
-#include "JsonUtils.h"
+#include "json/JsonUtils.h"
+
+#include <nlohmann/json.hpp>
+#include <string_view>
 
 namespace Hedera::TCK
 {
 //-----
-bool hasKey(const nlohmann::json& request, std::string_view key)
-{
-  return request.contains(key);
-}
-
-//-----
 bool hasKeyType(const nlohmann::json& request, std::string_view key, nlohmann::json::value_t type)
 {
-  return hasKey(request, key) && request.at(key).type() == type;
+  return request.contains(key) && request.at(key).type() == type;
 }
 
 //-----
 bool hasValidId(const nlohmann::json& request)
 {
-  return hasKey(request, "id") && (request["id"].is_number() || request["id"].is_string() || request["id"].is_null());
+  return request.contains("id") && (request["id"].is_number() || request["id"].is_string() || request["id"].is_null());
 }
 
 } // namespace Hedera::TCK

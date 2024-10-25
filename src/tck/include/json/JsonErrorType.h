@@ -20,14 +20,12 @@
 #ifndef HEDERA_TCK_CPP_JSON_ERROR_TYPE_H_
 #define HEDERA_TCK_CPP_JSON_ERROR_TYPE_H_
 
-#include <nlohmann/json.hpp>
-
 namespace Hedera::TCK
 {
 /**
  * Enum used to describe an error seen while handling a JSON RPC request.
  */
-enum class JsonErrorType : int16_t
+enum class JsonErrorType : short
 {
   /**
    * Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.

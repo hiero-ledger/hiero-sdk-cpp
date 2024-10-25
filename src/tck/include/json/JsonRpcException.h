@@ -20,7 +20,7 @@
 #ifndef HEDERA_TCK_CPP_JSON_RPC_EXCEPTION_H_
 #define HEDERA_TCK_CPP_JSON_RPC_EXCEPTION_H_
 
-#include "JsonErrorType.h"
+#include "json/JsonErrorType.h"
 
 #include <nlohmann/json.hpp>
 #include <stdexcept>
@@ -35,14 +35,6 @@ namespace Hedera::TCK
 class JsonRpcException : public std::exception
 {
 public:
-  /**
-   * Construct a JsonRcpException from a JSON object.
-   *
-   * @param json The JSON object containing the error data.
-   * @return The constructed JsonRpcException object.
-   */
-  [[nodiscard]] static JsonRpcException fromJson(const nlohmann::json& json);
-
   /**
    * Construct with an error code and an error message.
    *
