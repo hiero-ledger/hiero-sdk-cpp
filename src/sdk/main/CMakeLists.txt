@@ -4,6 +4,8 @@ FetchContent_Declare(
         GIT_TAG rel/v1.1.0
 )
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+
 set(BUILD_SHARED_LIBS OFF)
 set(BUILD_TESTING OFF)
 set(APR_STATIC ON)
