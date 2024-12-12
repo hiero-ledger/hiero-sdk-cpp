@@ -3,7 +3,7 @@
 #include "ED25519PrivateKey.h"
 #include "FileId.h"
 #include "FreezeTransaction.h"
-#include "NodeCreateTransaction.h"
+#include "NodeUpdateTransaction.h"
 #include "TransactionRecord.h"
 #include "TransactionResponse.h"
 #include "impl/HexConverter.h"
@@ -12,9 +12,10 @@
 
 using namespace Hiero;
 
-class NodeCreateTransactionIntegrationTests : public BaseIntegrationTest
+class NodeUpdateTransactionIntegrationTests : public BaseIntegrationTest
 {
 protected:
+  [[nodiscard]] const uint64_t& getNodeId() const { return mNodeId; }
   [[nodiscard]] const AccountId& getAccountId() const { return mAccountId; }
   [[nodiscard]] const FileId& getFileId() const { return mFileId; }
   [[nodiscard]] const std::vector<Endpoint>& getGossipEndpoints() const { return mGossipEndpoints; }
@@ -29,11 +30,12 @@ protected:
   }
 
 private:
+  const uint64_t mNodeId = 2;
   const AccountId mAccountId = AccountId::fromString("0.0.4");
   const FileId mFileId = FileId::fromString("0.0.150");
   // The file hash needs to be taken from the network context to be correct
   const std::string mFileHash =
-    "ce52a3c62cf51f046ae2f85ff1c895da2b32876d6aa74d2454b6de9d11f58344e5065c807af5f2a1eb5850b26d016c3f";
+    "d9ec902a9fb8dc0f1a43c84b451c59dfe47622d9e5c33965a0ace77003fcad9e0b71478976dbee9dee5d2403f9267b18";
   const Endpoint endpoint1 = Endpoint().setDomainName("test.com").setPort(123);
   const Endpoint endpoint2 = Endpoint().setDomainName("test2.com").setPort(123);
   const std::vector<Endpoint> mGossipEndpoints = { endpoint1, endpoint2 };
@@ -66,7 +68,7 @@ private:
 };
 
 //-----
-TEST_F(NodeCreateTransactionIntegrationTests, DISABLED_CanExecuteNodeCreateTransaction)
+TEST_F(NodeUpdateTransactionIntegrationTests, DISABLED_CanExecuteNodeUpdateTransaction)
 {
   // Given
   const std::shared_ptr<PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
@@ -74,7 +76,8 @@ TEST_F(NodeCreateTransactionIntegrationTests, DISABLED_CanExecuteNodeCreateTrans
   // When / Then
   TransactionResponse txResponse;
 
-  ASSERT_NO_THROW(txResponse = NodeCreateTransaction()
+  ASSERT_NO_THROW(txResponse = NodeUpdateTransaction()
+                                 .setNodeId(getNodeId())
                                  .setAccountId(getAccountId())
                                  .setGossipEndpoints(getGossipEndpoints())
                                  .setServiceEndpoints(getGrpcServiceEndpoints())
