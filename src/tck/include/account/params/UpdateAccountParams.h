@@ -30,12 +30,12 @@ struct UpdateAccountParams
   /**
    * The desired new amount of time in seconds to renew the account.
    */
-  std::optional<int64_t> mAutoRenewPeriod;
+  std::optional<std::string> mAutoRenewPeriod;
 
   /**
    * The new expiration time to which to extend this account.
    */
-  std::optional<int64_t> mExpirationTime;
+  std::optional<std::string> mExpirationTime;
 
   /**
    * Should the account now require a receiver signature?
@@ -60,7 +60,7 @@ struct UpdateAccountParams
   /**
    * The ID of the new desired node to which the account should stake.
    */
-  std::optional<int64_t> mStakedNodeId;
+  std::optional<std::string> mStakedNodeId;
 
   /**
    * Should the account now decline staking rewards?
@@ -93,15 +93,15 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::UpdateAccount
   {
     params.mAccountId = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "accountId");
     params.mKey = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "key");
-    params.mAutoRenewPeriod = Hiero::TCK::getOptionalJsonParameter<int64_t>(jsonFrom, "autoRenewPeriod");
-    params.mExpirationTime = Hiero::TCK::getOptionalJsonParameter<int64_t>(jsonFrom, "expirationTime");
+    params.mAutoRenewPeriod = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "autoRenewPeriod");
+    params.mExpirationTime = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "expirationTime");
     params.mReceiverSignatureRequired =
       Hiero::TCK::getOptionalJsonParameter<bool>(jsonFrom, "receiverSignatureRequired");
     params.mMemo = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "memo");
     params.mMaxAutoTokenAssociations =
       Hiero::TCK::getOptionalJsonParameter<int32_t>(jsonFrom, "maxAutoTokenAssociations");
     params.mStakedAccountId = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "stakedAccountId");
-    params.mStakedNodeId = Hiero::TCK::getOptionalJsonParameter<int64_t>(jsonFrom, "stakedNodeId");
+    params.mStakedNodeId = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "stakedNodeId");
     params.mDeclineStakingReward = Hiero::TCK::getOptionalJsonParameter<bool>(jsonFrom, "declineStakingReward");
     params.mCommonTxParams =
       Hiero::TCK::getOptionalJsonParameter<Hiero::TCK::CommonTransactionParams>(jsonFrom, "commonTransactionParams");

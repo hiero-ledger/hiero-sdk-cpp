@@ -1677,7 +1677,34 @@ enum class Status
   /**
    * The number of gossip endpoints exceeds the limit
    */
-  GOSSIP_ENDPOINTS_EXCEEDED_LIMIT
+  GOSSIP_ENDPOINTS_EXCEEDED_LIMIT,
+
+  /**
+   * A scheduled transaction configured to wait for expiry to execute was given
+   * an expiry time not strictly after the time at which its creation reached
+   * consensus.
+   */
+  SCHEDULE_EXPIRY_MUST_BE_FUTURE,
+
+  /**
+   * A scheduled transaction configured to wait for expiry to execute was given
+   * an expiry time too far in the future after the time at which its creation
+   * reached consensus.
+   */
+  SCHEDULE_EXPIRY_TOO_LONG,
+
+  /**
+   * A scheduled transaction configured to wait for expiry to execute was given
+   * an expiry time at which there is already too many transactions scheduled to
+   * expire; its creation must be retried with a different expiry.
+   */
+  SCHEDULE_EXPIRY_IS_BUSY,
+
+  /**
+   * A scheduled transaction configured to wait for expiry to execute was not
+   * given an explicit expiration time.
+   */
+  MISSING_EXPIRY_TIME
 
 };
 

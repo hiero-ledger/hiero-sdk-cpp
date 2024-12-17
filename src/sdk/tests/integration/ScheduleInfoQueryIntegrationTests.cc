@@ -69,7 +69,7 @@ TEST_F(ScheduleInfoQueryIntegrationTests, ExecuteScheduleInfoQuery)
   EXPECT_NE(scheduleInfo.mScheduledTransaction.getTransaction<TransferTransaction>(), nullptr);
   EXPECT_EQ(scheduleInfo.mMemo, memo);
   EXPECT_EQ(scheduleInfo.mAdminKey->toBytes(), operatorKey->getPublicKey()->toBytes());
-  EXPECT_EQ(scheduleInfo.mSignatories.size(), 0);
+  EXPECT_EQ(scheduleInfo.mSignatories.size(), 1);
   EXPECT_EQ(scheduleInfo.mCreatorAccountId, AccountId(2ULL));
   EXPECT_EQ(scheduleInfo.mPayerAccountId, AccountId(2ULL));
 

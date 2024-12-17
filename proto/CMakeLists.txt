@@ -111,6 +111,10 @@ set(PROTO_FILES
         util_prng.proto
         util_service.proto
 
+        auxiliary/tss/tss_message.proto
+        auxiliary/tss/tss_share_signature.proto
+        auxiliary/tss/tss_vote.proto
+
         mirror/consensus_service.proto
         mirror/mirror_network_service.proto)
 # End Protobuf Definitions

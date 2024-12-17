@@ -16,8 +16,10 @@
 #include <Status.h>
 #include <TransactionReceipt.h>
 #include <TransactionResponse.h>
+#include <impl/EntityIdHelper.h>
 
 #include <chrono>
+#include <cstdint>
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -36,7 +38,8 @@ nlohmann::json createAccount(const CreateAccountParams& params)
 
   if (params.mInitialBalance.has_value())
   {
-    accountCreateTransaction.setInitialBalance(Hbar(params.mInitialBalance.value(), HbarUnit::TINYBAR()));
+    accountCreateTransaction.setInitialBalance(
+      Hbar(Hiero::internal::EntityIdHelper::getNum<int64_t>(params.mInitialBalance.value()), HbarUnit::TINYBAR()));
   }
 
   if (params.mReceiverSignatureRequired.has_value())
@@ -46,7 +49,8 @@ nlohmann::json createAccount(const CreateAccountParams& params)
 
   if (params.mAutoRenewPeriod.has_value())
   {
-    accountCreateTransaction.setAutoRenewPeriod(std::chrono::seconds(params.mAutoRenewPeriod.value()));
+    accountCreateTransaction.setAutoRenewPeriod(
+      std::chrono::seconds(Hiero::internal::EntityIdHelper::getNum<int64_t>(params.mAutoRenewPeriod.value())));
   }
 
   if (params.mMemo.has_value())
@@ -66,7 +70,8 @@ nlohmann::json createAccount(const CreateAccountParams& params)
 
   if (params.mStakedNodeId.has_value())
   {
-    accountCreateTransaction.setStakedNodeId(params.mStakedNodeId.value());
+    accountCreateTransaction.setStakedNodeId(
+      Hiero::internal::EntityIdHelper::getNum<int64_t>(params.mStakedNodeId.value()));
   }
 
   if (params.mDeclineStakingReward.has_value())
@@ -138,13 +143,15 @@ nlohmann::json updateAccount(const UpdateAccountParams& params)
 
   if (params.mAutoRenewPeriod.has_value())
   {
-    accountUpdateTransaction.setAutoRenewPeriod(std::chrono::seconds(params.mAutoRenewPeriod.value()));
+    accountUpdateTransaction.setAutoRenewPeriod(
+      std::chrono::seconds(Hiero::internal::EntityIdHelper::getNum<int64_t>(params.mAutoRenewPeriod.value())));
   }
 
   if (params.mExpirationTime.has_value())
   {
-    accountUpdateTransaction.setExpirationTime(std::chrono::system_clock::from_time_t(0) +
-                                               std::chrono::seconds(params.mExpirationTime.value()));
+    accountUpdateTransaction.setExpirationTime(
+      std::chrono::system_clock::from_time_t(0) +
+      std::chrono::seconds(Hiero::internal::EntityIdHelper::getNum<int64_t>(params.mExpirationTime.value())));
   }
 
   if (params.mReceiverSignatureRequired.has_value())
@@ -169,7 +176,8 @@ nlohmann::json updateAccount(const UpdateAccountParams& params)
 
   if (params.mStakedNodeId.has_value())
   {
-    accountUpdateTransaction.setStakedNodeId(params.mStakedNodeId.value());
+    accountUpdateTransaction.setStakedNodeId(
+      Hiero::internal::EntityIdHelper::getNum<int64_t>(params.mStakedNodeId.value()));
   }
 
   if (params.mDeclineStakingReward.has_value())
