@@ -213,6 +213,9 @@ jobs:
       - name: Setup-nasm
         uses: ilammy/setup-nasm@13cbeb366c45c4379d3478cdcbadd8295feb5028 # v1.5.1
 
+      - name: Enable Git long paths
+        run: git config --global core.longpaths true
+
       - name: Build (Debug)
         run: |
           git submodule update --init
@@ -226,6 +229,7 @@ jobs:
 
       - name: Compute Short SHA
         id: sha
+        shell: pwsh
         run: |
           $sha = "${{ github.sha }}"
           $short = $sha.Substring(0, 8)
