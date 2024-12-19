@@ -10,6 +10,7 @@
 #include "key/params/GenerateKeyParams.h"
 #include "sdk/params/ResetParams.h"
 #include "sdk/params/SetupParams.h"
+#include "token/params/AssociateTokenParams.h"
 #include "token/params/CreateTokenParams.h"
 #include "token/params/DeleteTokenParams.h"
 #include "token/params/UpdateTokenParams.h"
@@ -352,6 +353,8 @@ template TckServer::MethodHandle TckServer::getHandle<SdkClient::ResetParams>(
 template TckServer::MethodHandle TckServer::getHandle<SdkClient::SetupParams>(
   nlohmann::json (*method)(const SdkClient::SetupParams&));
 
+template TckServer::MethodHandle TckServer::getHandle<TokenService::AssociateTokenParams>(
+  nlohmann::json (*method)(const TokenService::AssociateTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::CreateTokenParams>(
   nlohmann::json (*method)(const TokenService::CreateTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::DeleteTokenParams>(
