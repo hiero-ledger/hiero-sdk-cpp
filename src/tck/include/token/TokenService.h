@@ -12,6 +12,7 @@ namespace Hiero::TCK::TokenService
 struct AssociateTokenParams;
 struct CreateTokenParams;
 struct DeleteTokenParams;
+struct MintTokenParams;
 struct UpdateTokenParams;
 
 /**
@@ -37,6 +38,14 @@ nlohmann::json createToken(const CreateTokenParams& params);
  * @return A JSON response containing the status of the token deletion.
  */
 nlohmann::json deleteToken(const DeleteTokenParams& params);
+
+/**
+ * Mint a token.
+ *
+ * @param params The parameters to use to mint a token.
+ * @return A JSON response containing the status of the token mint.
+ */
+nlohmann::json mintToken(const MintTokenParams& params);
 
 /**
  * Update a token.
