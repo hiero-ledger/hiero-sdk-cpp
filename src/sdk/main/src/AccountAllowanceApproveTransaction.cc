@@ -34,11 +34,6 @@ AccountAllowanceApproveTransaction& AccountAllowanceApproveTransaction::approveH
 {
   requireNotFrozen();
 
-  if (amount.toTinybars() < 0LL)
-  {
-    throw std::invalid_argument("Can't approve a negative allowance");
-  }
-
   mHbarAllowances.emplace_back(ownerAccountId, spenderAccountId, amount);
   return *this;
 }
