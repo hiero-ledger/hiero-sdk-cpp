@@ -111,6 +111,8 @@ jobs:
 
       - name: Install CMake & Ninja
         uses: lukka/get-cmake@8567b9d9b63052b8430ef30042e13c3ba5288f16 # v3.31.3
+        with:
+          useCloudCache: false #Seems to be failing due to a timeout.
 
       - name: Setup VCPkg
         uses: lukka/run-vcpkg@5e0cab206a5ea620130caf672fce3e4a6b5666a1 # v11.5
