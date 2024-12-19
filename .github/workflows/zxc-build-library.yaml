@@ -1,6 +1,7 @@
 name: "ZXC: Build Library"
 on:
   workflow_call:
+  workflow_dispatch:
     inputs:
       run-windows-builds:
         description: "Select this option when you want to run the Windows builds."
