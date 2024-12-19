@@ -25,7 +25,6 @@ jobs:
   build:
     name: Build
     runs-on: hiero-client-sdk-linux-large
-    if: false
 
     env:
       HIERO_NETWORK: localhost
@@ -196,8 +195,7 @@ jobs:
   build-windows:
     name: Build (Windows)
     runs-on: windows-latest
-    #if: ${{ (inputs.run-windows-builds) && !cancelled() }} COMMENTED OUT FOR TESTING PURPOSES
-    if: false
+    if: ${{ (inputs.run-windows-builds) && !cancelled() }}
 
     env:
       HEDERA_NETWORK: localhost
@@ -259,7 +257,7 @@ jobs:
   build-macos:
     name: Build (MacOS)
     runs-on: macos-latest
-    #if: ${{ (inputs.run-macos-builds) && !cancelled() }}
+    if: ${{ (inputs.run-macos-builds) && !cancelled() }}
     env:
       HEDERA_NETWORK: localhost
 
