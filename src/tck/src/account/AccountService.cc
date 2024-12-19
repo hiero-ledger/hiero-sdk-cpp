@@ -52,7 +52,7 @@ nlohmann::json approveAllowance(const ApproveAllowanceParams& params)
         TokenId::fromString(allowance.mToken->mTokenId),
         owner,
         spender,
-        internal::EntityIdHelper::getNum(allowance.mToken->mAmount));
+        internal::EntityIdHelper::getNum<int64_t>(allowance.mToken->mAmount));
     }
     else
     {

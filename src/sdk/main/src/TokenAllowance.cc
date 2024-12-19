@@ -7,7 +7,7 @@
 namespace Hiero
 {
 //-----
-TokenAllowance::TokenAllowance(const TokenId& tokenId, AccountId owner, AccountId spender, uint64_t amount)
+TokenAllowance::TokenAllowance(const TokenId& tokenId, AccountId owner, AccountId spender, int64_t amount)
   : mTokenId(tokenId)
   , mOwnerAccountId(std::move(owner))
   , mSpenderAccountId(std::move(spender))
@@ -21,7 +21,7 @@ TokenAllowance TokenAllowance::fromProtobuf(const proto::TokenAllowance& proto)
   return { proto.has_tokenid() ? TokenId::fromProtobuf(proto.tokenid()) : TokenId(),
            proto.has_owner() ? AccountId::fromProtobuf(proto.owner()) : AccountId(),
            proto.has_spender() ? AccountId::fromProtobuf(proto.spender()) : AccountId(),
-           static_cast<uint64_t>(proto.amount()) };
+           proto.amount() };
 }
 
 //-----
@@ -60,7 +60,7 @@ std::unique_ptr<proto::TokenAllowance> TokenAllowance::toProtobuf() const
     proto->set_allocated_spender(mSpenderAccountId.toProtobuf().release());
   }
 
-  proto->set_amount(static_cast<int64_t>(mAmount));
+  proto->set_amount(mAmount);
   return proto;
 }
 

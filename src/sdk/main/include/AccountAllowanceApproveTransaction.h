@@ -101,7 +101,7 @@ public:
   AccountAllowanceApproveTransaction& approveTokenAllowance(const TokenId& tokenId,
                                                             const AccountId& ownerAccountId,
                                                             const AccountId& spenderAccountId,
-                                                            const uint64_t& amount);
+                                                            const int64_t& amount);
 
   /**
    * Add an NFT allowance to this AccountAllowanceApproveTransaction.

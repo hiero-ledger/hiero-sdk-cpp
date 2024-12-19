@@ -43,7 +43,7 @@ AccountAllowanceApproveTransaction& AccountAllowanceApproveTransaction::approveT
   const TokenId& tokenId,
   const AccountId& ownerAccountId,
   const AccountId& spenderAccountId,
-  const uint64_t& amount)
+  const int64_t& amount)
 {
   requireNotFrozen();
   mTokenAllowances.emplace_back(tokenId, ownerAccountId, spenderAccountId, amount);
