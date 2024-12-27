@@ -3,6 +3,7 @@
 #include <Transaction.h> // NOLINT
 
 #include "TckServer.h"
+#include "account/params/ApproveAllowanceParams.h"
 #include "account/params/CreateAccountParams.h"
 #include "account/params/DeleteAccountParams.h"
 #include "account/params/UpdateAccountParams.h"
@@ -12,7 +13,10 @@
 #include "token/params/AssociateTokenParams.h"
 #include "token/params/CreateTokenParams.h"
 #include "token/params/DeleteTokenParams.h"
+#include "token/params/DissociateTokenParams.h"
+#include "token/params/FreezeTokenParams.h"
 #include "token/params/MintTokenParams.h"
+#include "token/params/PauseTokenParams.h"
 #include "token/params/UpdateTokenParams.h"
 #include "json/JsonErrorType.h"
 #include "json/JsonRpcException.h"
@@ -336,6 +340,8 @@ void TckServer::setupHttpHandler()
 /**
  * Explicit template instantiations.
  */
+template TckServer::MethodHandle TckServer::getHandle<AccountService::ApproveAllowanceParams>(
+  nlohmann::json (*method)(const AccountService::ApproveAllowanceParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::CreateAccountParams>(
   nlohmann::json (*method)(const AccountService::CreateAccountParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::DeleteAccountParams>(
@@ -357,8 +363,14 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::CreateTokenP
   nlohmann::json (*method)(const TokenService::CreateTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::DeleteTokenParams>(
   nlohmann::json (*method)(const TokenService::DeleteTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::DissociateTokenParams>(
+  nlohmann::json (*method)(const TokenService::DissociateTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::FreezeTokenParams>(
+  nlohmann::json (*method)(const TokenService::FreezeTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::MintTokenParams>(
   nlohmann::json (*method)(const TokenService::MintTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::PauseTokenParams>(
+  nlohmann::json (*method)(const TokenService::PauseTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::UpdateTokenParams>(
   nlohmann::json (*method)(const TokenService::UpdateTokenParams&));
 

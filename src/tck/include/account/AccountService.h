@@ -9,9 +9,18 @@ namespace Hiero::TCK::AccountService
 /**
  * Forward declarations.
  */
+struct ApproveAllowanceParams;
 struct CreateAccountParams;
 struct DeleteAccountParams;
 struct UpdateAccountParams;
+
+/**
+ * Approve an allowance to an account.
+ *
+ * @param params The parameters to use to approve the allowance.
+ * @return A JSON response containing the status of the allowance approval.
+ */
+nlohmann::json approveAllowance(const ApproveAllowanceParams& params);
 
 /**
  * Create an account.

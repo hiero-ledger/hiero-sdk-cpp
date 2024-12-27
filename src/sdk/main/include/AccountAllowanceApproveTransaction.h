@@ -82,7 +82,6 @@ public:
    * @param spenderAccountId The ID of the account that is being allowed to spend the owning account's Hbar.
    * @param amount           The amount of Hbar that is being approved to spend. This amount must be positive.
    * @return A reference to this AccountAllowanceApproveTransaction object with the added Hbar allowance.
-   * @throws std::invalid_argument If the amount of Hbar is negative.
    * @throws IllegalStateException If this AccountAllowanceApproveTransaction is frozen.
    */
   AccountAllowanceApproveTransaction& approveHbarAllowance(const AccountId& ownerAccountId,
@@ -102,7 +101,7 @@ public:
   AccountAllowanceApproveTransaction& approveTokenAllowance(const TokenId& tokenId,
                                                             const AccountId& ownerAccountId,
                                                             const AccountId& spenderAccountId,
-                                                            const uint64_t& amount);
+                                                            const int64_t& amount);
 
   /**
    * Add an NFT allowance to this AccountAllowanceApproveTransaction.

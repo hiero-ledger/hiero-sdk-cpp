@@ -13,13 +13,13 @@ protected:
   [[nodiscard]] inline const TokenId& getTestTokenId() const { return mTokenId; }
   [[nodiscard]] inline const AccountId& getTestOwnerAccountId() const { return mOwnerAccountId; }
   [[nodiscard]] inline const AccountId& getTestSpenderAccountId() const { return mSpenderAccountId; }
-  [[nodiscard]] inline uint64_t getTestAmount() const { return mAmount; }
+  [[nodiscard]] inline int64_t getTestAmount() const { return mAmount; }
 
 private:
   const TokenId mTokenId = TokenId(1ULL);
   const AccountId mOwnerAccountId = AccountId(2ULL);
   const AccountId mSpenderAccountId = AccountId(3ULL);
-  const uint64_t mAmount = 4ULL;
+  const int64_t mAmount = 4LL;
 };
 
 //-----
@@ -44,7 +44,7 @@ TEST_F(TokenAllowanceUnitTests, FromProtobuf)
   protoTokenAllowance.set_allocated_tokenid(getTestTokenId().toProtobuf().release());
   protoTokenAllowance.set_allocated_owner(getTestOwnerAccountId().toProtobuf().release());
   protoTokenAllowance.set_allocated_spender(getTestSpenderAccountId().toProtobuf().release());
-  protoTokenAllowance.set_amount(static_cast<int64_t>(getTestAmount()));
+  protoTokenAllowance.set_amount(getTestAmount());
 
   // When
   const TokenAllowance tokenAllowance = TokenAllowance::fromProtobuf(protoTokenAllowance);

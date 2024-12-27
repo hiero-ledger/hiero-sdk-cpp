@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-#ifndef HIERO_TCK_CPP_DELETE_TOKEN_PARAMS_H_
-#define HIERO_TCK_CPP_DELETE_TOKEN_PARAMS_H_
+#ifndef HIERO_TCK_CPP_PAUSE_TOKEN_PARAMS_H_
+#define HIERO_TCK_CPP_PAUSE_TOKEN_PARAMS_H_
 
 #include "common/CommonTransactionParams.h"
 #include "json/JsonUtils.h"
@@ -12,12 +12,12 @@
 namespace Hiero::TCK::TokenService
 {
 /**
- * Struct to hold the arguments for a `deleteToken` JSON-RPC method call.
+ * Struct to hold the arguments for a `pauseToken` JSON-RPC method call.
  */
-struct DeleteTokenParams
+struct PauseTokenParams
 {
   /**
-   * The ID of the token to delete.
+   * The ID of the token to pause.
    */
   std::optional<std::string> mTokenId;
 
@@ -32,18 +32,18 @@ struct DeleteTokenParams
 namespace nlohmann
 {
 /**
- * JSON serializer template specialization required to convert DeleteTokenParams arguments properly.
+ * JSON serializer template specialization required to convert PauseTokenParams arguments properly.
  */
 template<>
-struct [[maybe_unused]] adl_serializer<Hiero::TCK::TokenService::DeleteTokenParams>
+struct [[maybe_unused]] adl_serializer<Hiero::TCK::TokenService::PauseTokenParams>
 {
   /**
-   * Convert a JSON object to a DeleteTokenParams.
+   * Convert a JSON object to a PauseTokenParams.
    *
-   * @param jsonFrom The JSON object with which to fill the DeleteTokenParams.
-   * @param params   The DeleteTokenParams to fill with the JSON object.
+   * @param jsonFrom The JSON object with which to fill the PauseTokenParams.
+   * @param params   The PauseTokenParams to fill with the JSON object.
    */
-  static void from_json(const json& jsonFrom, Hiero::TCK::TokenService::DeleteTokenParams& params)
+  static void from_json(const json& jsonFrom, Hiero::TCK::TokenService::PauseTokenParams& params)
   {
     params.mTokenId = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "tokenId");
     params.mCommonTxParams =
@@ -53,4 +53,4 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::TokenService::DeleteTokenPara
 
 } // namespace nlohmann
 
-#endif // HIERO_TCK_CPP_DELETE_TOKEN_PARAMS_H_
+#endif // HIERO_TCK_CPP_PAUSE_TOKEN_PARAMS_H_

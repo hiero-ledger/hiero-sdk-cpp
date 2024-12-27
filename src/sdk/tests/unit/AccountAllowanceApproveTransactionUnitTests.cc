@@ -143,18 +143,6 @@ TEST_F(AccountAllowanceApproveTransactionUnitTests, ApproveHbarAllowanceFrozen)
 }
 
 //-----
-TEST_F(AccountAllowanceApproveTransactionUnitTests, ApproveHbarAllowanceNegativeAllowance)
-{
-  // Given
-  AccountAllowanceApproveTransaction transaction;
-
-  // When / Then
-  EXPECT_THROW(
-    transaction.approveHbarAllowance(getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmountHbar().negated()),
-    std::invalid_argument);
-}
-
-//-----
 TEST_F(AccountAllowanceApproveTransactionUnitTests, ApproveTokenAllowance)
 {
   // Given

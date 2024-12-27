@@ -34,11 +34,6 @@ AccountAllowanceApproveTransaction& AccountAllowanceApproveTransaction::approveH
 {
   requireNotFrozen();
 
-  if (amount.toTinybars() < 0LL)
-  {
-    throw std::invalid_argument("Can't approve a negative allowance");
-  }
-
   mHbarAllowances.emplace_back(ownerAccountId, spenderAccountId, amount);
   return *this;
 }
@@ -48,7 +43,7 @@ AccountAllowanceApproveTransaction& AccountAllowanceApproveTransaction::approveT
   const TokenId& tokenId,
   const AccountId& ownerAccountId,
   const AccountId& spenderAccountId,
-  const uint64_t& amount)
+  const int64_t& amount)
 {
   requireNotFrozen();
   mTokenAllowances.emplace_back(tokenId, ownerAccountId, spenderAccountId, amount);
