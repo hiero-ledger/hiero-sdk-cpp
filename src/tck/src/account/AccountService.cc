@@ -69,15 +69,18 @@ nlohmann::json approveAllowance(const ApproveAllowanceParams& params)
               : AccountId());
         }
       }
-      else if (allowance.mNft->mApprovedForAll.has_value())
-      {
-        accountAllowanceApproveTransaction.approveNftAllowanceAllSerials(
-          TokenId::fromString(allowance.mNft->mTokenId), owner, spender);
-      }
       else
       {
-        accountAllowanceApproveTransaction.deleteNftAllowanceAllSerials(
-          TokenId::fromString(allowance.mNft->mTokenId), owner, spender);
+        if (allowance.mNft->mApprovedForAll.value())
+        {
+          accountAllowanceApproveTransaction.approveNftAllowanceAllSerials(
+            TokenId::fromString(allowance.mNft->mTokenId), owner, spender);
+        }
+        else
+        {
+          accountAllowanceApproveTransaction.deleteNftAllowanceAllSerials(
+            TokenId::fromString(allowance.mNft->mTokenId), owner, spender);
+        }
       }
     }
   }

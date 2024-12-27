@@ -13,6 +13,8 @@
 #include "token/params/AssociateTokenParams.h"
 #include "token/params/CreateTokenParams.h"
 #include "token/params/DeleteTokenParams.h"
+#include "token/params/DissociateTokenParams.h"
+#include "token/params/FreezeTokenParams.h"
 #include "token/params/MintTokenParams.h"
 #include "token/params/PauseTokenParams.h"
 #include "token/params/UpdateTokenParams.h"
@@ -361,6 +363,10 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::CreateTokenP
   nlohmann::json (*method)(const TokenService::CreateTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::DeleteTokenParams>(
   nlohmann::json (*method)(const TokenService::DeleteTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::DissociateTokenParams>(
+  nlohmann::json (*method)(const TokenService::DissociateTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::FreezeTokenParams>(
+  nlohmann::json (*method)(const TokenService::FreezeTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::MintTokenParams>(
   nlohmann::json (*method)(const TokenService::MintTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::PauseTokenParams>(
