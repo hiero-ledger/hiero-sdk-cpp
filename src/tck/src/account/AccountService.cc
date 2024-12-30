@@ -3,13 +3,18 @@
 #include "account/params/ApproveAllowanceParams.h"
 #include "account/params/CreateAccountParams.h"
 #include "account/params/DeleteAccountParams.h"
+#include "account/params/DeleteAllowanceParams.h"
 #include "account/params/UpdateAccountParams.h"
 #include "account/params/allowance/AllowanceParams.h"
+#include "account/params/allowance/RemoveAllowanceParams.h"
 #include "common/CommonTransactionParams.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
+#include "json/JsonErrorType.h"
+#include "json/JsonRpcException.h"
 
 #include <AccountAllowanceApproveTransaction.h>
+#include <AccountAllowanceDeleteTransaction.h>
 #include <AccountCreateTransaction.h>
 #include <AccountDeleteTransaction.h>
 #include <AccountId.h>
@@ -25,6 +30,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <iostream>
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -94,6 +100,43 @@ nlohmann::json approveAllowance(const ApproveAllowanceParams& params)
     {"status",
      gStatusToString.at(
         accountAllowanceApproveTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json deleteAllowance(const DeleteAllowanceParams& params)
+{
+  AccountAllowanceDeleteTransaction accountAllowanceDeleteTransaction;
+  accountAllowanceDeleteTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  for (const RemoveAllowanceParams& allowance : params.mAllowances)
+  {
+    std::cout << "account id" << std::endl;
+    const AccountId owner = AccountId::fromString(allowance.mOwnerAccountId);
+    std::cout << "token id" << std::endl;
+    const TokenId tokenId = TokenId::fromString(allowance.mTokenId);
+
+    for (const std::string& serialNumber : allowance.mSerialNumbers)
+    {
+      std::cout << "serial number " << serialNumber << std::endl;
+      uint64_t num = internal::EntityIdHelper::getNum(serialNumber);
+      std::cout << "num" << std::endl;
+      NftId nftId(tokenId, num);
+      std::cout << "nftid" << std::endl;
+      accountAllowanceDeleteTransaction.deleteAllTokenNftAllowances(nftId, owner);
+    }
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(accountAllowanceDeleteTransaction, SdkClient::getClient());
+  }
+
+  std::cout << "submit" << std::endl;
+  auto txreceipt = accountAllowanceDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
+  std::cout << "end" << std::endl;
+  return {
+    {"status", gStatusToString.at(txreceipt.mStatus)}
   };
 }
 
