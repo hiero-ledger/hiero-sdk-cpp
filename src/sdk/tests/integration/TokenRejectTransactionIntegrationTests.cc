@@ -10,6 +10,7 @@
 #include "TokenFreezeTransaction.h"
 #include "TokenMintTransaction.h"
 #include "TokenPauseTransaction.h"
+#include "TokenRejectFlow.h"
 #include "TokenRejectTransaction.h"
 #include "TransactionReceipt.h"
 #include "TransactionResponse.h"
@@ -892,4 +893,63 @@ TEST_F(TokenRejectTransactionIntegrationTests, FailsWithInvalidSignature)
                              .execute(getTestClient())
                              .getReceipt(getTestClient()),
                ReceiptStatusException);
+}
+
+TEST_F(TokenRejectTransactionIntegrationTests, CanExecuteFlowForFT)
+{
+  // Given
+  std::shared_ptr<PrivateKey> operatorKey;
+  ASSERT_NO_THROW(
+    operatorKey = ED25519PrivateKey::fromString(
+      "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"));
+
+  // Create two fts
+  TokenId tokenId1;
+  ASSERT_NO_THROW(tokenId1 = createFt(operatorKey));
+
+  // Create receiver account with auto associations
+  AccountId receiver;
+  std::shared_ptr<PrivateKey> receiverKey = ED25519PrivateKey::generatePrivateKey();
+  ASSERT_NO_THROW(receiver = createAccount(receiverKey));
+
+  // When
+  // manually associate ft
+  TransactionReceipt txReceipt;
+  ASSERT_NO_THROW(txReceipt = TokenAssociateTransaction()
+                                .setAccountId(receiver)
+                                .setTokenIds({ tokenId1 })
+                                .freezeWith(&getTestClient())
+                                .sign(receiverKey)
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient()));
+
+  // Transfer fts to the receiver
+  ASSERT_NO_THROW(txReceipt = TransferTransaction()
+                                .addTokenTransfer(tokenId1, getTestClient().getOperatorAccountId().value(), -10)
+                                .addTokenTransfer(tokenId1, receiver, 10)
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient()));
+
+  // Then
+  // Initialize a TokenRejectFlow
+  TokenRejectFlow tokenRejectFlow;
+  tokenRejectFlow.tokenRejectTransaction.setOwner(receiver).setFts({ tokenId1 });
+  tokenRejectFlow.tokenDissociateTransaction.setAccountId(receiver);
+  tokenRejectFlow.setReceiverPrivateKey(receiverKey);
+
+  // execute the token reject flow
+  EXPECT_NO_THROW(txReceipt = tokenRejectFlow.execute(getTestClient()).getReceipt(getTestClient()););
+
+  // Verify the balance of the receiver is 0
+  AccountBalance balance;
+  EXPECT_NO_THROW(balance = AccountBalanceQuery().setAccountId(receiver).execute(getTestClient()));
+
+  EXPECT_EQ(0, balance.mTokens[tokenId1]);
+
+  // Verify the tokens are transferred back to the treasury
+  EXPECT_NO_THROW(
+    balance =
+      AccountBalanceQuery().setAccountId(getTestClient().getOperatorAccountId().value()).execute(getTestClient()));
+
+  EXPECT_EQ(100000, balance.mTokens[tokenId1]);
 }
