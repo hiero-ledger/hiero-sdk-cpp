@@ -9,8 +9,10 @@
 #include "key/params/GenerateKeyParams.h"
 #include "sdk/params/ResetParams.h"
 #include "sdk/params/SetupParams.h"
+#include "token/params/BurnTokenParams.h"
 #include "token/params/CreateTokenParams.h"
 #include "token/params/DeleteTokenParams.h"
+#include "token/params/MintTokenParams.h"
 #include "token/params/UpdateTokenParams.h"
 #include "json/JsonErrorType.h"
 #include "json/JsonRpcException.h"
@@ -349,10 +351,14 @@ template TckServer::MethodHandle TckServer::getHandle<SdkClient::ResetParams>(
 template TckServer::MethodHandle TckServer::getHandle<SdkClient::SetupParams>(
   nlohmann::json (*method)(const SdkClient::SetupParams&));
 
+template TckServer::MethodHandle TckServer::getHandle<TokenService::BurnTokenParams>(
+  nlohmann::json (*method)(const TokenService::BurnTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::CreateTokenParams>(
   nlohmann::json (*method)(const TokenService::CreateTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::DeleteTokenParams>(
   nlohmann::json (*method)(const TokenService::DeleteTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::MintTokenParams>(
+  nlohmann::json (*method)(const TokenService::MintTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::UpdateTokenParams>(
   nlohmann::json (*method)(const TokenService::UpdateTokenParams&));
 
