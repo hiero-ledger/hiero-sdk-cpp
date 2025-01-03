@@ -89,6 +89,10 @@ grpc::Status Node::submitTransaction(proto::TransactionBody::DataCase funcEnum,
   {
     case proto::TransactionBody::DataCase::kNodeCreate:
       return mAddressBookStub->createNode(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kNodeDelete:
+      return mAddressBookStub->createNode(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kNodeUpdate:
+      return mAddressBookStub->createNode(&context, transaction, response);
     case proto::TransactionBody::DataCase::kConsensusCreateTopic:
       return mConsensusStub->createTopic(&context, transaction, response);
     case proto::TransactionBody::DataCase::kConsensusDeleteTopic:
