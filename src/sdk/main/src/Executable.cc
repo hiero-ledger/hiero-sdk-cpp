@@ -481,9 +481,7 @@ Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, SdkResponseType>
     // Verify the node account ID mapped to a valid Node.
     if (nodeProxies.empty())
     {
-      throw IllegalStateException("Attempting to fetch node proxies for " + accountId.toString() +
-                                  " which is not included in the Client's network. Please review your Client "
-                                  "configuration or the set node account id.");
+      continue;
     }
 
     // If there is a single node account id add all it's corresponding proxies
@@ -496,6 +494,13 @@ Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, SdkResponseType>
     // Pick a random proxy from the proxy list to add to the node list.
     nodes.push_back(
       nodeProxies.at(internal::Utilities::getRandomNumber(0U, static_cast<unsigned int>(nodeProxies.size()) - 1U)));
+  }
+
+  if (nodes.empty())
+  {
+    throw IllegalStateException(
+      "Attempting to fetch node proxies for which are not included in the Client's network. Please review your Client "
+      "configuration or the set node account id.");
   }
 
   return nodes;
