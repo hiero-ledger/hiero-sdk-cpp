@@ -472,24 +472,7 @@ Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, SdkResponseType>
 {
   std::vector<std::shared_ptr<internal::Node>> nodes;
 
-  // If only a single node is explicitly set, still return all the proxies for that node. It's possible the node itself
-  // still works but something could be wrong with the proxy, in which case trying a different proxy would work.
-  if (mNodeAccountIds.size() == 1)
-  {
-    nodes = client.getClientNetwork()->getNodeProxies(*mNodeAccountIds.cbegin());
-
-    // Still verify the node account ID mapped to a valid Node.
-    if (nodes.empty())
-    {
-      throw IllegalStateException("Node account ID " + mNodeAccountIds.cbegin()->toString() +
-                                  " did not map to a valid node in the input Client's network.");
-    }
-
-    return nodes;
-  }
-
-  // If there are multiple nodes, this Executable should simply try a different node instead of a different proxy on the
-  // same node.
+  // If there are multiple nodes, this Executable should simply try a different node.
   for (const AccountId& accountId : mNodeAccountIds)
   {
     const std::vector<std::shared_ptr<internal::Node>> nodeProxies =
@@ -498,8 +481,15 @@ Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, SdkResponseType>
     // Verify the node account ID mapped to a valid Node.
     if (nodeProxies.empty())
     {
-      throw IllegalStateException("Node account ID " + accountId.toString() +
-                                  " did not map to a valid node in the input Client's network.");
+      throw IllegalStateException("Attempting to fetch node proxies for " + accountId.toString() +
+                                  " which is not included in the Client's network. Please review your Client "
+                                  "configuration or the set node account id.");
+    }
+
+    // If there is a single node account id add all it's corresponding proxies
+    if (mNodeAccountIds.size() == 1)
+    {
+      nodes.insert(nodes.end(), nodeProxies.begin(), nodeProxies.end());
     }
 
     // Pick a random proxy from the proxy list to add to the node list.
