@@ -2,32 +2,120 @@
 #include "token/TokenService.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
+#include "token/params/AssociateTokenParams.h"
+#include "token/params/BurnTokenParams.h"
 #include "token/params/CreateTokenParams.h"
 #include "token/params/DeleteTokenParams.h"
+#include "token/params/DissociateTokenParams.h"
+#include "token/params/FreezeTokenParams.h"
+#include "token/params/MintTokenParams.h"
+#include "token/params/PauseTokenParams.h"
 #include "token/params/UpdateTokenParams.h"
 #include "json/JsonErrorType.h"
 #include "json/JsonRpcException.h"
 
 #include <AccountId.h>
 #include <Status.h>
+#include <TokenAssociateTransaction.h>
+#include <TokenBurnTransaction.h>
 #include <TokenCreateTransaction.h>
 #include <TokenDeleteTransaction.h>
+#include <TokenDissociateTransaction.h>
+#include <TokenFreezeTransaction.h>
 #include <TokenId.h>
+#include <TokenMintTransaction.h>
+#include <TokenPauseTransaction.h>
 #include <TokenSupplyType.h>
 #include <TokenType.h>
 #include <TokenUpdateTransaction.h>
 #include <TransactionReceipt.h>
 #include <TransactionResponse.h>
 #include <impl/EntityIdHelper.h>
+#include <impl/HexConverter.h>
 #include <impl/Utilities.h>
 
 #include <chrono>
 #include <cstdint>
 #include <nlohmann/json.hpp>
 #include <string>
+#include <vector>
 
 namespace Hiero::TCK::TokenService
 {
+//-----
+nlohmann::json associateToken(const AssociateTokenParams& params)
+{
+  TokenAssociateTransaction tokenAssociateTransaction;
+  tokenAssociateTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mAccountId.has_value())
+  {
+    tokenAssociateTransaction.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  if (params.mTokenIds.has_value())
+  {
+    std::vector<TokenId> tokenIds;
+    for (const std::string& tokenId : params.mTokenIds.value())
+    {
+      tokenIds.push_back(TokenId::fromString(tokenId));
+    }
+
+    tokenAssociateTransaction.setTokenIds(tokenIds);
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenAssociateTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenAssociateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json burnToken(const BurnTokenParams& params)
+{
+  TokenBurnTransaction tokenBurnTransaction;
+  tokenBurnTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenBurnTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mAmount.has_value())
+  {
+    tokenBurnTransaction.setAmount(internal::EntityIdHelper::getNum(params.mAmount.value()));
+  }
+
+  if (params.mSerialNumbers.has_value())
+  {
+    std::vector<uint64_t> serialNumbers;
+    for (const std::string& serialNumber : params.mSerialNumbers.value())
+    {
+      serialNumbers.push_back(internal::EntityIdHelper::getNum(serialNumber));
+    }
+
+    tokenBurnTransaction.setSerialNumbers(serialNumbers);
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenBurnTransaction, SdkClient::getClient());
+  }
+
+  const TransactionReceipt txReceipt =
+    tokenBurnTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
+  return {
+    {"status",          gStatusToString.at(txReceipt.mStatus)            },
+    { "newTotalSupply", std::to_string(txReceipt.mNewTotalSupply.value())}
+  };
+}
+
 //-----
 nlohmann::json createToken(const CreateTokenParams& params)
 {
@@ -183,7 +271,7 @@ nlohmann::json createToken(const CreateTokenParams& params)
 nlohmann::json deleteToken(const DeleteTokenParams& params)
 {
   TokenDeleteTransaction tokenDeleteTransaction;
-  tokenDeleteTransaction.setGrpcDeadline(std::chrono::seconds(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT));
+  tokenDeleteTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
 
   if (params.mTokenId.has_value())
   {
@@ -203,10 +291,146 @@ nlohmann::json deleteToken(const DeleteTokenParams& params)
 }
 
 //-----
+nlohmann::json dissociateToken(const DissociateTokenParams& params)
+{
+  TokenDissociateTransaction tokenDissociateTransaction;
+  tokenDissociateTransaction.setGrpcDeadline(std::chrono::seconds(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT));
+
+  if (params.mAccountId.has_value())
+  {
+    tokenDissociateTransaction.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  if (params.mTokenIds.has_value())
+  {
+    std::vector<TokenId> tokenIds;
+    for (const std::string& tokenId : params.mTokenIds.value())
+    {
+      tokenIds.push_back(TokenId::fromString(tokenId));
+    }
+
+    tokenDissociateTransaction.setTokenIds(tokenIds);
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenDissociateTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenDissociateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json freezeToken(const FreezeTokenParams& params)
+{
+  TokenFreezeTransaction tokenFreezeTransaction;
+  tokenFreezeTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenFreezeTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mAccountId.has_value())
+  {
+    tokenFreezeTransaction.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenFreezeTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenFreezeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json mintToken(const MintTokenParams& params)
+{
+  TokenMintTransaction tokenMintTransaction;
+  tokenMintTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenMintTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mAmount.has_value())
+  {
+    tokenMintTransaction.setAmount(Hiero::internal::EntityIdHelper::getNum(params.mAmount.value()));
+  }
+
+  if (params.mMetadata.has_value())
+  {
+    std::vector<std::vector<std::byte>> allMetadata;
+    for (const std::string& metadata : params.mMetadata.value())
+    {
+      allMetadata.push_back(internal::HexConverter::hexToBytes(metadata));
+    }
+
+    tokenMintTransaction.setMetadata(allMetadata);
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenMintTransaction, SdkClient::getClient());
+  }
+
+  const TransactionReceipt txReceipt =
+    tokenMintTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
+
+  nlohmann::json response = {
+    {"status",          gStatusToString.at(txReceipt.mStatus)            },
+    { "newTotalSupply", std::to_string(txReceipt.mNewTotalSupply.value())}
+  };
+
+  if (!txReceipt.mSerialNumbers.empty())
+  {
+    for (const uint64_t& serialNumber : txReceipt.mSerialNumbers)
+    {
+      response["serialNumbers"].push_back(std::to_string(serialNumber));
+    }
+  }
+
+  return response;
+}
+
+//-----
+nlohmann::json pauseToken(const PauseTokenParams& params)
+{
+  TokenPauseTransaction tokenPauseTransaction;
+  tokenPauseTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenPauseTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenPauseTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenPauseTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
 nlohmann::json updateToken(const UpdateTokenParams& params)
 {
   TokenUpdateTransaction tokenUpdateTransaction;
-  tokenUpdateTransaction.setGrpcDeadline(std::chrono::seconds(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT));
+  tokenUpdateTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
 
   if (params.mTokenId.has_value())
   {
