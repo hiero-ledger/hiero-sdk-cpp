@@ -12,6 +12,7 @@ namespace Hiero::TCK::TokenService
 struct CreateTokenParams;
 struct DeleteTokenParams;
 struct MintTokenParams;
+struct PauseTokenParams;
 struct UpdateTokenParams;
 
 /**
@@ -37,6 +38,14 @@ nlohmann::json deleteToken(const DeleteTokenParams& params);
  * @return A JSON response containing the status of the token mint.
  */
 nlohmann::json mintToken(const MintTokenParams& params);
+
+/**
+ * Pause a token.
+ *
+ * @param params The parameters to use to pause a token.
+ * @return A JSON response containing the status of the token pause.
+ */
+nlohmann::json pauseToken(const PauseTokenParams& params);
 
 /**
  * Update a token.
