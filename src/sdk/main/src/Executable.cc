@@ -490,6 +490,7 @@ Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, SdkResponseType>
     if (mNodeAccountIds.size() == 1)
     {
       nodes.insert(nodes.end(), nodeProxies.begin(), nodeProxies.end());
+      break;
     }
 
     // Pick a random proxy from the proxy list to add to the node list.
