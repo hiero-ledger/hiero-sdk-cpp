@@ -1,6 +1,19 @@
 name: "ZXC: Build Library"
 on:
   workflow_call:
+    inputs:
+      run-windows-builds:
+        description: "Select this option when you want to run the Windows builds."
+        type: boolean
+        required: false
+        default: false
+
+      run-macos-builds:
+        description: "Select this option when you want to run the MacOS builds."
+        type: boolean
+        required: false
+        default: false
+
   workflow_dispatch:
     inputs:
       run-windows-builds:
@@ -87,12 +100,6 @@ jobs:
         with:
           submodules: true
 
-      #      - name: Run Clang-Format
-      #        uses: jidicula/clang-format-action@c74383674bf5f7c69f60ce562019c1c94bc1421a # v4.13.0
-      #        with:
-      #          clang-format-version: "17"
-      #          check-path: "src"
-
       - name: Use Node.js 22
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
@@ -112,7 +119,8 @@ jobs:
       - name: Install CMake & Ninja
         uses: lukka/get-cmake@8567b9d9b63052b8430ef30042e13c3ba5288f16 # v3.31.3
         with:
-          useCloudCache: false #Seems to be failing due to a timeout.
+          #useCloudCache: false #Seems to be failing due to a timeout.
+          useCloudCache: true #test to see if it's still failing
 
       - name: Setup VCPkg
         uses: lukka/run-vcpkg@5e0cab206a5ea620130caf672fce3e4a6b5666a1 # v11.5
@@ -122,14 +130,6 @@ jobs:
       - name: Convert VCPkg to Full Clone
         working-directory: vcpkg
         run: git fetch --unshallow --prune
-
-      #      - name: CMake Build (Debug)
-      #        uses: lukka/run-cmake@2ce8982be71b8e9a3c4d5e432135035afd1e76a7 # v10.7
-      #        env:
-      #          VCPKG_BINARY_SOURCES: clear
-      #        with:
-      #          configurePreset: ${{ matrix.preset }}-debug
-      #          buildPreset: ${{ matrix.preset }}-debug
 
       - name: CMake Build (Debug)
         env:
@@ -143,15 +143,6 @@ jobs:
           ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-debug
           echo "::endgroup::"
 
-      #      - name: CMake Build (Release)
-      #        if: github.event.pull_request.merged == true
-      #        uses: lukka/run-cmake@2ce8982be71b8e9a3c4d5e432135035afd1e76a7 # v10.7
-      #        env:
-      #          VCPKG_BINARY_SOURCES: clear
-      #        with:
-      #          configurePreset: ${{ matrix.preset }}-release
-      #          buildPreset: ${{ matrix.preset }}-release
-
       - name: CMake Build (Release)
         if: github.event.pull_request.merged == true
         env:
@@ -164,11 +155,6 @@ jobs:
           echo "::group::Build Project"
           ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-release
           echo "::endgroup::"
-
-      # - name: List Directory Structure
-      #     if: ${{ contains(runner.os, 'Windows') && always() }}
-      #     shell: pwsh
-      #     run: tree /F build
 
       - name: Start the local node
         run: npx hedera start --verbose=trace --detached --network-tag=0.57.0
