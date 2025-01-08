@@ -1,6 +1,32 @@
 name: "ZXC: Build Library"
 on:
   workflow_call:
+    inputs:
+      run-windows-builds:
+        description: "Select this option when you want to run the Windows builds."
+        type: boolean
+        required: false
+        default: false
+
+      run-macos-builds:
+        description: "Select this option when you want to run the MacOS builds."
+        type: boolean
+        required: false
+        default: false
+
+  workflow_dispatch:
+    inputs:
+      run-windows-builds:
+        description: "Select this option when you want to run the Windows builds."
+        type: boolean
+        required: false
+        default: false
+
+      run-macos-builds:
+        description: "Select this option when you want to run the MacOS builds."
+        type: boolean
+        required: false
+        default: false
 
 defaults:
   run:
@@ -74,12 +100,6 @@ jobs:
         with:
           submodules: true
 
-      #      - name: Run Clang-Format
-      #        uses: jidicula/clang-format-action@c74383674bf5f7c69f60ce562019c1c94bc1421a # v4.13.0
-      #        with:
-      #          clang-format-version: "17"
-      #          check-path: "src"
-
       - name: Use Node.js 22
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
@@ -98,6 +118,8 @@ jobs:
 
       - name: Install CMake & Ninja
         uses: lukka/get-cmake@8567b9d9b63052b8430ef30042e13c3ba5288f16 # v3.31.3
+        with:
+          useCloudCache: true
 
       - name: Setup VCPkg
         uses: lukka/run-vcpkg@5e0cab206a5ea620130caf672fce3e4a6b5666a1 # v11.5
@@ -107,14 +129,6 @@ jobs:
       - name: Convert VCPkg to Full Clone
         working-directory: vcpkg
         run: git fetch --unshallow --prune
-
-      #      - name: CMake Build (Debug)
-      #        uses: lukka/run-cmake@2ce8982be71b8e9a3c4d5e432135035afd1e76a7 # v10.7
-      #        env:
-      #          VCPKG_BINARY_SOURCES: clear
-      #        with:
-      #          configurePreset: ${{ matrix.preset }}-debug
-      #          buildPreset: ${{ matrix.preset }}-debug
 
       - name: CMake Build (Debug)
         env:
@@ -128,15 +142,6 @@ jobs:
           ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-debug
           echo "::endgroup::"
 
-      #      - name: CMake Build (Release)
-      #        if: github.event.pull_request.merged == true
-      #        uses: lukka/run-cmake@2ce8982be71b8e9a3c4d5e432135035afd1e76a7 # v10.7
-      #        env:
-      #          VCPKG_BINARY_SOURCES: clear
-      #        with:
-      #          configurePreset: ${{ matrix.preset }}-release
-      #          buildPreset: ${{ matrix.preset }}-release
-
       - name: CMake Build (Release)
         if: github.event.pull_request.merged == true
         env:
@@ -149,11 +154,6 @@ jobs:
           echo "::group::Build Project"
           ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-release
           echo "::endgroup::"
-
-      # - name: List Directory Structure
-      #     if: ${{ contains(runner.os, 'Windows') && always() }}
-      #     shell: pwsh
-      #     run: tree /F build
 
       - name: Start the local node
         run: npx hedera start --verbose=trace --detached --network-tag=0.57.0
@@ -175,6 +175,111 @@ jobs:
       - name: Attach Artifact
         if: github.event.pull_request.merged == true
         uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+        with:
+          name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
+          path: package/
+          if-no-files-found: warn
+
+  build-windows:
+    name: Build (Windows)
+    runs-on: windows-latest
+    if: ${{ (inputs.run-windows-builds) && !cancelled() }}
+
+    env:
+      HEDERA_NETWORK: localhost
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout Code
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup-msbuild
+        uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
+        with:
+          msbuild-architecture: x64
+
+      - name: Setup-perl
+        uses: shogo82148/actions-setup-perl@9c1eca9952ccc07f9ca4a2097b63df93d9d138e9 # v1.31.3
+        with:
+          perl-version: "5.32"
+          distribution: strawberry
+
+      - name: Setup-nasm
+        uses: ilammy/setup-nasm@13cbeb366c45c4379d3478cdcbadd8295feb5028 # v1.5.1
+
+      - name: Enable Git long paths
+        run: git config --global core.longpaths true
+
+      - name: Build (Debug)
+        run: |
+          git submodule update --init
+          cmake --preset windows-x64-debug
+          cmake --build --preset windows-x64-debug -j 4
+
+      - name: Build (Release)
+        run: |
+          cmake --preset windows-x64-release
+          cmake --build --preset windows-x64-release -j 4
+
+      - name: Compute Short SHA
+        id: sha
+        shell: pwsh
+        run: |
+          $sha = "${{ github.sha }}"
+          $short = $sha.Substring(0, 8)
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "short=$short"
+
+      - name: Attach Artifact
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
+          path: package/
+          if-no-files-found: warn
+
+  build-macos:
+    name: Build (MacOS)
+    runs-on: macos-latest
+    if: ${{ (inputs.run-macos-builds) && !cancelled() }}
+    env:
+      HEDERA_NETWORK: localhost
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout Code
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          fetch-depth: 0
+
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@96bed6edff20d1dd61ecff9b75cc519d516e6401 # v5.0.0
+
+      - name: Build (Debug)
+        run: |
+          git submodule update --init
+          cmake --preset macos-arm64-debug
+          cmake --build --preset macos-arm64-debug -j 4
+
+      - name: Build (Release)
+        run: |
+          cmake --preset macos-arm64-release
+          cmake --build --preset macos-arm64-release -j 4
+          
+      - name: Compute Short SHA
+        id: sha
+        run: echo "short=$(echo -n "${{ github.sha }}" | cut -c1-8)" >> $GITHUB_OUTPUT
+
+      - name: Attach Artifact
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
