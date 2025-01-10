@@ -174,7 +174,7 @@ jobs:
 
       - name: Attach Artifact
         if: github.event.pull_request.merged == true
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
@@ -236,7 +236,7 @@ jobs:
           Add-Content -Path $env:GITHUB_OUTPUT -Value "short=$short"
 
       - name: Attach Artifact
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
@@ -279,7 +279,7 @@ jobs:
         run: echo "short=$(echo -n "${{ github.sha }}" | cut -c1-8)" >> $GITHUB_OUTPUT
 
       - name: Attach Artifact
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
