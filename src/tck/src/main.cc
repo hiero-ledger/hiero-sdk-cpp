@@ -31,6 +31,7 @@ int main(int argc, char** argv)
   tckServer.add("associateToken", tckServer.getHandle(&TokenService::associateToken));
   tckServer.add("createToken", tckServer.getHandle(&TokenService::createToken));
   tckServer.add("deleteToken", tckServer.getHandle(&TokenService::deleteToken));
+  tckServer.add("updateTokenFeeSchedule", tckServer.getHandle(&TokenService::updateTokenFeeSchedule));
   tckServer.add("updateToken", tckServer.getHandle(&TokenService::updateToken));
 
   // Start listening for requests.

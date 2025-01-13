@@ -5,6 +5,7 @@
 #include "token/params/AssociateTokenParams.h"
 #include "token/params/CreateTokenParams.h"
 #include "token/params/DeleteTokenParams.h"
+#include "token/params/UpdateTokenFeeScheduleParams.h"
 #include "token/params/UpdateTokenParams.h"
 #include "json/JsonErrorType.h"
 #include "json/JsonRpcException.h"
@@ -14,6 +15,7 @@
 #include <TokenAssociateTransaction.h>
 #include <TokenCreateTransaction.h>
 #include <TokenDeleteTransaction.h>
+#include <TokenFeeScheduleUpdateTransaction.h>
 #include <TokenId.h>
 #include <TokenSupplyType.h>
 #include <TokenType.h>
@@ -236,6 +238,34 @@ nlohmann::json deleteToken(const DeleteTokenParams& params)
     {"status",
      gStatusToString.at(
         tokenDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json updateTokenFeeSchedule(const UpdateTokenFeeScheduleParams& params)
+{
+  TokenFeeScheduleUpdateTransaction tokenFeeScheduleUpdateTransaction;
+  tokenFeeScheduleUpdateTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenFeeScheduleUpdateTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mCustomFees.has_value())
+  {
+    tokenFeeScheduleUpdateTransaction.setCustomFees(params.mCustomFees.value());
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenFeeScheduleUpdateTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenFeeScheduleUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
