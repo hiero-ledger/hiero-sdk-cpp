@@ -9,10 +9,20 @@ namespace Hiero::TCK::TokenService
 /**
  * Forward declarations.
  */
+struct AssociateTokenParams;
 struct CreateTokenParams;
 struct DeleteTokenParams;
 struct PauseTokenParams;
+struct UpdateTokenFeeScheduleParams;
 struct UpdateTokenParams;
+
+/**
+ * Associate an account with tokens.
+ *
+ * @param params The parameters to use to associate the account and tokens.
+ * @return A JSON response containing the status of the token association.
+ */
+nlohmann::json associateToken(const AssociateTokenParams& params);
 
 /**
  * Create a token.
@@ -39,10 +49,18 @@ nlohmann::json deleteToken(const DeleteTokenParams& params);
 nlohmann::json pauseToken(const PauseTokenParams& params);
 
 /**
+ * Update the fee schedule of a token.
+ *
+ * @param params The parameters to use to update a token's fee schedule.
+ * @return A JSON response containing the status of the fee schedule update.
+ */
+nlohmann::json updateTokenFeeSchedule(const UpdateTokenFeeScheduleParams& params);
+
+/**
  * Update a token.
  *
  * @param params The parameters to use to update a token.
- * @return A JSON response containing the status of the token update.
+ * @ return A JSON response containing the status of the token update.
  */
 nlohmann::json updateToken(const UpdateTokenParams& params);
 

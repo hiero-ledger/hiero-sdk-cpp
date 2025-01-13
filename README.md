@@ -125,7 +125,7 @@ ctest -C [Release|Debug] --test-dir build/<PRESET> -R <NAME OF TEST>
 ### Running Integration Tests
 
 To run the integration tests it's necessary to have a
-running [Hedera Local Node](https://github.com/hashgraph/hedera-local-node). If the local node is already running, check
+running [Hedera Local Node](https://github.com/hashgraph/hedera-local-node) (The project will be transfered to Hiero in near future). If the local node is already running, check
 the configuration JSON file for the network settings. Ensure the values for `network` tag contains a valid `AccountId`
 and a valid `IP address` for an operational node.
 
@@ -200,11 +200,11 @@ For instructions on how to contribute to this repo, please
 review the [Contributing Guide for C++](CONTRIBUTING.md).
 
 More instructions for contribution can be found in the
-[Global Contributing Guide](https://github.com/hashgraph/.github/blob/main/CONTRIBUTING.md).
+[Global Contributing Guide](https://github.com/hiero-ledger/.github/blob/main/CONTRIBUTING.md).
 
 ## Code of Conduct
 
-Hiero uses the Linux Foundation Decentralised Trust [Code of Conduct](<[https://github.com/hashgraph/.github/blob/main/CODE_OF_CONDUCT.md](https://www.lfdecentralizedtrust.org/code-of-conduct)>).
+Hiero uses the Linux Foundation Decentralised Trust [Code of Conduct](https://www.lfdecentralizedtrust.org/code-of-conduct).
 
 ## License
 
