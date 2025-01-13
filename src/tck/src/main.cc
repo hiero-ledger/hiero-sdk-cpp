@@ -28,6 +28,7 @@ int main(int argc, char** argv)
   tckServer.add("updateAccount", tckServer.getHandle(&AccountService::updateAccount));
 
   // Add the TokenService functions.
+  tckServer.add("associateToken", tckServer.getHandle(&TokenService::associateToken));
   tckServer.add("createToken", tckServer.getHandle(&TokenService::createToken));
   tckServer.add("deleteToken", tckServer.getHandle(&TokenService::deleteToken));
   tckServer.add("updateTokenFeeSchedule", tckServer.getHandle(&TokenService::updateTokenFeeSchedule));
