@@ -12,6 +12,7 @@
 #include "token/params/AssociateTokenParams.h"
 #include "token/params/CreateTokenParams.h"
 #include "token/params/DeleteTokenParams.h"
+#include "token/params/DissociateTokenParams.h"
 #include "token/params/PauseTokenParams.h"
 #include "token/params/UnpauseTokenParams.h"
 #include "token/params/UpdateTokenFeeScheduleParams.h"
@@ -359,6 +360,8 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::CreateTokenP
   nlohmann::json (*method)(const TokenService::CreateTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::DeleteTokenParams>(
   nlohmann::json (*method)(const TokenService::DeleteTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::DissociateTokenParams>(
+  nlohmann::json (*method)(const TokenService::DissociateTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::PauseTokenParams>(
   nlohmann::json (*method)(const TokenService::PauseTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::UnpauseTokenParams>(
