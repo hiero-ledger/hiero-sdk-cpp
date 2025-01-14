@@ -2,6 +2,7 @@
 #ifndef HIERO_SDK_CPP_MIRROR_NODE_CONTRACT_QUERY_H_
 #define HIERO_SDK_CPP_MIRROR_NODE_CONTRACT_QUERY_H_
 
+#include "Client.h"
 #include "impl/HexConverter.h"
 
 #include <cstdint>
@@ -168,8 +169,23 @@ public:
    */
   MirrorNodeContractQuery& setBlockNumber(int64_t number);
 
-private:
-  
+  /**
+   * Executes the Mirror Node query.
+   *
+   * @param client The Client object used for network access.
+   * @return The result of the execution in string format.
+   */
+  [[nodiscard]] virtual std::string execute(const Client& client) const = 0;
+
+protected:
+  /**
+   * Populates the EVM addresses using the Mirror Node.
+   *
+   * @param client The Client object used for network access.
+   * @return A reference to the modified AccountId object.
+   * @throws IllegalStateException if mAccountNum is empty or if the account does not exist in the Mirror Network.
+   */
+  void populateAccountEvmAddress(const Client& client);
 
   /**
    * The contract ID to which the transaction is sent.

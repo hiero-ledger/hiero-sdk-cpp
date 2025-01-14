@@ -8,6 +8,14 @@ namespace Hiero
 {
 class MirrorNodeContractEstimateGasQuery : public MirrorNodeContractQuery
 {
+public:
+  /**
+   * Executes the Mirror Node query.
+   *
+   * @param client The Client object used for network access.
+   * @return The result of the execution in string format.
+   */
+  [[nodiscard]] std::string execute(const Client& client) const override;
 };
 } // namespace Hiero
 
