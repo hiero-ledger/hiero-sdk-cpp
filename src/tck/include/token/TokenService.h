@@ -12,7 +12,9 @@ namespace Hiero::TCK::TokenService
 struct AssociateTokenParams;
 struct CreateTokenParams;
 struct DeleteTokenParams;
+struct DissociateTokenParams;
 struct PauseTokenParams;
+struct UnpauseTokenParams;
 struct UpdateTokenFeeScheduleParams;
 struct UpdateTokenParams;
 
@@ -41,12 +43,28 @@ nlohmann::json createToken(const CreateTokenParams& params);
 nlohmann::json deleteToken(const DeleteTokenParams& params);
 
 /**
+ * Dissociate an account from tokens.
+ *
+ * @param params The parameters to use to dissociate the account.
+ * @return A JSON response containing the status of the account dissociation.
+ */
+nlohmann::json dissociateToken(const DissociateTokenParams& params);
+
+/**
  * Pause a token.
  *
  * @param params The parameters to use to pause a token.
  * @return A JSON response containing the status of the token pause.
  */
 nlohmann::json pauseToken(const PauseTokenParams& params);
+
+/**
+ * Unpause a token.
+ *
+ * @param params The parameters to use to unpause a token.
+ * @return A JSON response containing the status of the token unpause.
+ */
+nlohmann::json unpauseToken(const UnpauseTokenParams& params);
 
 /**
  * Update the fee schedule of a token.

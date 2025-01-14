@@ -5,7 +5,9 @@
 #include "token/params/AssociateTokenParams.h"
 #include "token/params/CreateTokenParams.h"
 #include "token/params/DeleteTokenParams.h"
+#include "token/params/DissociateTokenParams.h"
 #include "token/params/PauseTokenParams.h"
+#include "token/params/UnpauseTokenParams.h"
 #include "token/params/UpdateTokenFeeScheduleParams.h"
 #include "token/params/UpdateTokenParams.h"
 #include "json/JsonErrorType.h"
@@ -16,11 +18,13 @@
 #include <TokenAssociateTransaction.h>
 #include <TokenCreateTransaction.h>
 #include <TokenDeleteTransaction.h>
+#include <TokenDissociateTransaction.h>
 #include <TokenFeeScheduleUpdateTransaction.h>
 #include <TokenId.h>
 #include <TokenPauseTransaction.h>
 #include <TokenSupplyType.h>
 #include <TokenType.h>
+#include <TokenUnpauseTransaction.h>
 #include <TokenUpdateTransaction.h>
 #include <TransactionReceipt.h>
 #include <TransactionResponse.h>
@@ -244,6 +248,40 @@ nlohmann::json deleteToken(const DeleteTokenParams& params)
 }
 
 //-----
+nlohmann::json dissociateToken(const DissociateTokenParams& params)
+{
+  TokenDissociateTransaction tokenDissociateTransaction;
+  tokenDissociateTransaction.setGrpcDeadline(std::chrono::seconds(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT));
+
+  if (params.mAccountId.has_value())
+  {
+    tokenDissociateTransaction.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  if (params.mTokenIds.has_value())
+  {
+    std::vector<TokenId> tokenIds;
+    for (const std::string& tokenId : params.mTokenIds.value())
+    {
+      tokenIds.push_back(TokenId::fromString(tokenId));
+    }
+
+    tokenDissociateTransaction.setTokenIds(tokenIds);
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenDissociateTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenDissociateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
 nlohmann::json pauseToken(const PauseTokenParams& params)
 {
   TokenPauseTransaction tokenPauseTransaction;
@@ -263,6 +301,29 @@ nlohmann::json pauseToken(const PauseTokenParams& params)
     {"status",
      gStatusToString.at(
         tokenPauseTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json unpauseToken(const UnpauseTokenParams& params)
+{
+  TokenUnpauseTransaction tokenUnpauseTransaction;
+  tokenUnpauseTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenUnpauseTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenUnpauseTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenUnpauseTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
