@@ -13,6 +13,9 @@ struct AssociateTokenParams;
 struct CreateTokenParams;
 struct DeleteTokenParams;
 struct DissociateTokenParams;
+struct PauseTokenParams;
+struct UnpauseTokenParams;
+struct UpdateTokenFeeScheduleParams;
 struct UpdateTokenParams;
 
 /**
@@ -48,10 +51,34 @@ nlohmann::json deleteToken(const DeleteTokenParams& params);
 nlohmann::json dissociateToken(const DissociateTokenParams& params);
 
 /**
+ * Pause a token.
+ *
+ * @param params The parameters to use to pause a token.
+ * @return A JSON response containing the status of the token pause.
+ */
+nlohmann::json pauseToken(const PauseTokenParams& params);
+
+/**
+ * Unpause a token.
+ *
+ * @param params The parameters to use to unpause a token.
+ * @return A JSON response containing the status of the token unpause.
+ */
+nlohmann::json unpauseToken(const UnpauseTokenParams& params);
+
+/**
+ * Update the fee schedule of a token.
+ *
+ * @param params The parameters to use to update a token's fee schedule.
+ * @return A JSON response containing the status of the fee schedule update.
+ */
+nlohmann::json updateTokenFeeSchedule(const UpdateTokenFeeScheduleParams& params);
+
+/**
  * Update a token.
  *
  * @param params The parameters to use to update a token.
- * @return A JSON response containing the status of the token update.
+ * @ return A JSON response containing the status of the token update.
  */
 nlohmann::json updateToken(const UpdateTokenParams& params);
 
