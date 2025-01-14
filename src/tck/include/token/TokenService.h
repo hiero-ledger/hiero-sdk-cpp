@@ -14,7 +14,6 @@ struct CreateTokenParams;
 struct DeleteTokenParams;
 struct PauseTokenParams;
 struct UnpauseTokenParams;
-struct UpdateTokenParams;
 struct UpdateTokenFeeScheduleParams;
 struct UpdateTokenParams;
 
