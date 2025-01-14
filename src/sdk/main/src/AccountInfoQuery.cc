@@ -5,7 +5,6 @@
 #include "AccountInfoQuery.h"
 #include "TokenId.h"
 #include "TokenRelationship.h"
-#include "impl/MirrorNodeGateway.h"
 #include "impl/Node.h"
 
 #include <query.pb.h>
