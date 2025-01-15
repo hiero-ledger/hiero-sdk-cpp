@@ -6,6 +6,7 @@
 #include "token/params/CreateTokenParams.h"
 #include "token/params/DeleteTokenParams.h"
 #include "token/params/DissociateTokenParams.h"
+#include "token/params/FreezeTokenParams.h"
 #include "token/params/PauseTokenParams.h"
 #include "token/params/UnpauseTokenParams.h"
 #include "token/params/UpdateTokenFeeScheduleParams.h"
@@ -20,6 +21,7 @@
 #include <TokenDeleteTransaction.h>
 #include <TokenDissociateTransaction.h>
 #include <TokenFeeScheduleUpdateTransaction.h>
+#include <TokenFreezeTransaction.h>
 #include <TokenId.h>
 #include <TokenPauseTransaction.h>
 #include <TokenSupplyType.h>
@@ -282,6 +284,34 @@ nlohmann::json dissociateToken(const DissociateTokenParams& params)
 }
 
 //-----
+nlohmann::json freezeToken(const FreezeTokenParams& params)
+{
+  TokenFreezeTransaction tokenFreezeTransaction;
+  tokenFreezeTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenFreezeTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mAccountId.has_value())
+  {
+    tokenFreezeTransaction.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenFreezeTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenFreezeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
 nlohmann::json pauseToken(const PauseTokenParams& params)
 {
   TokenPauseTransaction tokenPauseTransaction;
@@ -359,7 +389,7 @@ nlohmann::json updateTokenFeeSchedule(const UpdateTokenFeeScheduleParams& params
 nlohmann::json updateToken(const UpdateTokenParams& params)
 {
   TokenUpdateTransaction tokenUpdateTransaction;
-  tokenUpdateTransaction.setGrpcDeadline(std::chrono::seconds(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT));
+  tokenUpdateTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
 
   if (params.mTokenId.has_value())
   {
