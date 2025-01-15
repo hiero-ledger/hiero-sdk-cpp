@@ -356,6 +356,11 @@ template<typename SdkRequestType>
 SdkRequestType& Transaction<SdkRequestType>::sign(const std::shared_ptr<PrivateKey>& key)
 {
   // clang-format off
+  if (key == nullptr)
+  {
+    throw std::invalid_argument("Signing key must be set.");
+  }
+
   return signInternal(key->getPublicKey(), [key](const std::vector<std::byte>& vec) { return key->sign(vec); }, key);
   // clang-format on
 }
