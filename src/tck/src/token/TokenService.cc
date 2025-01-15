@@ -8,6 +8,7 @@
 #include "token/params/DissociateTokenParams.h"
 #include "token/params/FreezeTokenParams.h"
 #include "token/params/PauseTokenParams.h"
+#include "token/params/UnfreezeTokenParams.h"
 #include "token/params/UnpauseTokenParams.h"
 #include "token/params/UpdateTokenFeeScheduleParams.h"
 #include "token/params/UpdateTokenParams.h"
@@ -26,6 +27,7 @@
 #include <TokenPauseTransaction.h>
 #include <TokenSupplyType.h>
 #include <TokenType.h>
+#include <TokenUnfreezeTransaction.h>
 #include <TokenUnpauseTransaction.h>
 #include <TokenUpdateTransaction.h>
 #include <TransactionReceipt.h>
@@ -331,6 +333,34 @@ nlohmann::json pauseToken(const PauseTokenParams& params)
     {"status",
      gStatusToString.at(
         tokenPauseTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json unfreezeToken(const UnfreezeTokenParams& params)
+{
+  TokenUnfreezeTransaction tokenUnfreezeTransaction;
+  tokenUnfreezeTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenUnfreezeTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mAccountId.has_value())
+  {
+    tokenUnfreezeTransaction.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenUnfreezeTransaction, SdkClient::getClient());
+  }
+
+  return {
+    { "status",
+     gStatusToString.at(
+        tokenUnfreezeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
   };
 }
 
