@@ -93,6 +93,7 @@ public:
    * @param key The PrivateKey with which to sign this Transaction.
    * @return A reference to this derived Transaction object with the signature.
    * @throws IllegalStateException If this Transaction object is not frozen.
+   * @throws std::invalid_argument If the signing key is not set.
    */
   SdkRequestType& sign(const std::shared_ptr<PrivateKey>& key);
 
