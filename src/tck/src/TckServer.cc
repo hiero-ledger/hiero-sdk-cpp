@@ -16,7 +16,9 @@
 #include "token/params/FreezeTokenParams.h"
 #include "token/params/GrantTokenKycParams.h"
 #include "token/params/PauseTokenParams.h"
-#include "token/params/RevokeTokenKycParams.h"
+#include "token/params/UnfreezeTokenParams.h"
+#include "token/params/UnpauseTokenParams.h"
+#include "token/params/UpdateTokenFeeScheduleParams.h"
 #include "token/params/UpdateTokenParams.h"
 #include "json/JsonErrorType.h"
 #include "json/JsonRpcException.h"
@@ -369,8 +371,12 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::GrantTokenKy
   nlohmann::json (*method)(const TokenService::GrantTokenKycParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::PauseTokenParams>(
   nlohmann::json (*method)(const TokenService::PauseTokenParams&));
-template TckServer::MethodHandle TckServer::getHandle<TokenService::RevokeTokenKycParams>(
-  nlohmann::json (*method)(const TokenService::RevokeTokenKycParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::UnfreezeTokenParams>(
+  nlohmann::json (*method)(const TokenService::UnfreezeTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::UnpauseTokenParams>(
+  nlohmann::json (*method)(const TokenService::UnpauseTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::UpdateTokenFeeScheduleParams>(
+  nlohmann::json (*method)(const TokenService::UpdateTokenFeeScheduleParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::UpdateTokenParams>(
   nlohmann::json (*method)(const TokenService::UpdateTokenParams&));
 

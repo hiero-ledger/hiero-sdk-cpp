@@ -16,7 +16,9 @@ struct DissociateTokenParams;
 struct FreezeTokenParams;
 struct GrantTokenKycParams;
 struct PauseTokenParams;
-struct RevokeTokenKycParams;
+struct UnfreezeTokenParams;
+struct UnpauseTokenParams;
+struct UpdateTokenFeeScheduleParams;
 struct UpdateTokenParams;
 
 /**
@@ -44,11 +46,10 @@ nlohmann::json createToken(const CreateTokenParams& params);
 nlohmann::json deleteToken(const DeleteTokenParams& params);
 
 /**
-<<<<<<< HEAD
  * Dissociate an account from tokens.
  *
  * @param params The parameters to use to dissociate the account.
- * @ return A JSON response containing the status of the account dissociation.
+ * @return A JSON response containing the status of the account dissociation.
  */
 nlohmann::json dissociateToken(const DissociateTokenParams& params);
 
@@ -77,18 +78,34 @@ nlohmann::json grantTokenKyc(const GrantTokenKycParams& params);
 nlohmann::json pauseToken(const PauseTokenParams& params);
 
 /**
- * Revoke KYC of a token from an account.
+ * Unfreeze a token from an account.
  *
- * @param params The parameters to use to revoke KYC.
- * @return A JSON response containing the status of the token KYC revoke.
+ * @params The parameters to use to unfreeze a token.
+ * @return A JSON response containing the status of the token unfreeze.
  */
-nlohmann::json revokeTokenKyc(const RevokeTokenKycParams& params);
+nlohmann::json unfreezeToken(const UnfreezeTokenParams& params);
+
+/**
+ * Unpause a token.
+ *
+ * @param params The parameters to use to unpause a token.
+ * @return A JSON response containing the status of the token unpause.
+ */
+nlohmann::json unpauseToken(const UnpauseTokenParams& params);
+
+/**
+ * Update the fee schedule of a token.
+ *
+ * @param params The parameters to use to update a token's fee schedule.
+ * @return A JSON response containing the status of the fee schedule update.
+ */
+nlohmann::json updateTokenFeeSchedule(const UpdateTokenFeeScheduleParams& params);
 
 /**
  * Update a token.
  *
  * @param params The parameters to use to update a token.
- * @return A JSON response containing the status of the token update.
+ * @ return A JSON response containing the status of the token update.
  */
 nlohmann::json updateToken(const UpdateTokenParams& params);
 
