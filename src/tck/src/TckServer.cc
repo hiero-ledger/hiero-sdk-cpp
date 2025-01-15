@@ -15,6 +15,7 @@
 #include "token/params/DissociateTokenParams.h"
 #include "token/params/FreezeTokenParams.h"
 #include "token/params/PauseTokenParams.h"
+#include "token/params/UnfreezeTokenParams.h"
 #include "token/params/UnpauseTokenParams.h"
 #include "token/params/UpdateTokenFeeScheduleParams.h"
 #include "token/params/UpdateTokenParams.h"
@@ -367,6 +368,8 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::FreezeTokenP
   nlohmann::json (*method)(const TokenService::FreezeTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::PauseTokenParams>(
   nlohmann::json (*method)(const TokenService::PauseTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::UnfreezeTokenParams>(
+  nlohmann::json (*method)(const TokenService::UnfreezeTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::UnpauseTokenParams>(
   nlohmann::json (*method)(const TokenService::UnpauseTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::UpdateTokenFeeScheduleParams>(
