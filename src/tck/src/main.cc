@@ -35,6 +35,7 @@ int main(int argc, char** argv)
   tckServer.add("freezeToken", tckServer.getHandle(&TokenService::freezeToken));
   tckServer.add("grantTokenKyc", tckServer.getHandle(&TokenService::grantTokenKyc));
   tckServer.add("pauseToken", tckServer.getHandle(&TokenService::pauseToken));
+  tckServer.add("revokeTokenKyc", tckServer.getHandle(&TokenService::revokeTokenKyc));
   tckServer.add("unpauseToken", tckServer.getHandle(&TokenService::unpauseToken));
   tckServer.add("unfreezeToken", tckServer.getHandle(&TokenService::unfreezeToken));
   tckServer.add("updateTokenFeeSchedule", tckServer.getHandle(&TokenService::updateTokenFeeSchedule));

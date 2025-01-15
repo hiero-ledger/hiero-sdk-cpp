@@ -9,6 +9,7 @@
 #include "token/params/FreezeTokenParams.h"
 #include "token/params/GrantTokenKycParams.h"
 #include "token/params/PauseTokenParams.h"
+#include "token/params/RevokeTokenKycParams.h"
 #include "token/params/UnfreezeTokenParams.h"
 #include "token/params/UnpauseTokenParams.h"
 #include "token/params/UpdateTokenFeeScheduleParams.h"
@@ -27,6 +28,7 @@
 #include <TokenGrantKycTransaction.h>
 #include <TokenId.h>
 #include <TokenPauseTransaction.h>
+#include <TokenRevokeKycTransaction.h>
 #include <TokenSupplyType.h>
 #include <TokenType.h>
 #include <TokenUnfreezeTransaction.h>
@@ -363,6 +365,34 @@ nlohmann::json pauseToken(const PauseTokenParams& params)
     {"status",
      gStatusToString.at(
         tokenPauseTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json revokeTokenKyc(const RevokeTokenKycParams& params)
+{
+  TokenRevokeKycTransaction tokenRevokeKycTransaction;
+  tokenRevokeKycTransaction.setGrpcDeadline(std::chrono::seconds(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT));
+
+  if (params.mTokenId.has_value())
+  {
+    tokenRevokeKycTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mAccountId.has_value())
+  {
+    tokenRevokeKycTransaction.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenRevokeKycTransaction, SdkClient::getClient());
+  }
+
+  return {
+    { "status",
+     gStatusToString.at(
+        tokenRevokeKycTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
   };
 }
 
