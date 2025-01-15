@@ -7,8 +7,13 @@
 #include "token/params/DeleteTokenParams.h"
 #include "token/params/DissociateTokenParams.h"
 #include "token/params/FreezeTokenParams.h"
+#include "token/params/GrantTokenKycParams.h"
 #include "token/params/MintTokenParams.h"
 #include "token/params/PauseTokenParams.h"
+#include "token/params/RevokeTokenKycParams.h"
+#include "token/params/UnfreezeTokenParams.h"
+#include "token/params/UnpauseTokenParams.h"
+#include "token/params/UpdateTokenFeeScheduleParams.h"
 #include "token/params/UpdateTokenParams.h"
 #include "json/JsonErrorType.h"
 #include "json/JsonRpcException.h"
@@ -19,12 +24,17 @@
 #include <TokenCreateTransaction.h>
 #include <TokenDeleteTransaction.h>
 #include <TokenDissociateTransaction.h>
+#include <TokenFeeScheduleUpdateTransaction.h>
 #include <TokenFreezeTransaction.h>
+#include <TokenGrantKycTransaction.h>
 #include <TokenId.h>
 #include <TokenMintTransaction.h>
 #include <TokenPauseTransaction.h>
+#include <TokenRevokeKycTransaction.h>
 #include <TokenSupplyType.h>
 #include <TokenType.h>
+#include <TokenUnfreezeTransaction.h>
+#include <TokenUnpauseTransaction.h>
 #include <TokenUpdateTransaction.h>
 #include <TransactionReceipt.h>
 #include <TransactionResponse.h>
@@ -311,6 +321,34 @@ nlohmann::json freezeToken(const FreezeTokenParams& params)
 }
 
 //-----
+nlohmann::json grantTokenKyc(const GrantTokenKycParams& params)
+{
+  TokenGrantKycTransaction tokenGrantKycTransaction;
+  tokenGrantKycTransaction.setGrpcDeadline(std::chrono::seconds(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT));
+
+  if (params.mTokenId.has_value())
+  {
+    tokenGrantKycTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mAccountId.has_value())
+  {
+    tokenGrantKycTransaction.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenGrantKycTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenGrantKycTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
 nlohmann::json mintToken(const MintTokenParams& params)
 {
   TokenMintTransaction tokenMintTransaction;
@@ -381,6 +419,113 @@ nlohmann::json pauseToken(const PauseTokenParams& params)
     {"status",
      gStatusToString.at(
         tokenPauseTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json revokeTokenKyc(const RevokeTokenKycParams& params)
+{
+  TokenRevokeKycTransaction tokenRevokeKycTransaction;
+  tokenRevokeKycTransaction.setGrpcDeadline(std::chrono::seconds(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT));
+
+  if (params.mTokenId.has_value())
+  {
+    tokenRevokeKycTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mAccountId.has_value())
+  {
+    tokenRevokeKycTransaction.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenRevokeKycTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenRevokeKycTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json unfreezeToken(const UnfreezeTokenParams& params)
+{
+  TokenUnfreezeTransaction tokenUnfreezeTransaction;
+  tokenUnfreezeTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenUnfreezeTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mAccountId.has_value())
+  {
+    tokenUnfreezeTransaction.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenUnfreezeTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenUnfreezeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json unpauseToken(const UnpauseTokenParams& params)
+{
+  TokenUnpauseTransaction tokenUnpauseTransaction;
+  tokenUnpauseTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenUnpauseTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenUnpauseTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenUnpauseTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json updateTokenFeeSchedule(const UpdateTokenFeeScheduleParams& params)
+{
+  TokenFeeScheduleUpdateTransaction tokenFeeScheduleUpdateTransaction;
+  tokenFeeScheduleUpdateTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenFeeScheduleUpdateTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mCustomFees.has_value())
+  {
+    tokenFeeScheduleUpdateTransaction.setCustomFees(params.mCustomFees.value());
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenFeeScheduleUpdateTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenFeeScheduleUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
