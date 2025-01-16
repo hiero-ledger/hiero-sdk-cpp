@@ -34,8 +34,13 @@ int main(int argc, char** argv)
   tckServer.add("deleteToken", tckServer.getHandle(&TokenService::deleteToken));
   tckServer.add("dissociateToken", tckServer.getHandle(&TokenService::dissociateToken));
   tckServer.add("freezeToken", tckServer.getHandle(&TokenService::freezeToken));
+  tckServer.add("grantTokenKyc", tckServer.getHandle(&TokenService::grantTokenKyc));
   tckServer.add("mintToken", tckServer.getHandle(&TokenService::mintToken));
   tckServer.add("pauseToken", tckServer.getHandle(&TokenService::pauseToken));
+  tckServer.add("revokeTokenKyc", tckServer.getHandle(&TokenService::revokeTokenKyc));
+  tckServer.add("unpauseToken", tckServer.getHandle(&TokenService::unpauseToken));
+  tckServer.add("unfreezeToken", tckServer.getHandle(&TokenService::unfreezeToken));
+  tckServer.add("updateTokenFeeSchedule", tckServer.getHandle(&TokenService::updateTokenFeeSchedule));
   tckServer.add("updateToken", tckServer.getHandle(&TokenService::updateToken));
 
   // Start listening for requests.
