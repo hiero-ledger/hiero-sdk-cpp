@@ -5,7 +5,6 @@
 #include "AccountBalanceQuery.h"
 #include "TokenId.h"
 #include "exceptions/UninitializedException.h"
-#include "impl/MirrorNodeGateway.h"
 #include "impl/Node.h"
 
 #include <query.pb.h>
