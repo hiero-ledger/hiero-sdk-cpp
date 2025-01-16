@@ -15,6 +15,7 @@ struct DeleteTokenParams;
 struct DissociateTokenParams;
 struct FreezeTokenParams;
 struct GrantTokenKycParams;
+struct MintTokenParams;
 struct PauseTokenParams;
 struct RevokeTokenKycParams;
 struct UnfreezeTokenParams;
@@ -69,6 +70,14 @@ nlohmann::json freezeToken(const FreezeTokenParams& params);
  * @return A JSON response containing the status of the token KYC grant.
  */
 nlohmann::json grantTokenKyc(const GrantTokenKycParams& params);
+
+/**
+ * Mint a token.
+ *
+ * @param params The parameters to use to mint a token.
+ * @return A JSON response containing the status of the token mint.
+ */
+nlohmann::json mintToken(const MintTokenParams& params);
 
 /**
  * Pause a token.
