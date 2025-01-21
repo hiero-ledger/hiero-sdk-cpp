@@ -205,7 +205,7 @@ jobs:
           msbuild-architecture: x64
 
       - name: Setup-perl
-        uses: shogo82148/actions-setup-perl@b87d1e37759952f1474fdac8a45d6996cf3d5512 # v1.32.0
+        uses: shogo82148/actions-setup-perl@49c14f24551d2de3bf56fb107a869c3760b1875e # v1.33.0
         with:
           perl-version: "5.32"
           distribution: strawberry
