@@ -82,6 +82,8 @@ TEST_F(MirrorNodeGatewayIntegrationTests, TokensBalancesQuery)
     response = internal::MirrorNodeGateway::MirrorNodeQuery(
       getMirrorNetworkUrl(), { accountIdStr }, internal::MirrorNodeGateway::TOKEN_BALANCES_QUERY.data()););
 
+  std::cout << response.dump() << std::endl;
+
   // Then
   ASSERT_FALSE(response.empty());           // checks if any data
   EXPECT_TRUE(response["_status"].empty()); // no such contract exists then should have _status not found

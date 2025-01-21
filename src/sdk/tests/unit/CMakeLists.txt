@@ -64,6 +64,7 @@ add_executable(${TEST_PROJECT_NAME}
         HbarTransferUnitTests.cc
         KeyListUnitTests.cc
         LedgerIdUnitTests.cc
+        MirrorNodeContractQueryUnitTests.cc
         NetworkUnitTests.cc
         NetworkVersionInfoUnitTests.cc
         NftIdUnitTests.cc

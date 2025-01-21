@@ -2,7 +2,10 @@
 #ifndef HIERO_SDK_CPP_MIRROR_NODE_CONTRACT_QUERY_H_
 #define HIERO_SDK_CPP_MIRROR_NODE_CONTRACT_QUERY_H_
 
+#include "AccountId.h"
 #include "Client.h"
+#include "ContractFunctionParameters.h"
+#include "ContractId.h"
 #include "impl/HexConverter.h"
 
 #include <cstdint>
@@ -28,6 +31,8 @@ public:
    */
   MirrorNodeContractQuery() = default;
 
+  virtual ~MirrorNodeContractQuery() = default;
+
   /**
    * Serializes the object to a JSON representation.
    * @return A JSON object representing the state of the object.
@@ -39,7 +44,7 @@ public:
    *
    * @return The contract ID as an optional string.
    */
-  const std::optional<std::string>& getContractId() const;
+  const std::optional<ContractId>& getContractId() const { return mContractId; }
 
   /**
    * Sets the contract ID to which the transaction is sent.
@@ -47,14 +52,14 @@ public:
    * @param id The contract ID.
    * @return Reference to the updated object.
    */
-  MirrorNodeContractQuery& setContractId(const std::string& id);
+  MirrorNodeContractQuery& setContractId(const ContractId& id);
 
   /**
    * Gets the EVM address of the contract to which the transaction is sent.
    *
    * @return The contract EVM address as an optional string.
    */
-  const std::string getContractEvmAddress() const;
+  const std::optional<std::string>& getContractEvmAddress() const { return mContractEvmAddress; }
 
   /**
    * Sets the EVM address of the contract to which the transaction is sent.
@@ -69,7 +74,7 @@ public:
    *
    * @return The sender account ID as an optional string.
    */
-  const std::optional<std::string>& getSender() const;
+  const std::optional<AccountId>& getSender() const { return mSender; }
 
   /**
    * Sets the sender account ID for the transaction.
@@ -77,14 +82,14 @@ public:
    * @param id The sender account ID.
    * @return Reference to the updated object.
    */
-  MirrorNodeContractQuery& setSender(const std::string& id);
+  MirrorNodeContractQuery& setSender(const AccountId& id);
 
   /**
    * Gets the sender's EVM address for the transaction.
    *
    * @return The sender's EVM address as an optional string.
    */
-  const std::optional<std::string>& getSenderEvmAddress() const;
+  const std::optional<std::string>& getSenderEvmAddress() const { return mSenderEvmAddress; }
 
   /**
    * Sets the sender's EVM address for the transaction.
@@ -99,7 +104,7 @@ public:
    *
    * @return The call data as a vector of bytes.
    */
-  const std::vector<std::byte>& getCallData() const;
+  const std::vector<std::byte>& getCallData() const { return mCallData; }
 
   /**
    * Sets the call data for the transaction.
@@ -107,14 +112,15 @@ public:
    * @param data The call data as a vector of bytes.
    * @return Reference to the updated object.
    */
-  MirrorNodeContractQuery& setCallData(const std::vector<std::byte>& data);
+  MirrorNodeContractQuery& setFunction(const std::string& functionName,
+                                       std::optional<ContractFunctionParameters>& parameters);
 
   /**
    * Gets the value sent to the contract in the transaction.
    *
    * @return The value as a 64-bit integer.
    */
-  int64_t getValue() const;
+  int64_t getValue() const { return mValue; }
 
   /**
    * Sets the value sent to the contract in the transaction.
@@ -129,7 +135,7 @@ public:
    *
    * @return The gas limit as a 64-bit integer.
    */
-  int64_t getGasLimit() const;
+  int64_t getGasLimit() const { return mGasLimit; }
 
   /**
    * Sets the gas limit for the transaction.
@@ -144,7 +150,7 @@ public:
    *
    * @return The gas price as a 64-bit integer.
    */
-  int64_t getGasPrice() const;
+  int64_t getGasPrice() const { return mGasPrice; }
 
   /**
    * Sets the gas price for the transaction.
@@ -157,17 +163,31 @@ public:
   /**
    * Gets the block number used for the simulation.
    *
-   * @return The block number as a 64-bit integer.
+   * @return The block number as a 64-bit unsigned integer.
    */
-  int64_t getBlockNumber() const;
+  uint64_t getBlockNumber() const { return mBlockNumber; }
 
   /**
    * Sets the block number used for the simulation.
    *
-   * @param number The block number as a 64-bit integer.
+   * @param number The block number as a 64-bit unsigned integer.
    * @return Reference to the updated object.
    */
-  MirrorNodeContractQuery& setBlockNumber(int64_t number);
+  MirrorNodeContractQuery& setBlockNumber(uint64_t number);
+
+  /**
+   * Gets the value of estimate.
+   *
+   * @return A boolean indicating whether the contract call should be estimated.
+   */
+  bool getEstimate() const { return mEstimate; }
+
+  /**
+   * Sets the value if the call should be estimated.
+   *
+   * @param estimate A boolean indicating whether the contract call should be estimated.
+   */
+  MirrorNodeContractQuery& setEstimate(bool estimate);
 
   /**
    * Executes the Mirror Node query.
@@ -175,7 +195,7 @@ public:
    * @param client The Client object used for network access.
    * @return The result of the execution in string format.
    */
-  [[nodiscard]] virtual std::string execute(const Client& client) const = 0;
+  [[nodiscard]] virtual std::string execute(const Client& client) = 0;
 
 protected:
   /**
@@ -190,17 +210,17 @@ protected:
   /**
    * The contract ID to which the transaction is sent.
    */
-  std::optional<std::string> mContractId;
+  std::optional<ContractId> mContractId;
 
   /**
    * The EVM address of the contract to which the transaction is sent.
    */
-  std::string mContractEvmAddress;
+  std::optional<std::string> mContractEvmAddress;
 
   /**
    * The sender account ID for the transaction.
    */
-  std::optional<std::string> mSender;
+  std::optional<AccountId> mSender;
 
   /**
    * The sender's EVM address for the transaction.
@@ -230,12 +250,12 @@ protected:
   /**
    * The block number used for the simulation.
    */
-  int64_t mBlockNumber = 0;
+  uint64_t mBlockNumber = 0;
 
   /**
    * Should contract call be estimated
    */
-  bool mEstimate = true;
+  bool mEstimate = false;
 };
 
 } // namespace Hiero

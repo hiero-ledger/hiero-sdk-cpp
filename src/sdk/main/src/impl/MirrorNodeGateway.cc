@@ -12,22 +12,17 @@ using json = nlohmann::json;
 namespace Hiero::internal::MirrorNodeGateway
 {
 //-----
-json MirrorNodeQuery(std::string_view mirrorNodeUrl, const std::vector<std::string>& params, std::string_view queryType)
+json MirrorNodeQuery(std::string_view mirrorNodeUrl,
+                     const std::vector<std::string>& params,
+                     std::string_view queryType,
+                     std::string_view requestBody,
+                     std::string_view requestType)
 {
   std::string response;
   try
   {
-    bool isLocalNetwork = true;
-    const std::string url = buildUrlForNetwork(mirrorNodeUrl, queryType, params, isLocalNetwork);
-
-    // this is needed because of Mirror Node update delay time
-    // agreed to be handled by the user not a local network
-    if (isLocalNetwork)
-    {
-      std::this_thread::sleep_for(std::chrono::seconds(3));
-    }
-
-    response = HttpClient::invokeREST(url);
+    const std::string url = buildUrlForNetwork(mirrorNodeUrl, queryType, params, requestType);
+    response = HttpClient::invokeREST(url, requestType, requestBody);
   }
   catch (const std::exception& e)
   {
@@ -52,20 +47,27 @@ void replaceParameters(std::string& original, std::string_view search, std::stri
 std::string buildUrlForNetwork(std::string_view mirrorNodeUrl,
                                std::string_view queryType,
                                const std::vector<std::string>& params,
-                               bool& isLocalNetwork)
+                               std::string_view requestType)
 {
   std::string httpPrefix = "http://";
   std::string localPrefix = "127.0.0.1:5600";
   std::string url = mirrorNodeUrl.data();
   if (url.compare(0, httpPrefix.length(), httpPrefix) != 0 && url.compare(0, localPrefix.length(), localPrefix) != 0)
   {
-    isLocalNetwork = false;
     url = "https://" + url;
   }
   if (url == localPrefix)
   {
     url = httpPrefix + url;
-    url.replace(url.length() - 4, 4, "5551");
+    if (requestType == "GET")
+    {
+      url.replace(url.length() - 4, 4, "5551");
+    }
+    else if (requestType == "POST")
+    {
+      // locally there is no proxy for 8545 call port so it has to be changed manually
+      url.replace(url.length() - 4, 4, "8545");
+    }
   }
   MirrorNodeRouter router;
   std::string route = router.getRoute(queryType.data()).data();

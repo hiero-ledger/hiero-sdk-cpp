@@ -15,7 +15,7 @@ public:
    * @param client The Client object used for network access.
    * @return The result of the execution in string format.
    */
-  [[nodiscard]] std::string execute(const Client& client) const override;
+  [[nodiscard]] std::string execute(const Client& client) override;
 };
 } // namespace Hiero
 

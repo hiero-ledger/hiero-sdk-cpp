@@ -1,102 +1,142 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "impl/MirrorNodeContractQuery.h"
+#include "impl/MirrorNetwork.h"
+#include "impl/MirrorNodeGateway.h"
+
+#include "string"
 
 namespace Hiero
 {
-//------
-MirrorNodeContractQuery& MirrorNodeContractQuery::setContractId(const std::string& id)
+//-----
+MirrorNodeContractQuery& MirrorNodeContractQuery::setContractId(const ContractId& id)
 {
   mContractId = id;
   return *this;
 }
 
-//------
+//-----
 MirrorNodeContractQuery& MirrorNodeContractQuery::setContractEvmAddress(const std::string& address)
 {
   mContractEvmAddress = address;
   return *this;
 }
 
-//------
-MirrorNodeContractQuery& MirrorNodeContractQuery::setSender(const std::string& id)
+//-----
+MirrorNodeContractQuery& MirrorNodeContractQuery::setSender(const AccountId& id)
 {
   mSender = id;
   return *this;
 }
 
-//------
+//-----
 MirrorNodeContractQuery& MirrorNodeContractQuery::setSenderEvmAddress(const std::string& address)
 {
   mSenderEvmAddress = address;
   return *this;
 }
 
-//------
-MirrorNodeContractQuery& MirrorNodeContractQuery::setCallData(const std::vector<std::byte>& data)
+//-----
+MirrorNodeContractQuery& MirrorNodeContractQuery::setFunction(const std::string& functionName,
+                                                              std::optional<ContractFunctionParameters>& parameters)
 {
-  mCallData = data;
+  mCallData = parameters.value_or(ContractFunctionParameters()).toBytes(functionName);
   return *this;
 }
 
-//------
+//-----
 MirrorNodeContractQuery& MirrorNodeContractQuery::setValue(int64_t val)
 {
   mValue = val;
   return *this;
 }
 
-//------
+//-----
 MirrorNodeContractQuery& MirrorNodeContractQuery::setGasLimit(int64_t limit)
 {
   mGasLimit = limit;
   return *this;
 }
 
-//------
+//-----
 MirrorNodeContractQuery& MirrorNodeContractQuery::setGasPrice(int64_t price)
 {
   mGasPrice = price;
   return *this;
 }
 
-//------
-MirrorNodeContractQuery& MirrorNodeContractQuery::setBlockNumber(int64_t number)
+//-----
+MirrorNodeContractQuery& MirrorNodeContractQuery::setBlockNumber(uint64_t number)
 {
   mBlockNumber = number;
   return *this;
 }
 
-//------
+//-----
+MirrorNodeContractQuery& MirrorNodeContractQuery::setEstimate(bool estimate)
+{
+  mEstimate = estimate;
+  return *this;
+}
+
+//-----
+void MirrorNodeContractQuery::populateAccountEvmAddress(const Client& client)
+{
+  json contractInfo = internal::MirrorNodeGateway::MirrorNodeQuery(client.getClientMirrorNetwork()->getNetwork()[0],
+                                                                   { this->getContractId().value().toString() },
+                                                                   internal::MirrorNodeGateway::CONTRACT_INFO_QUERY,
+                                                                   "",
+                                                                   "GET");
+
+  if (!contractInfo["evm_address"].empty())
+  {
+    std::string evmAddress = contractInfo["evm_address"].dump();
+    // json dump returns strings in dquotes, so we need to trim first and last characters
+    evmAddress = evmAddress.substr(1, evmAddress.length() - 2);
+    setContractEvmAddress(evmAddress);
+  }
+}
+
+//-----
 json MirrorNodeContractQuery::toJson() const
 {
-  json j;
+  json obj;
 
-  j["data"] = internal::HexConverter::bytesToHex(mCallData);
-  j["to"] = mContractEvmAddress;
-  j["estimate"] = mEstimate;
-  j["blockNumber"] = mBlockNumber;
+  obj["data"] = internal::HexConverter::bytesToHex(mCallData);
+
+  if (mContractEvmAddress.has_value())
+  {
+    obj["to"] = mContractEvmAddress.value();
+  }
+
+  obj["estimate"] = mEstimate;
+
+  std::string blockNumberString = "latest";
+  if (mBlockNumber != 0)
+  {
+    obj["blockNumber"] = std::to_string(mBlockNumber);
+  }
 
   if (mSenderEvmAddress.has_value())
   {
-    j["from"] = mSenderEvmAddress.value();
+    obj["from"] = mSenderEvmAddress.value();
   }
 
   if (mGasLimit > 0)
   {
-    j["gas"] = mGasLimit;
+    obj["gas"] = mGasLimit;
   }
 
   if (mGasPrice > 0)
   {
-    j["gasPrice"] = mGasPrice;
+    obj["gasPrice"] = mGasPrice;
   }
 
   if (mValue > 0)
   {
-    j["value"] = mValue;
+    obj["value"] = mValue;
   }
 
-  return j;
+  return obj;
 }
 
-}
+} // namespace Hiero
