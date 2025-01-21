@@ -24,8 +24,6 @@ std::string MirrorNodeContractEstimateGasQuery::execute(const Client& client)
                                                  toJson().dump(),
                                                  "POST");
 
-  std::cout << contractCallResult.dump() << std::endl;
-
   if (contractCallResult["result"].empty())
   {
     throw IllegalStateException("No result was found for the gas estimation.");
