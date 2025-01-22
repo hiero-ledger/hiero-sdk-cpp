@@ -10,11 +10,13 @@ namespace Hiero::TCK::TokenService
  * Forward declarations.
  */
 struct AssociateTokenParams;
+struct BurnTokenParams;
 struct CreateTokenParams;
 struct DeleteTokenParams;
 struct DissociateTokenParams;
 struct FreezeTokenParams;
 struct GrantTokenKycParams;
+struct MintTokenParams;
 struct PauseTokenParams;
 struct RevokeTokenKycParams;
 struct UnfreezeTokenParams;
@@ -29,6 +31,14 @@ struct UpdateTokenParams;
  * @return A JSON response containing the status of the token association.
  */
 nlohmann::json associateToken(const AssociateTokenParams& params);
+
+/**
+ * Burn a token.
+ *
+ * @param params The parameters to use to burn a token.
+ * @return A JSON response containing the status of the token burn and the new total supply of the token.
+ */
+nlohmann::json burnToken(const BurnTokenParams& params);
 
 /**
  * Create a token.
@@ -71,6 +81,14 @@ nlohmann::json freezeToken(const FreezeTokenParams& params);
 nlohmann::json grantTokenKyc(const GrantTokenKycParams& params);
 
 /**
+ * Mint a token.
+ *
+ * @param params The parameters to use to mint a token.
+ * @return A JSON response containing the status of the token mint.
+ */
+nlohmann::json mintToken(const MintTokenParams& params);
+
+/**
  * Pause a token.
  *
  * @param params The parameters to use to pause a token.
@@ -111,6 +129,7 @@ nlohmann::json unpauseToken(const UnpauseTokenParams& params);
 nlohmann::json updateTokenFeeSchedule(const UpdateTokenFeeScheduleParams& params);
 
 /**
+>>>>>>> main
  * Update a token.
  *
  * @param params The parameters to use to update a token.

@@ -10,11 +10,13 @@
 #include "sdk/params/ResetParams.h"
 #include "sdk/params/SetupParams.h"
 #include "token/params/AssociateTokenParams.h"
+#include "token/params/BurnTokenParams.h"
 #include "token/params/CreateTokenParams.h"
 #include "token/params/DeleteTokenParams.h"
 #include "token/params/DissociateTokenParams.h"
 #include "token/params/FreezeTokenParams.h"
 #include "token/params/GrantTokenKycParams.h"
+#include "token/params/MintTokenParams.h"
 #include "token/params/PauseTokenParams.h"
 #include "token/params/RevokeTokenKycParams.h"
 #include "token/params/UnfreezeTokenParams.h"
@@ -360,6 +362,8 @@ template TckServer::MethodHandle TckServer::getHandle<SdkClient::SetupParams>(
 
 template TckServer::MethodHandle TckServer::getHandle<TokenService::AssociateTokenParams>(
   nlohmann::json (*method)(const TokenService::AssociateTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::BurnTokenParams>(
+  nlohmann::json (*method)(const TokenService::BurnTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::CreateTokenParams>(
   nlohmann::json (*method)(const TokenService::CreateTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::DeleteTokenParams>(
@@ -370,6 +374,8 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::FreezeTokenP
   nlohmann::json (*method)(const TokenService::FreezeTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::GrantTokenKycParams>(
   nlohmann::json (*method)(const TokenService::GrantTokenKycParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::MintTokenParams>(
+  nlohmann::json (*method)(const TokenService::MintTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::PauseTokenParams>(
   nlohmann::json (*method)(const TokenService::PauseTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::RevokeTokenKycParams>(
