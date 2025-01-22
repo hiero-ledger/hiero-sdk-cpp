@@ -34,20 +34,14 @@ public:
   virtual ~MirrorNodeContractQuery() = default;
 
   /**
-   * Serializes the object to a JSON representation.
-   * @return A JSON object representing the state of the object.
-   */
-  json toJson() const;
-
-  /**
-   * Gets the contract ID to which the transaction is sent.
+   * Gets the contract ID of the contract for the Mirror Node call.
    *
    * @return The contract ID as an optional string.
    */
   const std::optional<ContractId>& getContractId() const { return mContractId; }
 
   /**
-   * Sets the contract ID to which the transaction is sent.
+   * Sets the contract ID of the contract for the Mirror Node call.
    *
    * @param id The contract ID.
    * @return Reference to the updated object.
@@ -55,14 +49,14 @@ public:
   MirrorNodeContractQuery& setContractId(const ContractId& id);
 
   /**
-   * Gets the EVM address of the contract to which the transaction is sent.
+   * Gets the EVM address of the contract for the Mirror Node call.
    *
    * @return The contract EVM address as an optional string.
    */
   const std::optional<std::string>& getContractEvmAddress() const { return mContractEvmAddress; }
 
   /**
-   * Sets the EVM address of the contract to which the transaction is sent.
+   * Sets the EVM address of the contract for the Mirror Node call.
    *
    * @param address The contract EVM address.
    * @return Reference to the updated object.
@@ -70,14 +64,14 @@ public:
   MirrorNodeContractQuery& setContractEvmAddress(const std::string& address);
 
   /**
-   * Gets the sender account ID for the transaction.
+   * Gets the sender account ID for the Mirror Node call.
    *
    * @return The sender account ID as an optional string.
    */
   const std::optional<AccountId>& getSender() const { return mSender; }
 
   /**
-   * Sets the sender account ID for the transaction.
+   * Sets the sender account ID for the Mirror Node call.
    *
    * @param id The sender account ID.
    * @return Reference to the updated object.
@@ -85,14 +79,14 @@ public:
   MirrorNodeContractQuery& setSender(const AccountId& id);
 
   /**
-   * Gets the sender's EVM address for the transaction.
+   * Gets the sender's EVM address for the Mirror Node call.
    *
    * @return The sender's EVM address as an optional string.
    */
   const std::optional<std::string>& getSenderEvmAddress() const { return mSenderEvmAddress; }
 
   /**
-   * Sets the sender's EVM address for the transaction.
+   * Sets the sender's EVM address for the Mirror Node call.
    *
    * @param address The sender's EVM address.
    * @return Reference to the updated object.
@@ -100,14 +94,14 @@ public:
   MirrorNodeContractQuery& setSenderEvmAddress(const std::string& address);
 
   /**
-   * Gets the call data for the transaction.
+   * Gets the call data for the Mirror Node call.
    *
    * @return The call data as a vector of bytes.
    */
   const std::vector<std::byte>& getCallData() const { return mCallData; }
 
   /**
-   * Sets the call data for the transaction.
+   * Sets the call data for the Mirror Node call.
    *
    * @param data The call data as a vector of bytes.
    * @return Reference to the updated object.
@@ -116,14 +110,14 @@ public:
                                        std::optional<ContractFunctionParameters>& parameters);
 
   /**
-   * Gets the value sent to the contract in the transaction.
+   * Gets the value sent to the contract in the Mirror Node call.
    *
    * @return The value as a 64-bit integer.
    */
   int64_t getValue() const { return mValue; }
 
   /**
-   * Sets the value sent to the contract in the transaction.
+   * Sets the value sent to the contract in the Mirror Node call.
    *
    * @param val The value as a 64-bit integer.
    * @return Reference to the updated object.
@@ -131,14 +125,14 @@ public:
   MirrorNodeContractQuery& setValue(int64_t val);
 
   /**
-   * Gets the gas limit for the transaction.
+   * Gets the gas limit for the Mirror Node call.
    *
    * @return The gas limit as a 64-bit integer.
    */
   int64_t getGasLimit() const { return mGasLimit; }
 
   /**
-   * Sets the gas limit for the transaction.
+   * Sets the gas limit for the Mirror Node call.
    *
    * @param limit The gas limit as a 64-bit integer.
    * @return Reference to the updated object.
@@ -146,14 +140,14 @@ public:
   MirrorNodeContractQuery& setGasLimit(int64_t limit);
 
   /**
-   * Gets the gas price for the transaction.
+   * Gets the gas price for the Mirror Node call.
    *
    * @return The gas price as a 64-bit integer.
    */
   int64_t getGasPrice() const { return mGasPrice; }
 
   /**
-   * Sets the gas price for the transaction.
+   * Sets the gas price for the Mirror Node call.
    *
    * @param price The gas price as a 64-bit integer.
    * @return Reference to the updated object.
@@ -161,14 +155,14 @@ public:
   MirrorNodeContractQuery& setGasPrice(int64_t price);
 
   /**
-   * Gets the block number used for the simulation.
+   * Gets the block number used for the Mirror Node call.
    *
    * @return The block number as a 64-bit unsigned integer.
    */
   uint64_t getBlockNumber() const { return mBlockNumber; }
 
   /**
-   * Sets the block number used for the simulation.
+   * Sets the block number used for the Mirror Node call.
    *
    * @param number The block number as a 64-bit unsigned integer.
    * @return Reference to the updated object.
@@ -190,6 +184,13 @@ public:
   MirrorNodeContractQuery& setEstimate(bool estimate);
 
   /**
+   * Serializes the query object to a JSON representation.
+   *
+   * @return A JSON object representing the state of the object.
+   */
+  json toJson() const;
+
+  /**
    * Executes the Mirror Node query.
    *
    * @param client The Client object used for network access.
@@ -208,47 +209,47 @@ protected:
   void populateContractEvmAddress(const Client& client);
 
   /**
-   * The contract ID to which the transaction is sent.
+   * The contract ID  of the contract for the Mirror Node call.
    */
   std::optional<ContractId> mContractId;
 
   /**
-   * The EVM address of the contract to which the transaction is sent.
+   * The EVM address of the contract for the Mirror Node call.
    */
   std::optional<std::string> mContractEvmAddress;
 
   /**
-   * The sender account ID for the transaction.
+   * The sender account ID for the Mirror Node call.
    */
   std::optional<AccountId> mSender;
 
   /**
-   * The sender's EVM address for the transaction.
+   * The sender's EVM address for the Mirror Node call.
    */
   std::optional<std::string> mSenderEvmAddress;
 
   /**
-   * The call data for the transaction.
+   * The call data for the Mirror Node call.
    */
   std::vector<std::byte> mCallData;
 
   /**
-   * The value sent to the contract in the transaction.
+   * The value sent to the contract for the Mirror Node call.
    */
   int64_t mValue = 0;
 
   /**
-   * The gas limit for the transaction.
+   * The gas limit sent to the contract for the Mirror Node call.
    */
   int64_t mGasLimit = 0;
 
   /**
-   * The gas price for the transaction.
+   * The gas price sent to the contract for the Mirror Node call.
    */
   int64_t mGasPrice = 0;
 
   /**
-   * The block number used for the simulation.
+   * The block number sent to the contract for the Mirror Node call.
    */
   uint64_t mBlockNumber = 0;
 
