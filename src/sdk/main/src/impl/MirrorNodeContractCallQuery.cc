@@ -15,7 +15,7 @@ std::string MirrorNodeContractCallQuery::execute(const Client& client)
     populateContractEvmAddress(client);
   }
 
-  json contractCallResult =
+  const json contractCallResult =
     internal::MirrorNodeGateway::MirrorNodeQuery(client.getClientMirrorNetwork()->getNetwork()[0],
                                                  { "call" },
                                                  internal::MirrorNodeGateway::CONTRACT_INFO_QUERY,
