@@ -14,7 +14,7 @@ std::string MirrorNodeContractEstimateGasQuery::execute(const Client& client)
 
   if (!getContractEvmAddress().has_value())
   {
-    populateAccountEvmAddress(client);
+    populateContractEvmAddress(client);
   }
 
   json contractCallResult =

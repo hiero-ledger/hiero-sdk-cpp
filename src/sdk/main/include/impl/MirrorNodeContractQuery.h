@@ -205,7 +205,7 @@ protected:
    * @return A reference to the modified AccountId object.
    * @throws IllegalStateException if mAccountNum is empty or if the account does not exist in the Mirror Network.
    */
-  void populateAccountEvmAddress(const Client& client);
+  void populateContractEvmAddress(const Client& client);
 
   /**
    * The contract ID to which the transaction is sent.

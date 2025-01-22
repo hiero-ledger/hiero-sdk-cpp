@@ -12,7 +12,7 @@ std::string MirrorNodeContractCallQuery::execute(const Client& client)
 {
   if (!getContractEvmAddress().has_value())
   {
-    populateAccountEvmAddress(client);
+    populateContractEvmAddress(client);
   }
 
   json contractCallResult =

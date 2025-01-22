@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "Client.h"
+#include "ContractCallQuery.h"
 #include "ContractCreateTransaction.h"
 #include "ED25519PrivateKey.h"
 #include "FileCreateTransaction.h"
@@ -70,8 +71,10 @@ int main(int argc, char** argv)
   const ContractId contractId = txReceipt.mContractId.value();
   std::cout << "Smart contract created with ID " << contractId.toString() << std::endl;
 
-  std::this_thread::sleep_for(std::chrono::seconds(4));
+  // Wait for mirror node to import contract data
+  std::this_thread::sleep_for(std::chrono::seconds(3));
 
+  // Estimate the gas needed
   MirrorNodeContractEstimateGasQuery query = MirrorNodeContractEstimateGasQuery();
   std::optional<ContractFunctionParameters> opt = std::nullopt;
   query.setContractId(contractId)
@@ -80,7 +83,20 @@ int main(int argc, char** argv)
     .setGasPrice(1234)
     .setFunction("greet", opt);
 
-  std::string result = query.execute(client);
+  uint64_t estimatedGas = std::stoi(query.execute(client), nullptr, 16);
+  std::cout << "Estimated gas was " << estimatedGas << std::endl;
 
-  std::cout << result << std::endl;
+  // Do the query against the consensus node using the estimated gas
+  ContractFunctionResult contractFunctionResult = ContractCallQuery()
+                                                    .setContractId(contractId)
+                                                    .setGas(estimatedGas)
+                                                    .setQueryPayment(Hbar(1LL))
+                                                    .setFunction("greet")
+                                                    .execute(client);
+
+  // Simulate the transaction for free, using the mirror node
+  MirrorNodeContractCallQuery callQuery = MirrorNodeContractCallQuery();
+  std::string callResult = callQuery.setContractId(contractId).setFunction("greet", opt).execute(client);
+
+  std::cout << "Contract call simulation result was: " << callResult << std::endl;
 }

@@ -79,13 +79,11 @@ MirrorNodeContractQuery& MirrorNodeContractQuery::setEstimate(bool estimate)
 }
 
 //-----
-void MirrorNodeContractQuery::populateAccountEvmAddress(const Client& client)
+void MirrorNodeContractQuery::populateContractEvmAddress(const Client& client)
 {
   json contractInfo = internal::MirrorNodeGateway::MirrorNodeQuery(client.getClientMirrorNetwork()->getNetwork()[0],
                                                                    { this->getContractId().value().toString() },
-                                                                   internal::MirrorNodeGateway::CONTRACT_INFO_QUERY,
-                                                                   "",
-                                                                   "GET");
+                                                                   internal::MirrorNodeGateway::CONTRACT_INFO_QUERY);
 
   if (!contractInfo["evm_address"].empty())
   {
@@ -119,6 +117,10 @@ json MirrorNodeContractQuery::toJson() const
   if (mSenderEvmAddress.has_value())
   {
     obj["from"] = mSenderEvmAddress.value();
+  }
+  else if (mSender.has_value())
+  {
+    obj["from"] = mSender.value().toSolidityAddress();
   }
 
   if (mGasLimit > 0)
