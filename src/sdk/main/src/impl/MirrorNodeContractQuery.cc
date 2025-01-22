@@ -85,7 +85,7 @@ void MirrorNodeContractQuery::populateContractEvmAddress(const Client& client)
                                                                    { getContractId().value().toString() },
                                                                    internal::MirrorNodeGateway::CONTRACT_INFO_QUERY);
 
-  if (!contractInfo["evm_address"].empty())
+  if (contractInfo.contains("evm_address"))
   {
     std::string evmAddress = contractInfo["evm_address"].dump();
     // json dump returns strings in dquotes, so we need to trim first and last characters

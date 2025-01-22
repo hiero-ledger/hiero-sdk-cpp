@@ -7,6 +7,7 @@
 #include "FileCreateTransaction.h"
 #include "TransactionRecord.h"
 #include "TransactionResponse.h"
+#include "impl/HexConverter.h"
 #include "impl/MirrorNodeContractCallQuery.h"
 #include "impl/MirrorNodeContractEstimateGasQuery.h"
 #include "impl/Utilities.h"
@@ -93,6 +94,9 @@ int main(int argc, char** argv)
                                                     .setQueryPayment(Hbar(1LL))
                                                     .setFunction("greet")
                                                     .execute(client);
+
+  std::cout << "Contract call query result was: "
+            << internal::HexConverter::bytesToHex(contractFunctionResult.mContractCallResult) << std::endl;
 
   // Simulate the transaction for free, using the mirror node
   MirrorNodeContractCallQuery callQuery = MirrorNodeContractCallQuery();

@@ -27,13 +27,6 @@ class MirrorNodeContractQuery
 {
 public:
   /**
-   * Default constructor.
-   */
-  MirrorNodeContractQuery() = default;
-
-  virtual ~MirrorNodeContractQuery() = default;
-
-  /**
    * Gets the contract ID of the contract for the Mirror Node call.
    *
    * @return The contract ID as an optional string.
@@ -98,7 +91,7 @@ public:
    *
    * @return The call data as a vector of bytes.
    */
-  const std::vector<std::byte>& getCallData() const { return mCallData; }
+  std::vector<std::byte> getCallData() const { return mCallData; }
 
   /**
    * Sets the call data for the Mirror Node call.

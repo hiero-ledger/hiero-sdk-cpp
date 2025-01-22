@@ -22,7 +22,7 @@ std::string MirrorNodeContractCallQuery::execute(const Client& client)
                                                  toJson().dump(),
                                                  "POST");
 
-  if (contractCallResult["result"].empty())
+  if (!contractCallResult.contains("result"))
   {
     throw IllegalStateException("No result was found for the contract call.");
   }
