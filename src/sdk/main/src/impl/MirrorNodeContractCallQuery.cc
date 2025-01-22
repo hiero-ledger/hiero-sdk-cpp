@@ -24,7 +24,7 @@ std::string MirrorNodeContractCallQuery::execute(const Client& client)
 
   if (contractCallResult["result"].empty())
   {
-    throw IllegalStateException("No result was found for the gas estimation.");
+    throw IllegalStateException("No result was found for the contract call.");
   }
   std::string callResult = contractCallResult["result"].dump();
   // json dump returns strings in dquotes, so we need to trim first and last characters

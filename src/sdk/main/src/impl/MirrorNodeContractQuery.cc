@@ -82,7 +82,7 @@ MirrorNodeContractQuery& MirrorNodeContractQuery::setEstimate(bool estimate)
 void MirrorNodeContractQuery::populateContractEvmAddress(const Client& client)
 {
   json contractInfo = internal::MirrorNodeGateway::MirrorNodeQuery(client.getClientMirrorNetwork()->getNetwork()[0],
-                                                                   { this->getContractId().value().toString() },
+                                                                   { getContractId().value().toString() },
                                                                    internal::MirrorNodeGateway::CONTRACT_INFO_QUERY);
 
   if (!contractInfo["evm_address"].empty())
