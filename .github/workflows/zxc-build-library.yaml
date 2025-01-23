@@ -108,6 +108,9 @@ jobs:
       - name: Install Local Node
         run: sudo npm install -g @hashgraph/hedera-local@2.29.2
 
+      - name: Install Solo
+        run: sudo npm install -g @hashgraph/solo
+
       - name: Install Linux Prerequisites
         run: |
           sudo apt-get update
