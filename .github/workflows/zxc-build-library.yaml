@@ -112,7 +112,9 @@ jobs:
         run: sudo npm install -g @hashgraph/solo
 
       - name: Install Kubernetes
-        run: curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        run: | 
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo apt-get install kind
 
       - name: Start Solo
         run: |
