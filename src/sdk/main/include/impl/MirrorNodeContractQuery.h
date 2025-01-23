@@ -31,7 +31,7 @@ public:
    *
    * @return The contract ID as an optional string.
    */
-  const std::optional<ContractId>& getContractId() const { return mContractId; }
+  std::optional<ContractId> getContractId() const { return mContractId; }
 
   /**
    * Sets the contract ID of the contract for the Mirror Node call.
@@ -46,7 +46,7 @@ public:
    *
    * @return The contract EVM address as an optional string.
    */
-  const std::optional<std::string>& getContractEvmAddress() const { return mContractEvmAddress; }
+  std::optional<std::string> getContractEvmAddress() const { return mContractEvmAddress; }
 
   /**
    * Sets the EVM address of the contract for the Mirror Node call.
@@ -61,7 +61,7 @@ public:
    *
    * @return The sender account ID as an optional string.
    */
-  const std::optional<AccountId>& getSender() const { return mSender; }
+  std::optional<AccountId> getSender() const { return mSender; }
 
   /**
    * Sets the sender account ID for the Mirror Node call.
@@ -76,7 +76,7 @@ public:
    *
    * @return The sender's EVM address as an optional string.
    */
-  const std::optional<std::string>& getSenderEvmAddress() const { return mSenderEvmAddress; }
+  std::optional<std::string> getSenderEvmAddress() const { return mSenderEvmAddress; }
 
   /**
    * Sets the sender's EVM address for the Mirror Node call.
