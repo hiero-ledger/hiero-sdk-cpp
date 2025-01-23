@@ -113,8 +113,6 @@ jobs:
 
       - name: Start Solo
         run: |
-          rm -rf ~/.solo/cache
-          rm ~/.solo/solo.config
           export SOLO_CLUSTER_NAME=solo-e2e
           export SOLO_NAMESPACE=solo-e2e
           export SOLO_CLUSTER_SETUP_NAMESPACE=fullstack-setup
