@@ -3,7 +3,6 @@
 
 #include "ContractInfo.h"
 #include "ContractInfoQuery.h"
-#include "impl/MirrorNodeGateway.h"
 #include "impl/Node.h"
 
 #include <query.pb.h>

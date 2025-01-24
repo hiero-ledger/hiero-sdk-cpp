@@ -2,6 +2,10 @@
 #ifndef HIERO_SDK_CPP_IMPL_HTTP_CLIENT_H_
 #define HIERO_SDK_CPP_IMPL_HTTP_CLIENT_H_
 
+#ifndef CPPHTTPLIB_OPENSSL_SUPPORT
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#endif
+
 #include <httplib.h>
 #include <string>
 #include <string_view>
