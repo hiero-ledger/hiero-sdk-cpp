@@ -21,12 +21,16 @@ namespace Hiero::internal::MirrorNodeGateway
  * @param mirrorNodeUrl The mirror node URL.
  * @param params A vector of strings representing parameters for the query.
  * @param queryType The type of the query.
+ * @param requestBody Body for the request if one is set.
+ * @param requestType Type of the request if one is set.
  * @return A JSON object representing the response of the mirror node query.
  * @throws IllegalStateException If an error occurs during the mirror node query or JSON parsing.
  */
 nlohmann::json MirrorNodeQuery(std::string_view mirrorNodeUrl,
                                const std::vector<std::string>& params,
-                               std::string_view queryType);
+                               std::string_view queryType,
+                               std::string_view requestBody = "",
+                               std::string_view requestType = "GET");
 
 /**
  * Replaces all occurrences of a substring in a string.
@@ -55,6 +59,6 @@ void replaceParameters(std::string& original, std::string_view search, std::stri
 std::string buildUrlForNetwork(std::string_view mirrorNodeUrl,
                                std::string_view queryType,
                                const std::vector<std::string>& params,
-                               bool& isLocalNetwork);
+                               std::string_view requestType);
 } // namespace Hiero::internal::MirrorNodeGateway
 #endif // HIERO_SDK_CPP_MIRRORNODEGATEWAY_H
