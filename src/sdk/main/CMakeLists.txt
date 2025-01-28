@@ -196,6 +196,9 @@ add_library(${PROJECT_NAME} STATIC
         src/impl/HttpClient.cc
         src/impl/MirrorNetwork.cc
         src/impl/MirrorNode.cc
+        src/impl/MirrorNodeContractCallQuery.cc
+        src/impl/MirrorNodeContractEstimateGasQuery.cc
+        src/impl/MirrorNodeContractQuery.cc
         src/impl/MirrorNodeGateway.cc
         src/impl/MirrorNodeRouter.cc
         src/impl/Network.cc
