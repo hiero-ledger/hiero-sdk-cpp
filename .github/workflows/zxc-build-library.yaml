@@ -135,179 +135,179 @@ jobs:
           solo node start -i node1 -n solo-e2e
           kubectl port-forward svc/haproxy-node1-svc -n "${SOLO_NAMESPACE}" 50211:50211 &
 
-  #     - name: Install Linux Prerequisites
-  #       run: |
-  #         sudo apt-get update
-  #         sudo apt-get install -y pkg-config libc6-dbg libgtest-dev build-essential
+      - name: Install Linux Prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libc6-dbg libgtest-dev build-essential
 
-  #     - name: Ensure Binary Cache Path Exists
-  #       run: mkdir -p "${{ github.workspace }}/b/vcpkg_cache"
+      - name: Ensure Binary Cache Path Exists
+        run: mkdir -p "${{ github.workspace }}/b/vcpkg_cache"
 
-  #     - name: Install CMake & Ninja
-  #       uses: lukka/get-cmake@acb35cf920333f4dc3fc4f424f1b30d5e7d561b4 # v3.31.4
-  #       with:
-  #         useCloudCache: true
+      - name: Install CMake & Ninja
+        uses: lukka/get-cmake@acb35cf920333f4dc3fc4f424f1b30d5e7d561b4 # v3.31.4
+        with:
+          useCloudCache: true
 
-  #     - name: Setup VCPkg
-  #       uses: lukka/run-vcpkg@5e0cab206a5ea620130caf672fce3e4a6b5666a1 # v11.5
-  #       with:
-  #         binaryCachePath: ${{ github.workspace }}/b/vcpkg_cache
+      - name: Setup VCPkg
+        uses: lukka/run-vcpkg@5e0cab206a5ea620130caf672fce3e4a6b5666a1 # v11.5
+        with:
+          binaryCachePath: ${{ github.workspace }}/b/vcpkg_cache
 
-  #     - name: Convert VCPkg to Full Clone
-  #       working-directory: vcpkg
-  #       run: git fetch --unshallow --prune
+      - name: Convert VCPkg to Full Clone
+        working-directory: vcpkg
+        run: git fetch --unshallow --prune
 
-  #     - name: CMake Build (Debug)
-  #       env:
-  #         VCPKG_BINARY_SOURCES: clear
-  #       run: |
-  #         echo "::group::Configure Project"
-  #         ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-debug -DBUILD_TESTS=ON
-  #         echo "::endgroup::"
+      - name: CMake Build (Debug)
+        env:
+          VCPKG_BINARY_SOURCES: clear
+        run: |
+          echo "::group::Configure Project"
+          ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-debug -DBUILD_TESTS=ON
+          echo "::endgroup::"
 
-  #         echo "::group::Build Project"
-  #         ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-debug
-  #         echo "::endgroup::"
+          echo "::group::Build Project"
+          ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-debug
+          echo "::endgroup::"
 
-  #     - name: CMake Build (Release)
-  #       if: github.event.pull_request.merged == true
-  #       env:
-  #         VCPKG_BINARY_SOURCES: clear
-  #       run: |
-  #         echo "::group::Configure Project"
-  #         ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-release -DBUILD_TESTS=ON
-  #         echo "::endgroup::"
+      - name: CMake Build (Release)
+        if: github.event.pull_request.merged == true
+        env:
+          VCPKG_BINARY_SOURCES: clear
+        run: |
+          echo "::group::Configure Project"
+          ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-release -DBUILD_TESTS=ON
+          echo "::endgroup::"
 
-  #         echo "::group::Build Project"
-  #         ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-release
-  #         echo "::endgroup::"
+          echo "::group::Build Project"
+          ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-release
+          echo "::endgroup::"
 
-  #     - name: Start the local node
-  #       run: npx hedera start --verbose=trace --detached --network-tag=0.57.0
+      # - name: Start the local node
+      #   run: npx hedera start --verbose=trace --detached --network-tag=0.57.0
 
-  #     - name: Start CTest suite (Debug)
-  #       run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug --output-on-failure
+      - name: Start CTest suite (Debug)
+        run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug --output-on-failure
 
-  #     - name: Start CTest suite (Release)
-  #       if: github.event.pull_request.merged == true
-  #       run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-release --output-on-failure
+      - name: Start CTest suite (Release)
+        if: github.event.pull_request.merged == true
+        run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-release --output-on-failure
 
-  #     - name: Stop the local node
-  #       run: sudo npx @hashgraph/hedera-local stop
+      # - name: Stop the local node
+      #   run: sudo npx @hashgraph/hedera-local stop
 
-  #     - name: Compute Short SHA
-  #       id: sha
-  #       run: echo "short=$(echo -n "${{ github.sha }}" | cut -c1-8)" >> $GITHUB_OUTPUT
+      - name: Compute Short SHA
+        id: sha
+        run: echo "short=$(echo -n "${{ github.sha }}" | cut -c1-8)" >> $GITHUB_OUTPUT
 
-  #     - name: Attach Artifact
-  #       if: github.event.pull_request.merged == true
-  #       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
-  #       with:
-  #         name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
-  #         path: package/
-  #         if-no-files-found: warn
+      - name: Attach Artifact
+        if: github.event.pull_request.merged == true
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
+          path: package/
+          if-no-files-found: warn
 
-  # build-windows:
-  #   name: Build (Windows)
-  #   runs-on: windows-latest
-  #   if: ${{ (inputs.run-windows-builds) && !cancelled() }}
+  build-windows:
+    name: Build (Windows)
+    runs-on: windows-latest
+    if: ${{ (inputs.run-windows-builds) && !cancelled() }}
 
-  #   env:
-  #     HEDERA_NETWORK: localhost
+    env:
+      HEDERA_NETWORK: localhost
 
-  #   steps:
-  #     - name: Harden Runner
-  #       uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
-  #       with:
-  #         egress-policy: audit
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
+        with:
+          egress-policy: audit
 
-  #     - name: Checkout Code
-  #       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-  #       with:
-  #         fetch-depth: 0
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
 
-  #     - name: Setup-msbuild
-  #       uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
-  #       with:
-  #         msbuild-architecture: x64
+      - name: Setup-msbuild
+        uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
+        with:
+          msbuild-architecture: x64
 
-  #     - name: Setup-perl
-  #       uses: shogo82148/actions-setup-perl@49c14f24551d2de3bf56fb107a869c3760b1875e # v1.33.0
-  #       with:
-  #         perl-version: "5.32"
-  #         distribution: strawberry
+      - name: Setup-perl
+        uses: shogo82148/actions-setup-perl@49c14f24551d2de3bf56fb107a869c3760b1875e # v1.33.0
+        with:
+          perl-version: "5.32"
+          distribution: strawberry
 
-  #     - name: Setup-nasm
-  #       uses: ilammy/setup-nasm@13cbeb366c45c4379d3478cdcbadd8295feb5028 # v1.5.1
+      - name: Setup-nasm
+        uses: ilammy/setup-nasm@13cbeb366c45c4379d3478cdcbadd8295feb5028 # v1.5.1
 
-  #     - name: Enable Git long paths
-  #       run: git config --global core.longpaths true
+      - name: Enable Git long paths
+        run: git config --global core.longpaths true
 
-  #     - name: Build (Debug)
-  #       run: |
-  #         git submodule update --init
-  #         cmake --preset windows-x64-debug
-  #         cmake --build --preset windows-x64-debug -j 4
+      - name: Build (Debug)
+        run: |
+          git submodule update --init
+          cmake --preset windows-x64-debug
+          cmake --build --preset windows-x64-debug -j 4
 
-  #     - name: Build (Release)
-  #       run: |
-  #         cmake --preset windows-x64-release
-  #         cmake --build --preset windows-x64-release -j 4
+      - name: Build (Release)
+        run: |
+          cmake --preset windows-x64-release
+          cmake --build --preset windows-x64-release -j 4
 
-  #     - name: Compute Short SHA
-  #       id: sha
-  #       shell: pwsh
-  #       run: |
-  #         $sha = "${{ github.sha }}"
-  #         $short = $sha.Substring(0, 8)
-  #         Add-Content -Path $env:GITHUB_OUTPUT -Value "short=$short"
+      - name: Compute Short SHA
+        id: sha
+        shell: pwsh
+        run: |
+          $sha = "${{ github.sha }}"
+          $short = $sha.Substring(0, 8)
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "short=$short"
 
-  #     - name: Attach Artifact
-  #       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
-  #       with:
-  #         name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
-  #         path: package/
-  #         if-no-files-found: warn
+      - name: Attach Artifact
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
+          path: package/
+          if-no-files-found: warn
 
-  # build-macos:
-  #   name: Build (MacOS)
-  #   runs-on: macos-latest
-  #   if: ${{ (inputs.run-macos-builds) && !cancelled() }}
-  #   env:
-  #     HEDERA_NETWORK: localhost
+  build-macos:
+    name: Build (MacOS)
+    runs-on: macos-latest
+    if: ${{ (inputs.run-macos-builds) && !cancelled() }}
+    env:
+      HEDERA_NETWORK: localhost
 
-  #   steps:
-  #     - name: Harden Runner
-  #       uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
-  #       with:
-  #         egress-policy: audit
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
+        with:
+          egress-policy: audit
 
-  #     - name: Checkout Code
-  #       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-  #       with:
-  #         fetch-depth: 0
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
 
-  #     - name: Install Ninja
-  #       uses: seanmiddleditch/gha-setup-ninja@96bed6edff20d1dd61ecff9b75cc519d516e6401 # v5.0.0
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@96bed6edff20d1dd61ecff9b75cc519d516e6401 # v5.0.0
 
-  #     - name: Build (Debug)
-  #       run: |
-  #         git submodule update --init
-  #         cmake --preset macos-arm64-debug
-  #         cmake --build --preset macos-arm64-debug -j 4
+      - name: Build (Debug)
+        run: |
+          git submodule update --init
+          cmake --preset macos-arm64-debug
+          cmake --build --preset macos-arm64-debug -j 4
 
-  #     - name: Build (Release)
-  #       run: |
-  #         cmake --preset macos-arm64-release
-  #         cmake --build --preset macos-arm64-release -j 4
+      - name: Build (Release)
+        run: |
+          cmake --preset macos-arm64-release
+          cmake --build --preset macos-arm64-release -j 4
           
-  #     - name: Compute Short SHA
-  #       id: sha
-  #       run: echo "short=$(echo -n "${{ github.sha }}" | cut -c1-8)" >> $GITHUB_OUTPUT
+      - name: Compute Short SHA
+        id: sha
+        run: echo "short=$(echo -n "${{ github.sha }}" | cut -c1-8)" >> $GITHUB_OUTPUT
 
-  #     - name: Attach Artifact
-  #       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
-  #       with:
-  #         name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
-  #         path: package/
-  #         if-no-files-found: warn
+      - name: Attach Artifact
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
+          path: package/
+          if-no-files-found: warn
