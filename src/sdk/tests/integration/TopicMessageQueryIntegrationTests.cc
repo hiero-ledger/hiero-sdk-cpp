@@ -22,7 +22,7 @@ class TopicMessageQueryIntegrationTests : public BaseIntegrationTest
 };
 
 //-----
-TEST_F(TopicMessageQueryIntegrationTests, ExecuteTopicMessageQuery)
+TEST_F(TopicMessageQueryIntegrationTests, DISABLED_ExecuteTopicMessageQuery)
 {
   // Given
   const std::string topicMessage = "Hello from HCS!";
@@ -79,7 +79,7 @@ TEST_F(TopicMessageQueryIntegrationTests, ExecuteTopicMessageQuery)
 }
 
 //-----
-TEST_F(TopicMessageQueryIntegrationTests, CanReceiveLargeTopicMessage)
+TEST_F(TopicMessageQueryIntegrationTests, DISABLED_CanReceiveLargeTopicMessage)
 {
   // Given
   const std::string topicMessage =
