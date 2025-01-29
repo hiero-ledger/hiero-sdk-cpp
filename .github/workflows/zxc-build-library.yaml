@@ -105,38 +105,6 @@ jobs:
         with:
           node-version: 22
 
-      # - name: Install Local Node
-      #   run: sudo npm install -g @hashgraph/hedera-local@2.29.2
-
-      - name: Install Solo
-        run: sudo npm install -g @hashgraph/solo@0.34.0
-
-      - name: Install Solo Dependencies
-        run: | 
-          sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          sudo chmod +x ./kubectl
-          sudo mv ./kubectl /usr/local/bin/kubectl
-          sudo curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-amd64
-          sudo chmod +x ./kind
-          sudo mv ./kind /usr/local/bin/kind
-
-      - name: Start Solo
-        run: |
-          export SOLO_CLUSTER_NAME=solo-e2e
-          export SOLO_NAMESPACE=solo-e2e
-          export SOLO_CLUSTER_SETUP_NAMESPACE=fullstack-setup
-          kind create cluster -n "${SOLO_CLUSTER_NAME}"
-          solo init
-          solo node keys -i node1 --gossip-keys --tls-keys
-          solo cluster setup
-          solo network deploy -i node1 -n solo-e2e
-          solo node setup -i node1 -n solo-e2e
-          solo node start -i node1 -n solo-e2e
-          kubectl port-forward svc/haproxy-node1-svc -n "${SOLO_NAMESPACE}" 50211:50211 &
-          solo mirror-node deploy -n "${SOLO_NAMESPACE}" --pinger true
-          kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-rest-)) 5551:5551 -n solo-e2e &
-          kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-web)) 8545:8545 -n solo-e2e &
-
       - name: Install Linux Prerequisites
         run: |
           sudo apt-get update
@@ -183,6 +151,38 @@ jobs:
           echo "::group::Build Project"
           ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-release
           echo "::endgroup::"
+
+      - name: Install Solo
+        run: sudo npm install -g @hashgraph/solo@0.34.0
+
+      - name: Install Solo Required Tools
+        run: | 
+          sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+          sudo curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-amd64
+          sudo chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+
+      - name: Start Solo
+        run: |
+          export SOLO_CLUSTER_NAME=solo-e2e
+          export SOLO_NAMESPACE=solo-e2e
+          export SOLO_CLUSTER_SETUP_NAMESPACE=fullstack-setup
+          kind create cluster -n "${SOLO_CLUSTER_NAME}"
+          solo init
+          solo node keys -i node1 --gossip-keys --tls-keys
+          solo cluster setup
+          solo network deploy -i node1 -n solo-e2e
+          solo node setup -i node1 -n solo-e2e
+          solo node start -i node1 -n solo-e2e
+          kubectl port-forward svc/haproxy-node1-svc -n "${SOLO_NAMESPACE}" 50211:50211 &
+          solo mirror-node deploy -n "${SOLO_NAMESPACE}" --pinger true
+          kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-rest-)) 5551:5551 -n solo-e2e &
+          kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-web)) 8545:8545 -n solo-e2e &
+
+      # - name: Install Local Node
+      #   run: sudo npm install -g @hashgraph/hedera-local@2.29.2
 
       # - name: Start the local node
       #   run: npx hedera start --verbose=trace --detached --network-tag=0.57.0
