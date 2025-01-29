@@ -105,11 +105,11 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Local Node
-        run: sudo npm install -g @hashgraph/hedera-local@2.29.2
+      # - name: Install Local Node
+      #   run: sudo npm install -g @hashgraph/hedera-local@2.29.2
 
       - name: Install Solo
-        run: sudo npm install -g @hashgraph/solo@0.33.0
+        run: sudo npm install -g @hashgraph/solo@0.34.0
 
       - name: Install Solo Dependencies
         run: | 
