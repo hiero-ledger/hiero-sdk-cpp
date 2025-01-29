@@ -109,7 +109,7 @@ jobs:
         run: sudo npm install -g @hashgraph/hedera-local@2.29.2
 
       - name: Install Solo
-        run: sudo npm install -g @hashgraph/solo
+        run: sudo npm install -g @hashgraph/solo@0.33.0
 
       - name: Install Solo Dependencies
         run: | 
@@ -135,6 +135,7 @@ jobs:
           kubectl port-forward svc/haproxy-node1-svc -n "${SOLO_NAMESPACE}" 50211:50211 &
           solo mirror-node deploy -n "${SOLO_NAMESPACE}" --pinger true
           kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-rest-)) 5551:5551 -n solo-e2e &
+          kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-web)) 8545:8545 -n solo-e2e &
 
       - name: Install Linux Prerequisites
         run: |

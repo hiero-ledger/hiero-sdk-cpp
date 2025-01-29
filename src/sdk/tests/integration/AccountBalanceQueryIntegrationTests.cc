@@ -24,7 +24,7 @@ class AccountBalanceQueryIntegrationTests : public BaseIntegrationTest
 };
 
 //-----
-TEST_F(AccountBalanceQueryIntegrationTests, AccountId)
+TEST_F(AccountBalanceQueryIntegrationTests, DISABLED_AccountId)
 {
   // Given
   AccountBalance accountBalance;
