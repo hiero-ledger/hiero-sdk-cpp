@@ -22,6 +22,7 @@ class TopicMessageQueryIntegrationTests : public BaseIntegrationTest
 };
 
 //-----
+// Disabled until Solo triage
 TEST_F(TopicMessageQueryIntegrationTests, DISABLED_ExecuteTopicMessageQuery)
 {
   // Given
@@ -79,6 +80,7 @@ TEST_F(TopicMessageQueryIntegrationTests, DISABLED_ExecuteTopicMessageQuery)
 }
 
 //-----
+// Disabled until Solo triage
 TEST_F(TopicMessageQueryIntegrationTests, DISABLED_CanReceiveLargeTopicMessage)
 {
   // Given
