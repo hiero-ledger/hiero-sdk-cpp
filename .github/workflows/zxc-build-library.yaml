@@ -170,7 +170,7 @@ jobs:
           export SOLO_NAMESPACE=solo-e2e
           export SOLO_CLUSTER_SETUP_NAMESPACE=fullstack-setup
           kind create cluster -n "${SOLO_CLUSTER_NAME}"
-          solo init -t v0.58.0
+          solo init
           solo node keys -i node1 --gossip-keys --tls-keys
           solo cluster setup
           solo network deploy -i node1 -n solo-e2e

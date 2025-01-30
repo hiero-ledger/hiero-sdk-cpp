@@ -24,13 +24,13 @@ class AccountBalanceQueryIntegrationTests : public BaseIntegrationTest
 };
 
 //-----
-TEST_F(AccountBalanceQueryIntegrationTests, DISABLED_AccountId)
+TEST_F(AccountBalanceQueryIntegrationTests, AccountId)
 {
   // Given
   AccountBalance accountBalance;
 
   // When
-  EXPECT_NO_THROW(accountBalance = AccountBalanceQuery().setAccountId(AccountId(1023ULL)).execute(getTestClient()));
+  EXPECT_NO_THROW(accountBalance = AccountBalanceQuery().setAccountId(AccountId(2ULL)).execute(getTestClient()));
 
   // Then
   EXPECT_EQ(accountBalance.mBalance, Hbar(10000LL));
