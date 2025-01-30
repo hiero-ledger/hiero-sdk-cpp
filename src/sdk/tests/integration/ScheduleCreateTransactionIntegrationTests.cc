@@ -233,7 +233,8 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, CanSignScheduleAndWaitForExpir
 }
 
 //-----
-TEST_F(ScheduleCreateTransactionIntegrationTests, CannotScheduleOneYearIntoTheFuture)
+// Disabled until Solo triage
+TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CannotScheduleOneYearIntoTheFuture)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
@@ -278,7 +279,8 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, CannotScheduleOneYearIntoTheFu
 }
 
 //-----
-TEST_F(ScheduleCreateTransactionIntegrationTests, CannotScheduleInThePast)
+// Disabled until Solo triage
+TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CannotScheduleInThePast)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
@@ -417,7 +419,8 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, CanSignWithMultisigAndUpdateSi
 }
 
 //-----
-TEST_F(ScheduleCreateTransactionIntegrationTests, CanExecuteWithShortExpirationTime)
+// Disabled until Solo triage
+TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CanExecuteWithShortExpirationTime)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
