@@ -47,10 +47,6 @@ jobs:
         include:
           - os: Linux
             preset: linux-x64
-            test-env: local-node
-          - os: Linux
-            preset: linux-x64
-            test-env: solo
 
     steps:
       - name: Harden Runner
@@ -157,11 +153,9 @@ jobs:
           echo "::endgroup::"
 
       - name: Install Solo
-        if: matrix.test-env == 'solo'
         run: sudo npm install -g @hashgraph/solo@0.34.0
 
       - name: Install Solo Required Tools
-        if: matrix.test-env == 'solo'
         run: | 
           sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           sudo chmod +x ./kubectl
@@ -171,7 +165,6 @@ jobs:
           sudo mv ./kind /usr/local/bin/kind
 
       - name: Start Solo
-        if: matrix.test-env == 'solo'
         run: |
           export SOLO_CLUSTER_NAME=solo-e2e
           export SOLO_NAMESPACE=solo-e2e
@@ -188,24 +181,12 @@ jobs:
           kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-rest-)) 5551:5551 -n solo-e2e &
           kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-web)) 8545:8545 -n solo-e2e &
 
-      - name: Install Local Node
-        if: matrix.test-env == 'local-node'
-        run: sudo npm install -g @hashgraph/hedera-local@2.29.2
-
-      - name: Start the local node
-        if: matrix.test-env == 'local-node'
-        run: npx hedera start --verbose=trace --detached --network-tag=0.57.0
-
       - name: Start CTest suite (Debug)
         run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug --output-on-failure
 
       - name: Start CTest suite (Release)
         if: github.event.pull_request.merged == true
         run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-release --output-on-failure
-
-      - name: Stop the local node
-        if: matrix.test-env == 'local-node'
-        run: sudo npx @hashgraph/hedera-local stop
 
       - name: Compute Short SHA
         id: sha
