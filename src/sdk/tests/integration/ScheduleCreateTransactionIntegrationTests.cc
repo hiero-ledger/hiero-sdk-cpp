@@ -233,7 +233,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, CanSignScheduleAndWaitForExpir
 }
 
 //-----
-TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CannotScheduleOneYearIntoTheFuture)
+TEST_F(ScheduleCreateTransactionIntegrationTests, CannotScheduleOneYearIntoTheFuture)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
@@ -278,7 +278,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CannotScheduleOneYear
 }
 
 //-----
-TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CannotScheduleInThePast)
+TEST_F(ScheduleCreateTransactionIntegrationTests, CannotScheduleInThePast)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
@@ -417,7 +417,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, CanSignWithMultisigAndUpdateSi
 }
 
 //-----
-TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CanExecuteWithShortExpirationTime)
+TEST_F(ScheduleCreateTransactionIntegrationTests, CanExecuteWithShortExpirationTime)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;

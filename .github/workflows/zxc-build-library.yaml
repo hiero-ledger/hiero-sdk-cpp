@@ -170,11 +170,11 @@ jobs:
           export SOLO_NAMESPACE=solo-e2e
           export SOLO_CLUSTER_SETUP_NAMESPACE=fullstack-setup
           kind create cluster -n "${SOLO_CLUSTER_NAME}"
-          solo init
+          solo init -t v0.58.0
           solo node keys -i node1 --gossip-keys --tls-keys
           solo cluster setup
           solo network deploy -i node1 -n solo-e2e
-          solo node setup -i node1 -n solo-e2e
+          solo node setup -i node1 -n solo-e2e -t v0.57.0
           solo node start -i node1 -n solo-e2e
           kubectl port-forward svc/haproxy-node1-svc -n "${SOLO_NAMESPACE}" 50211:50211 &
           solo mirror-node deploy -n "${SOLO_NAMESPACE}" --pinger true
