@@ -54,13 +54,6 @@ const int SCHEME_END_INDEX = 8;
 
 } // namespace
 
-// example infura query: rpcMethod = R"({"jsonrpc":"2.0","method":"eth_getTransactionByHash","params":[")" + hash +
-// R"("],"id":1})"
-std::string HttpClient::invokeRPC(std::string_view url, std::string_view rpcMethod)
-{
-  return performRequest(url, "POST", rpcMethod);
-}
-
 // example mirrorNode query:
 // httpClient.invokeREST("https://testnet.mirrornode.hedera.com/api/v1/accounts/" + newAccountId ,"GET", "");
 // note: should time out before calling this function because the mirror node is not updated on time if accountID has

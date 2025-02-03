@@ -111,19 +111,13 @@ nlohmann::json deleteAllowance(const DeleteAllowanceParams& params)
 
   for (const RemoveAllowanceParams& allowance : params.mAllowances)
   {
-    std::cout << "account id" << std::endl;
     const AccountId owner = AccountId::fromString(allowance.mOwnerAccountId);
-    std::cout << "token id" << std::endl;
     const TokenId tokenId = TokenId::fromString(allowance.mTokenId);
 
     for (const std::string& serialNumber : allowance.mSerialNumbers)
     {
-      std::cout << "serial number " << serialNumber << std::endl;
-      uint64_t num = internal::EntityIdHelper::getNum(serialNumber);
-      std::cout << "num" << std::endl;
-      NftId nftId(tokenId, num);
-      std::cout << "nftid" << std::endl;
-      accountAllowanceDeleteTransaction.deleteAllTokenNftAllowances(nftId, owner);
+      accountAllowanceDeleteTransaction.deleteAllTokenNftAllowances(
+        NftId(tokenId, internal::EntityIdHelper::getNum(serialNumber)), owner);
     }
   }
 
@@ -132,11 +126,10 @@ nlohmann::json deleteAllowance(const DeleteAllowanceParams& params)
     params.mCommonTxParams->fillOutTransaction(accountAllowanceDeleteTransaction, SdkClient::getClient());
   }
 
-  std::cout << "submit" << std::endl;
-  auto txreceipt = accountAllowanceDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
-  std::cout << "end" << std::endl;
   return {
-    {"status", gStatusToString.at(txreceipt.mStatus)}
+    {"status",
+     gStatusToString.at(
+        accountAllowanceDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
