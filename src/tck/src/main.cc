@@ -23,6 +23,7 @@ int main(int argc, char** argv)
   tckServer.add("generateKey", tckServer.getHandle(&KeyService::generateKey));
 
   // Add the AccountService functions.
+  tckServer.add("approveAllowance", tckServer.getHandle(&AccountService::approveAllowance));
   tckServer.add("createAccount", tckServer.getHandle(&AccountService::createAccount));
   tckServer.add("deleteAccount", tckServer.getHandle(&AccountService::deleteAccount));
   tckServer.add("updateAccount", tckServer.getHandle(&AccountService::updateAccount));

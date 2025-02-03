@@ -129,7 +129,6 @@ nlohmann::json unpauseToken(const UnpauseTokenParams& params);
 nlohmann::json updateTokenFeeSchedule(const UpdateTokenFeeScheduleParams& params);
 
 /**
->>>>>>> main
  * Update a token.
  *
  * @param params The parameters to use to update a token.

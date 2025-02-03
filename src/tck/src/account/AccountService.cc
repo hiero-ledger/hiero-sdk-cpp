@@ -1,19 +1,24 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "account/AccountService.h"
+#include "account/params/ApproveAllowanceParams.h"
 #include "account/params/CreateAccountParams.h"
 #include "account/params/DeleteAccountParams.h"
 #include "account/params/UpdateAccountParams.h"
+#include "account/params/allowance/AllowanceParams.h"
 #include "common/CommonTransactionParams.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
 
+#include <AccountAllowanceApproveTransaction.h>
 #include <AccountCreateTransaction.h>
 #include <AccountDeleteTransaction.h>
 #include <AccountId.h>
 #include <AccountUpdateTransaction.h>
 #include <EvmAddress.h>
 #include <HbarUnit.h>
+#include <NftId.h>
 #include <Status.h>
+#include <TokenId.h>
 #include <TransactionReceipt.h>
 #include <TransactionResponse.h>
 #include <impl/EntityIdHelper.h>
@@ -25,6 +30,73 @@
 
 namespace Hiero::TCK::AccountService
 {
+//-----
+nlohmann::json approveAllowance(const ApproveAllowanceParams& params)
+{
+  AccountAllowanceApproveTransaction accountAllowanceApproveTransaction;
+  accountAllowanceApproveTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  for (const AllowanceParams& allowance : params.mAllowances)
+  {
+    const AccountId owner = AccountId::fromString(allowance.mOwnerAccountId);
+    const AccountId spender = AccountId::fromString(allowance.mSpenderAccountId);
+
+    if (allowance.mHbar.has_value())
+    {
+      accountAllowanceApproveTransaction.approveHbarAllowance(
+        owner, spender, Hbar::fromTinybars(internal::EntityIdHelper::getNum<int64_t>(allowance.mHbar->mAmount)));
+    }
+    else if (allowance.mToken.has_value())
+    {
+      accountAllowanceApproveTransaction.approveTokenAllowance(
+        TokenId::fromString(allowance.mToken->mTokenId),
+        owner,
+        spender,
+        internal::EntityIdHelper::getNum<int64_t>(allowance.mToken->mAmount));
+    }
+    else
+    {
+      if (allowance.mNft->mSerialNumbers.has_value())
+      {
+        for (const std::string& serialNumber : allowance.mNft->mSerialNumbers.value())
+        {
+          accountAllowanceApproveTransaction.approveTokenNftAllowance(
+            NftId(TokenId::fromString(allowance.mNft->mTokenId), internal::EntityIdHelper::getNum(serialNumber)),
+            owner,
+            spender,
+            (allowance.mNft->mDelegateSpenderAccountId.has_value())
+              ? AccountId::fromString(allowance.mNft->mDelegateSpenderAccountId.value())
+              : AccountId());
+        }
+      }
+      else
+      {
+        if (allowance.mNft->mApprovedForAll.value())
+        {
+          accountAllowanceApproveTransaction.approveNftAllowanceAllSerials(
+            TokenId::fromString(allowance.mNft->mTokenId), owner, spender);
+        }
+        else
+        {
+          accountAllowanceApproveTransaction.deleteNftAllowanceAllSerials(
+            TokenId::fromString(allowance.mNft->mTokenId), owner, spender);
+        }
+      }
+    }
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(accountAllowanceApproveTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        accountAllowanceApproveTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
 //-----
 nlohmann::json createAccount(const CreateAccountParams& params)
 {

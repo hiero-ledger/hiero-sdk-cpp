@@ -3,6 +3,7 @@
 #include <Transaction.h> // NOLINT
 
 #include "TckServer.h"
+#include "account/params/ApproveAllowanceParams.h"
 #include "account/params/CreateAccountParams.h"
 #include "account/params/DeleteAccountParams.h"
 #include "account/params/UpdateAccountParams.h"
@@ -345,6 +346,8 @@ void TckServer::setupHttpHandler()
 /**
  * Explicit template instantiations.
  */
+template TckServer::MethodHandle TckServer::getHandle<AccountService::ApproveAllowanceParams>(
+  nlohmann::json (*method)(const AccountService::ApproveAllowanceParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::CreateAccountParams>(
   nlohmann::json (*method)(const AccountService::CreateAccountParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::DeleteAccountParams>(

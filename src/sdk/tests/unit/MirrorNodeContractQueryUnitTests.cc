@@ -121,14 +121,14 @@ TEST_F(MirrorNodeContractQueryUnitTests, TestToJson)
   query.setEstimate(true);
 
   json expectedJson = {
-    { "to",          "0xabcdef1234567890" },
-    { "from",        "0x1234567890abcdef" },
-    { "gas",         3000000              },
-    { "gasPrice",    20000000000          },
-    { "value",       1000000000           },
-    { "blockNumber", "12345678"           },
-    { "estimate",    true                 },
-    { "data",        ""                   }
+    {"to",           "0xabcdef1234567890"},
+    { "from",        "0x1234567890abcdef"},
+    { "gas",         3000000             },
+    { "gasPrice",    20000000000         },
+    { "value",       1000000000          },
+    { "blockNumber", "12345678"          },
+    { "estimate",    true                },
+    { "data",        ""                  }
   };
 
   EXPECT_EQ(query.toJson(), expectedJson);

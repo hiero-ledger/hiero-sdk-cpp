@@ -38,7 +38,7 @@ public:
    * @param spender The ID of the account being allowed to spend the tokens.
    * @param amount  The amount of tokens that are being allowed to be spent.
    */
-  TokenAllowance(const TokenId& tokenId, AccountId owner, AccountId spender, uint64_t amount);
+  TokenAllowance(const TokenId& tokenId, AccountId owner, AccountId spender, int64_t amount);
 
   /**
    * Construct a TokenAllowance object from a TokenAllowance protobuf object.
@@ -96,7 +96,7 @@ public:
   /**
    * The amount of tokens that are being allowed to be spent.
    */
-  uint64_t mAmount = 0ULL;
+  int64_t mAmount = 0LL;
 };
 
 } // namespace Hiero
