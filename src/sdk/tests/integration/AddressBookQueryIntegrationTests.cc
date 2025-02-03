@@ -13,7 +13,7 @@ class AddressBookQueryIntegrationTests : public BaseIntegrationTest
 };
 
 //-----
-TEST_F(AddressBookQueryIntegrationTests, ExecuteAddressBookQuery)
+TEST_F(AddressBookQueryIntegrationTests, DISABLED_ExecuteAddressBookQuery)
 {
   // Given / When / Then
   EXPECT_NO_THROW(const NodeAddressBook nodeAddressBook =

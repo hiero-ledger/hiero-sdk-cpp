@@ -101,12 +101,9 @@ jobs:
           submodules: true
 
       - name: Use Node.js 22
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version: 22
-
-      - name: Install Local Node
-        run: sudo npm install -g @hashgraph/hedera-local@2.29.2
 
       - name: Install Linux Prerequisites
         run: |
@@ -155,8 +152,34 @@ jobs:
           ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-release
           echo "::endgroup::"
 
-      - name: Start the local node
-        run: npx hedera start --verbose=trace --detached --network-tag=0.57.0
+      - name: Install Solo
+        run: sudo npm install -g @hashgraph/solo@0.34.0
+
+      - name: Install Solo Required Tools
+        run: | 
+          sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+          sudo curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.26.0/kind-linux-amd64
+          sudo chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+
+      - name: Start Solo
+        run: |
+          export SOLO_CLUSTER_NAME=solo-e2e
+          export SOLO_NAMESPACE=solo-e2e
+          export SOLO_CLUSTER_SETUP_NAMESPACE=fullstack-setup
+          kind create cluster -n "${SOLO_CLUSTER_NAME}"
+          solo init
+          solo node keys -i node1 --gossip-keys --tls-keys
+          solo cluster setup
+          solo network deploy -i node1 -n solo-e2e
+          solo node setup -i node1 -n solo-e2e -t v0.57.0
+          solo node start -i node1 -n solo-e2e
+          kubectl port-forward svc/haproxy-node1-svc -n "${SOLO_NAMESPACE}" 50211:50211 &
+          solo mirror-node deploy -n "${SOLO_NAMESPACE}" --pinger true
+          kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-rest-)) 5551:5551 -n solo-e2e &
+          kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-web)) 8545:8545 -n solo-e2e &
 
       - name: Start CTest suite (Debug)
         run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug --output-on-failure
@@ -164,9 +187,6 @@ jobs:
       - name: Start CTest suite (Release)
         if: github.event.pull_request.merged == true
         run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-release --output-on-failure
-
-      - name: Stop the local node
-        run: sudo npx @hashgraph/hedera-local stop
 
       - name: Compute Short SHA
         id: sha
