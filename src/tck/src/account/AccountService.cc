@@ -3,8 +3,10 @@
 #include "account/params/ApproveAllowanceParams.h"
 #include "account/params/CreateAccountParams.h"
 #include "account/params/DeleteAccountParams.h"
+#include "account/params/TransferCryptoParams.h"
 #include "account/params/UpdateAccountParams.h"
 #include "account/params/allowance/AllowanceParams.h"
+#include "account/params/transfer/TransferParams.h"
 #include "common/CommonTransactionParams.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
@@ -21,6 +23,7 @@
 #include <TokenId.h>
 #include <TransactionReceipt.h>
 #include <TransactionResponse.h>
+#include <TransferTransaction.h>
 #include <impl/EntityIdHelper.h>
 
 #include <chrono>
@@ -194,6 +197,110 @@ nlohmann::json deleteAccount(const DeleteAccountParams& params)
     {"status",
      gStatusToString.at(
         accountDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json transferCrypto(const TransferCryptoParams& params)
+{
+  TransferTransaction transferTransaction;
+  transferTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTransfers.has_value())
+  {
+    for (const TransferParams& txParams : params.mTransfers.value())
+    {
+      const bool approved = txParams.mApproved.has_value() && txParams.mApproved.value();
+
+      if (txParams.mHbar.has_value())
+      {
+        const Hbar amount = Hbar::fromTinybars(internal::EntityIdHelper::getNum<int64_t>(txParams.mHbar->mAmount));
+
+        if (txParams.mHbar->mAccountId.has_value())
+        {
+          const AccountId accountId = AccountId::fromString(txParams.mHbar->mAccountId.value());
+
+          if (approved)
+          {
+            transferTransaction.addApprovedHbarTransfer(accountId, amount);
+          }
+          else
+          {
+            transferTransaction.addHbarTransfer(accountId, amount);
+          }
+        }
+        else
+        {
+          const EvmAddress evmAddress = EvmAddress::fromString(txParams.mHbar->mEvmAddress.value());
+
+          if (approved)
+          {
+            transferTransaction.addApprovedHbarTransfer(AccountId::fromEvmAddress(evmAddress), amount);
+          }
+          else
+          {
+            transferTransaction.addHbarTransfer(evmAddress, amount);
+          }
+        }
+      }
+      else if (txParams.mToken.has_value())
+      {
+        const AccountId accountId = AccountId::fromString(txParams.mToken->mAccountId);
+        const TokenId tokenId = TokenId::fromString(txParams.mToken->mTokenId);
+        const auto amount = internal::EntityIdHelper::getNum<int64_t>(txParams.mToken->mAmount);
+
+        if (txParams.mToken->mDecimals.has_value())
+        {
+          const uint32_t decimals = txParams.mToken->mDecimals.value();
+          if (approved)
+          {
+            transferTransaction.addApprovedTokenTransferWithDecimals(tokenId, accountId, amount, decimals);
+          }
+          else
+          {
+            transferTransaction.addTokenTransferWithDecimals(tokenId, accountId, amount, decimals);
+          }
+        }
+        else
+        {
+          if (approved)
+          {
+            transferTransaction.addApprovedTokenTransfer(tokenId, accountId, amount);
+          }
+          else
+          {
+            transferTransaction.addTokenTransfer(tokenId, accountId, amount);
+          }
+        }
+      }
+      else
+      {
+        const AccountId senderAccountId = AccountId::fromString(txParams.mNft->mSenderAccountId);
+        const AccountId receiverAccountId = AccountId::fromString(txParams.mNft->mReceiverAccountId);
+        const NftId nftId = NftId(TokenId::fromString(txParams.mNft->mTokenId),
+                                  internal::EntityIdHelper::getNum(txParams.mNft->mSerialNumber));
+
+        if (approved)
+        {
+          transferTransaction.addApprovedNftTransfer(nftId, senderAccountId, receiverAccountId);
+        }
+        else
+        {
+          transferTransaction.addNftTransfer(nftId, senderAccountId, receiverAccountId);
+        }
+      }
+    }
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(transferTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        transferTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
