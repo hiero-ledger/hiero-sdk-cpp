@@ -10,8 +10,6 @@
 #include "common/CommonTransactionParams.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
-#include "json/JsonErrorType.h"
-#include "json/JsonRpcException.h"
 
 #include <AccountAllowanceApproveTransaction.h>
 #include <AccountAllowanceDeleteTransaction.h>
@@ -30,7 +28,6 @@
 
 #include <chrono>
 #include <cstdint>
-#include <iostream>
 #include <nlohmann/json.hpp>
 #include <string>
 
