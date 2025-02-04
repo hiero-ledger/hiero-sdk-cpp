@@ -1,22 +1,4 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "AccountId.h"
 #include "Client.h"
 #include "ED25519PrivateKey.h"
@@ -27,17 +9,17 @@
 #include <string>
 #include <unordered_map>
 
-using namespace Hedera;
+using namespace Hiero;
 
 int main(int argc, char** argv)
 {
   dotenv::init();
-  const std::string networkName = std::getenv("HEDERA_NETWORK");
+  const std::string networkName = std::getenv("HIERO_NETWORK");
 
   /*
    * Here are some ways you can construct and configure a client. A client has a network and an operator.
    *
-   * A Hedera network is made up of nodes -- individual servers who participate in the process of reaching consensus
+   * A Hiero network is made up of nodes -- individual servers who participate in the process of reaching consensus
    * on the order and validity of transactions on the network. Three networks you likely know of are previewnet,
    * testnet, and mainnet.
    *
@@ -60,7 +42,7 @@ int main(int argc, char** argv)
   Client mainClient = Client::forMainnet();
 
   // We can also construct a client for previewnet, testnet, or mainnet depending on the value of a network name string.
-  // If, for example, the input string equals "testnet", this client will be configured to connect to the Hedera
+  // If, for example, the input string equals "testnet", this client will be configured to connect to the Hiero
   // Testnet.
   Client namedNetworkClient = Client::forName(networkName);
 
@@ -77,7 +59,7 @@ int main(int argc, char** argv)
   };
   Client customClient = Client::forNetwork(network);
 
-  // Since the customClient's network is in this case a subset of the Hedera Testnet, we should set the LedgerId of the
+  // Since the customClient's network is in this case a subset of the Hiero Testnet, we should set the LedgerId of the
   // Client to testnet's LedgerId. If we don't do this, checksum validation won't work (See ValidateChecksumExample.cc).
   // You can use customClient.getLedgerId() to check the ledger ID. If you attempt to validate a checksum against a
   // client whose ledger ID is not set, an IllegalStateException will be thrown.

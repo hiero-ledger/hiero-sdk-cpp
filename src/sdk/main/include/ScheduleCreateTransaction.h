@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_SCHEDULE_CREATE_TRANSACTION_H_
-#define HEDERA_SDK_CPP_SCHEDULE_CREATE_TRANSACTION_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_SCHEDULE_CREATE_TRANSACTION_H_
+#define HIERO_SDK_CPP_SCHEDULE_CREATE_TRANSACTION_H_
 
 #include "AccountId.h"
 #include "Key.h"
@@ -38,10 +20,10 @@ class TransactionBody;
 class WrappedTransaction;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
- * A transaction that creates a schedule entity on a Hedera network. The entity ID for a schedule transaction is
+ * A transaction that creates a schedule entity on a Hiero network. The entity ID for a schedule transaction is
  * referred to as the ScheduleId. After successfully executing a schedule create transaction, you can obtain the
  * ScheduleId by requesting the receipt of the transaction immediately after the transaction was executed. The receipt
  * also contains the scheduled transaction ID. The scheduled transaction ID is used to to request the record of the
@@ -244,6 +226,6 @@ private:
   std::unique_ptr<ScheduleCreateTransactionImpl> mImpl;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_SCHEDULE_CREATE_TRANSACTION_H_
+#endif // HIERO_SDK_CPP_SCHEDULE_CREATE_TRANSACTION_H_

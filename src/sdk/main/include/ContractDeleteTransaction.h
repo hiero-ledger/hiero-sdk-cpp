@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_CONTRACT_DELETE_TRANSACTION_H_
-#define HEDERA_SDK_CPP_CONTRACT_DELETE_TRANSACTION_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_CONTRACT_DELETE_TRANSACTION_H_
+#define HIERO_SDK_CPP_CONTRACT_DELETE_TRANSACTION_H_
 
 #include "AccountId.h"
 #include "ContractId.h"
@@ -32,15 +14,15 @@ class ContractDeleteTransactionBody;
 class TransactionBody;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
- * A transaction that deletes a smart contract from a Hedera network. Once a smart contract is marked deleted, you will
+ * A transaction that deletes a smart contract from a Hiero network. Once a smart contract is marked deleted, you will
  * not be able to modify any of the contract's properties.
  *
  * If a smart contract did not have an admin key defined, you cannot delete the smart contract. You can verify the smart
  * contract was deleted by submitting a smart contract info query to the network. If a smart contract has an associated
- * Hbar balance, you will need to transfer the balance to another Hedera account.
+ * Hbar balance, you will need to transfer the balance to another Hiero account.
  *
  * Transaction Signing Requirements:
  *  - If the admin key was defined for the smart contract it is required to sign the transaction.
@@ -184,6 +166,6 @@ private:
   std::optional<ContractId> mTransferContractId;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_CONTRACT_DELETE_TRANSACTION_H_
+#endif // HIERO_SDK_CPP_CONTRACT_DELETE_TRANSACTION_H_

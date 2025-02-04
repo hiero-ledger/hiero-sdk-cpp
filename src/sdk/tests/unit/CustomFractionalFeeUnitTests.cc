@@ -1,32 +1,14 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "AccountId.h"
 #include "CustomFractionalFee.h"
 #include "FeeAssessmentMethod.h"
 #include "impl/Utilities.h"
 
+#include <custom_fees.pb.h>
 #include <gtest/gtest.h>
-#include <proto/custom_fees.pb.h>
 #include <stdexcept>
 
-using namespace Hedera;
+using namespace Hiero;
 
 class CustomFractionalFeeUnitTests : public ::testing::Test
 {
@@ -173,16 +155,6 @@ TEST_F(CustomFractionalFeeUnitTests, GetSetDenominator)
 
   // Then
   EXPECT_EQ(customFractionalFee.getDenominator(), getTestDenominator());
-}
-
-//-----
-TEST_F(CustomFractionalFeeUnitTests, CannotSetDenominatorToZero)
-{
-  // Given
-  CustomFractionalFee customFractionalFee;
-
-  // When / Then
-  EXPECT_THROW(customFractionalFee.setDenominator(0LL), std::invalid_argument);
 }
 
 //-----

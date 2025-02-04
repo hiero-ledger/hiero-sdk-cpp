@@ -1,47 +1,39 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "BaseIntegrationTest.h"
 #include "ED25519PrivateKey.h"
+#include "FileId.h"
+#include "FreezeTransaction.h"
 #include "NodeCreateTransaction.h"
 #include "TransactionRecord.h"
 #include "TransactionResponse.h"
 #include "impl/HexConverter.h"
-#include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
 
-using namespace Hedera;
+using namespace Hiero;
 
 class NodeCreateTransactionIntegrationTests : public BaseIntegrationTest
 {
 protected:
   [[nodiscard]] const AccountId& getAccountId() const { return mAccountId; }
+  [[nodiscard]] const FileId& getFileId() const { return mFileId; }
   [[nodiscard]] const std::vector<Endpoint>& getGossipEndpoints() const { return mGossipEndpoints; }
   [[nodiscard]] const std::vector<Endpoint>& getGrpcServiceEndpoints() const { return mGrpcServiceEndpoints; }
   [[nodiscard]] const std::vector<std::byte> getGossipCertificate() const
   {
     return internal::HexConverter::hexToBytes(mGossipCertificateDer);
   }
+  [[nodiscard]] const std::vector<std::byte> getFileHash() const
+  {
+    return internal::HexConverter::hexToBytes(mFileHash);
+  }
 
 private:
   const AccountId mAccountId = AccountId::fromString("0.0.4");
+  const FileId mFileId = FileId::fromString("0.0.150");
+  // The file hash needs to be taken from the network context to be correct
+  const std::string mFileHash =
+    "ce52a3c62cf51f046ae2f85ff1c895da2b32876d6aa74d2454b6de9d11f58344e5065c807af5f2a1eb5850b26d016c3f";
   const Endpoint endpoint1 = Endpoint().setDomainName("test.com").setPort(123);
   const Endpoint endpoint2 = Endpoint().setDomainName("test2.com").setPort(123);
   const std::vector<Endpoint> mGossipEndpoints = { endpoint1, endpoint2 };
@@ -81,6 +73,7 @@ TEST_F(NodeCreateTransactionIntegrationTests, DISABLED_CanExecuteNodeCreateTrans
 
   // When / Then
   TransactionResponse txResponse;
+
   ASSERT_NO_THROW(txResponse = NodeCreateTransaction()
                                  .setAccountId(getAccountId())
                                  .setGossipEndpoints(getGossipEndpoints())
@@ -89,6 +82,21 @@ TEST_F(NodeCreateTransactionIntegrationTests, DISABLED_CanExecuteNodeCreateTrans
                                  .setAdminKey(adminKey->getPublicKey())
                                  .freezeWith(&getTestClient())
                                  .sign(adminKey)
+                                 .execute(getTestClient()));
+
+  ASSERT_NO_THROW(txResponse = FreezeTransaction()
+                                 .setFreezeType(FreezeType::PREPARE_UPGRADE)
+                                 .setFileId(getFileId())
+                                 .setFileHash(getFileHash())
+                                 .freezeWith(&getTestClient())
+                                 .execute(getTestClient()));
+
+  ASSERT_NO_THROW(txResponse = FreezeTransaction()
+                                 .setFreezeType(FreezeType::FREEZE_UPGRADE)
+                                 .setStartTime(std::chrono::system_clock::now() + std::chrono::seconds(5))
+                                 .setFileId(getFileId())
+                                 .setFileHash(getFileHash())
+                                 .freezeWith(&getTestClient())
                                  .execute(getTestClient()));
 
   TransactionReceipt txReceipt;

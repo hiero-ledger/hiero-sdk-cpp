@@ -1,22 +1,4 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "Executable.h"
 #include "AccountAllowanceApproveTransaction.h"
 #include "AccountAllowanceDeleteTransaction.h"
@@ -108,14 +90,14 @@
 #include <algorithm>
 #include <grpcpp/impl/codegen/status.h>
 #include <limits>
-#include <proto/query.pb.h>
-#include <proto/response.pb.h>
-#include <proto/transaction.pb.h>
-#include <proto/transaction_response.pb.h>
+#include <query.pb.h>
+#include <response.pb.h>
 #include <stdexcept>
 #include <thread>
+#include <transaction.pb.h>
+#include <transaction_response.pb.h>
 
-namespace Hedera
+namespace Hiero
 {
 //-----
 template<typename SdkRequestType, typename ProtoRequestType, typename ProtoResponseType, typename SdkResponseType>
@@ -490,24 +472,7 @@ Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, SdkResponseType>
 {
   std::vector<std::shared_ptr<internal::Node>> nodes;
 
-  // If only a single node is explicitly set, still return all the proxies for that node. It's possible the node itself
-  // still works but something could be wrong with the proxy, in which case trying a different proxy would work.
-  if (mNodeAccountIds.size() == 1)
-  {
-    nodes = client.getClientNetwork()->getNodeProxies(*mNodeAccountIds.cbegin());
-
-    // Still verify the node account ID mapped to a valid Node.
-    if (nodes.empty())
-    {
-      throw IllegalStateException("Node account ID " + mNodeAccountIds.cbegin()->toString() +
-                                  " did not map to a valid node in the input Client's network.");
-    }
-
-    return nodes;
-  }
-
-  // If there are multiple nodes, this Executable should simply try a different node instead of a different proxy on the
-  // same node.
+  // If there are multiple nodes, this Executable should simply try a different node.
   for (const AccountId& accountId : mNodeAccountIds)
   {
     const std::vector<std::shared_ptr<internal::Node>> nodeProxies =
@@ -516,13 +481,26 @@ Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, SdkResponseType>
     // Verify the node account ID mapped to a valid Node.
     if (nodeProxies.empty())
     {
-      throw IllegalStateException("Node account ID " + accountId.toString() +
-                                  " did not map to a valid node in the input Client's network.");
+      continue;
+    }
+
+    // If there is a single node account id add all it's corresponding proxies
+    if (mNodeAccountIds.size() == 1)
+    {
+      nodes.insert(nodes.end(), nodeProxies.begin(), nodeProxies.end());
+      break;
     }
 
     // Pick a random proxy from the proxy list to add to the node list.
     nodes.push_back(
       nodeProxies.at(internal::Utilities::getRandomNumber(0U, static_cast<unsigned int>(nodeProxies.size()) - 1U)));
+  }
+
+  if (nodes.empty())
+  {
+    throw IllegalStateException(
+      "Attempting to fetch node proxies for which are not included in the Client's network. Please review your Client "
+      "configuration or the set node account id.");
   }
 
   return nodes;
@@ -703,4 +681,4 @@ template class Executable<TransactionReceiptQuery, proto::Query, proto::Response
 template class Executable<TransactionRecordQuery, proto::Query, proto::Response, TransactionRecord>;
 template class Executable<TransferTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 
-} // namespace Hedera
+} // namespace Hiero

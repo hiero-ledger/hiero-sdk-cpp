@@ -3,9 +3,9 @@
 #include "TokenAirdropTransaction.h"
 #include "TokenId.h"
 #include <gtest/gtest.h>
-#include <proto/token_airdrop.pb.h>
+#include <token_airdrop.pb.h>
 
-using namespace Hedera;
+using namespace Hiero;
 
 class TokenAirdropTransactionUnitTests : public ::testing::Test
 {

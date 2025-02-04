@@ -1,70 +1,48 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#include "JsonTypeMapper.h"
-#include "SdkClient.h"
+// SPDX-License-Identifier: Apache-2.0
 #include "TckServer.h"
-#include "impl/EntityIdHelper.h"
+#include "account/AccountService.h"
+#include "key/KeyService.h"
+#include "sdk/SdkClient.h"
+#include "token/TokenService.h"
 
-using namespace Hedera::TCK;
+#include <impl/EntityIdHelper.h>
+
+using namespace Hiero::TCK;
 
 int main(int argc, char** argv)
 {
   // Initialize the TCK server with the port number.
-  TckServer tckServer((argc > 1) ? static_cast<int>(Hedera::internal::EntityIdHelper::getNum(argv[1])) : // NOLINT
+  TckServer tckServer((argc > 1) ? static_cast<int>(Hiero::internal::EntityIdHelper::getNum(argv[1])) : // NOLINT
                         TckServer::DEFAULT_HTTP_PORT);
 
   // Add the SDK client functions.
-  tckServer.add("createAccount",
-                getHandle(&SdkClient::createAccount),
-                { "key",
-                  "initialBalance",
-                  "receiverSignatureRequired",
-                  "autoRenewPeriod",
-                  "memo",
-                  "maxAutoTokenAssociations",
-                  "stakedAccountId",
-                  "stakedNodeId",
-                  "declineStakingReward",
-                  "alias",
-                  "commonTransactionParams" });
-  tckServer.add("deleteAccount",
-                getHandle(&SdkClient::deleteAccount),
-                { "deleteAccountId", "transferAccountId", "commonTransactionParams" });
-  tckServer.add("generateKey", getHandle(&SdkClient::generateKey), { "type", "fromKey", "threshold", "keys" });
-  tckServer.add("setup",
-                getHandle(&SdkClient::setup),
-                { "operatorAccountId", "operatorPrivateKey", "nodeIp", "nodeAccountId", "mirrorNetworkIp" });
-  tckServer.add("reset", getHandle(&SdkClient::reset));
-  tckServer.add("updateAccount",
-                getHandle(&SdkClient::updateAccount),
-                { "accountId",
-                  "key",
-                  "autoRenewPeriod",
-                  "expirationTime",
-                  "receiverSignatureRequired",
-                  "memo",
-                  "maxAutoTokenAssociations",
-                  "stakedAccountId",
-                  "stakedNodeId",
-                  "declineStakingReward",
-                  "commonTransactionParams" });
+  tckServer.add("setup", tckServer.getHandle(&SdkClient::setup));
+  tckServer.add("reset", tckServer.getHandle(&SdkClient::reset));
+
+  // Add the KeyService functions.
+  tckServer.add("generateKey", tckServer.getHandle(&KeyService::generateKey));
+
+  // Add the AccountService functions.
+  tckServer.add("approveAllowance", tckServer.getHandle(&AccountService::approveAllowance));
+  tckServer.add("createAccount", tckServer.getHandle(&AccountService::createAccount));
+  tckServer.add("deleteAccount", tckServer.getHandle(&AccountService::deleteAccount));
+  tckServer.add("updateAccount", tckServer.getHandle(&AccountService::updateAccount));
+
+  // Add the TokenService functions.
+  tckServer.add("associateToken", tckServer.getHandle(&TokenService::associateToken));
+  tckServer.add("burnToken", tckServer.getHandle(&TokenService::burnToken));
+  tckServer.add("createToken", tckServer.getHandle(&TokenService::createToken));
+  tckServer.add("deleteToken", tckServer.getHandle(&TokenService::deleteToken));
+  tckServer.add("dissociateToken", tckServer.getHandle(&TokenService::dissociateToken));
+  tckServer.add("freezeToken", tckServer.getHandle(&TokenService::freezeToken));
+  tckServer.add("grantTokenKyc", tckServer.getHandle(&TokenService::grantTokenKyc));
+  tckServer.add("mintToken", tckServer.getHandle(&TokenService::mintToken));
+  tckServer.add("pauseToken", tckServer.getHandle(&TokenService::pauseToken));
+  tckServer.add("revokeTokenKyc", tckServer.getHandle(&TokenService::revokeTokenKyc));
+  tckServer.add("unpauseToken", tckServer.getHandle(&TokenService::unpauseToken));
+  tckServer.add("unfreezeToken", tckServer.getHandle(&TokenService::unfreezeToken));
+  tckServer.add("updateTokenFeeSchedule", tckServer.getHandle(&TokenService::updateTokenFeeSchedule));
+  tckServer.add("updateToken", tckServer.getHandle(&TokenService::updateToken));
 
   // Start listening for requests.
   tckServer.startServer();

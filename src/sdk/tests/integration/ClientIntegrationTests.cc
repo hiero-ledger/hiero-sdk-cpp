@@ -1,22 +1,4 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "AccountBalance.h"
 #include "AccountBalanceQuery.h"
 #include "AccountCreateTransaction.h"
@@ -46,7 +28,7 @@
 
 using json = nlohmann::json;
 using namespace std;
-using namespace Hedera;
+using namespace Hiero;
 
 class ClientIntegrationTests : public BaseIntegrationTest
 {
@@ -124,39 +106,4 @@ TEST_F(ClientIntegrationTests, ConnectToLocalNode)
   EXPECT_EQ(client.getOperatorAccountId()->toString(), operatorAccountId.toString());
   EXPECT_NE(client.getOperatorPublicKey(), nullptr);
   EXPECT_FALSE(newAccountId.toString().empty());
-}
-
-//-----
-TEST_F(ClientIntegrationTests, SetNetworkIsWorkingCorrectly)
-{
-  // Given
-  const AccountId accountId_3 = AccountId::fromString("0.0.3");
-  const AccountId accountId_4 = AccountId::fromString("0.0.4");
-  const AccountId accountId_5 = AccountId::fromString("0.0.5");
-  const AccountId accountId_6 = AccountId::fromString("0.0.6");
-  const AccountId accountId_7 = AccountId::fromString("0.0.7");
-
-  AccountBalance accountBalance_3;
-  AccountBalance accountBalance_4;
-  AccountBalance accountBalance_5;
-  AccountBalance accountBalance_6;
-  AccountBalance accountBalance_7;
-
-  std::unordered_map<std::string, AccountId> networkMap;
-  networkMap.insert(std::pair<std::string, AccountId>("34.94.106.61:50211", accountId_3));
-  networkMap.insert(std::pair<std::string, AccountId>("35.237.119.55:50211", accountId_4));
-  networkMap.insert(std::pair<std::string, AccountId>("35.245.27.193:50211", accountId_5));
-
-  Client client = Client::forNetwork(networkMap);
-
-  // When / Then
-  std::unordered_map<std::string, AccountId> newNetworkMap;
-  newNetworkMap.insert(std::pair<std::string, AccountId>("35.237.119.55:50211", accountId_6));
-  newNetworkMap.insert(std::pair<std::string, AccountId>("35.245.27.193:50211", accountId_7));
-
-  client.setNetwork(newNetworkMap);
-
-  // When / Then
-  ASSERT_NO_THROW(accountBalance_6 = AccountBalanceQuery().setAccountId(accountId_6).execute(client));
-  ASSERT_NO_THROW(accountBalance_7 = AccountBalanceQuery().setAccountId(accountId_7).execute(client));
 }

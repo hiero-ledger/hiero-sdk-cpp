@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_ETHEREUM_FLOW_H_
-#define HEDERA_SDK_CPP_ETHEREUM_FLOW_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_ETHEREUM_FLOW_H_
+#define HIERO_SDK_CPP_ETHEREUM_FLOW_H_
 
 #include "EthereumTransactionData.h"
 #include "Hbar.h"
@@ -27,13 +9,13 @@
 #include <memory>
 #include <optional>
 
-namespace Hedera
+namespace Hiero
 {
 class Client;
 class TransactionResponse;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
  * A helper class to execute an EthereumTransaction. This will use FileCreateTransaction and FileAppendTransaction as
@@ -78,10 +60,10 @@ public:
   EthereumFlow& setEthereumData(const std::vector<std::byte>& data);
 
   /**
-   * Set the maximum amount that the payer of the Hedera transaction is willing to pay to complete the
+   * Set the maximum amount that the payer of the Hiero transaction is willing to pay to complete the
    * EthereumTransaction.
    *
-   * @param maxGasAllowance The maximum amount that the payer of the Hedera transaction is willing to pay to complete
+   * @param maxGasAllowance The maximum amount that the payer of the Hiero transaction is willing to pay to complete
    *                        the EthereumTransaction.
    * @return A reference to this EthereumFlow object with the newly-set maximum gas allowance.
    */
@@ -95,10 +77,10 @@ public:
   [[nodiscard]] inline std::shared_ptr<EthereumTransactionData> getEthereumData() const { return mEthereumData; }
 
   /**
-   * Get the maximum amount that the payer of the Hedera transaction is willing to pay to complete the
+   * Get the maximum amount that the payer of the Hiero transaction is willing to pay to complete the
    * EthereumTransaction.
    *
-   * @return The maximum amount that the payer of the Hedera transaction is willing to pay to complete the
+   * @return The maximum amount that the payer of the Hiero transaction is willing to pay to complete the
    *         EthereumTransaction. Returns uninitialized in no max gas allowance has been set.
    */
   [[nodiscard]] inline std::optional<Hbar> getMaxGasAllowance() const { return mMaxGasAllowance; }
@@ -115,7 +97,7 @@ private:
   std::shared_ptr<EthereumTransactionData> mEthereumData = nullptr;
 
   /**
-   * The maximum amount that the payer of the Hedera transaction is willing to pay to complete the transaction.
+   * The maximum amount that the payer of the Hiero transaction is willing to pay to complete the transaction.
    *
    * Ordinarily the account with the ECDSA alias corresponding to the public key that is extracted from the
    * ethereum data signature is responsible for fees that result from the execution of the transaction. If that amount
@@ -127,6 +109,6 @@ private:
   std::optional<Hbar> mMaxGasAllowance;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_ETHEREUM_FLOW_H_
+#endif // HIERO_SDK_CPP_ETHEREUM_FLOW_H_

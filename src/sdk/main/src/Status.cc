@@ -1,27 +1,9 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "Status.h"
 
-#include <proto/response_code.pb.h>
+#include <response_code.pb.h>
 
-namespace Hedera
+namespace Hiero
 {
 //-----
 const std::unordered_map<proto::ResponseCodeEnum, Status> gProtobufResponseCodeToStatus = {
@@ -332,6 +314,7 @@ const std::unordered_map<proto::ResponseCodeEnum, Status> gProtobufResponseCodeT
   { proto::ResponseCodeEnum::ACCOUNT_IS_IMMUTABLE,                                           Status::ACCOUNT_IS_IMMUTABLE                   },
   { proto::ResponseCodeEnum::ALIAS_ALREADY_ASSIGNED,                                         Status::ALIAS_ALREADY_ASSIGNED                 },
   { proto::ResponseCodeEnum::INVALID_METADATA_KEY,                                           Status::INVALID_METADATA_KEY                   },
+  { proto::ResponseCodeEnum::TOKEN_HAS_NO_METADATA_KEY,                                      Status::TOKEN_HAS_NO_METADATA_KEY              },
   { proto::ResponseCodeEnum::MISSING_TOKEN_METADATA,                                         Status::MISSING_TOKEN_METADATA                 },
   { proto::ResponseCodeEnum::MISSING_SERIAL_NUMBERS,                                         Status::MISSING_SERIAL_NUMBERS                 },
   { proto::ResponseCodeEnum::INVALID_MAX_AUTO_ASSOCIATIONS,                                  Status::INVALID_MAX_AUTO_ASSOCIATIONS          },
@@ -356,12 +339,17 @@ const std::unordered_map<proto::ResponseCodeEnum, Status> gProtobufResponseCodeT
   { proto::ResponseCodeEnum::INVALID_GOSSIP_CA_CERTIFICATE,                                  Status::INVALID_GOSSIP_CA_CERTIFICATE          },
   { proto::ResponseCodeEnum::INVALID_GRPC_CERTIFICATE,                                       Status::INVALID_GRPC_CERTIFICATE               },
   { proto::ResponseCodeEnum::MAX_NODES_CREATED,                                              Status::MAX_NODES_CREATED                      },
-  { proto::ResponseCodeEnum::IP_FQDN_CANNOT_BE_SET_FOR_SAME_ENDPOINT,                        
-   Status::IP_FQDN_CANNOT_BE_SET_FOR_SAME_ENDPOINT                                                                                          },
+  { proto::ResponseCodeEnum::IP_FQDN_CANNOT_BE_SET_FOR_SAME_ENDPOINT,                        Status::IP_FQDN_CANNOT_BE_SET_FOR_SAME_ENDPOINT},
   { proto::ResponseCodeEnum::GOSSIP_ENDPOINT_CANNOT_HAVE_FQDN,                               Status::GOSSIP_ENDPOINT_CANNOT_HAVE_FQDN       },
   { proto::ResponseCodeEnum::FQDN_SIZE_TOO_LARGE,                                            Status::FQDN_SIZE_TOO_LARGE                    },
   { proto::ResponseCodeEnum::INVALID_ENDPOINT,                                               Status::INVALID_ENDPOINT                       },
-  { proto::ResponseCodeEnum::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT,                                Status::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT        }
+  { proto::ResponseCodeEnum::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT,                                Status::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT        },
+  { proto::ResponseCodeEnum::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME, 
+   Status::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME                                                                      },
+  { proto::ResponseCodeEnum::SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE,                     
+   Status::SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE                                                                                       },
+  { proto::ResponseCodeEnum::SCHEDULE_EXPIRY_IS_BUSY,                                        Status::SCHEDULE_EXPIRY_IS_BUSY                },
+  { proto::ResponseCodeEnum::MISSING_EXPIRY_TIME,                                            Status::MISSING_EXPIRY_TIME                    }
 };
 
 //-----
@@ -673,6 +661,7 @@ const std::unordered_map<Status, proto::ResponseCodeEnum> gStatusToProtobufRespo
   { Status::ACCOUNT_IS_IMMUTABLE,                                           proto::ResponseCodeEnum::ACCOUNT_IS_IMMUTABLE                   },
   { Status::ALIAS_ALREADY_ASSIGNED,                                         proto::ResponseCodeEnum::ALIAS_ALREADY_ASSIGNED                 },
   { Status::INVALID_METADATA_KEY,                                           proto::ResponseCodeEnum::INVALID_METADATA_KEY                   },
+  { Status::TOKEN_HAS_NO_METADATA_KEY,                                      proto::ResponseCodeEnum::TOKEN_HAS_NO_METADATA_KEY              },
   { Status::MISSING_TOKEN_METADATA,                                         proto::ResponseCodeEnum::MISSING_TOKEN_METADATA                 },
   { Status::MISSING_SERIAL_NUMBERS,                                         proto::ResponseCodeEnum::MISSING_SERIAL_NUMBERS                 },
   { Status::INVALID_MAX_AUTO_ASSOCIATIONS,                                  proto::ResponseCodeEnum::INVALID_MAX_AUTO_ASSOCIATIONS          },
@@ -697,12 +686,17 @@ const std::unordered_map<Status, proto::ResponseCodeEnum> gStatusToProtobufRespo
   { Status::INVALID_GOSSIP_CA_CERTIFICATE,                                  proto::ResponseCodeEnum::INVALID_GOSSIP_CA_CERTIFICATE          },
   { Status::INVALID_GRPC_CERTIFICATE,                                       proto::ResponseCodeEnum::INVALID_GRPC_CERTIFICATE               },
   { Status::MAX_NODES_CREATED,                                              proto::ResponseCodeEnum::MAX_NODES_CREATED                      },
-  { Status::IP_FQDN_CANNOT_BE_SET_FOR_SAME_ENDPOINT,                        
-   proto::ResponseCodeEnum::IP_FQDN_CANNOT_BE_SET_FOR_SAME_ENDPOINT                                                                         },
+  { Status::IP_FQDN_CANNOT_BE_SET_FOR_SAME_ENDPOINT,                        proto::ResponseCodeEnum::IP_FQDN_CANNOT_BE_SET_FOR_SAME_ENDPOINT},
   { Status::GOSSIP_ENDPOINT_CANNOT_HAVE_FQDN,                               proto::ResponseCodeEnum::GOSSIP_ENDPOINT_CANNOT_HAVE_FQDN       },
   { Status::FQDN_SIZE_TOO_LARGE,                                            proto::ResponseCodeEnum::FQDN_SIZE_TOO_LARGE                    },
   { Status::INVALID_ENDPOINT,                                               proto::ResponseCodeEnum::INVALID_ENDPOINT                       },
-  { Status::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT,                                proto::ResponseCodeEnum::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT        }
+  { Status::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT,                                proto::ResponseCodeEnum::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT        },
+  { Status::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME,    
+   proto::ResponseCodeEnum::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME                                                     },
+  { Status::SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE,                                       
+   proto::ResponseCodeEnum::SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE                                                                      },
+  { Status::SCHEDULE_EXPIRY_IS_BUSY,                                        proto::ResponseCodeEnum::SCHEDULE_EXPIRY_IS_BUSY                },
+  { Status::MISSING_EXPIRY_TIME,                                            proto::ResponseCodeEnum::MISSING_EXPIRY_TIME                    }
 };
 
 //-----
@@ -996,6 +990,7 @@ const std::unordered_map<Status, std::string> gStatusToString = {
   { Status::ACCOUNT_IS_IMMUTABLE,                                           "ACCOUNT_IS_IMMUTABLE"                              },
   { Status::ALIAS_ALREADY_ASSIGNED,                                         "ALIAS_ALREADY_ASSIGNED"                            },
   { Status::INVALID_METADATA_KEY,                                           "INVALID_METADATA_KEY"                              },
+  { Status::TOKEN_HAS_NO_METADATA_KEY,                                      "TOKEN_HAS_NO_METADATA_KEY"                         },
   { Status::MISSING_TOKEN_METADATA,                                         "MISSING_TOKEN_METADATA"                            },
   { Status::MISSING_SERIAL_NUMBERS,                                         "MISSING_SERIAL_NUMBERS"                            },
   { Status::INVALID_MAX_AUTO_ASSOCIATIONS,                                  "INVALID_MAX_AUTO_ASSOCIATIONS"                     },
@@ -1024,7 +1019,13 @@ const std::unordered_map<Status, std::string> gStatusToString = {
   { Status::GOSSIP_ENDPOINT_CANNOT_HAVE_FQDN,                               "GOSSIP_ENDPOINT_CANNOT_HAVE_FQDN"                  },
   { Status::FQDN_SIZE_TOO_LARGE,                                            "FQDN_SIZE_TOO_LARGE"                               },
   { Status::INVALID_ENDPOINT,                                               "INVALID_ENDPOINT"                                  },
-  { Status::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT,                                "GOSSIP_ENDPOINTS_EXCEEDED_LIMIT"                   }
+  { Status::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT,                                "GOSSIP_ENDPOINTS_EXCEEDED_LIMIT"                   },
+  { Status::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME,                  
+   "SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME"                                                                },
+  { Status::SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE,                     "SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE"        },
+  { Status::SCHEDULE_EXPIRY_IS_BUSY,                                        "SCHEDULE_EXPIRY_IS_BUSY"                           },
+  { Status::MISSING_EXPIRY_TIME,                                            "MISSING_EXPIRY_TIME"                               }
+
 };
 
-} // namespace Hedera
+} // namespace Hiero

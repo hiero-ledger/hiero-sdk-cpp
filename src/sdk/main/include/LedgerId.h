@@ -1,31 +1,13 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_LEDGER_ID_H_
-#define HEDERA_SDK_CPP_LEDGER_ID_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_LEDGER_ID_H_
+#define HIERO_SDK_CPP_LEDGER_ID_H_
 
 #include <cstddef>
 #include <string>
 #include <string_view>
 #include <vector>
 
-namespace Hedera
+namespace Hiero
 {
 class LedgerId
 {
@@ -33,17 +15,17 @@ public:
   LedgerId() = default;
 
   /**
-   * The Hedera Mainnet ledger ID.
+   * The Hiero Mainnet ledger ID.
    */
   static const LedgerId MAINNET;
 
   /**
-   * The Hedera Testnet ledger ID.
+   * The Hiero Testnet ledger ID.
    */
   static const LedgerId TESTNET;
 
   /**
-   * The Hedera Previewnet ledger ID.
+   * The Hiero Previewnet ledger ID.
    */
   static const LedgerId PREVIEWNET;
 
@@ -82,30 +64,30 @@ public:
   [[nodiscard]] std::string toString() const;
 
   /**
-   * Does this LedgerId represent the LedgerId of the Hedera Mainnet?
+   * Does this LedgerId represent the LedgerId of the Hiero Mainnet?
    *
-   * @return \c TRUE if this LedgerId represent the LedgerId of the Hedera Mainnet, otherwise \c FALSE.
+   * @return \c TRUE if this LedgerId represent the LedgerId of the Hiero Mainnet, otherwise \c FALSE.
    */
   [[nodiscard]] inline bool isMainnet() const { return *this == MAINNET; }
 
   /**
-   * Does this LedgerId represent the LedgerId of the Hedera Testnet?
+   * Does this LedgerId represent the LedgerId of the Hiero Testnet?
    *
-   * @return \c TRUE if this LedgerId represent the LedgerId of the Hedera Testnet, otherwise \c FALSE.
+   * @return \c TRUE if this LedgerId represent the LedgerId of the Hiero Testnet, otherwise \c FALSE.
    */
   [[nodiscard]] inline bool isTestnet() const { return *this == TESTNET; }
 
   /**
-   * Does this LedgerId represent the LedgerId of the Hedera Previewnet?
+   * Does this LedgerId represent the LedgerId of the Hiero Previewnet?
    *
-   * @return \c TRUE if this LedgerId represent the LedgerId of the Hedera Previewnet, otherwise \c FALSE.
+   * @return \c TRUE if this LedgerId represent the LedgerId of the Hiero Previewnet, otherwise \c FALSE.
    */
   [[nodiscard]] inline bool isPreviewnet() const { return *this == PREVIEWNET; }
 
   /**
-   * Does this LedgerId represent the LedgerId of any Hedera network?
+   * Does this LedgerId represent the LedgerId of any Hiero network?
    *
-   * @return \c TRUE if this LedgerId represents the LedgerId of any Hedera network, otherwise \c FALSE.
+   * @return \c TRUE if this LedgerId represents the LedgerId of any Hiero network, otherwise \c FALSE.
    */
   [[nodiscard]] inline bool isKnownNetwork() const { return isMainnet() || isTestnet() || isPreviewnet(); }
 
@@ -123,6 +105,6 @@ private:
   std::vector<std::byte> mLedgerId;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_LEDGER_ID_H_
+#endif // HIERO_SDK_CPP_LEDGER_ID_H_

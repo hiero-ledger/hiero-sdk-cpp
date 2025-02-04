@@ -1,29 +1,11 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "AccountId.h"
 #include "TokenAllowance.h"
 
+#include <crypto_approve_allowance.pb.h>
 #include <gtest/gtest.h>
-#include <proto/crypto_approve_allowance.pb.h>
 
-using namespace Hedera;
+using namespace Hiero;
 
 class TokenAllowanceUnitTests : public ::testing::Test
 {
@@ -31,13 +13,13 @@ protected:
   [[nodiscard]] inline const TokenId& getTestTokenId() const { return mTokenId; }
   [[nodiscard]] inline const AccountId& getTestOwnerAccountId() const { return mOwnerAccountId; }
   [[nodiscard]] inline const AccountId& getTestSpenderAccountId() const { return mSpenderAccountId; }
-  [[nodiscard]] inline uint64_t getTestAmount() const { return mAmount; }
+  [[nodiscard]] inline int64_t getTestAmount() const { return mAmount; }
 
 private:
   const TokenId mTokenId = TokenId(1ULL);
   const AccountId mOwnerAccountId = AccountId(2ULL);
   const AccountId mSpenderAccountId = AccountId(3ULL);
-  const uint64_t mAmount = 4ULL;
+  const int64_t mAmount = 4LL;
 };
 
 //-----
@@ -62,7 +44,7 @@ TEST_F(TokenAllowanceUnitTests, FromProtobuf)
   protoTokenAllowance.set_allocated_tokenid(getTestTokenId().toProtobuf().release());
   protoTokenAllowance.set_allocated_owner(getTestOwnerAccountId().toProtobuf().release());
   protoTokenAllowance.set_allocated_spender(getTestSpenderAccountId().toProtobuf().release());
-  protoTokenAllowance.set_amount(static_cast<int64_t>(getTestAmount()));
+  protoTokenAllowance.set_amount(getTestAmount());
 
   // When
   const TokenAllowance tokenAllowance = TokenAllowance::fromProtobuf(protoTokenAllowance);

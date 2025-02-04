@@ -1,22 +1,4 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "AccountAllowanceApproveTransaction.h"
 #include "AccountAllowanceDeleteTransaction.h"
 #include "AccountCreateTransaction.h"
@@ -42,7 +24,7 @@
 #include <string>
 #include <vector>
 
-using namespace Hedera;
+using namespace Hiero;
 
 /**
  * Example for HIP-336. Show functionalities around approve/delete an allowance for:
@@ -50,7 +32,7 @@ using namespace Hedera;
  *   2. All serial numbers at once
  *   3. Delegating spender obligations
  *
- * Note that the concept around the ERC standard that Hedera implements in regard to the allowances for NFTs does not
+ * Note that the concept around the ERC standard that Hiero implements in regard to the allowances for NFTs does not
  * allow users to:
  *   1. Approve allowance for all serials in a NFT collection, then remove allowance for individual serial of the NFT
  *   2. Approve allowance for individual serial of the NFT, then remove allowance for all serials in the NFT collection
@@ -61,7 +43,7 @@ int main(int argc, char** argv)
   const AccountId operatorAccountId = AccountId::fromString(std::getenv("OPERATOR_ID"));
   const std::shared_ptr<PrivateKey> operatorPrivateKey = ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
 
-  // Get a client for the Hedera testnet, and set the operator account ID and key such that all generated transactions
+  // Get a client for the Hiero testnet, and set the operator account ID and key such that all generated transactions
   // will be paid for by this account and be signed by this key.
   Client client = Client::forTestnet();
   client.setOperator(operatorAccountId, operatorPrivateKey);

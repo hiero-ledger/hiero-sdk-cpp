@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_ETHEREUM_TRANSACTION_H_
-#define HEDERA_SDK_CPP_ETHEREUM_TRANSACTION_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_ETHEREUM_TRANSACTION_H_
+#define HIERO_SDK_CPP_ETHEREUM_TRANSACTION_H_
 
 #include "FileId.h"
 #include "Hbar.h"
@@ -34,11 +16,11 @@ class EthereumTransactionBody;
 class TransactionBody;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
  * The raw Ethereum transaction (RLP encoded type 0, 1, and 2) will hold signed Ethereum transactions and execute them
- * as Hedera transactions in a prescribed manner.
+ * as Hiero transactions in a prescribed manner.
  *
  * Transaction Signing Requirements:
  *  - The key of the transaction fee-paying account.
@@ -83,10 +65,10 @@ public:
   EthereumTransaction& setCallDataFileId(const FileId& fileId);
 
   /**
-   * Set the maximum amount that the payer of the Hedera transaction is willing to pay to complete this
+   * Set the maximum amount that the payer of the Hiero transaction is willing to pay to complete this
    * EthereumTransaction.
    *
-   * @param maxGasAllowance The maximum amount that the payer of the Hedera transaction is willing to pay to complete
+   * @param maxGasAllowance The maximum amount that the payer of the Hiero transaction is willing to pay to complete
    *                        this EthereumTransaction.
    * @return A reference to this EthereumTransaction object with the newly-set transfer maximum gas allowance.
    * @throws IllegalStateException If this EthereumTransaction is frozen.
@@ -108,10 +90,10 @@ public:
   [[nodiscard]] inline std::optional<FileId> getCallDataFileId() const { return mCallDataFileId; }
 
   /**
-   * Get the maximum amount that the payer of the Hedera transaction is willing to pay to complete this
+   * Get the maximum amount that the payer of the Hiero transaction is willing to pay to complete this
    * EthereumTransaction.
    *
-   * @return The maximum amount that the payer of the Hedera transaction is willing to pay to complete this
+   * @return The maximum amount that the payer of the Hiero transaction is willing to pay to complete this
    *         EthereumTransaction.
    */
   [[nodiscard]] inline Hbar getMaxGasAllowance() const { return mMaxGasAllowance; }
@@ -179,7 +161,7 @@ private:
   std::optional<FileId> mCallDataFileId;
 
   /**
-   * The maximum amount that the payer of the Hedera transaction is willing to pay to complete the transaction.
+   * The maximum amount that the payer of the Hiero transaction is willing to pay to complete the transaction.
    *
    * Ordinarily the account with the ECDSA alias corresponding to the public key that is extracted from the
    * ethereum data signature is responsible for fees that result from the execution of the transaction. If that amount
@@ -191,6 +173,6 @@ private:
   Hbar mMaxGasAllowance = Hbar(0LL);
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_ETHEREUM_TRANSACTION_H_
+#endif // HIERO_SDK_CPP_ETHEREUM_TRANSACTION_H_

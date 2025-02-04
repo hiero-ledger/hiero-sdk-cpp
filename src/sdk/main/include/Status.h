@@ -1,26 +1,8 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_STATUS_H_
-#define HEDERA_SDK_CPP_STATUS_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_STATUS_H_
+#define HIERO_SDK_CPP_STATUS_H_
 
-#include <string_view>
+#include <string>
 #include <unordered_map>
 
 namespace proto
@@ -28,7 +10,7 @@ namespace proto
 enum ResponseCodeEnum : int;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
  * Enumeration of possible transaction status types.
@@ -659,7 +641,7 @@ enum class Status
   /**
    * For every chunk, the payer account that is part of initialTransactionID must match the Payer Account of this
    * transaction. The entire initialTransactionID should match the transactionID of the first chunk, but this is not
-   * checked or enforced by Hedera except when the chunk number is 1.
+   * checked or enforced by Hiero except when the chunk number is 1.
    */
   INVALID_CHUNK_TRANSACTION_ID,
 
@@ -1510,6 +1492,11 @@ enum class Status
   INVALID_METADATA_KEY,
 
   /**
+   * Metadata key is not set on token.
+   */
+  TOKEN_HAS_NO_METADATA_KEY,
+
+  /**
    * Token Metadata is not provided
    */
   MISSING_TOKEN_METADATA,
@@ -1690,7 +1677,34 @@ enum class Status
   /**
    * The number of gossip endpoints exceeds the limit
    */
-  GOSSIP_ENDPOINTS_EXCEEDED_LIMIT
+  GOSSIP_ENDPOINTS_EXCEEDED_LIMIT,
+
+  /**
+   * A scheduled transaction configured to wait for expiry to execute was given
+   * an expiry time not strictly after the time at which its creation reached
+   * consensus.
+   */
+  SCHEDULE_EXPIRY_MUST_BE_FUTURE,
+
+  /**
+   * A scheduled transaction configured to wait for expiry to execute was given
+   * an expiry time too far in the future after the time at which its creation
+   * reached consensus.
+   */
+  SCHEDULE_EXPIRY_TOO_LONG,
+
+  /**
+   * A scheduled transaction configured to wait for expiry to execute was given
+   * an expiry time at which there is already too many transactions scheduled to
+   * expire; its creation must be retried with a different expiry.
+   */
+  SCHEDULE_EXPIRY_IS_BUSY,
+
+  /**
+   * A scheduled transaction configured to wait for expiry to execute was not
+   * given an explicit expiration time.
+   */
+  MISSING_EXPIRY_TIME
 
 };
 
@@ -1709,6 +1723,6 @@ extern const std::unordered_map<Status, proto::ResponseCodeEnum> gStatusToProtob
  */
 [[maybe_unused]] extern const std::unordered_map<Status, std::string> gStatusToString;
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_STATUS_H_
+#endif // HIERO_SDK_CPP_STATUS_H_

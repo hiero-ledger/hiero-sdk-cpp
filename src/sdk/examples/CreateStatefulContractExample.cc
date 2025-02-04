@@ -1,22 +1,4 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "AccountId.h"
 #include "Client.h"
 #include "ContractCallQuery.h"
@@ -39,7 +21,7 @@
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
-using namespace Hedera;
+using namespace Hiero;
 
 int main(int argc, char** argv)
 {
@@ -48,7 +30,7 @@ int main(int argc, char** argv)
   const std::shared_ptr<PrivateKey> operatorPrivateKey = ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
   const std::shared_ptr<PublicKey> operatorPublicKey = operatorPrivateKey->getPublicKey();
 
-  // Get a client for the Hedera testnet, and set the operator account ID and key such that all generated transactions
+  // Get a client for the Hiero testnet, and set the operator account ID and key such that all generated transactions
   // will be paid for by this account and be signed by this key.
   Client client = Client::forTestnet();
   client.setOperator(operatorAccountId, operatorPrivateKey);
@@ -80,7 +62,7 @@ int main(int argc, char** argv)
   txReceipt = ContractCreateTransaction()
                 .setBytecodeFileId(fileId)
                 .setGas(500000ULL)
-                .setConstructorParameters(ContractFunctionParameters().addString("hello from hedera!").toBytes())
+                .setConstructorParameters(ContractFunctionParameters().addString("hello from hiero!").toBytes())
                 .execute(client)
                 .getReceipt(client);
   std::cout << "ContractCreateTransaction execution completed with status: " << gStatusToString.at(txReceipt.mStatus)
@@ -108,11 +90,11 @@ int main(int argc, char** argv)
   std::cout << "get_message() returned: " << contractFunctionResult.getString(0) << std::endl;
 
   // Now change the message
-  std::cout << "Calling set_message(\"hello from hedera again!\")..." << std::endl;
+  std::cout << "Calling set_message(\"hello from hiero again!\")..." << std::endl;
   txReceipt = ContractExecuteTransaction()
                 .setContractId(contractId)
                 .setGas(500000ULL)
-                .setFunction("set_message", ContractFunctionParameters().addString("hello from hedera again!"))
+                .setFunction("set_message", ContractFunctionParameters().addString("hello from hiero again!"))
                 .execute(client)
                 .getReceipt(client);
   std::cout << "ContractExecuteTransaction execution completed with status: " << gStatusToString.at(txReceipt.mStatus)

@@ -1,22 +1,4 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "AccountId.h"
 #include "Client.h"
 #include "ECDSAsecp256k1PrivateKey.h"
@@ -35,7 +17,7 @@
 #include <memory>
 #include <thread>
 
-using namespace Hedera;
+using namespace Hiero;
 
 int main(int argc, char** argv)
 {
@@ -43,7 +25,7 @@ int main(int argc, char** argv)
   const AccountId operatorAccountId = AccountId::fromString(std::getenv("OPERATOR_ID"));
   const std::shared_ptr<PrivateKey> operatorPrivateKey = ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
 
-  // Get a client for the Hedera testnet, and set the operator account ID and key such that all generated transactions
+  // Get a client for the Hiero testnet, and set the operator account ID and key such that all generated transactions
   // will be paid for by this account and be signed by this key.
   Client client = Client::forTestnet();
   client.setOperator(operatorAccountId, operatorPrivateKey);
@@ -56,15 +38,15 @@ int main(int argc, char** argv)
    * - Extract the ECDSA public key.
    * - Extract the Ethereum public address.
    * - Use the `TransferTransaction`.
-   *    - Populate the `FromAddress` with the sender Hedera account ID.
+   *    - Populate the `FromAddress` with the sender Hiero account ID.
    *    - Populate the `ToAddress` with Ethereum public address.
    *    - Note: Can transfer from public address to public address in the `TransferTransaction` for complete accounts.
    *            Transfers from hollow accounts will not work because the hollow account does not have a public key
    *            assigned to authorize transfers out of the account.
-   * - Sign the `TransferTransaction` transaction using an existing Hedera account and key paying for the transaction
+   * - Sign the `TransferTransaction` transaction using an existing Hiero account and key paying for the transaction
    *   fee.
    * - The `AccountCreateTransaction` is executed as a child transaction triggered by the `TransferTransaction`.
-   * - The Hedera account that was created has a public address the user specified in the TransferTransaction ToAddress.
+   * - The Hiero account that was created has a public address the user specified in the TransferTransaction ToAddress.
    *    - Will not have a public key at this stage.
    *    - Cannot do anything besides receive tokens or hbars.
    *    - The alias property of the account does not have the public address.
@@ -105,7 +87,7 @@ int main(int argc, char** argv)
                                               .freezeWith(&client);
 
   /**
-   * Step 5: Sign the `TransferTransaction` transaction using an existing Hedera account and key paying for the
+   * Step 5: Sign the `TransferTransaction` transaction using an existing Hiero account and key paying for the
    *         transaction fee.
    */
   const TransactionResponse response = transferTransaction.execute(client);
@@ -126,7 +108,7 @@ int main(int argc, char** argv)
   // Populate the account public EVM Address from Mirror Node
   newAccountId.populateAccountEvmAddress(client);
 
-  // If Mirror Node contained the account public EVM Address. It should be printed instead of the Hedera AccountID
+  // If Mirror Node contained the account public EVM Address. It should be printed instead of the Hiero AccountID
   std::cout << newAccountId.toString() << std::endl;
 
   return 0;

@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_ACCOUNT_ALLOWANCE_APPROVE_TRANSACTION_H_
-#define HEDERA_SDK_CPP_ACCOUNT_ALLOWANCE_APPROVE_TRANSACTION_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_ACCOUNT_ALLOWANCE_APPROVE_TRANSACTION_H_
+#define HIERO_SDK_CPP_ACCOUNT_ALLOWANCE_APPROVE_TRANSACTION_H_
 
 #include "HbarAllowance.h"
 #include "TokenAllowance.h"
@@ -33,7 +15,7 @@ class CryptoApproveAllowanceTransactionBody;
 class TransactionBody;
 }
 
-namespace Hedera
+namespace Hiero
 {
 class AccountId;
 class Hbar;
@@ -41,7 +23,7 @@ class NftId;
 class TokenId;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
  * A transaction that allows a token owner to delegate a token spender to spend the specified token amount on behalf of
@@ -100,7 +82,6 @@ public:
    * @param spenderAccountId The ID of the account that is being allowed to spend the owning account's Hbar.
    * @param amount           The amount of Hbar that is being approved to spend. This amount must be positive.
    * @return A reference to this AccountAllowanceApproveTransaction object with the added Hbar allowance.
-   * @throws std::invalid_argument If the amount of Hbar is negative.
    * @throws IllegalStateException If this AccountAllowanceApproveTransaction is frozen.
    */
   AccountAllowanceApproveTransaction& approveHbarAllowance(const AccountId& ownerAccountId,
@@ -120,7 +101,7 @@ public:
   AccountAllowanceApproveTransaction& approveTokenAllowance(const TokenId& tokenId,
                                                             const AccountId& ownerAccountId,
                                                             const AccountId& spenderAccountId,
-                                                            const uint64_t& amount);
+                                                            const int64_t& amount);
 
   /**
    * Add an NFT allowance to this AccountAllowanceApproveTransaction.
@@ -250,6 +231,6 @@ private:
   std::vector<TokenNftAllowance> mNftAllowances;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_ACCOUNT_ALLOWANCE_APPROVE_TRANSACTION_H_
+#endif // HIERO_SDK_CPP_ACCOUNT_ALLOWANCE_APPROVE_TRANSACTION_H_

@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_ACCOUNT_CREATE_TRANSACTION_H_
-#define HEDERA_SDK_CPP_ACCOUNT_CREATE_TRANSACTION_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_ACCOUNT_CREATE_TRANSACTION_H_
+#define HIERO_SDK_CPP_ACCOUNT_CREATE_TRANSACTION_H_
 
 #include "AccountId.h"
 #include "Defaults.h"
@@ -39,7 +21,7 @@ class CryptoCreateTransactionBody;
 class TransactionBody;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
  * The transaction used to create a new account. After the account is created, the AccountID for it is in the receipt.
@@ -121,7 +103,7 @@ public:
   AccountCreateTransaction& setReceiverSignatureRequired(bool receiveSignatureRequired);
 
   /**
-   * Set the auto renew period for the new account. A Hedera account is charged to extend its expiration date every
+   * Set the auto renew period for the new account. A Hiero account is charged to extend its expiration date every
    * renew period. If it doesn't have enough balance, it extends as long as possible. If the balance is zero when it
    * expires, then the account is deleted.
    *
@@ -328,7 +310,7 @@ private:
   bool mReceiverSignatureRequired = false;
 
   /**
-   * A Hedera account is charged to extend its expiration date every renew period. If it doesn't have enough balance, it
+   * A Hiero account is charged to extend its expiration date every renew period. If it doesn't have enough balance, it
    * extends as long as possible. If the balance is zero when it expires, then the account is deleted. Defaults to 90
    * days (2160 hours).
    */
@@ -366,6 +348,6 @@ private:
   std::optional<EvmAddress> mAlias;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_ACCOUNT_CREATE_TRANSACTION_H_
+#endif // HIERO_SDK_CPP_ACCOUNT_CREATE_TRANSACTION_H_

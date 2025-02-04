@@ -1,6 +1,6 @@
-# Contributing to the Hedera SDK for C++
+# Contributing to the Hiero SDK for C++
 
-Thank you for your interest in contributing the Hedera SDK for C++!
+Thank you for your interest in contributing the Hiero SDK for C++!
 
 We appreciate your interest in helping us and the rest of our community. We welcome bug reports, feature requests, and
 code contributions.
@@ -129,7 +129,7 @@ It will populate the newly added tag in `origin`.
 
 ### Step 2 - Draft Release in GitHub
 
-Open [Hedera C++ SDK](https://github.com/hashgraph/hedera-sdk-cpp) and search for `Create a new release` link.
+Open [Hiero C++ SDK](https://github.com/hiero-ledger/hiero-sdk-cpp) and search for `Create a new release` link.
 Select tag `v0.3.0` from the dropdown list. Enter the Release title to be same as the release number which is been
 prepared (for example: `v0.3.0`).
 
@@ -146,7 +146,7 @@ emoji ➡️ followed by a description in plain English for each over-arching ne
 #### Examples
 
 This section should list all of the newly added examples. Each of them should represent a link to the implementation (
-for example: [TransferTokensExample.cc](<(https://github.com/hashgraph/hedera-sdk-cpp/blob/main/src/sdk/examples/TransferTokensExample.cc)>). It's a good idea also to add prefix with ➡️ before
+for example: [TransferTokensExample.cc](<(https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/src/sdk/examples/TransferTokensExample.cc)>). It's a good idea also to add prefix with ➡️ before
 each line.
 
 #### Notes
@@ -160,12 +160,12 @@ Here should be listed all of the Pull Requests (PRs) which are part of the relea
 
 > (pull-request-title) by (@author) in (#link)
 
-[issues]: https://github.com/hashgraph/hedera-sdk-cpp/issues
-[label-bug]: https://github.com/hashgraph/hedera-sdk-cpp/labels/bug
+[issues]: https://github.com/hiero-ledger/hiero-sdk-cpp/issues
+[label-bug]: https://github.com/hiero-ledger/hiero-sdk-cpp/labels/bug
 [mwe]: https://en.wikipedia.org/wiki/Minimal_Working_Example
 [markdown]: https://guides.github.com/features/mastering-markdown/
-[label-feature-enhancement]: https://github.com/hashgraph/hedera-sdk-cpp/labels/Feature%20Enhancement
-[label-new-feature]: https://github.com/hashgraph/hedera-sdk-cpp/labels/New%20Feature
-[pull-requests]: https://github.com/hashgraph/hedera-sdk-cpp/pulls
-[license]: https://github.com/hashgraph/hedera-sdk-cpp/blob/main/LICENSE
+[label-feature-enhancement]: https://github.com/hiero-ledger/hiero-sdk-cpp/labels/Feature%20Enhancement
+[label-new-feature]: https://github.com/hiero-ledger/hiero-sdk-cpp/labels/New%20Feature
+[pull-requests]: https://github.com/hiero-ledger/hiero-sdk-cpp/pulls
+[license]: https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/LICENSE
 [discord]: https://hedera.com/discord

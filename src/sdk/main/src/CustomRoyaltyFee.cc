@@ -1,28 +1,10 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "CustomRoyaltyFee.h"
 
+#include <custom_fees.pb.h>
 #include <nlohmann/json.hpp>
-#include <proto/custom_fees.pb.h>
 
-namespace Hedera
+namespace Hiero
 {
 //-----
 CustomRoyaltyFee CustomRoyaltyFee::fromProtobuf(const proto::RoyaltyFee& proto)
@@ -91,11 +73,6 @@ CustomRoyaltyFee& CustomRoyaltyFee::setNumerator(const int64_t& numerator)
 //-----
 CustomRoyaltyFee& CustomRoyaltyFee::setDenominator(const int64_t& denominator)
 {
-  if (denominator == 0LL)
-  {
-    throw std::invalid_argument("Denominator cannot be 0");
-  }
-
   mDenominator = denominator;
   return *this;
 }
@@ -107,4 +84,4 @@ CustomRoyaltyFee& CustomRoyaltyFee::setFallbackFee(const CustomFixedFee& fee)
   return *this;
 }
 
-} // namespace Hedera
+} // namespace Hiero

@@ -880,6 +880,12 @@ secring.*
 ### Ignore Generated Source
 src/proto/*.proto
 
+### Ignore Proto Files From Services Repo
+/proto/*.proto
+/proto/mirror
+/proto/state
+/proto/auxiliary
+
 ### Ignore Generated Package Files
 package
 

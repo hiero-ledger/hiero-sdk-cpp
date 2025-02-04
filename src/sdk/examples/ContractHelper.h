@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_EXAMPLES_CONTRACT_HELPER_H_
-#define HEDERA_SDK_CPP_EXAMPLES_CONTRACT_HELPER_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_EXAMPLES_CONTRACT_HELPER_H_
+#define HIERO_SDK_CPP_EXAMPLES_CONTRACT_HELPER_H_
 
 #include "AccountId.h"
 #include "Client.h"
@@ -36,17 +18,17 @@
 #include "TransactionResponse.h"
 #include "impl/HexConverter.h"
 
+#include <basic_types.pb.h>
 #include <fstream>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <nlohmann/json.hpp>
-#include <proto/basic_types.pb.h>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
 
-namespace Hedera
+namespace Hiero
 {
 /**
  * ContractHelper de-clutters SolidityPrecompileExample.
@@ -54,7 +36,7 @@ namespace Hedera
  * When we instantiate a ContractHelper, we provide it with the JSON of a compiled solidity contract which is assumed to
  * have functions named "step0()" through "stepN()".
  *
- * Each of these step functions is assumed to take no function parameters, and to return a Hedera ResponseCode which
+ * Each of these step functions is assumed to take no function parameters, and to return a Hiero ResponseCode which
  * ought to be SUCCESS -- in other words, an int32 with value 22. See
  * examples/precompile-example/HederaResponseCodes.sol.
  *
@@ -62,7 +44,7 @@ namespace Hedera
  * the user can specify a supplier for a particular step with setParameterSupplier(stepIndex, parametersSupplier), and
  * can specify an alternative validation method with setResultValidator(stepIndex, validateFunction)
  *
- * The contract is created on the Hedera network in the ContractHelper constructor, and when the user is ready to
+ * The contract is created on the Hiero network in the ContractHelper constructor, and when the user is ready to
  * execute the step functions in the contract, they should call executeSteps(firstStepToExecute, lastStepToExecute).
  */
 class ContractHelper
@@ -280,6 +262,6 @@ private:
   std::unordered_map<int, AccountId> mStepFeePayers;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_EXAMPLES_CONTRACT_HELPER_H_
+#endif // HIERO_SDK_CPP_EXAMPLES_CONTRACT_HELPER_H_

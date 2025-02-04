@@ -1,35 +1,17 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_IMPL_NODE_H_
-#define HEDERA_SDK_CPP_IMPL_NODE_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_IMPL_NODE_H_
+#define HIERO_SDK_CPP_IMPL_NODE_H_
 
-#include <proto/address_book_service.grpc.pb.h>
-#include <proto/consensus_service.grpc.pb.h>
-#include <proto/crypto_service.grpc.pb.h>
-#include <proto/file_service.grpc.pb.h>
-#include <proto/freeze_service.grpc.pb.h>
-#include <proto/network_service.grpc.pb.h>
-#include <proto/schedule_service.grpc.pb.h>
-#include <proto/smart_contract_service.grpc.pb.h>
-#include <proto/token_service.grpc.pb.h>
-#include <proto/util_service.grpc.pb.h>
+#include <address_book_service.grpc.pb.h>
+#include <consensus_service.grpc.pb.h>
+#include <crypto_service.grpc.pb.h>
+#include <file_service.grpc.pb.h>
+#include <freeze_service.grpc.pb.h>
+#include <network_service.grpc.pb.h>
+#include <schedule_service.grpc.pb.h>
+#include <smart_contract_service.grpc.pb.h>
+#include <token_service.grpc.pb.h>
+#include <util_service.grpc.pb.h>
 
 #include "AccountId.h"
 #include "BaseNode.h"
@@ -39,15 +21,15 @@
 #include <string_view>
 #include <vector>
 
-namespace Hedera::internal
+namespace Hiero::internal
 {
 class BaseNodeAddress;
 }
 
-namespace Hedera::internal
+namespace Hiero::internal
 {
 /**
- * Internal utility class used to represent a node on a Hedera network.
+ * Internal utility class used to represent a node on a Hiero network.
  */
 class Node : public BaseNode<Node, AccountId>
 {
@@ -258,6 +240,6 @@ private:
   bool mVerifyCertificates = false;
 };
 
-} // namespace Hedera::internal
+} // namespace Hiero::internal
 
-#endif // HEDERA_SDK_CPP_IMPL_NODE_H_
+#endif // HIERO_SDK_CPP_IMPL_NODE_H_

@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_TOKEN_WIPE_TRANSACTION_H_
-#define HEDERA_SDK_CPP_TOKEN_WIPE_TRANSACTION_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_TOKEN_WIPE_TRANSACTION_H_
+#define HIERO_SDK_CPP_TOKEN_WIPE_TRANSACTION_H_
 
 #include "AccountId.h"
 #include "TokenId.h"
@@ -33,10 +15,10 @@ class TokenWipeAccountTransactionBody;
 class TransactionBody;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
- * Wipes the provided amount of fungible or non-fungible tokens from the specified Hedera account. This transaction does
+ * Wipes the provided amount of fungible or non-fungible tokens from the specified Hiero account. This transaction does
  * not delete tokens from the treasury account. This transaction must be signed by the token's Wipe Key. Wiping an
  * account's tokens burns the tokens and decreases the total supply.
  *
@@ -218,6 +200,6 @@ private:
   std::vector<uint64_t> mSerialNumbers;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_TOKEN_WIPE_TRANSACTION_H_
+#endif // HIERO_SDK_CPP_TOKEN_WIPE_TRANSACTION_H_

@@ -1,22 +1,4 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "Transaction.h"
 #include "AccountAllowanceApproveTransaction.h"
 #include "AccountAllowanceDeleteTransaction.h"
@@ -82,15 +64,15 @@
 #include "impl/Utilities.h"
 #include "impl/openssl_utils/OpenSSLUtils.h"
 
-#include <proto/basic_types.pb.h>
-#include <proto/transaction.pb.h>
-#include <proto/transaction_body.pb.h>
-#include <proto/transaction_contents.pb.h>
-#include <proto/transaction_list.pb.h>
-#include <proto/transaction_response.pb.h>
+#include <basic_types.pb.h>
+#include <transaction.pb.h>
+#include <transaction_body.pb.h>
+#include <transaction_contents.pb.h>
+#include <transaction_list.pb.h>
+#include <transaction_response.pb.h>
 #include <vector>
 
-namespace Hedera
+namespace Hiero
 {
 //-----
 template<typename SdkRequestType>
@@ -374,6 +356,11 @@ template<typename SdkRequestType>
 SdkRequestType& Transaction<SdkRequestType>::sign(const std::shared_ptr<PrivateKey>& key)
 {
   // clang-format off
+  if (key == nullptr)
+  {
+    throw std::invalid_argument("Signing key must be set.");
+  }
+
   return signInternal(key->getPublicKey(), [key](const std::vector<std::byte>& vec) { return key->sign(vec); }, key);
   // clang-format on
 }
@@ -1332,4 +1319,4 @@ template class Transaction<TopicMessageSubmitTransaction>;
 template class Transaction<TopicUpdateTransaction>;
 template class Transaction<TransferTransaction>;
 
-} // namespace Hedera
+} // namespace Hiero

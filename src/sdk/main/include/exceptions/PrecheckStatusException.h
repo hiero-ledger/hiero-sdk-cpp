@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_PRECHECK_STATUS_EXCEPTION_H_
-#define HEDERA_SDK_CPP_PRECHECK_STATUS_EXCEPTION_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_PRECHECK_STATUS_EXCEPTION_H_
+#define HIERO_SDK_CPP_PRECHECK_STATUS_EXCEPTION_H_
 
 #include "Status.h"
 #include "TransactionId.h"
@@ -27,7 +9,7 @@
 #include <optional>
 #include <string_view>
 
-namespace Hedera
+namespace Hiero
 {
 /**
  * Exception that is thrown when a request has failed its pre-check.
@@ -45,7 +27,7 @@ public:
                                    const std::optional<TransactionId>& transactionId = std::optional<TransactionId>())
     : mTransactionId(transactionId)
     , mStatus(status)
-    , mError(((transactionId.has_value()) ? "Hedera transaction " + transactionId->toString() + ' ' : "") +
+    , mError(((transactionId.has_value()) ? "Hiero transaction " + transactionId->toString() + ' ' : "") +
              "failed precheck with status " + gStatusToString.at(mStatus))
   {
   }
@@ -74,6 +56,6 @@ public:
   std::string mError;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_PRECHECK_STATUS_EXCEPTION_H_
+#endif // HIERO_SDK_CPP_PRECHECK_STATUS_EXCEPTION_H_

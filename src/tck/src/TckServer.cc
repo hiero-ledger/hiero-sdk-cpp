@@ -1,36 +1,43 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#include "TckServer.h"
-#include "JsonErrorType.h"
-#include "JsonRpcException.h"
-#include "JsonUtils.h"
-#include "exceptions/PrecheckStatusException.h"
-#include "exceptions/ReceiptStatusException.h"
-#include "httplib.h"
+// SPDX-License-Identifier: Apache-2.0
+// Windows build requires this to be included first for some reason.
+#include <Transaction.h> // NOLINT
 
-#include <algorithm>
+#include "TckServer.h"
+#include "account/params/ApproveAllowanceParams.h"
+#include "account/params/CreateAccountParams.h"
+#include "account/params/DeleteAccountParams.h"
+#include "account/params/UpdateAccountParams.h"
+#include "key/params/GenerateKeyParams.h"
+#include "sdk/params/ResetParams.h"
+#include "sdk/params/SetupParams.h"
+#include "token/params/AssociateTokenParams.h"
+#include "token/params/BurnTokenParams.h"
+#include "token/params/CreateTokenParams.h"
+#include "token/params/DeleteTokenParams.h"
+#include "token/params/DissociateTokenParams.h"
+#include "token/params/FreezeTokenParams.h"
+#include "token/params/GrantTokenKycParams.h"
+#include "token/params/MintTokenParams.h"
+#include "token/params/PauseTokenParams.h"
+#include "token/params/RevokeTokenKycParams.h"
+#include "token/params/UnfreezeTokenParams.h"
+#include "token/params/UnpauseTokenParams.h"
+#include "token/params/UpdateTokenFeeScheduleParams.h"
+#include "token/params/UpdateTokenParams.h"
+#include "json/JsonErrorType.h"
+#include "json/JsonRpcException.h"
+#include "json/JsonUtils.h"
+
+#include <Status.h>
+#include <exceptions/PrecheckStatusException.h>
+#include <exceptions/ReceiptStatusException.h>
+
+#include <httplib.h>
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
 
-namespace Hedera::TCK
+namespace Hiero::TCK
 {
 namespace
 {
@@ -54,7 +61,7 @@ TckServer::TckServer(int port)
 }
 
 //-----
-void TckServer::add(const std::string& name, const MethodHandle& func, const std::vector<std::string>& params)
+void TckServer::add(const std::string& name, const MethodHandle& func)
 {
   // Make sure the name is valid.
   if (name.find("rpc.") != std::string::npos)
@@ -69,15 +76,10 @@ void TckServer::add(const std::string& name, const MethodHandle& func, const std
   }
 
   mMethods.try_emplace(name, func);
-
-  if (!params.empty())
-  {
-    mParameters.try_emplace(name, params);
-  }
 }
 
 //-----
-void TckServer::add(const std::string& name, const NotificationHandle& func, const std::vector<std::string>& params)
+void TckServer::add(const std::string& name, const NotificationHandle& func)
 {
   // Make sure the name is valid.
   if (name.find("rpc.") != std::string::npos)
@@ -92,17 +94,26 @@ void TckServer::add(const std::string& name, const NotificationHandle& func, con
   }
 
   mNotifications.try_emplace(name, func);
-
-  if (!params.empty())
-  {
-    mParameters.try_emplace(name, params);
-  }
 }
 
 //-----
 void TckServer::startServer()
 {
   mHttpServer.listen("localhost", mPort);
+}
+
+//-----
+template<typename ParamsType>
+TckServer::MethodHandle TckServer::getHandle(nlohmann::json (*method)(const ParamsType&))
+{
+  return [method](const nlohmann::json& params) { return method(params.get<ParamsType>()); };
+}
+
+//-----
+template<typename ParamsType>
+TckServer::NotificationHandle TckServer::getHandle(void (*notification)(const ParamsType&))
+{
+  return [notification](const nlohmann::json& params) { return notification(params.get<ParamsType>()); };
 }
 
 //-----
@@ -120,7 +131,7 @@ void TckServer::handleHttpRequest(const httplib::Request& request, httplib::Resp
 }
 
 //-----
-std::string TckServer::handleJsonRequest(std::string_view request)
+std::string TckServer::handleJsonRequest(const std::string& request)
 {
   try
   {
@@ -203,14 +214,14 @@ nlohmann::json TckServer::handleSingleRequest(const nlohmann::json& request)
     }
 
     // Make sure that, if there exists an ID field, that it is a number, string, or null.
-    if (hasKey(request, "id") && !request["id"].is_number() && !request["id"].is_string() && !request["id"].is_null())
+    if (request.contains("id") && !request["id"].is_number() && !request["id"].is_string() && !request["id"].is_null())
     {
       throw JsonRpcException(JsonErrorType::INVALID_REQUEST,
                              "invalid request: id field must be a number, string or null");
     }
 
     // Make sure that, if a params field exists, it is an array, object, or null.
-    if (hasKey(request, "params") && !request["params"].is_array() && !request["params"].is_object() &&
+    if (request.contains("params") && !request["params"].is_array() && !request["params"].is_object() &&
         !request["params"].is_null())
     {
       throw JsonRpcException(JsonErrorType::INVALID_REQUEST,
@@ -218,7 +229,7 @@ nlohmann::json TckServer::handleSingleRequest(const nlohmann::json& request)
     }
 
     const std::string& name = request["method"];
-    const bool hasParams = hasKey(request, "params") && !request["params"].empty();
+    const bool hasParams = request.contains("params") && !request["params"].empty();
 
     // If there's an ID, that indicates a method call.
     if (!requestId.is_null())
@@ -230,9 +241,9 @@ nlohmann::json TckServer::handleSingleRequest(const nlohmann::json& request)
       }
 
       return {
-        { "jsonrpc", "2.0" },
-        { "id", requestId },
-        { "result", executeMethod(method, hasParams ? request["params"] : nlohmann::json::array()) }
+        {"jsonrpc", "2.0"                                                                  },
+        { "id",     requestId                                                              },
+        { "result", method->second(hasParams ? request["params"] : nlohmann::json::array())}
       };
     }
 
@@ -244,7 +255,7 @@ nlohmann::json TckServer::handleSingleRequest(const nlohmann::json& request)
     }
 
     // Execute the notification function and return a null JSON object to signify the notification executed correctly.
-    executeNotification(notification, hasParams ? request["params"] : nlohmann::json::array());
+    notification->second(hasParams ? request["params"] : nlohmann::json::array());
     return {};
   }
 
@@ -268,7 +279,7 @@ nlohmann::json TckServer::handleSingleRequest(const nlohmann::json& request)
     };
   }
 
-  // PrecheckStatusExceptions and ReceiptStatusExceptions should be Hedera errors.
+  // PrecheckStatusExceptions and ReceiptStatusExceptions should be Hiero errors.
   catch (const ReceiptStatusException& ex)
   {
     // clang-format off
@@ -276,8 +287,8 @@ nlohmann::json TckServer::handleSingleRequest(const nlohmann::json& request)
       { "jsonrpc", "2.0" },
       { "id", requestId },
       { "error", {
-        { "code", JsonErrorType::HEDERA_ERROR },
-        { "message", "Hedera error" },
+        { "code", JsonErrorType::HIERO_ERROR },
+        { "message", "Hiero error" },
         { "data", {
           { "status", gStatusToString.at(ex.mStatus) },
           { "message", ex.what() }
@@ -294,8 +305,8 @@ nlohmann::json TckServer::handleSingleRequest(const nlohmann::json& request)
       { "jsonrpc", "2.0" },
       { "id", requestId },
       { "error", {
-        { "code", JsonErrorType::HEDERA_ERROR },
-        { "message", "Hedera error" },
+        { "code", JsonErrorType::HIERO_ERROR },
+        { "message", "Hiero error" },
         { "data", {
           { "status", gStatusToString.at(ex.mStatus) },
           { "message", ex.what() }
@@ -325,87 +336,6 @@ nlohmann::json TckServer::handleSingleRequest(const nlohmann::json& request)
 }
 
 //-----
-nlohmann::json TckServer::executeMethod(const std::unordered_map<std::string, MethodHandle>::const_iterator& method,
-                                        const nlohmann::json& params) const
-{
-  try
-  {
-    return method->second(normalizeParameters(method->first, params));
-  }
-  catch (const nlohmann::json::type_error& exception)
-  {
-    throw JsonRpcException(JsonErrorType::INVALID_PARAMS, "invalid parameter: " + std::string(exception.what()));
-  }
-  catch (const JsonRpcException& exception)
-  {
-    throw processTypeError(method->first, exception);
-  }
-}
-
-//-----
-void TckServer::executeNotification(
-  const std::unordered_map<std::string, NotificationHandle>::const_iterator& notification,
-  const nlohmann::json& params) const
-{
-  try
-  {
-    notification->second(normalizeParameters(notification->first, params));
-  }
-  catch (const nlohmann::json::type_error& exception)
-  {
-    throw JsonRpcException(JsonErrorType::INVALID_PARAMS, "invalid parameter: " + std::string(exception.what()));
-  }
-  catch (const JsonRpcException& exception)
-  {
-    throw processTypeError(notification->first, exception);
-  }
-}
-
-//-----
-nlohmann::json TckServer::normalizeParameters(const std::string& name, const nlohmann::json& params) const
-{
-  // If the parameters are already a list, just return it.
-  if (params.type() == nlohmann::json::value_t::array)
-  {
-    return params;
-  }
-
-  // If the parameters are an object, put them into a list.
-  if (params.type() == nlohmann::json::value_t::object)
-  {
-    if (mParameters.find(name) == mParameters.end())
-    {
-      throw JsonRpcException(JsonErrorType::INVALID_PARAMS,
-                             "invalid parameter: procedure doesn't support named parameter");
-    }
-
-    // Put each parameter into a JSON list. If a parameter doesn't exist, add a nullptr value.
-    nlohmann::json result;
-    std::for_each(mParameters.at(name).cbegin(),
-                  mParameters.at(name).cend(),
-                  [&result, &params](const std::string& param)
-                  { result.push_back(params.find(param) == params.end() ? nullptr : params.at(param)); });
-
-    return result;
-  }
-
-  // If not an array or object, throw.
-  throw JsonRpcException(JsonErrorType::INVALID_REQUEST, "invalid request: params field must be an array, object");
-}
-
-//-----
-JsonRpcException TckServer::processTypeError(const std::string& name, const JsonRpcException& exception) const
-{
-  return exception.getCode() == JsonErrorType::INVALID_PARAMS && !exception.getData().empty()
-           ? JsonRpcException(exception.getCode(),
-                              exception.getMessage() + " for parameter " +
-                                ((mParameters.find(name) != mParameters.end())
-                                   ? "\"" + mParameters.at(name)[exception.getData().get<unsigned int>()] + "\""
-                                   : std::to_string(exception.getData().get<unsigned int>())))
-           : exception;
-}
-
-//-----
 void TckServer::setupHttpHandler()
 {
   mHttpServer.Post("/",
@@ -413,4 +343,53 @@ void TckServer::setupHttpHandler()
                    { handleHttpRequest(request, response); });
 }
 
-} // namespace Hedera::TCK
+/**
+ * Explicit template instantiations.
+ */
+template TckServer::MethodHandle TckServer::getHandle<AccountService::ApproveAllowanceParams>(
+  nlohmann::json (*method)(const AccountService::ApproveAllowanceParams&));
+template TckServer::MethodHandle TckServer::getHandle<AccountService::CreateAccountParams>(
+  nlohmann::json (*method)(const AccountService::CreateAccountParams&));
+template TckServer::MethodHandle TckServer::getHandle<AccountService::DeleteAccountParams>(
+  nlohmann::json (*method)(const AccountService::DeleteAccountParams&));
+template TckServer::MethodHandle TckServer::getHandle<AccountService::UpdateAccountParams>(
+  nlohmann::json (*method)(const AccountService::UpdateAccountParams&));
+
+template TckServer::MethodHandle TckServer::getHandle<KeyService::GenerateKeyParams>(
+  nlohmann::json (*method)(const KeyService::GenerateKeyParams&));
+
+template TckServer::MethodHandle TckServer::getHandle<SdkClient::ResetParams>(
+  nlohmann::json (*method)(const SdkClient::ResetParams&));
+template TckServer::MethodHandle TckServer::getHandle<SdkClient::SetupParams>(
+  nlohmann::json (*method)(const SdkClient::SetupParams&));
+
+template TckServer::MethodHandle TckServer::getHandle<TokenService::AssociateTokenParams>(
+  nlohmann::json (*method)(const TokenService::AssociateTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::BurnTokenParams>(
+  nlohmann::json (*method)(const TokenService::BurnTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::CreateTokenParams>(
+  nlohmann::json (*method)(const TokenService::CreateTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::DeleteTokenParams>(
+  nlohmann::json (*method)(const TokenService::DeleteTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::DissociateTokenParams>(
+  nlohmann::json (*method)(const TokenService::DissociateTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::FreezeTokenParams>(
+  nlohmann::json (*method)(const TokenService::FreezeTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::GrantTokenKycParams>(
+  nlohmann::json (*method)(const TokenService::GrantTokenKycParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::MintTokenParams>(
+  nlohmann::json (*method)(const TokenService::MintTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::PauseTokenParams>(
+  nlohmann::json (*method)(const TokenService::PauseTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::RevokeTokenKycParams>(
+  nlohmann::json (*method)(const TokenService::RevokeTokenKycParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::UnfreezeTokenParams>(
+  nlohmann::json (*method)(const TokenService::UnfreezeTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::UnpauseTokenParams>(
+  nlohmann::json (*method)(const TokenService::UnpauseTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::UpdateTokenFeeScheduleParams>(
+  nlohmann::json (*method)(const TokenService::UpdateTokenFeeScheduleParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::UpdateTokenParams>(
+  nlohmann::json (*method)(const TokenService::UpdateTokenParams&));
+
+} // namespace Hiero::TCK

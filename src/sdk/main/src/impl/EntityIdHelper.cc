@@ -1,22 +1,4 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "impl/EntityIdHelper.h"
 #include "AccountId.h"
 #include "Client.h"
@@ -33,12 +15,11 @@
 #include "impl/HexConverter.h"
 #include "impl/Utilities.h"
 
-#include <charconv>
 #include <cstddef>
 #include <stdexcept>
 #include <vector>
 
-namespace Hedera::internal::EntityIdHelper
+namespace Hiero::internal::EntityIdHelper
 {
 //-----
 template<typename EntityType>
@@ -53,19 +34,6 @@ EntityType fromSolidityAddress(const std::vector<std::byte>& address)
   return EntityType(static_cast<uint64_t>(*internal::Utilities::toTypePtr<uint32_t>(address.data())),
                     *internal::Utilities::toTypePtr<uint64_t>(address.data() + 4),
                     *internal::Utilities::toTypePtr<uint64_t>(address.data() + 12));
-}
-
-//-----
-uint64_t getNum(std::string_view str)
-{
-  uint64_t num;
-  if (auto result = std::from_chars(str.data(), str.data() + str.size(), num);
-      result.ec != std::errc() || result.ptr != str.data() + str.size())
-  {
-    throw std::invalid_argument("Input entity ID string is malformed");
-  }
-
-  return num;
 }
 
 //-----
@@ -296,4 +264,4 @@ template TokenId            fromSolidityAddress<TokenId>            (const std::
 template TopicId            fromSolidityAddress<TopicId>            (const std::vector<std::byte>&);
 // clang-format on
 
-} // namespace Hedera::internal::EntityIdHelper
+} // namespace Hiero::internal::EntityIdHelper

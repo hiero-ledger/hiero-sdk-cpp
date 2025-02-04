@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_EXECUTABLE_H_
-#define HEDERA_SDK_CPP_EXECUTABLE_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_EXECUTABLE_H_
+#define HIERO_SDK_CPP_EXECUTABLE_H_
 
 #include "AccountId.h"
 #include "Defaults.h"
@@ -33,7 +15,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace Hedera
+namespace Hiero
 {
 namespace internal
 {
@@ -49,7 +31,7 @@ namespace grpc
 class Status;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
  * Base class for queries and transactions that contains the behavior for executing and submitting requests.
@@ -64,10 +46,10 @@ class Executable
 {
 public:
   /**
-   * Submit this Executable to a Hedera network.
+   * Submit this Executable to a Hiero network.
    *
    * @param client The Client to use to submit this Executable.
-   * @return The SdkResponseType object sent from the Hedera network that contains the result of the request.
+   * @return The SdkResponseType object sent from the Hiero network that contains the result of the request.
    * @throws MaxAttemptsExceededException If this Executable attempts to execute past the number of allowable attempts.
    * @throws PrecheckStatusException      If this Executable fails its pre-check.
    * @throws UninitializedException       If the input Client has not yet been initialized.
@@ -75,11 +57,11 @@ public:
   virtual SdkResponseType execute(const Client& client);
 
   /**
-   * Submit this Executable to a Hedera network with a specific timeout.
+   * Submit this Executable to a Hiero network with a specific timeout.
    *
    * @param client  The Client to use to submit this Executable.
    * @param timeout The desired timeout for the execution of this Executable.
-   * @return The SdkResponseType object sent from the Hedera network that contains the result of the request.
+   * @return The SdkResponseType object sent from the Hiero network that contains the result of the request.
    * @throws MaxAttemptsExceededException If this Executable attempts to execute past the number of allowable attempts.
    * @throws PrecheckStatusException      If this Executable fails its pre-check.
    * @throws UninitializedException       If the input Client has not yet been initialized.
@@ -87,10 +69,10 @@ public:
   virtual SdkResponseType execute(const Client& client, const std::chrono::system_clock::duration& timeout);
 
   /**
-   * Submit this Executable to a Hedera network asynchronously.
+   * Submit this Executable to a Hiero network asynchronously.
    *
    * @param client The Client to use to submit this Executable.
-   * @return The future SdkResponseType object sent from the Hedera network that contains the result of the request.
+   * @return The future SdkResponseType object sent from the Hiero network that contains the result of the request.
    * @throws MaxAttemptsExceededException If this Executable attempts to execute past the number of allowable attempts.
    * @throws PrecheckStatusException      If this Executable fails its pre-check.
    * @throws UninitializedException       If the input Client has not yet been initialized.
@@ -98,11 +80,11 @@ public:
   std::future<SdkResponseType> executeAsync(const Client& client);
 
   /**
-   * Submit this Executable to a Hedera network asynchronously with a specific timeout.
+   * Submit this Executable to a Hiero network asynchronously with a specific timeout.
    *
    * @param client  The Client to use to submit this Executable.
    * @param timeout The desired timeout for the execution of this Executable.
-   * @return The future SdkResponseType object sent from the Hedera network that contains the result of the request.
+   * @return The future SdkResponseType object sent from the Hiero network that contains the result of the request.
    * @throws MaxAttemptsExceededException If this Executable attempts to execute past the number of allowable attempts.
    * @throws PrecheckStatusException      If this Executable fails its pre-check.
    * @throws UninitializedException       If the input Client has not yet been initialized.
@@ -111,7 +93,7 @@ public:
                                                     const std::chrono::system_clock::duration& timeout);
 
   /**
-   * Submit this Executable to a Hedera network asynchronously and consume the response and/or exception with a
+   * Submit this Executable to a Hiero network asynchronously and consume the response and/or exception with a
    * callback.
    *
    * @param client   The Client to use to submit this Executable.
@@ -121,7 +103,7 @@ public:
                     const std::function<void(const SdkResponseType&, const std::exception&)>& callback);
 
   /**
-   * Submit this Executable to a Hedera network asynchronously with a specific timeout and consume the response and/or
+   * Submit this Executable to a Hiero network asynchronously with a specific timeout and consume the response and/or
    * exception with a callback.
    *
    * @param client   The Client to use to submit this Executable.
@@ -133,7 +115,7 @@ public:
                     const std::function<void(const SdkResponseType&, const std::exception&)>& callback);
 
   /**
-   * Submit this Executable to a Hedera network asynchronously and consume the response and/or exception with separate
+   * Submit this Executable to a Hiero network asynchronously and consume the response and/or exception with separate
    * callbacks.
    *
    * @param client            The Client to use to submit this Executable.
@@ -145,7 +127,7 @@ public:
                     const std::function<void(const std::exception&)>& exceptionCallback);
 
   /**
-   * Submit this Executable to a Hedera network asynchronously with a specific timeout and consume the response and/or
+   * Submit this Executable to a Hiero network asynchronously with a specific timeout and consume the response and/or
    * exception with separate callbacks.
    *
    * @param client            The Client to use to submit this Executable.
@@ -508,6 +490,6 @@ private:
   std::chrono::system_clock::duration mCurrentGrpcDeadline = DEFAULT_GRPC_DEADLINE;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_EXECUTABLE_H_
+#endif // HIERO_SDK_CPP_EXECUTABLE_H_

@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_CONTRACT_CREATE_FLOW_H_
-#define HEDERA_SDK_CPP_CONTRACT_CREATE_FLOW_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_CONTRACT_CREATE_FLOW_H_
+#define HIERO_SDK_CPP_CONTRACT_CREATE_FLOW_H_
 
 #include "AccountId.h"
 #include "Defaults.h"
@@ -35,14 +17,14 @@
 #include <string_view>
 #include <vector>
 
-namespace Hedera
+namespace Hiero
 {
 class Client;
 class ContractFunctionParameters;
 class PrivateKey;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
  * A helper class to create a contract file bytecode directly. This will use FileCreateTransaction and
@@ -381,7 +363,7 @@ private:
   Hbar mInitialBalance = Hbar(0LL);
 
   /**
-   * A Hedera smart contract instance is charged to extend its expiration date every renew period. If it doesn't have
+   * A Hiero smart contract instance is charged to extend its expiration date every renew period. If it doesn't have
    * enough balance, it extends as long as possible. If the balance is zero when it expires, then the smart contract
    * instance is deleted.
    */
@@ -450,6 +432,6 @@ private:
   std::vector<AccountId> mNodeAccountIds;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_CONTRACT_CREATE_FLOW_H_
+#endif // HIERO_SDK_CPP_CONTRACT_CREATE_FLOW_H_

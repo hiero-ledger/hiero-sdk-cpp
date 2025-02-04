@@ -4,7 +4,6 @@ pragma solidity >=0.4.9 <0.9.0;
 // This file was copied from github.com/hashgraph/hedera-smart-contracts on Aug 31 2022
 
 abstract contract HederaResponseCodes {
-
     // response codes
     int32 internal constant OK = 0; // The transaction passed the precheck validations.
     int32 internal constant INVALID_TRANSACTION = 1; // For any error not handled by specific error codes listed below.
@@ -144,7 +143,7 @@ abstract contract HederaResponseCodes {
     // by HAPI.
     int32 internal constant TOPIC_EXPIRED = 162;
     int32 internal constant INVALID_CHUNK_NUMBER = 163; // chunk number must be from 1 to total (chunks) inclusive.
-    int32 internal constant INVALID_CHUNK_TRANSACTION_ID = 164; // For every chunk, the payer account that is part of initialTransactionID must match the Payer Account of this transaction. The entire initialTransactionID should match the transactionID of the first chunk, but this is not checked or enforced by Hedera except when the chunk number is 1.
+    int32 internal constant INVALID_CHUNK_TRANSACTION_ID = 164; // For every chunk, the payer account that is part of initialTransactionID must match the Payer Account of this transaction. The entire initialTransactionID should match the transactionID of the first chunk, but this is not checked or enforced by Hiero except when the chunk number is 1.
     int32 internal constant ACCOUNT_FROZEN_FOR_TOKEN = 165; // Account is frozen and cannot transact with the token
     int32 internal constant TOKENS_PER_ACCOUNT_LIMIT_EXCEEDED = 166; // An involved account already has more than <tt>tokens.maxPerAccount</tt> associations with non-deleted tokens.
     int32 internal constant INVALID_TOKEN_ID = 167; // The token is invalid or does not exist

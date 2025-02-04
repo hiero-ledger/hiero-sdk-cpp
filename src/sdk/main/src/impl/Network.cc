@@ -1,22 +1,4 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "impl/Network.h"
 #include "AccountId.h"
 #include "Endpoint.h"
@@ -29,7 +11,7 @@
 #include <filesystem>
 #include <fstream>
 
-namespace Hedera::internal
+namespace Hiero::internal
 {
 //-----
 Network Network::forMainnet()
@@ -195,7 +177,7 @@ Network Network::getNetworkForLedgerId(const LedgerId& ledgerId)
 //-----
 NodeAddressBook Network::getAddressBookForLedgerId(const LedgerId& ledgerId)
 {
-  // The address book can only be fetched for known Hedera networks.
+  // The address book can only be fetched for known Hiero networks.
   if (!ledgerId.isKnownNetwork())
   {
     return {};
@@ -247,4 +229,4 @@ Network& Network::setLedgerIdInternal(const LedgerId& ledgerId, const NodeAddres
   return *this;
 }
 
-} // namespace Hedera::internal
+} // namespace Hiero::internal

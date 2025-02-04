@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_TOKEN_GRANT_KYC_TRANSACTION_H_
-#define HEDERA_SDK_CPP_TOKEN_GRANT_KYC_TRANSACTION_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_TOKEN_GRANT_KYC_TRANSACTION_H_
+#define HIERO_SDK_CPP_TOKEN_GRANT_KYC_TRANSACTION_H_
 
 #include "AccountId.h"
 #include "TokenId.h"
@@ -33,10 +15,10 @@ class TokenGrantKycTransactionBody;
 class TransactionBody;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
- * Grants KYC to the Hedera accounts for the given Hedera token. This transaction must be signed by the token's KYC Key.
+ * Grants KYC to the Hiero accounts for the given Hiero token. This transaction must be signed by the token's KYC Key.
  *
  *  - If the provided account is not found, the transaction will resolve to INVALID_ACCOUNT_ID.
  *  - If the provided account has been deleted, the transaction will resolve to ACCOUNT_DELETED.
@@ -165,6 +147,6 @@ private:
   TokenId mTokenId;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_TOKEN_GRANT_KYC_TRANSACTION_H_
+#endif // HIERO_SDK_CPP_TOKEN_GRANT_KYC_TRANSACTION_H_

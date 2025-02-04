@@ -1,28 +1,11 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "Client.h"
 #include "AccountBalance.h"
 #include "AccountBalanceQuery.h"
 #include "AccountId.h"
 #include "AddressBookQuery.h"
 #include "Defaults.h"
+#include "FileId.h"
 #include "Hbar.h"
 #include "Logger.h"
 #include "NodeAddressBook.h"
@@ -40,17 +23,17 @@
 #include <stdexcept>
 #include <thread>
 
-namespace Hedera
+namespace Hiero
 {
 //-----
 struct Client::ClientImpl
 {
-  // Pointer to the network object that contains all processing for sending/receiving information to/from a Hedera
+  // Pointer to the network object that contains all processing for sending/receiving information to/from a Hiero
   // network.
   std::shared_ptr<internal::Network> mNetwork = nullptr;
 
   // Pointer to the MirrorNetwork object that contains the mirror nodes for sending/receiving information to/from a
-  // Hedera mirror node.
+  // Hiero mirror node.
   std::shared_ptr<internal::MirrorNetwork> mMirrorNetwork = nullptr;
 
   // The Logger used by this Client.
@@ -170,6 +153,18 @@ Client Client::forNetwork(const std::unordered_map<std::string, AccountId>& netw
 {
   Client client;
   client.mImpl->mNetwork = std::make_shared<internal::Network>(internal::Network::forNetwork(networkMap));
+  return client;
+}
+
+//-----
+Client Client::forMirrorNetwork(const std::vector<std::string>& mirrorNetwork)
+{
+  Client client;
+  client.setMirrorNetwork(mirrorNetwork);
+  client.mImpl->mNetwork =
+    std::make_shared<internal::Network>(internal::Network::forNetwork(internal::Network::getNetworkFromAddressBook(
+      AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(client), internal::BaseNodeAddress::PORT_NODE_PLAIN)));
+
   return client;
 }
 
@@ -1148,4 +1143,4 @@ void Client::moveClient(Client&& other)
   }
 }
 
-} // namespace Hedera
+} // namespace Hiero

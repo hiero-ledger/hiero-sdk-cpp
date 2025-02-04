@@ -64,6 +64,7 @@ add_executable(${TEST_PROJECT_NAME}
         HbarTransferUnitTests.cc
         KeyListUnitTests.cc
         LedgerIdUnitTests.cc
+        MirrorNodeContractQueryUnitTests.cc
         NetworkUnitTests.cc
         NetworkVersionInfoUnitTests.cc
         NftIdUnitTests.cc
@@ -132,8 +133,8 @@ add_executable(${TEST_PROJECT_NAME}
         TransferTransactionUnitTests.cc
 
         vectors/BIP39TestVectors.cc
-        vectors/Hedera12WordMnemonicBIP39TestVectors.cc
-        vectors/Hedera24WordMnemonicBIP39TestVectors.cc
+        vectors/Hiero12WordMnemonicBIP39TestVectors.cc
+        vectors/Hiero24WordMnemonicBIP39TestVectors.cc
         vectors/RFC8032TestVectors.cc
         vectors/SLIP10TestVectors.cc)
 

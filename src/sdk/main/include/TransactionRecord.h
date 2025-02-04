@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_TRANSACTION_RECORD_H_
-#define HEDERA_SDK_CPP_TRANSACTION_RECORD_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_TRANSACTION_RECORD_H_
+#define HIERO_SDK_CPP_TRANSACTION_RECORD_H_
 
 #include "AccountId.h"
 #include "AssessedCustomFee.h"
@@ -48,10 +30,10 @@ class TransactionGetRecordResponse;
 class TransactionRecord;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
- * The complete record for a transaction on Hedera that has reached consensus. This is not-free to request and is
+ * The complete record for a transaction on Hiero that has reached consensus. This is not-free to request and is
  * available for 1 hour after a transaction reaches consensus. A TransactionReceipt can be thought of as a light-weight
  * record which is free to ask for if you just need what it contains. A receipt however lasts for only 180 seconds.
  */
@@ -243,6 +225,6 @@ public:
   std::vector<PendingAirdropRecord> mPendingAirdropRecords;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_TRANSACTION_RECORD_H_
+#endif // HIERO_SDK_CPP_TRANSACTION_RECORD_H_

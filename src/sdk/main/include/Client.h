@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_CLIENT_H_
-#define HEDERA_SDK_CPP_CLIENT_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_CLIENT_H_
+#define HIERO_SDK_CPP_CLIENT_H_
 
 #include <chrono>
 #include <functional>
@@ -31,7 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace Hedera
+namespace Hiero
 {
 namespace internal
 {
@@ -48,10 +30,10 @@ class PublicKey;
 class SubscriptionHandle;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
- * Managed client for use on the Hedera Hashgraph network.
+ * Managed client for use on the Hiero network.
  */
 class Client
 {
@@ -75,12 +57,22 @@ public:
   Client& operator=(Client&&) noexcept;
 
   /**
-   * Construct a Client pre-configured for a specific Hedera network.
+   * Construct a Client pre-configured for a specific Hiero network.
    *
    * @param networkMap The map with string representation of node addresses with their corresponding accountId.
    * @return A reference to this Client object with the newly-set operator account ID from the map.
    */
   [[nodiscard]] static Client forNetwork(const std::unordered_map<std::string, AccountId>& networkMap);
+
+  /**
+   * Construct a Client pre-configured for a specific mirror network. This will attempt to pull the network address
+   * book from the input mirror network and establish its consensus network with that.
+   *
+   * @param mirrorNetwork The mirror node network from which to grab the address book and initialize the Client's
+   *                      consensus network.
+   * @return A Client with the input mirror network and the corresponding address book consensus network
+   */
+  [[nodiscard]] static Client forMirrorNetwork(const std::vector<std::string>& mirrorNetwork);
 
   /**
    * Construct a Client by a name. The name must be one of "mainnet", "testnet", or "previewnet", otherwise this will
@@ -92,23 +84,23 @@ public:
   [[nodiscard]] static Client forName(std::string_view name);
 
   /**
-   * Construct a Client pre-configured for Hedera Mainnet access.
+   * Construct a Client pre-configured for Hiero Mainnet access.
    *
-   * @return A Client object that is set-up to communicate with the Hedera Mainnet.
+   * @return A Client object that is set-up to communicate with the Hiero Mainnet.
    */
   [[nodiscard]] static Client forMainnet();
 
   /**
-   * Construct a Client pre-configured for Hedera Testnet access.
+   * Construct a Client pre-configured for Hiero Testnet access.
    *
-   * @return A Client object that is set-up to communicate with the Hedera Testnet.
+   * @return A Client object that is set-up to communicate with the Hiero Testnet.
    */
   [[nodiscard]] static Client forTestnet();
 
   /**
-   * Construct a Client pre-configured for Hedera Previewnet access.
+   * Construct a Client pre-configured for Hiero Previewnet access.
    *
-   * @return A Client object that is set-up to communicate with the Hedera Previewnet.
+   * @return A Client object that is set-up to communicate with the Hiero Previewnet.
    */
   [[nodiscard]] static Client forPreviewnet();
 
@@ -735,6 +727,6 @@ private:
   std::unique_ptr<ClientImpl> mImpl;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_CLIENT_H_
+#endif // HIERO_SDK_CPP_CLIENT_H_

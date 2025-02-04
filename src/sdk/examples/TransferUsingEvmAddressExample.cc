@@ -1,22 +1,4 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 #include "AccountCreateTransaction.h"
 #include "AccountId.h"
 #include "AccountInfo.h"
@@ -36,7 +18,7 @@
 #include <dotenv.h>
 #include <iostream>
 
-using namespace Hedera;
+using namespace Hiero;
 
 int main(int argc, char** argv)
 {
@@ -44,13 +26,13 @@ int main(int argc, char** argv)
   const AccountId operatorAccountId = AccountId::fromString(std::getenv("OPERATOR_ID"));
   const std::shared_ptr<PrivateKey> operatorPrivateKey = ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
 
-  // Get a client for the Hedera testnet, and set the operator account ID and key such that all generated transactions
+  // Get a client for the Hiero testnet, and set the operator account ID and key such that all generated transactions
   // will be paid for by this account and be signed by this key.
   Client client = Client::forTestnet();
   client.setOperator(operatorAccountId, operatorPrivateKey);
 
   /*
-   * Transfer HBAR or tokens to a Hedera account using their public-address. Reference: [HIP-583 Expand alias support in
+   * Transfer HBAR or tokens to a Hiero account using their public-address. Reference: [HIP-583 Expand alias support in
    * CryptoCreate & CryptoTransfer Transactions](https://hips.hedera.com/hip/hip-583)
    *
    * - Create an ECSDA private key
@@ -62,7 +44,7 @@ int main(int argc, char** argv)
    * - Transfer tokens using the `TransferTransaction` to the Etherum Account Address
    *   - The From field should be a complete account that has a public address
    *   - The To field should be to a public address (to create a new account)
-   * - Get the child receipt or child record to return the Hedera Account ID for the new account that was created
+   * - Get the child receipt or child record to return the Hiero Account ID for the new account that was created
    * - Get the `AccountInfo` on the new account and show it is a hollow account by not having a public key
    *   - This is a hollow account in this state
    * - Use the hollow account as a transaction fee payer in a HAPI transaction

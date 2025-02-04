@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_TRANSACTION_ID_H_
-#define HEDERA_SDK_CPP_TRANSACTION_ID_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_TRANSACTION_ID_H_
+#define HIERO_SDK_CPP_TRANSACTION_ID_H_
 
 #include "AccountId.h"
 
@@ -35,14 +17,14 @@ namespace proto
 class TransactionID;
 }
 
-namespace Hedera
+namespace Hiero
 {
 class Client;
 class TransactionReceipt;
 class TransactionRecord;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
  * The ID for a transaction. This is used for retrieving receipts and records for a transaction, for appending to a file
@@ -423,26 +405,26 @@ private:
   int mNonce = 0;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
 namespace std
 {
 template<>
-struct hash<Hedera::TransactionId>
+struct hash<Hiero::TransactionId>
 {
   /**
    * Operator override to enable use of TransactionId as map key.
    */
-  size_t operator()(const Hedera::TransactionId& id) const { return hash<string>()(id.toString()); }
+  size_t operator()(const Hiero::TransactionId& id) const { return hash<string>()(id.toString()); }
 };
 
 template<>
-struct less<Hedera::TransactionId>
+struct less<Hiero::TransactionId>
 {
   /**
    * Operator override to enable use of TransactionId in a std::map, which requires fair ordering.
    */
-  bool operator()(const Hedera::TransactionId& lhs, const Hedera::TransactionId& rhs) const
+  bool operator()(const Hiero::TransactionId& lhs, const Hiero::TransactionId& rhs) const
   {
     return lhs.toString() < rhs.toString();
   }
@@ -450,4 +432,4 @@ struct less<Hedera::TransactionId>
 
 } // namespace std
 
-#endif // HEDERA_SDK_CPP_TRANSACTION_ID_H_
+#endif // HIERO_SDK_CPP_TRANSACTION_ID_H_

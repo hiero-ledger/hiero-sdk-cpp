@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_FILE_CREATE_TRANSACTION_H_
-#define HEDERA_SDK_CPP_FILE_CREATE_TRANSACTION_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_FILE_CREATE_TRANSACTION_H_
+#define HIERO_SDK_CPP_FILE_CREATE_TRANSACTION_H_
 
 #include "Defaults.h"
 #include "Key.h"
@@ -38,11 +20,11 @@ class FileCreateTransactionBody;
 class TransactionBody;
 }
 
-namespace Hedera
+namespace Hiero
 {
 /**
- * A transaction that creates a new file on a Hedera network. The file is referenced by its file ID which can be
- * obtained from the receipt or record once the transaction reaches consensus on a Hedera network. The file does not
+ * A transaction that creates a new file on a Hiero network. The file is referenced by its file ID which can be
+ * obtained from the receipt or record once the transaction reaches consensus on a Hiero network. The file does not
  * have a file name. If the file is too big to create with a single FileCreateTransaction(), the file can be appended
  * with the remaining content multiple times using the FileAppendTransaction().
  *
@@ -213,6 +195,6 @@ private:
   std::string mFileMemo;
 };
 
-} // namespace Hedera
+} // namespace Hiero
 
-#endif // HEDERA_SDK_CPP_FILE_CREATE_TRANSACTION_H_
+#endif // HIERO_SDK_CPP_FILE_CREATE_TRANSACTION_H_

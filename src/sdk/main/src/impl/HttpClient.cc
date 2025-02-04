@@ -1,22 +1,4 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+// SPDX-License-Identifier: Apache-2.0
 
 #include "impl/HttpClient.h"
 
@@ -25,7 +7,7 @@
 #include <string>
 #include <string_view>
 
-namespace Hedera::internal
+namespace Hiero::internal
 {
 namespace
 {
@@ -72,13 +54,6 @@ const int SCHEME_END_INDEX = 8;
 
 } // namespace
 
-// example infura query: rpcMethod = R"({"jsonrpc":"2.0","method":"eth_getTransactionByHash","params":[")" + hash +
-// R"("],"id":1})"
-std::string HttpClient::invokeRPC(std::string_view url, std::string_view rpcMethod)
-{
-  return performRequest(url, "POST", rpcMethod);
-}
-
 // example mirrorNode query:
 // httpClient.invokeREST("https://testnet.mirrornode.hedera.com/api/v1/accounts/" + newAccountId ,"GET", "");
 // note: should time out before calling this function because the mirror node is not updated on time if accountID has
@@ -91,4 +66,4 @@ std::string HttpClient::invokeREST(std::string_view url, std::string_view httpMe
 
 //-----
 
-} // namespace Hedera::internal
+} // namespace Hiero::internal

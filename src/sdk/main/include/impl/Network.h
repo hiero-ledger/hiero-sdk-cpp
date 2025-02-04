@@ -1,24 +1,6 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_IMPL_NETWORK_H_
-#define HEDERA_SDK_CPP_IMPL_NETWORK_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_IMPL_NETWORK_H_
+#define HIERO_SDK_CPP_IMPL_NETWORK_H_
 
 #include "BaseNetwork.h"
 
@@ -27,7 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace Hedera
+namespace Hiero
 {
 namespace internal
 {
@@ -41,29 +23,29 @@ class NodeAddress;
 class NodeAddressBook;
 }
 
-namespace Hedera::internal
+namespace Hiero::internal
 {
 class Network : public BaseNetwork<Network, AccountId, Node>
 {
 public:
   /**
-   * Construct a Network that is pre-configured for Hedera Mainnet access.
+   * Construct a Network that is pre-configured for Hiero Mainnet access.
    *
-   * @return A Network object that is set-up to communicate with the Hedera Mainnet.
+   * @return A Network object that is set-up to communicate with the Hiero Mainnet.
    */
   [[nodiscard]] static Network forMainnet();
 
   /**
-   * Construct a Network that is pre-configured for Hedera Testnet access.
+   * Construct a Network that is pre-configured for Hiero Testnet access.
    *
-   * @return A Network object that is set-up to communicate with the Hedera Testnet.
+   * @return A Network object that is set-up to communicate with the Hiero Testnet.
    */
   [[nodiscard]] static Network forTestnet();
 
   /**
-   * Construct a Network that is pre-configured for Hedera Previewnet access.
+   * Construct a Network that is pre-configured for Hiero Previewnet access.
    *
-   * @return A Network object that is set-up to communicate with the Hedera Previewnet.
+   * @return A Network object that is set-up to communicate with the Hiero Previewnet.
    */
   [[nodiscard]] static Network forPreviewnet();
 
@@ -205,6 +187,6 @@ private:
   bool mVerifyCertificates = true;
 };
 
-} // namespace Hedera::internal
+} // namespace Hiero::internal
 
-#endif // HEDERA_SDK_CPP_IMPL_NETWORK_H_
+#endif // HIERO_SDK_CPP_IMPL_NETWORK_H_

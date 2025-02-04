@@ -1,37 +1,21 @@
-/*-
- *
- * Hedera C++ SDK
- *
- * Copyright (C) 2020 - 2024 Hedera Hashgraph, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-#ifndef HEDERA_SDK_CPP_IMPL_ENTITY_ID_HELPER_H_
-#define HEDERA_SDK_CPP_IMPL_ENTITY_ID_HELPER_H_
+// SPDX-License-Identifier: Apache-2.0
+#ifndef HIERO_SDK_CPP_IMPL_ENTITY_ID_HELPER_H_
+#define HIERO_SDK_CPP_IMPL_ENTITY_ID_HELPER_H_
 
+#include <charconv>
 #include <cstddef>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
 
-namespace Hedera
+namespace Hiero
 {
 class Client;
 class LedgerId;
 }
 
-namespace Hedera::internal::EntityIdHelper
+namespace Hiero::internal::EntityIdHelper
 {
 /**
  * The length of a Solidity address in bytes.
@@ -55,12 +39,23 @@ template<typename EntityType>
 [[nodiscard]] EntityType fromSolidityAddress(const std::vector<std::byte>& address);
 
 /**
- * Convert a string to a uint64_t. E.g. "123" will return 123.
+ * Convert a string to a number type. E.g. "123" will return 123.
  *
  * @param str The string to convert.
- * @return The uint64_t contained in the string.
+ * @return The number type contained in the string.
  */
-[[nodiscard]] uint64_t getNum(std::string_view str);
+template<typename T = uint64_t>
+[[nodiscard]] T getNum(std::string_view str)
+{
+  T num;
+  if (auto result = std::from_chars(str.data(), str.data() + str.size(), num);
+      result.ec != std::errc() || result.ptr != str.data() + str.size())
+  {
+    throw std::invalid_argument("Input entity ID string is malformed");
+  }
+
+  return num;
+}
 
 /**
  * Get the shard from an entity ID.
@@ -107,9 +102,9 @@ template<typename EntityType>
 [[nodiscard]] std::string_view getChecksum(std::string_view id);
 
 /**
- * Generate the checksum of a Hedera address for a particular ledger.
+ * Generate the checksum of a Hiero address for a particular ledger.
  *
- * @param address  The Hedera address from which to generate a checksum.
+ * @param address  The Hiero address from which to generate a checksum.
  * @param ledgerId The ID for which the checksum should be generated.
  */
 [[nodiscard]] std::string checksum(std::string_view address, const LedgerId& ledgerId);
@@ -165,6 +160,6 @@ template<typename EntityType>
  */
 void validate(uint64_t shard, uint64_t realm, uint64_t num, const Client& client, std::string_view expectedChecksum);
 
-} // namespace Hedera::internal::EntityIdHelper
+} // namespace Hiero::internal::EntityIdHelper
 
-#endif // HEDERA_SDK_CPP_IMPL_ENTITY_ID_HELPER_H_
+#endif // HIERO_SDK_CPP_IMPL_ENTITY_ID_HELPER_H_
