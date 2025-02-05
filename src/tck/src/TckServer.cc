@@ -6,6 +6,7 @@
 #include "account/params/ApproveAllowanceParams.h"
 #include "account/params/CreateAccountParams.h"
 #include "account/params/DeleteAccountParams.h"
+#include "account/params/DeleteAllowanceParams.h"
 #include "account/params/UpdateAccountParams.h"
 #include "key/params/GenerateKeyParams.h"
 #include "sdk/params/ResetParams.h"
@@ -352,6 +353,8 @@ template TckServer::MethodHandle TckServer::getHandle<AccountService::CreateAcco
   nlohmann::json (*method)(const AccountService::CreateAccountParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::DeleteAccountParams>(
   nlohmann::json (*method)(const AccountService::DeleteAccountParams&));
+template TckServer::MethodHandle TckServer::getHandle<AccountService::DeleteAllowanceParams>(
+  nlohmann::json (*method)(const AccountService::DeleteAllowanceParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::UpdateAccountParams>(
   nlohmann::json (*method)(const AccountService::UpdateAccountParams&));
 
