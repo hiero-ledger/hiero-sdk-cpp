@@ -46,7 +46,7 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::TransferCrypt
   static void from_json(const json& jsonFrom, Hiero::TCK::AccountService::TransferCryptoParams& params)
   {
     params.mTransfers = Hiero::TCK::getOptionalJsonParameter<std::vector<Hiero::TCK::AccountService::TransferParams>>(
-      jsonFrom, "mTransfers");
+      jsonFrom, "transfers");
     params.mCommonTxParams =
       Hiero::TCK::getOptionalJsonParameter<Hiero::TCK::CommonTransactionParams>(jsonFrom, "commonTransactionParams");
   }
