@@ -3,15 +3,18 @@
 #include "account/params/ApproveAllowanceParams.h"
 #include "account/params/CreateAccountParams.h"
 #include "account/params/DeleteAccountParams.h"
+#include "account/params/DeleteAllowanceParams.h"
 #include "account/params/TransferCryptoParams.h"
 #include "account/params/UpdateAccountParams.h"
 #include "account/params/allowance/AllowanceParams.h"
+#include "account/params/allowance/RemoveAllowanceParams.h"
 #include "account/params/transfer/TransferParams.h"
 #include "common/CommonTransactionParams.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
 
 #include <AccountAllowanceApproveTransaction.h>
+#include <AccountAllowanceDeleteTransaction.h>
 #include <AccountCreateTransaction.h>
 #include <AccountDeleteTransaction.h>
 #include <AccountId.h>
@@ -97,6 +100,36 @@ nlohmann::json approveAllowance(const ApproveAllowanceParams& params)
     {"status",
      gStatusToString.at(
         accountAllowanceApproveTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json deleteAllowance(const DeleteAllowanceParams& params)
+{
+  AccountAllowanceDeleteTransaction accountAllowanceDeleteTransaction;
+  accountAllowanceDeleteTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  for (const RemoveAllowanceParams& allowance : params.mAllowances)
+  {
+    const AccountId owner = AccountId::fromString(allowance.mOwnerAccountId);
+    const TokenId tokenId = TokenId::fromString(allowance.mTokenId);
+
+    for (const std::string& serialNumber : allowance.mSerialNumbers)
+    {
+      accountAllowanceDeleteTransaction.deleteAllTokenNftAllowances(
+        NftId(tokenId, internal::EntityIdHelper::getNum(serialNumber)), owner);
+    }
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(accountAllowanceDeleteTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        accountAllowanceDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 

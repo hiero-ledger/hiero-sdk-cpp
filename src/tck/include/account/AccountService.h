@@ -12,6 +12,7 @@ namespace Hiero::TCK::AccountService
 struct ApproveAllowanceParams;
 struct CreateAccountParams;
 struct DeleteAccountParams;
+struct DeleteAllowanceParams;
 struct TransferCryptoParams;
 struct UpdateAccountParams;
 
@@ -22,6 +23,14 @@ struct UpdateAccountParams;
  * @return A JSON response containing the status of the allowance approval.
  */
 nlohmann::json approveAllowance(const ApproveAllowanceParams& params);
+
+/**
+ * Delete an allowance from an account.
+ *
+ * @param params The parameters to use to delete the allowance.
+ * @return A JSON response containing the status of the allowance deletion.
+ */
+nlohmann::json deleteAllowance(const DeleteAllowanceParams& params);
 
 /**
  * Create an account.
