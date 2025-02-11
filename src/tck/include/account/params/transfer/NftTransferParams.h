@@ -56,7 +56,7 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::NftTransferPa
     params.mSenderAccountId = Hiero::TCK::getRequiredJsonParameter<std::string>(jsonFrom, "senderAccountId");
     params.mReceiverAccountId = Hiero::TCK::getRequiredJsonParameter<std::string>(jsonFrom, "receiverAccountId");
     params.mTokenId = Hiero::TCK::getRequiredJsonParameter<std::string>(jsonFrom, "tokenId");
-    params.mSerialNumber = Hiero::TCK::getRequiredJsonParameter<uint32_t>(jsonFrom, "serialNumber");
+    params.mSerialNumber = Hiero::TCK::getRequiredJsonParameter<std::string>(jsonFrom, "serialNumber");
   }
 };
 

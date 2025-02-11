@@ -23,7 +23,7 @@ TransactionId TransactionId::withValidStart(const AccountId& accountId,
 //-----
 TransactionId TransactionId::generate(const AccountId& accountId)
 {
-  return TransactionId(accountId, std::chrono::system_clock::now());
+  return TransactionId(accountId, std::chrono::system_clock::now() - std::chrono::seconds(1));
 }
 
 //-----
