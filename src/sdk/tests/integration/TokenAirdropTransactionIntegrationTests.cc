@@ -65,8 +65,10 @@ protected:
 
   AccountId createAccount(const std::shared_ptr<PrivateKey>& accountKey, bool treasury = false, int assoc = 1000)
   {
-    AccountCreateTransaction tx =
-      AccountCreateTransaction().setKey(accountKey).setInitialBalance(Hbar(5)).setMaxAutomaticTokenAssociations(assoc);
+    AccountCreateTransaction tx = AccountCreateTransaction()
+                                    .setKeyWithoutAlias(accountKey)
+                                    .setInitialBalance(Hbar(5))
+                                    .setMaxAutomaticTokenAssociations(assoc);
 
     if (treasury)
     {

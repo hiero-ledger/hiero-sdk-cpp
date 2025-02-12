@@ -153,7 +153,8 @@ TEST_F(AccountCreateTransactionIntegrationTests, NoInitialBalance)
 
   // When
   TransactionResponse txResponse;
-  EXPECT_NO_THROW(txResponse = AccountCreateTransaction().setKey(testKey->getPublicKey()).execute(getTestClient()));
+  EXPECT_NO_THROW(txResponse =
+                    AccountCreateTransaction().setKeyWithoutAlias(testKey->getPublicKey()).execute(getTestClient()));
 
   // Then
   AccountId accountId;
@@ -195,8 +196,9 @@ TEST_F(AccountCreateTransactionIntegrationTests, AliasFromAdminKey)
 
   // When
   TransactionResponse txResponse;
-  EXPECT_NO_THROW(txResponse =
-                    AccountCreateTransaction().setKey(adminPublicKey).setAlias(evmAddress).execute(getTestClient()));
+  EXPECT_NO_THROW(
+    txResponse =
+      AccountCreateTransaction().setKeyWithoutAlias(adminPublicKey).setAlias(evmAddress).execute(getTestClient()));
 
   // Then
   AccountId accountId;
@@ -407,7 +409,8 @@ TEST_F(AccountCreateTransactionIntegrationTests, SerializeDeserializeCompareFiel
   const TransactionType expectedType = TransactionType::ACCOUNT_CREATE_TRANSACTION;
 
   AccountCreateTransaction createAccount;
-  ASSERT_NO_THROW(createAccount = AccountCreateTransaction().setKey(testPublicKey).setInitialBalance(Hbar(5LL)););
+  ASSERT_NO_THROW(createAccount =
+                    AccountCreateTransaction().setKeyWithoutAlias(testPublicKey).setInitialBalance(Hbar(5LL)););
 
   const int expectedNodeAccountIdsSize = createAccount.getNodeAccountIds().size();
   const Hbar expectedBalance = Hbar(5LL);
@@ -435,7 +438,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, SerializeDeserializeEditCompare
   const std::shared_ptr<PublicKey> testPublicKey = testPrivateKey->getPublicKey();
 
   AccountCreateTransaction createAccount;
-  ASSERT_NO_THROW(createAccount = AccountCreateTransaction().setKey(testPublicKey));
+  ASSERT_NO_THROW(createAccount = AccountCreateTransaction().setKeyWithoutAlias(testPublicKey));
 
   const Hbar expectedBalance = Hbar(5LL);
   std::vector<AccountId> nodeAccountIds = getTestClient().getClientNetwork()->getNodeAccountIdsForExecute();
@@ -477,7 +480,8 @@ TEST_F(AccountCreateTransactionIntegrationTests, IncompleteSerializeDeserializeA
   const std::shared_ptr<PublicKey> testPublicKey = testPrivateKey->getPublicKey();
 
   AccountCreateTransaction createAccount;
-  ASSERT_NO_THROW(createAccount = AccountCreateTransaction().setKey(testPublicKey).setInitialBalance(Hbar(5LL)););
+  ASSERT_NO_THROW(createAccount =
+                    AccountCreateTransaction().setKeyWithoutAlias(testPublicKey).setInitialBalance(Hbar(5LL)););
   // When // Then
   std::vector<std::byte> transactionBytes;
   ASSERT_NO_THROW(transactionBytes = createAccount.toBytes(););

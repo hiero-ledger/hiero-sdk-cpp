@@ -103,7 +103,7 @@ int main(int argc, char** argv)
    */
   client.setOperator(accountId, privateKey);
   AccountCreateTransaction accountCreateTransaction =
-    AccountCreateTransaction().setKey(ED25519PrivateKey::generatePrivateKey()).freezeWith(&client);
+    AccountCreateTransaction().setKeyWithoutAlias(ED25519PrivateKey::generatePrivateKey()).freezeWith(&client);
 
   /*
    * Step 8: Sign the transaction with the ECDSA private key.

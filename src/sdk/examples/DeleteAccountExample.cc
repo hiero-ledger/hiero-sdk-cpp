@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 
   // Create a new account with an initial balance of 2 Hbars. The only required field here is the key.
   TransactionResponse txResp =
-    AccountCreateTransaction().setKey(publicKey).setInitialBalance(Hbar(2LL)).execute(client);
+    AccountCreateTransaction().setKeyWithoutAlias(publicKey).setInitialBalance(Hbar(2LL)).execute(client);
 
   // Get the receipt when it becomes available
   TransactionReceipt txReceipt = txResp.getReceipt(client);

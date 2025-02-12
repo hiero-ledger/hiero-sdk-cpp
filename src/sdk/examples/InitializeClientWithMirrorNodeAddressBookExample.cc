@@ -22,8 +22,10 @@ int main(int argc, char** argv)
   client.setOperator(operatorAccountId, operatorPrivateKey);
 
   // Attempt to execute a transaction.
-  TransactionReceipt txReceipt =
-    AccountCreateTransaction().setKey(ED25519PrivateKey::generatePrivateKey()).execute(client).getReceipt(client);
+  TransactionReceipt txReceipt = AccountCreateTransaction()
+                                   .setKeyWithoutAlias(ED25519PrivateKey::generatePrivateKey())
+                                   .execute(client)
+                                   .getReceipt(client);
   std::cout << "Created account " << txReceipt.mAccountId->toString() << std::endl;
 
   return 0;
