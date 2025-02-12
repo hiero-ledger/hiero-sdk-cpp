@@ -85,7 +85,7 @@ public:
    * @return A reference to this AccountCreateTransaction object with the newly-set key.
    * @throws IllegalStateException If this AccountCreateTransaction is frozen.
    */
-  AccountCreateTransaction& setKey(const std::shared_ptr<Key>& key);
+  [[deprecated("Use setKeyWithoutAlias() instead")]] AccountCreateTransaction& setKey(const std::shared_ptr<Key>& key);
 
   /**
    * Set an ECDSA private key, derive its EVM address in the background, and set both the key and alias.
