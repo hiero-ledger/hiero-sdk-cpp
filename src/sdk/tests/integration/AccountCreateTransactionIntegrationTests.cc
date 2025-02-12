@@ -29,6 +29,18 @@ using namespace Hiero;
 
 class AccountCreateTransactionIntegrationTests : public BaseIntegrationTest
 {
+protected:
+  bool isLongZero(const std::vector<std::byte> address)
+  {
+    for (int i = 0; i < 12; i++)
+    {
+      if (address[i] != std::byte{ 0 })
+      {
+        return false;
+      }
+    }
+    return true;
+  }
 };
 
 //-----
@@ -196,9 +208,8 @@ TEST_F(AccountCreateTransactionIntegrationTests, AliasFromAdminKey)
 
   // When
   TransactionResponse txResponse;
-  EXPECT_NO_THROW(
-    txResponse =
-      AccountCreateTransaction().setKeyWithoutAlias(adminPublicKey).setAlias(evmAddress).execute(getTestClient()));
+  EXPECT_NO_THROW(txResponse =
+                    AccountCreateTransaction().setKey(adminPublicKey).setAlias(evmAddress).execute(getTestClient()));
 
   // Then
   AccountId accountId;
@@ -569,4 +580,87 @@ TEST_F(AccountCreateTransactionIntegrationTests, CannotCreateAccountWithLessThan
                  .execute(getTestClient())
                  .getReceipt(getTestClient()),
                PrecheckStatusException); // INVALID_MAX_AUTO_ASSOCIATIONS
+}
+
+//-----
+TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithAliasCannotExecuteWithoutBothSignatures)
+{
+  // Given
+  const std::shared_ptr<PrivateKey> edPrivateKey = ED25519PrivateKey::generatePrivateKey();
+  const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
+  const Hbar testInitialBalance(1000LL, HbarUnit::TINYBAR());
+
+  // When / Then
+  TransactionResponse txResponse;
+  EXPECT_NO_THROW(txResponse = AccountCreateTransaction()
+                                 .setKeyWithAlias(edPrivateKey->getPublicKey(), ecdsaPrivateKey)
+                                 .setInitialBalance(testInitialBalance)
+                                 .freezeWith(&getTestClient())
+                                 .sign(edPrivateKey)
+                                 .execute(getTestClient()));
+
+  EXPECT_THROW(txResponse.getReceipt(getTestClient()), ReceiptStatusException); // INVALID_SIGNATURE;
+}
+
+//-----
+TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithAliasCanExecuteWithoutBothSignatures)
+{
+  // Given
+  const std::shared_ptr<PrivateKey> edPrivateKey = ED25519PrivateKey::generatePrivateKey();
+  const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
+  const std::shared_ptr<ECDSAsecp256k1PublicKey> ecdsaPublicKey =
+    std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(ecdsaPrivateKey->getPublicKey());
+  const EvmAddress expectedEvmAddress = ecdsaPublicKey->toEvmAddress();
+  const Hbar testInitialBalance(1000LL, HbarUnit::TINYBAR());
+
+  // When / Then
+  TransactionResponse txResponse;
+  EXPECT_NO_THROW(txResponse = AccountCreateTransaction()
+                                 .setKeyWithAlias(edPrivateKey->getPublicKey(), ecdsaPrivateKey)
+                                 .setInitialBalance(testInitialBalance)
+                                 .freezeWith(&getTestClient())
+                                 .sign(edPrivateKey)
+                                 .sign(ecdsaPrivateKey)
+                                 .execute(getTestClient()));
+
+  TransactionReceipt txReceipt;
+  EXPECT_NO_THROW(txReceipt = txResponse.getReceipt(getTestClient()));
+
+  ASSERT_EQ(txReceipt.mAccountId.has_value(), true);
+  AccountId accountId = txReceipt.mAccountId.value();
+
+  AccountInfo accountInfo;
+  EXPECT_NO_THROW(accountInfo = AccountInfoQuery().setAccountId(accountId).execute(getTestClient()));
+
+  std::string evmAddressString = accountInfo.mContractAccountId;
+  std::transform(evmAddressString.begin(), evmAddressString.end(), evmAddressString.begin(), ::toupper);
+  EXPECT_EQ(evmAddressString, expectedEvmAddress.toString());
+}
+
+//-----
+TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithAliasAndKeyECDSACanExecute)
+{
+  // Given
+  const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
+  const Hbar testInitialBalance(1000LL, HbarUnit::TINYBAR());
+
+  // When / Then
+  TransactionResponse txResponse;
+  EXPECT_NO_THROW(txResponse = AccountCreateTransaction()
+                                 .setECDSAKeyWithAlias(ecdsaPrivateKey)
+                                 .setInitialBalance(testInitialBalance)
+                                 .freezeWith(&getTestClient())
+                                 .sign(ecdsaPrivateKey)
+                                 .execute(getTestClient()));
+
+  TransactionReceipt txReceipt;
+  EXPECT_NO_THROW(txReceipt = txResponse.getReceipt(getTestClient()));
+
+  ASSERT_EQ(txReceipt.mAccountId.has_value(), true);
+  AccountId accountId = txReceipt.mAccountId.value();
+
+  AccountInfo accountInfo;
+  EXPECT_NO_THROW(accountInfo = AccountInfoQuery().setAccountId(accountId).execute(getTestClient()));
+
+  EXPECT_FALSE(isLongZero(internal::HexConverter::hexToBytes(accountInfo.mContractAccountId)));
 }
