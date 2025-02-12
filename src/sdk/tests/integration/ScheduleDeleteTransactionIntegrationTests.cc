@@ -36,7 +36,7 @@ TEST_F(ScheduleDeleteTransactionIntegrationTests, ExecuteScheduleDeleteTransacti
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(newKey)
+                                .setKeyWithoutAlias(newKey)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -81,7 +81,7 @@ TEST_F(ScheduleDeleteTransactionIntegrationTests, CannotDeleteImmutableSchedule)
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(newKey)
+                                .setKeyWithoutAlias(newKey)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())

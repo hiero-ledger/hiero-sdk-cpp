@@ -27,7 +27,7 @@ TEST_F(AccountDeleteTransactionIntegrationTests, ExecuteAccountDeleteTransaction
   const std::shared_ptr<PrivateKey> key = ED25519PrivateKey::generatePrivateKey();
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(key->getPublicKey())
+                                .setKeyWithoutAlias(key->getPublicKey())
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
@@ -61,7 +61,7 @@ TEST_F(AccountDeleteTransactionIntegrationTests, CannotDeleteAccountWithoutSigna
   const std::shared_ptr<PrivateKey> key = ED25519PrivateKey::generatePrivateKey();
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(key->getPublicKey())
+                                .setKeyWithoutAlias(key->getPublicKey())
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());

@@ -84,7 +84,7 @@ int main(int argc, char** argv)
   // Create a spender account to spend the NFTs.
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> spenderKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
   const AccountId spenderAccountId = AccountCreateTransaction()
-                                       .setKey(spenderKey)
+                                       .setKeyWithoutAlias(spenderKey)
                                        .setInitialBalance(Hbar(2LL))
                                        .execute(client)
                                        .getReceipt(client)
@@ -94,7 +94,7 @@ int main(int argc, char** argv)
   // Create a receiver account to receive the NFTs.
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> receiverKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
   const AccountId receiverAccountId = AccountCreateTransaction()
-                                        .setKey(receiverKey)
+                                        .setKeyWithoutAlias(receiverKey)
                                         .setInitialBalance(Hbar(2LL))
                                         .execute(client)
                                         .getReceipt(client)
@@ -206,7 +206,7 @@ int main(int argc, char** argv)
   // Create a delegate spender account.
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> delegateSpenderKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
   const AccountId delegateSpenderAccountId = AccountCreateTransaction()
-                                               .setKey(delegateSpenderKey)
+                                               .setKeyWithoutAlias(delegateSpenderKey)
                                                .setInitialBalance(Hbar(2LL))
                                                .execute(client)
                                                .getReceipt(client)

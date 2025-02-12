@@ -41,7 +41,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, ExecuteAccountUpdateTransaction
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(initialPrivateKey->getPublicKey())
+                                .setKeyWithoutAlias(initialPrivateKey->getPublicKey())
                                 .setAutoRenewPeriod(std::chrono::seconds(2592000))
                                 .setAccountMemo("test account memo")
                                 .setMaxAutomaticTokenAssociations(10)
@@ -102,7 +102,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotUpdateAccountWithoutSigna
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(privateKey->getPublicKey())
+                                .setKeyWithoutAlias(privateKey->getPublicKey())
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
@@ -130,7 +130,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotUpdateAccountWithoutAccou
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(privateKey->getPublicKey())
+                                .setKeyWithoutAlias(privateKey->getPublicKey())
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
@@ -159,7 +159,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, ExecuteWithOnlyAccountId)
   const std::shared_ptr<PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(privateKey->getPublicKey())
+                                .setKeyWithoutAlias(privateKey->getPublicKey())
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
@@ -190,7 +190,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, InvalidAutoRenewPeriod)
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(privateKey->getPublicKey())
+                                .setKeyWithoutAlias(privateKey->getPublicKey())
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
@@ -233,7 +233,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests,
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setMaxAutomaticTokenAssociations(1)
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())

@@ -35,7 +35,7 @@ int main(int argc, char** argv)
   std::shared_ptr<PrivateKey> accountKey = ED25519PrivateKey::generatePrivateKey();
 
   AccountId accountId = AccountCreateTransaction()
-                          .setKey(accountKey)
+                          .setKeyWithoutAlias(accountKey)
                           .setInitialBalance(Hbar(5LL))
                           .execute(client)
                           .getReceipt(client)

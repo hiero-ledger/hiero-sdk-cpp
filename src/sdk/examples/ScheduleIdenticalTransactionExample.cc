@@ -43,7 +43,7 @@ int main(int argc, char** argv)
     std::cout << "Generated private key " << i + 1 << ": " << privateKeys.at(i)->toStringRaw() << std::endl;
 
     accountIds[i] = AccountCreateTransaction()
-                      .setKey(privateKeys.at(i))
+                      .setKeyWithoutAlias(privateKeys.at(i))
                       .setInitialBalance(Hbar(1LL))
                       .execute(client)
                       .getReceipt(client)
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
   // Create another sender account.
   std::cout << "Generate a sender account" << std::endl;
   const AccountId senderAccountId = AccountCreateTransaction()
-                                      .setKey(keyList)
+                                      .setKeyWithoutAlias(keyList)
                                       .setInitialBalance(Hbar(10LL))
                                       .execute(client)
                                       .getReceipt(client)

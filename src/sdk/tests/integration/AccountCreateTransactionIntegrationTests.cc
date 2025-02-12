@@ -47,7 +47,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, ExecuteAccountCreateTransaction
   // When
   TransactionResponse txResponse;
   EXPECT_NO_THROW(txResponse = AccountCreateTransaction()
-                                 .setKey(testPublicKey)
+                                 .setKeyWithoutAlias(testPublicKey)
                                  .setInitialBalance(testInitialBalance)
                                  .setReceiverSignatureRequired(true)
                                  .setAutoRenewPeriod(testAutoRenewPeriod)
@@ -99,12 +99,12 @@ TEST_F(AccountCreateTransactionIntegrationTests, MutuallyExclusiveStakingIds)
   TransactionResponse txResponseStakedNodeId;
 
   EXPECT_NO_THROW(txResponseStakedAccountId = AccountCreateTransaction()
-                                                .setKey(testPublicKey)
+                                                .setKeyWithoutAlias(testPublicKey)
                                                 .setStakedAccountId(operatorAccountId)
                                                 .freezeWith(&getTestClient())
                                                 .execute(getTestClient()));
   EXPECT_NO_THROW(txResponseStakedNodeId = AccountCreateTransaction()
-                                             .setKey(testPublicKey)
+                                             .setKeyWithoutAlias(testPublicKey)
                                              .setStakedNodeId(nodeId)
                                              .freezeWith(&getTestClient())
                                              .execute(getTestClient()));
@@ -189,7 +189,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, AliasFromAdminKey)
 
   AccountId adminAccountId;
   ASSERT_NO_THROW(adminAccountId = AccountCreateTransaction()
-                                     .setKey(adminPublicKey)
+                                     .setKeyWithoutAlias(adminPublicKey)
                                      .execute(getTestClient())
                                      .getReceipt(getTestClient())
                                      .mAccountId.value());
@@ -236,7 +236,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, AliasFromAdminKeyWithReceiverSi
 
   AccountId adminAccountId;
   ASSERT_NO_THROW(adminAccountId = AccountCreateTransaction()
-                                     .setKey(adminKeyPublicKey)
+                                     .setKeyWithoutAlias(adminKeyPublicKey)
                                      .execute(getTestClient())
                                      .getReceipt(getTestClient())
                                      .mAccountId.value());
@@ -287,7 +287,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, CannotCreateAliasFromAdminKeyWi
 
   AccountId adminAccountId;
   ASSERT_NO_THROW(adminAccountId = AccountCreateTransaction()
-                                     .setKey(adminKeyPublicKey)
+                                     .setKeyWithoutAlias(adminKeyPublicKey)
                                      .execute(getTestClient())
                                      .getReceipt(getTestClient())
                                      .mAccountId.value());
@@ -317,7 +317,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, AliasDifferentFromAdminKeyWithR
   const std::shared_ptr<ED25519PrivateKey> adminPrivateKey = ED25519PrivateKey::generatePrivateKey();
   AccountId adminAccountId;
   ASSERT_NO_THROW(adminAccountId = AccountCreateTransaction()
-                                     .setKey(adminPrivateKey->getPublicKey())
+                                     .setKeyWithoutAlias(adminPrivateKey->getPublicKey())
                                      .execute(getTestClient())
                                      .getReceipt(getTestClient())
                                      .mAccountId.value());
@@ -370,7 +370,7 @@ TEST_F(AccountCreateTransactionIntegrationTests,
   const std::shared_ptr<ED25519PrivateKey> adminPrivateKey = ED25519PrivateKey::generatePrivateKey();
   AccountId adminAccountId;
   ASSERT_NO_THROW(adminAccountId = AccountCreateTransaction()
-                                     .setKey(adminPrivateKey->getPublicKey())
+                                     .setKeyWithoutAlias(adminPrivateKey->getPublicKey())
                                      .execute(getTestClient())
                                      .getReceipt(getTestClient())
                                      .mAccountId.value());
@@ -564,7 +564,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, CannotCreateAccountWithLessThan
 
   // When / Then
   EXPECT_THROW(AccountCreateTransaction()
-                 .setKey(key)
+                 .setKeyWithoutAlias(key)
                  .setMaxAutomaticTokenAssociations(-2)
                  .execute(getTestClient())
                  .getReceipt(getTestClient()),

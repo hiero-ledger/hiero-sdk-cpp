@@ -84,7 +84,7 @@ protected:
   AccountId createReceiverAccountWithSig(const std::shared_ptr<PrivateKey>& receiverKey)
   {
     return AccountCreateTransaction()
-      .setKey(receiverKey)
+      .setKeyWithoutAlias(receiverKey)
       .setInitialBalance(Hbar(1))           // Small initial balance
       .setReceiverSignatureRequired(true)   // Require signature for token transfers
       .setMaxAutomaticTokenAssociations(-1) // Unlimited auto-associations

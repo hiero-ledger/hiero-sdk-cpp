@@ -39,7 +39,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, ExecuteScheduleCreateTransacti
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(newKey)
+                                .setKeyWithoutAlias(newKey)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -87,7 +87,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, CanCreateScheduleCreateTransac
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(newKey)
+                                .setKeyWithoutAlias(newKey)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -132,7 +132,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, CannotScheduleTwoIdenticalTran
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(newKey)
+                                .setKeyWithoutAlias(newKey)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -183,7 +183,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, CanSignScheduleAndWaitForExpir
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(newKey)
+                                .setKeyWithoutAlias(newKey)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -246,7 +246,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CannotScheduleOneYear
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(newKey)
+                                .setKeyWithoutAlias(newKey)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -292,7 +292,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CannotScheduleInThePa
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(newKey)
+                                .setKeyWithoutAlias(newKey)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -345,7 +345,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, CanSignWithMultisigAndUpdateSi
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(keys)
+                                .setKeyWithoutAlias(keys)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -432,7 +432,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CanExecuteWithShortEx
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(newKey)
+                                .setKeyWithoutAlias(newKey)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())

@@ -43,7 +43,7 @@ TEST_F(TransactionRecordIntegrationTests, ExecuteAccountCreateTransactionAndChec
   // When
   TransactionRecord txRecord;
   EXPECT_NO_THROW(txRecord = AccountCreateTransaction()
-                               .setKey(testPublicKey)
+                               .setKeyWithoutAlias(testPublicKey)
                                .setTransactionMemo(testMemo)
                                .execute(getTestClient())
                                .getRecord(getTestClient()));

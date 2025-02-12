@@ -55,7 +55,7 @@ int main(int argc, char** argv)
   std::cout << "Generate account.. " << std::endl;
   const std::shared_ptr<PrivateKey> accountPrivateKey = ED25519PrivateKey::generatePrivateKey();
   const AccountId accountId = AccountCreateTransaction()
-                                .setKey(accountPrivateKey)
+                                .setKeyWithoutAlias(accountPrivateKey)
                                 .setInitialBalance(Hbar(10LL))
                                 .setReceiverSignatureRequired(true)
                                 .freezeWith(&client)

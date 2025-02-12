@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 
   // Generate accounts for Alice, Bob, and Charlie, giving each 5 Hbar.
   const AccountId aliceAccountId = AccountCreateTransaction()
-                                     .setKey(alicePublicKey)
+                                     .setKeyWithoutAlias(alicePublicKey)
                                      .setInitialBalance(Hbar(5LL))
                                      .execute(client)
                                      .getReceipt(client)
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
             << AccountBalanceQuery().setAccountId(aliceAccountId).execute(client).mBalance.toString() << std::endl;
 
   const AccountId bobAccountId = AccountCreateTransaction()
-                                   .setKey(bobPublicKey)
+                                   .setKeyWithoutAlias(bobPublicKey)
                                    .setInitialBalance(Hbar(5LL))
                                    .execute(client)
                                    .getReceipt(client)
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
             << AccountBalanceQuery().setAccountId(bobAccountId).execute(client).mBalance.toString() << std::endl;
 
   const AccountId charlieAccountId = AccountCreateTransaction()
-                                       .setKey(charliePublicKey)
+                                       .setKeyWithoutAlias(charliePublicKey)
                                        .setInitialBalance(Hbar(5LL))
                                        .execute(client)
                                        .getReceipt(client)

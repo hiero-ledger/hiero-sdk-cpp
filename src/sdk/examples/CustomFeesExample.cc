@@ -40,7 +40,7 @@ int main(int argc, char** argv)
   // in transactions not involving the treasury, so we need two other accounts.
   const std::shared_ptr<ED25519PrivateKey> aliceKey = ED25519PrivateKey::generatePrivateKey();
   const AccountId aliceAccountId = AccountCreateTransaction()
-                                     .setKey(aliceKey)
+                                     .setKeyWithoutAlias(aliceKey)
                                      .setInitialBalance(Hbar(10LL))
                                      .execute(client)
                                      .getReceipt(client)
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 
   const std::shared_ptr<ED25519PrivateKey> bobKey = ED25519PrivateKey::generatePrivateKey();
   const AccountId bobAccountId = AccountCreateTransaction()
-                                   .setKey(bobKey)
+                                   .setKeyWithoutAlias(bobKey)
                                    .setInitialBalance(Hbar(10LL))
                                    .execute(client)
                                    .getReceipt(client)
@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 
   const std::shared_ptr<ED25519PrivateKey> charlieKey = ED25519PrivateKey::generatePrivateKey();
   const AccountId charlieAccountId = AccountCreateTransaction()
-                                       .setKey(charlieKey)
+                                       .setKeyWithoutAlias(charlieKey)
                                        .setInitialBalance(Hbar(10LL))
                                        .execute(client)
                                        .getReceipt(client)

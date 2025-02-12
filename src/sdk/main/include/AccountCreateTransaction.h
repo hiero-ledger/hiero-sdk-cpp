@@ -75,6 +75,9 @@ public:
     const std::map<TransactionId, std::map<AccountId, proto::Transaction>>& transactions);
 
   /**
+   * @deprecated This method is deprecated and may be removed in a future release.
+   * Use `setKeyWithoutAlias()` instead.
+   *
    * Set the key for the new account. The key that must sign each transfer out of the account. If
    * mReceiverSignatureRequired is true, then it must also sign any transfer into the account.
    *

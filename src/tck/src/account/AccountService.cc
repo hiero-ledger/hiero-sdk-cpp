@@ -138,7 +138,7 @@ nlohmann::json createAccount(const CreateAccountParams& params)
 
   if (params.mKey.has_value())
   {
-    accountCreateTransaction.setKey(KeyService::getHieroKey(params.mKey.value()));
+    accountCreateTransaction.setKeyWithoutAlias(KeyService::getHieroKey(params.mKey.value()));
   }
 
   if (params.mInitialBalance.has_value())

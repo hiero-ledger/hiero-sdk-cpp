@@ -33,7 +33,7 @@ TEST_F(AccountInfoQueryIntegrationTests, ExecuteAccountInfoQuery)
   const Hbar balance(2LL);
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(privateKey->getPublicKey())
+                                .setKeyWithoutAlias(privateKey->getPublicKey())
                                 .setInitialBalance(balance)
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -74,7 +74,7 @@ TEST_F(AccountInfoQueryIntegrationTests, CannotQueryDeletedAccount)
   const std::shared_ptr<PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(privateKey->getPublicKey())
+                                .setKeyWithoutAlias(privateKey->getPublicKey())
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
@@ -99,7 +99,7 @@ TEST_F(AccountInfoQueryIntegrationTests, GetTokenRelationshipsAfterTokenTransfer
   const std::shared_ptr<PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(privateKey->getPublicKey())
+                                .setKeyWithoutAlias(privateKey->getPublicKey())
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
