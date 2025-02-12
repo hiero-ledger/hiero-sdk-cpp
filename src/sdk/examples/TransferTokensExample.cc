@@ -36,7 +36,7 @@ int main(int argc, char** argv)
   const std::shared_ptr<PrivateKey> privateKey2 = ED25519PrivateKey::generatePrivateKey();
 
   const AccountId accountId1 = AccountCreateTransaction()
-                                 .setKey(privateKey1)
+                                 .setKeyWithoutAlias(privateKey1)
                                  .setInitialBalance(Hbar(1LL))
                                  .execute(client)
                                  .getReceipt(client)
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
   std::cout << "Generated account with account ID " << accountId1.toString() << std::endl;
 
   const AccountId accountId2 = AccountCreateTransaction()
-                                 .setKey(privateKey2)
+                                 .setKeyWithoutAlias(privateKey2)
                                  .setInitialBalance(Hbar(1LL))
                                  .execute(client)
                                  .getReceipt(client)

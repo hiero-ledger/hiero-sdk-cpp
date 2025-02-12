@@ -67,7 +67,7 @@ TEST_F(TransferTransactionIntegrationTests, TransferOutOfNonOperatorAccount)
   const Hbar amount(1LL);
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(privateKey->getPublicKey())
+                                .setKeyWithoutAlias(privateKey->getPublicKey())
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -137,13 +137,13 @@ TEST_F(TransferTransactionIntegrationTests, CanSpendHbarAllowance)
   AccountId allowerId;
   AccountId alloweeId;
   ASSERT_NO_THROW(allowerId = AccountCreateTransaction()
-                                .setKey(allowerKey->getPublicKey())
+                                .setKeyWithoutAlias(allowerKey->getPublicKey())
                                 .setInitialBalance(balance)
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
   ASSERT_NO_THROW(alloweeId = AccountCreateTransaction()
-                                .setKey(alloweeKey->getPublicKey())
+                                .setKeyWithoutAlias(alloweeKey->getPublicKey())
                                 .setInitialBalance(balance)
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -226,12 +226,12 @@ TEST_F(TransferTransactionIntegrationTests, CanTransferFungibleTokenToAccountWit
                               .mTokenId.value());
 
   ASSERT_NO_THROW(senderId = AccountCreateTransaction()
-                               .setKey(senderKey)
+                               .setKeyWithoutAlias(senderKey)
                                .execute(getTestClient())
                                .getReceipt(getTestClient())
                                .mAccountId.value());
   ASSERT_NO_THROW(receiverId = AccountCreateTransaction()
-                                 .setKey(receiverKey)
+                                 .setKeyWithoutAlias(receiverKey)
                                  .setMaxAutomaticTokenAssociations(-1)
                                  .execute(getTestClient())
                                  .getReceipt(getTestClient())
@@ -299,12 +299,12 @@ TEST_F(TransferTransactionIntegrationTests, CanTransferFungibleTokenToAccountWit
                               .mTokenId.value());
 
   ASSERT_NO_THROW(senderId = AccountCreateTransaction()
-                               .setKey(senderKey)
+                               .setKeyWithoutAlias(senderKey)
                                .execute(getTestClient())
                                .getReceipt(getTestClient())
                                .mAccountId.value());
   ASSERT_NO_THROW(receiverId = AccountCreateTransaction()
-                                 .setKey(receiverKey)
+                                 .setKeyWithoutAlias(receiverKey)
                                  .setMaxAutomaticTokenAssociations(0)
                                  .execute(getTestClient())
                                  .getReceipt(getTestClient())
@@ -383,18 +383,18 @@ TEST_F(TransferTransactionIntegrationTests,
                               .mTokenId.value());
 
   ASSERT_NO_THROW(senderId = AccountCreateTransaction()
-                               .setKey(senderKey)
+                               .setKeyWithoutAlias(senderKey)
                                .execute(getTestClient())
                                .getReceipt(getTestClient())
                                .mAccountId.value());
   ASSERT_NO_THROW(receiverId = AccountCreateTransaction()
-                                 .setKey(receiverKey)
+                                 .setKeyWithoutAlias(receiverKey)
                                  .setMaxAutomaticTokenAssociations(-1)
                                  .execute(getTestClient())
                                  .getReceipt(getTestClient())
                                  .mAccountId.value());
   ASSERT_NO_THROW(allowancedId = AccountCreateTransaction()
-                                   .setKey(allowancedKey)
+                                   .setKeyWithoutAlias(allowancedKey)
                                    .execute(getTestClient())
                                    .getReceipt(getTestClient())
                                    .mAccountId.value());
@@ -475,12 +475,12 @@ TEST_F(TransferTransactionIntegrationTests, CanTransferFungibleTokenWithDecimals
                               .mTokenId.value());
 
   ASSERT_NO_THROW(senderId = AccountCreateTransaction()
-                               .setKey(senderKey)
+                               .setKeyWithoutAlias(senderKey)
                                .execute(getTestClient())
                                .getReceipt(getTestClient())
                                .mAccountId.value());
   ASSERT_NO_THROW(receiverId = AccountCreateTransaction()
-                                 .setKey(receiverKey)
+                                 .setKeyWithoutAlias(receiverKey)
                                  .setMaxAutomaticTokenAssociations(-1)
                                  .execute(getTestClient())
                                  .getReceipt(getTestClient())
@@ -550,12 +550,12 @@ TEST_F(TransferTransactionIntegrationTests, CanTransferNftToAccountWithUnlimited
                               .mTokenId.value());
 
   ASSERT_NO_THROW(senderId = AccountCreateTransaction()
-                               .setKey(senderKey)
+                               .setKeyWithoutAlias(senderKey)
                                .execute(getTestClient())
                                .getReceipt(getTestClient())
                                .mAccountId.value());
   ASSERT_NO_THROW(receiverId = AccountCreateTransaction()
-                                 .setKey(receiverKey)
+                                 .setKeyWithoutAlias(receiverKey)
                                  .setMaxAutomaticTokenAssociations(-1)
                                  .execute(getTestClient())
                                  .getReceipt(getTestClient())
@@ -628,12 +628,12 @@ TEST_F(TransferTransactionIntegrationTests, CanTransferNftToAccountWithNoTokenAs
                               .mTokenId.value());
 
   ASSERT_NO_THROW(senderId = AccountCreateTransaction()
-                               .setKey(senderKey)
+                               .setKeyWithoutAlias(senderKey)
                                .execute(getTestClient())
                                .getReceipt(getTestClient())
                                .mAccountId.value());
   ASSERT_NO_THROW(receiverId = AccountCreateTransaction()
-                                 .setKey(receiverKey)
+                                 .setKeyWithoutAlias(receiverKey)
                                  .setMaxAutomaticTokenAssociations(0)
                                  .execute(getTestClient())
                                  .getReceipt(getTestClient())
@@ -716,18 +716,18 @@ TEST_F(TransferTransactionIntegrationTests, CanTransferNftToAccountWithUnlimited
                               .mTokenId.value());
 
   ASSERT_NO_THROW(senderId = AccountCreateTransaction()
-                               .setKey(senderKey)
+                               .setKeyWithoutAlias(senderKey)
                                .execute(getTestClient())
                                .getReceipt(getTestClient())
                                .mAccountId.value());
   ASSERT_NO_THROW(receiverId = AccountCreateTransaction()
-                                 .setKey(receiverKey)
+                                 .setKeyWithoutAlias(receiverKey)
                                  .setMaxAutomaticTokenAssociations(-1)
                                  .execute(getTestClient())
                                  .getReceipt(getTestClient())
                                  .mAccountId.value());
   ASSERT_NO_THROW(allowancedId = AccountCreateTransaction()
-                                   .setKey(allowancedKey)
+                                   .setKeyWithoutAlias(allowancedKey)
                                    .execute(getTestClient())
                                    .getReceipt(getTestClient())
                                    .mAccountId.value());
@@ -811,12 +811,12 @@ TEST_F(TransferTransactionIntegrationTests, CannotTransferFungibleTokenToAccount
                               .mTokenId.value());
 
   ASSERT_NO_THROW(senderId = AccountCreateTransaction()
-                               .setKey(senderKey)
+                               .setKeyWithoutAlias(senderKey)
                                .execute(getTestClient())
                                .getReceipt(getTestClient())
                                .mAccountId.value());
   ASSERT_NO_THROW(receiverId = AccountCreateTransaction()
-                                 .setKey(receiverKey)
+                                 .setKeyWithoutAlias(receiverKey)
                                  .setMaxAutomaticTokenAssociations(0)
                                  .execute(getTestClient())
                                  .getReceipt(getTestClient())
@@ -878,12 +878,12 @@ TEST_F(TransferTransactionIntegrationTests, CannotTransferNftToAccountWithNoToke
                               .mTokenId.value());
 
   ASSERT_NO_THROW(senderId = AccountCreateTransaction()
-                               .setKey(senderKey)
+                               .setKeyWithoutAlias(senderKey)
                                .execute(getTestClient())
                                .getReceipt(getTestClient())
                                .mAccountId.value());
   ASSERT_NO_THROW(receiverId = AccountCreateTransaction()
-                                 .setKey(receiverKey)
+                                 .setKeyWithoutAlias(receiverKey)
                                  .setMaxAutomaticTokenAssociations(0)
                                  .execute(getTestClient())
                                  .getReceipt(getTestClient())

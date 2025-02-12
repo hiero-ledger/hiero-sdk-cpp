@@ -226,7 +226,7 @@ TEST_F(TokenBurnTransactionIntegrationTests, CannotBurnNftIfNftIsNotOwnedByTreas
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())

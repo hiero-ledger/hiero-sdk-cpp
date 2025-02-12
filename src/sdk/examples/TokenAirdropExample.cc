@@ -49,7 +49,7 @@ int main(int argc, char** argv)
   std::shared_ptr<PrivateKey> aliceKey = ED25519PrivateKey::generatePrivateKey();
 
   AccountId alice = AccountCreateTransaction()
-                      .setKey(aliceKey)
+                      .setKeyWithoutAlias(aliceKey)
                       .setInitialBalance(Hbar(5LL))
                       .execute(client)
                       .getReceipt(client)
@@ -58,7 +58,7 @@ int main(int argc, char** argv)
   std::shared_ptr<PrivateKey> bobKey = ED25519PrivateKey::generatePrivateKey();
 
   AccountId bob = AccountCreateTransaction()
-                    .setKey(bobKey)
+                    .setKeyWithoutAlias(bobKey)
                     .setInitialBalance(Hbar(5LL))
                     .execute(client)
                     .getReceipt(client)
@@ -67,7 +67,7 @@ int main(int argc, char** argv)
   std::shared_ptr<PrivateKey> carolKey = ED25519PrivateKey::generatePrivateKey();
 
   AccountId carol = AccountCreateTransaction()
-                      .setKey(carolKey)
+                      .setKeyWithoutAlias(carolKey)
                       .setInitialBalance(Hbar(5LL))
                       .execute(client)
                       .getReceipt(client)
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
   std::shared_ptr<PrivateKey> treasuryKey = ED25519PrivateKey::generatePrivateKey();
 
   AccountId treasury = AccountCreateTransaction()
-                         .setKey(treasuryKey)
+                         .setKeyWithoutAlias(treasuryKey)
                          .setInitialBalance(Hbar(5LL))
                          .execute(client)
                          .getReceipt(client)

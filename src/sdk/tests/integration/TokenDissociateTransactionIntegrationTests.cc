@@ -38,7 +38,7 @@ TEST_F(TokenDissociateTransactionIntegrationTests, ExecuteTokenDissociateTransac
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -105,7 +105,7 @@ TEST_F(TokenDissociateTransactionIntegrationTests, CanDissociateNoTokens)
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -144,7 +144,7 @@ TEST_F(TokenDissociateTransactionIntegrationTests, CannotDissociateWithNoAccount
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -183,7 +183,7 @@ TEST_F(TokenDissociateTransactionIntegrationTests, CannotDissociateIfDissociatin
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -249,7 +249,7 @@ TEST_F(TokenDissociateTransactionIntegrationTests, CannotDissociateIfNotAssociat
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())

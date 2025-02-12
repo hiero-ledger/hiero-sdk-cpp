@@ -36,7 +36,7 @@ TEST_F(ScheduleInfoQueryIntegrationTests, ExecuteScheduleInfoQuery)
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(newKey)
+                                .setKeyWithoutAlias(newKey)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())

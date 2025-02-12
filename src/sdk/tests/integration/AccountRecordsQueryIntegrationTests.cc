@@ -32,7 +32,7 @@ TEST_F(AccountRecordsQueryIntegrationTests, ExecuteAccountRecordsQuery)
   const Hbar amount(1LL);
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(privateKey->getPublicKey())
+                                .setKeyWithoutAlias(privateKey->getPublicKey())
                                 .setInitialBalance(amount)
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())

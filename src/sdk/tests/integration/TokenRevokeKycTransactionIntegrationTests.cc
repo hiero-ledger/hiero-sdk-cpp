@@ -36,7 +36,7 @@ TEST_F(TokenRevokeKycTransactionIntegrationTests, ExecuteTokenRevokeKycTransacti
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -96,7 +96,7 @@ TEST_F(TokenRevokeKycTransactionIntegrationTests, CannotRevokeKycToAccountWithNo
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -166,7 +166,7 @@ TEST_F(TokenRevokeKycTransactionIntegrationTests, CannotRevokeKycToAccountOnToke
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())

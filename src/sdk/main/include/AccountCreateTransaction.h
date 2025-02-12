@@ -4,6 +4,7 @@
 
 #include "AccountId.h"
 #include "Defaults.h"
+#include "ECDSAsecp256k1PrivateKey.h"
 #include "EvmAddress.h"
 #include "Hbar.h"
 #include "Key.h"
@@ -74,6 +75,9 @@ public:
     const std::map<TransactionId, std::map<AccountId, proto::Transaction>>& transactions);
 
   /**
+   * @deprecated This method is deprecated and may be removed in a future release.
+   * Use `setKeyWithoutAlias()` instead.
+   *
    * Set the key for the new account. The key that must sign each transfer out of the account. If
    * mReceiverSignatureRequired is true, then it must also sign any transfer into the account.
    *
@@ -81,7 +85,42 @@ public:
    * @return A reference to this AccountCreateTransaction object with the newly-set key.
    * @throws IllegalStateException If this AccountCreateTransaction is frozen.
    */
-  AccountCreateTransaction& setKey(const std::shared_ptr<Key>& key);
+  [[deprecated("Use setKeyWithoutAlias() instead")]] AccountCreateTransaction& setKey(const std::shared_ptr<Key>& key);
+
+  /**
+   * Set an ECDSA private key, derive its EVM address in the background, and set both the key and alias.
+   * This function essentially combines setKey and setAlias in one call.
+   *
+   * @param ecdsaKey The ECDSA private key to be set.
+   * @return A reference to this AccountCreateTransaction object with the newly-set key and alias.
+   * @throws IllegalStateException If this AccountCreateTransaction is frozen or the provided key is invalid.
+   * @throws invalid_argument If key is null.
+   */
+  AccountCreateTransaction& setECDSAKeyWithAlias(const std::shared_ptr<ECDSAsecp256k1PrivateKey>& ecdsaKey);
+
+  /**
+   * Set the account key and a separate ECDSA key that the EVM address is derived from.
+   * A user must sign the transaction with both keys for this flow to be successful.
+   *
+   * @param key The primary key for the account.
+   * @param ecdsaKey The ECDSA private key from which the alias (EVM address) is derived.
+   * @return A reference to this AccountCreateTransaction object with the newly-set keys and alias.
+   * @throws IllegalStateException If this AccountCreateTransaction is frozen or the provided key is invalid.
+   * @throws invalid_argument If key is null.
+   */
+  AccountCreateTransaction& setKeyWithAlias(const std::shared_ptr<Key>& key,
+                                            const std::shared_ptr<ECDSAsecp256k1PrivateKey>& ecdsaKey);
+
+  /**
+   * Set the key that must sign each transfer out of the account. If receiverSignatureRequired is true, then it
+   * must also sign any transfer into the account.
+   *
+   * @param key The desired key for the new account.
+   * @return A reference to this AccountCreateTransaction object with the newly-set key.
+   * @throws IllegalStateException If this AccountCreateTransaction is frozen.
+   * @throws invalid_argument If key is null.
+   */
+  AccountCreateTransaction& setKeyWithoutAlias(const std::shared_ptr<Key>& key);
 
   /**
    * Set the initial amount to transfer into the new account from the paying account.

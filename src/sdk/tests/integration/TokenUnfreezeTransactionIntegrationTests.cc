@@ -42,7 +42,7 @@ TEST_F(TokenUnfreezeTransactionIntegrationTests, ExecuteTokenUnfreezeTransaction
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -118,7 +118,7 @@ TEST_F(TokenUnfreezeTransactionIntegrationTests, CannotUnfreezeWithNoTokenId)
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -189,7 +189,7 @@ TEST_F(TokenUnfreezeTransactionIntegrationTests, CannotUnfreezeTokenOnAccountWit
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())

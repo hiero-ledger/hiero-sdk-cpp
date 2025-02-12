@@ -42,8 +42,11 @@ int main(int argc, char** argv)
 
   // Create an account with the four keys.
   std::cout << "Creating account with generated keys: ";
-  TransactionReceipt txReceipt =
-    AccountCreateTransaction().setKey(keyList).setInitialBalance(Hbar(10LL)).execute(client).getReceipt(client);
+  TransactionReceipt txReceipt = AccountCreateTransaction()
+                                   .setKeyWithoutAlias(keyList)
+                                   .setInitialBalance(Hbar(10LL))
+                                   .execute(client)
+                                   .getReceipt(client);
   std::cout << gStatusToString.at(txReceipt.mStatus) << std::endl;
 
   // Schedule a transfer out of the created account with only one signature.

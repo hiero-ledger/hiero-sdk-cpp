@@ -36,7 +36,7 @@ TEST_F(TransactionReceiptIntegrationTests, ExecuteAccountCreateTransactionAndChe
   // When
   TransactionReceipt txReceipt;
   ASSERT_NO_THROW(txReceipt = AccountCreateTransaction()
-                                .setKey(operatorKey->getPublicKey())
+                                .setKeyWithoutAlias(operatorKey->getPublicKey())
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient()));
 

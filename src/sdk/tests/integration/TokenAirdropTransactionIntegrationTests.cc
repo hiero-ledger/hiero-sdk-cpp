@@ -65,8 +65,10 @@ protected:
 
   AccountId createAccount(const std::shared_ptr<PrivateKey>& accountKey, bool treasury = false, int assoc = 1000)
   {
-    AccountCreateTransaction tx =
-      AccountCreateTransaction().setKey(accountKey).setInitialBalance(Hbar(5)).setMaxAutomaticTokenAssociations(assoc);
+    AccountCreateTransaction tx = AccountCreateTransaction()
+                                    .setKeyWithoutAlias(accountKey)
+                                    .setInitialBalance(Hbar(5))
+                                    .setMaxAutomaticTokenAssociations(assoc);
 
     if (treasury)
     {
@@ -82,7 +84,7 @@ protected:
   AccountId createReceiverAccountWithSig(const std::shared_ptr<PrivateKey>& receiverKey)
   {
     return AccountCreateTransaction()
-      .setKey(receiverKey)
+      .setKeyWithoutAlias(receiverKey)
       .setInitialBalance(Hbar(1))           // Small initial balance
       .setReceiverSignatureRequired(true)   // Require signature for token transfers
       .setMaxAutomaticTokenAssociations(-1) // Unlimited auto-associations

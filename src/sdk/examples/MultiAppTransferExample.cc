@@ -40,7 +40,7 @@ int main(int argc, char** argv)
     AccountCreateTransaction()
       // The exchange only accepts transfers that it validates through a side channel (e.g. REST API).
       .setReceiverSignatureRequired(true)
-      .setKey(exchangeKey)
+      .setKeyWithoutAlias(exchangeKey)
       .freezeWith(&client)
       // The owner key has to sign the transaction if receiver signature required is true.
       .sign(exchangeKey)
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 
   // Generate a user account with 5 Hbar.
   const AccountId userAccountId = AccountCreateTransaction()
-                                    .setKey(userKey)
+                                    .setKeyWithoutAlias(userKey)
                                     .setInitialBalance(Hbar(5LL))
                                     .execute(client)
                                     .getReceipt(client)

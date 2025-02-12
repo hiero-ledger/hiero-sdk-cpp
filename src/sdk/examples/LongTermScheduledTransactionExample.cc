@@ -53,7 +53,7 @@ int main(int argc, char** argv)
   std::cout << "Creating new account with the above Key List as an account key." << std::endl;
 
   AccountId alice = AccountCreateTransaction()
-                      .setKey(keys)
+                      .setKeyWithoutAlias(keys)
                       .setInitialBalance(Hbar(2LL))
                       .execute(client)
                       .getReceipt(client)

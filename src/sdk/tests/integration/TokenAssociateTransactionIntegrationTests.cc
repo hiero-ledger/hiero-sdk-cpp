@@ -39,7 +39,7 @@ TEST_F(TokenAssociateTransactionIntegrationTests, ExecuteTokenAssociateTransacti
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -100,7 +100,7 @@ TEST_F(TokenAssociateTransactionIntegrationTests, CanAssociateAccountWithNoToken
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
@@ -149,7 +149,7 @@ TEST_F(TokenAssociateTransactionIntegrationTests, CannotAssociateTokensWhenAccou
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .setInitialBalance(Hbar(1LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())

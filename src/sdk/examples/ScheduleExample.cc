@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 
   std::cout << "Generate account.. " << std::endl;
   const AccountId accountId = AccountCreateTransaction()
-                                .setKey(keyList)
+                                .setKeyWithoutAlias(keyList)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(client)
                                 .getReceipt(client)
