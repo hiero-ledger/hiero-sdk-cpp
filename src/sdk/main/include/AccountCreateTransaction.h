@@ -94,6 +94,7 @@ public:
    * @param ecdsaKey The ECDSA private key to be set.
    * @return A reference to this AccountCreateTransaction object with the newly-set key and alias.
    * @throws IllegalStateException If this AccountCreateTransaction is frozen or the provided key is invalid.
+   * @throws invalid_argument If key is null.
    */
   AccountCreateTransaction& setECDSAKeyWithAlias(const std::shared_ptr<ECDSAsecp256k1PrivateKey>& ecdsaKey);
 
@@ -105,6 +106,7 @@ public:
    * @param ecdsaKey The ECDSA private key from which the alias (EVM address) is derived.
    * @return A reference to this AccountCreateTransaction object with the newly-set keys and alias.
    * @throws IllegalStateException If this AccountCreateTransaction is frozen or the provided key is invalid.
+   * @throws invalid_argument If key is null.
    */
   AccountCreateTransaction& setKeyWithAlias(const std::shared_ptr<Key>& key,
                                             const std::shared_ptr<ECDSAsecp256k1PrivateKey>& ecdsaKey);
@@ -116,6 +118,7 @@ public:
    * @param key The desired key for the new account.
    * @return A reference to this AccountCreateTransaction object with the newly-set key.
    * @throws IllegalStateException If this AccountCreateTransaction is frozen.
+   * @throws invalid_argument If key is null.
    */
   AccountCreateTransaction& setKeyWithoutAlias(const std::shared_ptr<Key>& key);
 
