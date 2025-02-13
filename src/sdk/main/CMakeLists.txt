@@ -30,7 +30,6 @@ add_library(${PROJECT_NAME} STATIC
         src/AccountInfoQuery.cc
         src/AccountRecords.cc
         src/AccountRecordsQuery.cc
-        src/AccountStakersQuery.cc
         src/AccountUpdateTransaction.cc
         src/AddressBookQuery.cc
         src/AssessedCustomFee.cc

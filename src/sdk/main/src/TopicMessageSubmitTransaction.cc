@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <string>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
+
 #include <transaction_contents.pb.h>
 
 namespace Hiero

@@ -13,7 +13,6 @@
 #include "TransactionResponse.h"
 
 #include <gtest/gtest.h>
-#include <transaction_body.pb.h>
 
 using namespace Hiero;
 

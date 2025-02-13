@@ -885,6 +885,7 @@ src/proto/*.proto
 /proto/mirror
 /proto/state
 /proto/auxiliary
+/proto/event
 
 ### Ignore Generated Package Files
 package

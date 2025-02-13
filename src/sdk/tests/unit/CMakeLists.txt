@@ -11,7 +11,6 @@ add_executable(${TEST_PROJECT_NAME}
         AccountInfoUnitTests.cc
         AccountRecordsQueryUnitTests.cc
         AccountRecordsUnitTests.cc
-        AccountStakersQueryUnitTests.cc
         AccountUpdateTransactionUnitTests.cc
         AddressBookQueryUnitTests.cc
         AssessedCustomFeesUnitTests.cc

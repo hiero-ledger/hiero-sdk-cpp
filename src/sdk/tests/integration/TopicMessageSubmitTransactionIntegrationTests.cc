@@ -15,7 +15,6 @@
 #include <chrono>
 #include <gtest/gtest.h>
 #include <thread>
-#include <transaction_body.pb.h>
 
 using namespace Hiero;
 
