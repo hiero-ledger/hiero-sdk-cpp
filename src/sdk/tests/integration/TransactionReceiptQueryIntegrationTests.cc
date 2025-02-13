@@ -28,7 +28,8 @@ TEST_F(TransactionReceiptQueryIntegrationTests, CanGetTransactionReceipt)
   const std::shared_ptr<PublicKey> testPublicKey = testPrivateKey->getPublicKey();
 
   TransactionResponse testTxResponse;
-  ASSERT_NO_THROW(testTxResponse = AccountCreateTransaction().setKey(testPublicKey).execute(getTestClient()));
+  ASSERT_NO_THROW(testTxResponse =
+                    AccountCreateTransaction().setKeyWithoutAlias(testPublicKey).execute(getTestClient()));
 
   // When / Then
   TransactionReceipt txReceipt;

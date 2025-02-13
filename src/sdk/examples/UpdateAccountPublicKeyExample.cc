@@ -32,8 +32,10 @@ int main(int argc, char** argv)
   const std::shared_ptr<PublicKey> publicKey = privateKey->getPublicKey();
 
   // Create a new account with an initial balance of 1000 tinybars. The only required field here is the key.
-  TransactionResponse txResp =
-    AccountCreateTransaction().setKey(publicKey).setInitialBalance(Hbar(1000ULL, HbarUnit::TINYBAR())).execute(client);
+  TransactionResponse txResp = AccountCreateTransaction()
+                                 .setKeyWithoutAlias(publicKey)
+                                 .setInitialBalance(Hbar(1000ULL, HbarUnit::TINYBAR()))
+                                 .execute(client);
 
   // Get the receipt when it becomes available
   TransactionReceipt txReceipt = txResp.getReceipt(client);

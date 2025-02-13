@@ -31,13 +31,13 @@ TEST_F(AccountAllowanceApproveTransactionIntegrationTests, ExecuteAccountAllowan
   AccountId allowerAccountId;
   AccountId alloweeAccountId;
   ASSERT_NO_THROW(allowerAccountId = AccountCreateTransaction()
-                                       .setKey(allowerKey->getPublicKey())
+                                       .setKeyWithoutAlias(allowerKey->getPublicKey())
                                        .setInitialBalance(amount)
                                        .execute(getTestClient())
                                        .getReceipt(getTestClient())
                                        .mAccountId.value());
   ASSERT_NO_THROW(alloweeAccountId = AccountCreateTransaction()
-                                       .setKey(alloweeKey->getPublicKey())
+                                       .setKeyWithoutAlias(alloweeKey->getPublicKey())
                                        .setInitialBalance(amount)
                                        .execute(getTestClient())
                                        .getReceipt(getTestClient())
@@ -79,13 +79,13 @@ TEST_F(AccountAllowanceApproveTransactionIntegrationTests, CannotAllowAllowanceW
   AccountId allowerAccountId;
   AccountId alloweeAccountId;
   ASSERT_NO_THROW(allowerAccountId = AccountCreateTransaction()
-                                       .setKey(allowerKey->getPublicKey())
+                                       .setKeyWithoutAlias(allowerKey->getPublicKey())
                                        .setInitialBalance(amount)
                                        .execute(getTestClient())
                                        .getReceipt(getTestClient())
                                        .mAccountId.value());
   ASSERT_NO_THROW(alloweeAccountId = AccountCreateTransaction()
-                                       .setKey(alloweeKey->getPublicKey())
+                                       .setKeyWithoutAlias(alloweeKey->getPublicKey())
                                        .setInitialBalance(amount)
                                        .execute(getTestClient())
                                        .getReceipt(getTestClient())

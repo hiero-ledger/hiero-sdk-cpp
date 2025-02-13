@@ -35,7 +35,7 @@ int main(int argc, char** argv)
   const std::shared_ptr<ED25519PrivateKey> key1 = ED25519PrivateKey::generatePrivateKey();
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> key2 = ECDSAsecp256k1PrivateKey::generatePrivateKey();
   const AccountId accountId = AccountCreateTransaction()
-                                .setKey(std::make_shared<KeyList>(KeyList::of({ key1, key2 })))
+                                .setKeyWithoutAlias(std::make_shared<KeyList>(KeyList::of({ key1, key2 })))
                                 .setInitialBalance(Hbar(5LL))
                                 .execute(client)
                                 .getReceipt(client)

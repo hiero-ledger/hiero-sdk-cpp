@@ -38,8 +38,11 @@ int main(int argc, char** argv)
   keys->setThreshold(2);
 
   // Create a new account with an initial balance of 1000 tinybars that uses the KeyList as its key.
-  TransactionReceipt txReceipt =
-    AccountCreateTransaction().setKey(keys).setInitialBalance(Hbar(10LL)).execute(client).getReceipt(client);
+  TransactionReceipt txReceipt = AccountCreateTransaction()
+                                   .setKeyWithoutAlias(keys)
+                                   .setInitialBalance(Hbar(10LL))
+                                   .execute(client)
+                                   .getReceipt(client);
 
   const AccountId newAccountId = txReceipt.mAccountId.value();
   std::cout << "Created new account with ID " << newAccountId.toString() << std::endl;

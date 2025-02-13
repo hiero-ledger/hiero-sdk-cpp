@@ -2,6 +2,8 @@
 #include "AccountCreateTransaction.h"
 #include "Client.h"
 #include "Defaults.h"
+#include "ECDSAsecp256k1PrivateKey.h"
+#include "ECDSAsecp256k1PublicKey.h"
 #include "ED25519PrivateKey.h"
 #include "Hbar.h"
 #include "PublicKey.h"
@@ -18,6 +20,10 @@ class AccountCreateTransactionUnitTests : public ::testing::Test
 {
 protected:
   [[nodiscard]] inline const std::shared_ptr<PublicKey>& getTestPublicKey() const { return mPublicKey; }
+  [[nodiscard]] inline const std::shared_ptr<ECDSAsecp256k1PrivateKey>& getTestPrivateKeyECDSA() const
+  {
+    return mPrivateKeyECDSA;
+  }
   [[nodiscard]] inline const Hbar& getTestInitialBalance() const { return mInitialBalance; }
   [[nodiscard]] inline bool getTestReceiverSignatureRequired() const { return mReceiverSignatureRequired; }
   [[nodiscard]] inline const std::chrono::system_clock::duration& getTestAutoRenewPeriod() const
@@ -33,6 +39,7 @@ protected:
 
 private:
   const std::shared_ptr<PublicKey> mPublicKey = ED25519PrivateKey::generatePrivateKey()->getPublicKey();
+  const std::shared_ptr<ECDSAsecp256k1PrivateKey> mPrivateKeyECDSA = ECDSAsecp256k1PrivateKey::generatePrivateKey();
   const Hbar mInitialBalance = Hbar(1LL);
   const bool mReceiverSignatureRequired = true;
   const std::chrono::system_clock::duration mAutoRenewPeriod = std::chrono::hours(2);
@@ -124,6 +131,64 @@ TEST_F(AccountCreateTransactionUnitTests, SetKey)
 
   // Then
   EXPECT_EQ(transaction.getKey()->toBytes(), getTestPublicKey()->toBytes());
+}
+
+//-----
+TEST_F(AccountCreateTransactionUnitTests, SetKeyWithAlias)
+{
+  // Given
+  AccountCreateTransaction transaction;
+  const std::shared_ptr<ECDSAsecp256k1PublicKey> ecdsaPublicKey =
+    std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(getTestPrivateKeyECDSA()->getPublicKey());
+  EvmAddress expectedEvmAddress = ecdsaPublicKey->toEvmAddress();
+
+  // When
+  EXPECT_NO_THROW(transaction.setKeyWithAlias(getTestPublicKey(), getTestPrivateKeyECDSA()));
+
+  // Then
+  EXPECT_EQ(transaction.getKey()->toBytes(), getTestPublicKey()->toBytes());
+  ASSERT_TRUE(transaction.getAlias().has_value());
+  EXPECT_EQ(transaction.getAlias()->toBytes(), expectedEvmAddress.toBytes());
+}
+
+//-----
+TEST_F(AccountCreateTransactionUnitTests, SetKeyWithAliasFrozen)
+{
+  // Given
+  AccountCreateTransaction transaction = AccountCreateTransaction()
+                                           .setNodeAccountIds({ AccountId(1ULL) })
+                                           .setTransactionId(TransactionId::generate(AccountId(1ULL)));
+  ASSERT_NO_THROW(transaction.freeze());
+
+  // When / Then
+  EXPECT_ANY_THROW(transaction.setKeyWithAlias(getTestPublicKey(), getTestPrivateKeyECDSA()));
+}
+
+//-----
+TEST_F(AccountCreateTransactionUnitTests, SetKeyWithoutAlias)
+{
+  // Given
+  AccountCreateTransaction transaction;
+
+  // When
+  EXPECT_NO_THROW(transaction.setKeyWithoutAlias(getTestPublicKey()));
+
+  // Then
+  EXPECT_EQ(transaction.getKey()->toBytes(), getTestPublicKey()->toBytes());
+  EXPECT_FALSE(transaction.getAlias().has_value());
+}
+
+//-----
+TEST_F(AccountCreateTransactionUnitTests, SetKeyWithoutAliasFrozen)
+{
+  // Given
+  AccountCreateTransaction transaction = AccountCreateTransaction()
+                                           .setNodeAccountIds({ AccountId(1ULL) })
+                                           .setTransactionId(TransactionId::generate(AccountId(1ULL)));
+  ASSERT_NO_THROW(transaction.freeze());
+
+  // When / Then
+  EXPECT_THROW(transaction.setKeyWithoutAlias(getTestPublicKey()), IllegalStateException);
 }
 
 //-----

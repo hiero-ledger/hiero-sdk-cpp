@@ -41,7 +41,7 @@ TEST_F(TokenUnpauseTransactionIntegrationTests, ExecuteTokenUnpauseTransaction)
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
                                 .setInitialBalance(Hbar(2LL))
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());

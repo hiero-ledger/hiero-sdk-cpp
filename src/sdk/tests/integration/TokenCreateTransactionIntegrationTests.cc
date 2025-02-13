@@ -126,7 +126,7 @@ TEST_F(TokenCreateTransactionIntegrationTests, CannotCreateTokenWithoutTreasuryA
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(accountKey)
+                                .setKeyWithoutAlias(accountKey)
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());

@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 
   // Create an account and stake to account ID 0.0.3.
   const AccountId newAccountId = AccountCreateTransaction()
-                                   .setKey(publicKey)
+                                   .setKeyWithoutAlias(publicKey)
                                    .setInitialBalance(Hbar(1LL))
                                    .setStakedAccountId(AccountId(3ULL))
                                    .execute(client)

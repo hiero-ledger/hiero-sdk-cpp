@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "AccountCreateTransaction.h"
+#include "ECDSAsecp256k1PublicKey.h"
+#include "PrivateKey.h"
 #include "TransactionResponse.h"
 #include "impl/DurationConverter.h"
 #include "impl/Node.h"
@@ -43,6 +45,65 @@ AccountCreateTransaction& AccountCreateTransaction::setKey(const std::shared_ptr
   requireNotFrozen();
 
   mKey = key;
+  return *this;
+}
+
+//-----
+AccountCreateTransaction& AccountCreateTransaction::setECDSAKeyWithAlias(
+  const std::shared_ptr<ECDSAsecp256k1PrivateKey>& ecdsaKey)
+{
+  requireNotFrozen();
+
+  if (!ecdsaKey)
+  {
+    throw std::invalid_argument("ECDSA key cannot be null");
+  }
+
+  // Set the key
+  mKey = ecdsaKey;
+  // Derive and set the alias (EVM address) from the key;
+  const std::shared_ptr<ECDSAsecp256k1PublicKey> ecdsaPublicKey =
+    std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(ecdsaKey->getPublicKey());
+  mAlias = ecdsaPublicKey->toEvmAddress();
+
+  return *this;
+}
+
+//-----
+AccountCreateTransaction& AccountCreateTransaction::setKeyWithAlias(
+  const std::shared_ptr<Key>& key,
+  const std::shared_ptr<ECDSAsecp256k1PrivateKey>& ecdsaKey)
+{
+  requireNotFrozen();
+
+  if (!key || !ecdsaKey)
+  {
+    throw std::invalid_argument("Key and ECDSA key cannot be null");
+  }
+
+  // Set both keys
+  mKey = key;
+  const std::shared_ptr<ECDSAsecp256k1PublicKey> ecdsaPublicKey =
+    std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(ecdsaKey->getPublicKey());
+  mAlias = ecdsaPublicKey->toEvmAddress();
+
+  return *this;
+}
+
+//-----
+AccountCreateTransaction& AccountCreateTransaction::setKeyWithoutAlias(const std::shared_ptr<Key>& key)
+{
+  requireNotFrozen();
+
+  if (!key)
+  {
+    throw std::invalid_argument("Key cannot be null");
+  }
+
+  // Set the key without setting an alias
+  mKey = key;
+  mAlias.reset(); // Ensure alias is unset
+
   return *this;
 }
 

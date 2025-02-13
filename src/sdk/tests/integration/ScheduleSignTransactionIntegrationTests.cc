@@ -45,7 +45,7 @@ TEST_F(ScheduleSignTransactionIntegrationTests, ExecuteScheduleSignTransaction)
 
   AccountId accountId;
   ASSERT_NO_THROW(accountId = AccountCreateTransaction()
-                                .setKey(keyList)
+                                .setKeyWithoutAlias(keyList)
                                 .setInitialBalance(Hbar(10LL))
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient())

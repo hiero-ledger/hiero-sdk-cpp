@@ -28,7 +28,7 @@ int main(int argc, char** argv)
   const std::shared_ptr<PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
   const std::shared_ptr<PublicKey> publicKey = privateKey->getPublicKey();
   const AccountId accountId = AccountCreateTransaction()
-                                .setKey(publicKey)
+                                .setKeyWithoutAlias(publicKey)
                                 .setInitialBalance(Hbar(1000LL, HbarUnit::TINYBAR()))
                                 .execute(client)
                                 .getReceipt(client)
