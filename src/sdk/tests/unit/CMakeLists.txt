@@ -31,6 +31,7 @@ add_executable(${TEST_PROJECT_NAME}
         ContractLogInfoUnitTests.cc
         ContractNonceInfoUnitTests.cc
         ContractUpdateTransactionUnitTests.cc
+        CustomFeeLimitUnitTests.cc
         CustomFixedFeeUnitTests.cc
         CustomFractionalFeeUnitTests.cc
         CustomRoyaltyFeeUnitTests.cc

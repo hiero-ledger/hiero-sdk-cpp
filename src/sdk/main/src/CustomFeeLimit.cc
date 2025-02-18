@@ -8,19 +8,19 @@ namespace Hiero
 //-----
 CustomFeeLimit CustomFeeLimit::fromProtobuf(const proto::CustomFeeLimit& protoFeeLimit)
 {
-  std::optional<AccountId> payerId;
+  CustomFeeLimit customFeeLimit;
+
   if (protoFeeLimit.has_account_id())
   {
-    payerId = AccountId::fromProtobuf(protoFeeLimit.account_id());
+    customFeeLimit.setPayerId(AccountId::fromProtobuf(protoFeeLimit.account_id()));
   }
 
-  std::vector<CustomFixedFee> customFees;
   for (const auto& protoFee : protoFeeLimit.fees())
   {
-    customFees.emplace_back(CustomFixedFee::fromProtobuf(protoFee));
+    customFeeLimit.addCustomFee(CustomFixedFee::fromProtobuf(protoFee));
   }
 
-  return CustomFeeLimit().setPayerId(payerId.value_or(AccountId())).setCustomFees(customFees);
+  return customFeeLimit;
 }
 
 //-----
