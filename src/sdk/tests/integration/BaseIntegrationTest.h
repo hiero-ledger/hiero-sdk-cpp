@@ -4,6 +4,8 @@
 
 #include "AccountId.h"
 #include "Client.h"
+#include "ED25519PrivateKey.h"
+#include "PrivateKey.h"
 
 #include <gtest/gtest.h>
 #include <string>
@@ -15,16 +17,19 @@ class BaseIntegrationTest : public testing::Test
 {
 protected:
   [[nodiscard]] inline const Client& getTestClient() const { return mClient; }
-  [[nodiscard]] inline const AccountId& getDefaultTestAccountId() const { return mDefaultTestAccountId; }
   [[nodiscard]] inline const std::vector<std::byte>& getTestFileContent() const { return mFileContent; }
   [[nodiscard]] inline const std::string& getTestSmartContractBytecode() const { return mTestContractBytecodeHex; }
 
+  void setTestClientOperator(const AccountId& accountId, const std::shared_ptr<PrivateKey>& privateKey);
+  void setDefaultTestClientOperator();
   void SetUp() override;
 
 private:
   Client mClient;
   std::vector<std::byte> mFileContent;
-  const AccountId mDefaultTestAccountId = AccountId::fromString("0.0.1023");
+  const AccountId mDefaultTestAccountId = AccountId::fromString("0.0.2");
+  const std::shared_ptr<PrivateKey> mDefaultTestPrivateKey = ED25519PrivateKey::fromString(
+    "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137");
   const std::string mTestContractBytecodeHex =
     "608060405234801561001057600080fd5b506040516104d73803806104d78339818101604052602081101561003357600080fd5b8101908080"
     "51604051939291908464010000000082111561005357600080fd5b90830190602082018581111561006857600080fd5b825164010000000081"

@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
+#include "AccountBalance.h"
+#include "AccountBalanceQuery.h"
+#include "AccountCreateTransaction.h"
+#include "AccountInfo.h"
+#include "AccountInfoQuery.h"
 #include "BaseIntegrationTest.h"
+#include "CustomFeeLimit.h"
 #include "ED25519PrivateKey.h"
+#include "TokenAssociateTransaction.h"
+#include "TokenCreateTransaction.h"
 #include "TopicCreateTransaction.h"
 #include "TopicDeleteTransaction.h"
 #include "TopicInfo.h"
@@ -9,6 +17,7 @@
 #include "TransactionReceipt.h"
 #include "TransactionRecord.h"
 #include "TransactionResponse.h"
+#include "TransferTransaction.h"
 #include "exceptions/PrecheckStatusException.h"
 #include "exceptions/ReceiptStatusException.h"
 
@@ -364,4 +373,606 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, CanSubmitTopicMessageWitho
   // Clean up
   ASSERT_NO_THROW(const TransactionReceipt txReceipt =
                     TopicDeleteTransaction().setTopicId(topicId).execute(getTestClient()).getReceipt(getTestClient()));
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanChargeHbarsWithLimit)
+{
+  // Given
+  int64_t feeAmount = 100000000; // 1 HBAR equivalent
+
+  CustomFixedFee customFixedFee;
+  EXPECT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(feeAmount).setFeeCollectorAccountId(
+                    getTestClient().getOperatorAccountId().value()));
+
+  TopicId topicId;
+  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  std::shared_ptr<PrivateKey> accountKey;
+  ASSERT_NO_THROW(accountKey = ED25519PrivateKey::generatePrivateKey());
+
+  Hbar initialBalance = Hbar(3LL);
+
+  AccountId accountId;
+  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+                                .setKeyWithoutAlias(accountKey->getPublicKey())
+                                .setInitialBalance(initialBalance)
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient())
+                                .mAccountId.value());
+
+  CustomFeeLimit limit;
+  EXPECT_NO_THROW(limit = CustomFeeLimit().setPayerId(accountId).addCustomFee(CustomFixedFee().setAmount(feeAmount)));
+
+  // When
+  setTestClientOperator(accountId, accountKey);
+  EXPECT_NO_THROW(TopicMessageSubmitTransaction()
+                    .setTopicId(topicId)
+                    .setMessage("message")
+                    .addCustomFeeLimit(limit)
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  // Then
+  setDefaultTestClientOperator();
+  AccountInfo accountInfo;
+  EXPECT_NO_THROW(accountInfo = AccountInfoQuery().setAccountId(accountId).execute(getTestClient()));
+
+  EXPECT_LT(accountInfo.mBalance.toTinybars(), initialBalance.toTinybars() - feeAmount);
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanChargeHbarsWithoutLimit)
+{
+  // Given
+  int64_t feeAmount = 100000000; // 1 HBAR equivalent
+
+  CustomFixedFee customFixedFee;
+  EXPECT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(feeAmount).setFeeCollectorAccountId(
+                    getTestClient().getOperatorAccountId().value()));
+
+  TopicId topicId;
+  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  std::shared_ptr<PrivateKey> accountKey;
+  ASSERT_NO_THROW(accountKey = ED25519PrivateKey::generatePrivateKey());
+
+  Hbar initialBalance = Hbar(3LL);
+
+  AccountId accountId;
+  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+                                .setKeyWithoutAlias(accountKey->getPublicKey())
+                                .setInitialBalance(initialBalance)
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient())
+                                .mAccountId.value());
+
+  // When
+  setTestClientOperator(accountId, accountKey);
+  EXPECT_NO_THROW(TopicMessageSubmitTransaction()
+                    .setTopicId(topicId)
+                    .setMessage("message")
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  // Then
+  setDefaultTestClientOperator();
+  AccountInfo accountInfo;
+  EXPECT_NO_THROW(accountInfo = AccountInfoQuery().setAccountId(accountId).execute(getTestClient()));
+
+  EXPECT_LT(accountInfo.mBalance.toTinybars(), initialBalance.toTinybars() - feeAmount);
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanChargeTokensWithLimit)
+{
+  // Given
+  TokenId tokenId;
+  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+                              .setTokenName("ffff")
+                              .setTokenSymbol("F")
+                              .setInitialSupply(10)
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setTreasuryAccountId(AccountId(2ULL))
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTokenId.value());
+
+  CustomFixedFee customFixedFee;
+  EXPECT_NO_THROW(customFixedFee =
+                    CustomFixedFee().setAmount(1).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
+                      getTestClient().getOperatorAccountId().value()));
+
+  TopicId topicId;
+  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  std::shared_ptr<PrivateKey> accountKey;
+  ASSERT_NO_THROW(accountKey = ED25519PrivateKey::generatePrivateKey());
+
+  uint64_t accountTokenBalance = 1;
+
+  AccountId accountId;
+  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+                                .setKeyWithoutAlias(accountKey->getPublicKey())
+                                .setMaxAutomaticTokenAssociations(-1)
+                                .setInitialBalance(Hbar(2LL))
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient())
+                                .mAccountId.value());
+
+  // When
+  EXPECT_NO_THROW(TransferTransaction()
+                    .addTokenTransfer(tokenId, getTestClient().getOperatorAccountId().value(), -accountTokenBalance)
+                    .addTokenTransfer(tokenId, accountId, accountTokenBalance)
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  CustomFeeLimit limit;
+  EXPECT_NO_THROW(limit = CustomFeeLimit().setPayerId(accountId).addCustomFee(
+                    CustomFixedFee().setAmount(1).setDenominatingTokenId(tokenId)));
+
+  setTestClientOperator(accountId, accountKey);
+  EXPECT_NO_THROW(TopicMessageSubmitTransaction()
+                    .setTopicId(topicId)
+                    .addCustomFeeLimit(limit)
+                    .setMessage("message")
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  // Then
+  setDefaultTestClientOperator();
+  AccountBalance accountBalance;
+  EXPECT_NO_THROW(accountBalance = AccountBalanceQuery().setAccountId(accountId).execute(getTestClient()));
+
+  EXPECT_LT(accountBalance.mTokens[tokenId], accountTokenBalance);
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanChargeTokensWithoutLimit)
+{
+  // Given
+  TokenId tokenId;
+  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+                              .setTokenName("ffff")
+                              .setTokenSymbol("F")
+                              .setInitialSupply(10)
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setTreasuryAccountId(AccountId(2ULL))
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTokenId.value());
+
+  CustomFixedFee customFixedFee;
+  EXPECT_NO_THROW(customFixedFee =
+                    CustomFixedFee().setAmount(1).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
+                      getTestClient().getOperatorAccountId().value()));
+
+  TopicId topicId;
+  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  std::shared_ptr<PrivateKey> accountKey;
+  ASSERT_NO_THROW(accountKey = ED25519PrivateKey::generatePrivateKey());
+
+  uint64_t accountTokenBalance = 1;
+
+  AccountId accountId;
+  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+                                .setKeyWithoutAlias(accountKey->getPublicKey())
+                                .setMaxAutomaticTokenAssociations(-1)
+                                .setInitialBalance(Hbar(2LL))
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient())
+                                .mAccountId.value());
+
+  // When
+  EXPECT_NO_THROW(TransferTransaction()
+                    .addTokenTransfer(tokenId, getTestClient().getOperatorAccountId().value(), -accountTokenBalance)
+                    .addTokenTransfer(tokenId, accountId, accountTokenBalance)
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  setTestClientOperator(accountId, accountKey);
+  EXPECT_NO_THROW(TopicMessageSubmitTransaction()
+                    .setTopicId(topicId)
+                    .setMessage("message")
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  // Then
+  setDefaultTestClientOperator();
+  AccountBalance accountBalance;
+  EXPECT_NO_THROW(accountBalance = AccountBalanceQuery().setAccountId(accountId).execute(getTestClient()));
+
+  EXPECT_LT(accountBalance.mTokens[tokenId], accountTokenBalance);
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicDoesNotChargeHbarsFeeExemptKeys)
+{
+  // Given
+  std::shared_ptr<PrivateKey> accountKey;
+  ASSERT_NO_THROW(accountKey = ED25519PrivateKey::generatePrivateKey());
+
+  Hbar initialBalance = Hbar(3LL);
+
+  AccountId accountId;
+  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+                                .setKeyWithoutAlias(accountKey->getPublicKey())
+                                .setInitialBalance(initialBalance)
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient())
+                                .mAccountId.value());
+
+  int64_t feeAmount = 100000000; // 1 HBAR equivalent
+
+  CustomFixedFee customFixedFee;
+  EXPECT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(feeAmount).setFeeCollectorAccountId(
+                    getTestClient().getOperatorAccountId().value()));
+
+  TopicId topicId;
+  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addFeeExemptKey(accountKey)
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  // When
+  setTestClientOperator(accountId, accountKey);
+  EXPECT_NO_THROW(TopicMessageSubmitTransaction()
+                    .setTopicId(topicId)
+                    .setMessage("message")
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  // Then
+  setDefaultTestClientOperator();
+  AccountInfo accountInfo;
+  EXPECT_NO_THROW(accountInfo = AccountInfoQuery().setAccountId(accountId).execute(getTestClient()));
+
+  EXPECT_LT(initialBalance.toTinybars() - accountInfo.mBalance.toTinybars(), feeAmount);
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicDoesNotChargeTokensFeeExemptKeys)
+{
+  // Given
+  std::shared_ptr<PrivateKey> accountKey;
+  ASSERT_NO_THROW(accountKey = ED25519PrivateKey::generatePrivateKey());
+
+  Hbar initialBalance = Hbar(3LL);
+  uint64_t accountTokenBalance = 1;
+
+  AccountId accountId;
+  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+                                .setKeyWithoutAlias(accountKey->getPublicKey())
+                                .setMaxAutomaticTokenAssociations(-1)
+                                .setInitialBalance(initialBalance)
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient())
+                                .mAccountId.value());
+
+  TokenId tokenId;
+  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+                              .setTokenName("ffff")
+                              .setTokenSymbol("F")
+                              .setInitialSupply(10)
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setTreasuryAccountId(AccountId(2ULL))
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTokenId.value());
+
+  CustomFixedFee customFixedFee;
+  EXPECT_NO_THROW(customFixedFee =
+                    CustomFixedFee().setAmount(1).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
+                      getTestClient().getOperatorAccountId().value()));
+
+  TopicId topicId;
+  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addFeeExemptKey(accountKey)
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  // When
+  EXPECT_NO_THROW(TransferTransaction()
+                    .addTokenTransfer(tokenId, getTestClient().getOperatorAccountId().value(), -accountTokenBalance)
+                    .addTokenTransfer(tokenId, accountId, accountTokenBalance)
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  setTestClientOperator(accountId, accountKey);
+  EXPECT_NO_THROW(TopicMessageSubmitTransaction()
+                    .setTopicId(topicId)
+                    .setMessage("message")
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  // Then
+  setDefaultTestClientOperator();
+  AccountBalance accountBalance;
+  EXPECT_NO_THROW(accountBalance = AccountBalanceQuery().setAccountId(accountId).execute(getTestClient()));
+
+  EXPECT_EQ(accountBalance.mTokens[tokenId], accountTokenBalance);
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCannotChargeHbarsWithLowerLimit)
+{
+  // Given
+  int64_t feeAmount = 100000000; // 1 HBAR equivalent
+
+  CustomFixedFee customFixedFee;
+  EXPECT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(feeAmount).setFeeCollectorAccountId(
+                    getTestClient().getOperatorAccountId().value()));
+
+  TopicId topicId;
+  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  std::shared_ptr<PrivateKey> accountKey;
+  ASSERT_NO_THROW(accountKey = ED25519PrivateKey::generatePrivateKey());
+
+  Hbar initialBalance = Hbar(3LL);
+
+  AccountId accountId;
+  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+                                .setKeyWithoutAlias(accountKey->getPublicKey())
+                                .setInitialBalance(initialBalance)
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient())
+                                .mAccountId.value());
+
+  CustomFeeLimit limit;
+  EXPECT_NO_THROW(limit =
+                    CustomFeeLimit().setPayerId(accountId).addCustomFee(CustomFixedFee().setAmount(feeAmount - 1)));
+
+  // When / Then
+  // Submit a message to the revenue generating topic with lower fee limit than the actual fee required
+  setTestClientOperator(accountId, accountKey);
+  EXPECT_THROW(TopicMessageSubmitTransaction()
+                 .setTopicId(topicId)
+                 .setMessage("message")
+                 .addCustomFeeLimit(limit)
+                 .execute(getTestClient())
+                 .getReceipt(getTestClient()),
+               ReceiptStatusException); // MAX_CUSTOM_FEE_LIMIT_EXCEEDED
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCannotChargeTokensWithLowerLimit)
+{
+  // Given
+  TokenId tokenId;
+  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+                              .setTokenName("ffff")
+                              .setTokenSymbol("F")
+                              .setInitialSupply(10)
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setTreasuryAccountId(AccountId(2ULL))
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTokenId.value());
+
+  CustomFixedFee customFixedFee;
+  EXPECT_NO_THROW(customFixedFee =
+                    CustomFixedFee().setAmount(2).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
+                      getTestClient().getOperatorAccountId().value()));
+
+  TopicId topicId;
+  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  std::shared_ptr<PrivateKey> accountKey;
+  ASSERT_NO_THROW(accountKey = ED25519PrivateKey::generatePrivateKey());
+
+  uint64_t accountTokenBalance = 1;
+
+  AccountId accountId;
+  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+                                .setKeyWithoutAlias(accountKey->getPublicKey())
+                                .setMaxAutomaticTokenAssociations(-1)
+                                .setInitialBalance(Hbar(2LL))
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient())
+                                .mAccountId.value());
+
+  // When / Then
+  EXPECT_NO_THROW(TransferTransaction()
+                    .addTokenTransfer(tokenId, getTestClient().getOperatorAccountId().value(), -accountTokenBalance)
+                    .addTokenTransfer(tokenId, accountId, accountTokenBalance)
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  CustomFeeLimit limit;
+  EXPECT_NO_THROW(limit = CustomFeeLimit().setPayerId(accountId).addCustomFee(
+                    CustomFixedFee().setAmount(1).setDenominatingTokenId(tokenId)));
+
+  setTestClientOperator(accountId, accountKey);
+  EXPECT_THROW(TopicMessageSubmitTransaction()
+                 .setTopicId(topicId)
+                 .addCustomFeeLimit(limit)
+                 .setMessage("message")
+                 .execute(getTestClient())
+                 .getReceipt(getTestClient()),
+               ReceiptStatusException); // MAX_CUSTOM_FEE_LIMIT_EXCEEDED
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCannotChargeTokensWithInvalidCustomFeeLimit)
+{
+  // Given
+  TokenId tokenId;
+  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+                              .setTokenName("ffff")
+                              .setTokenSymbol("F")
+                              .setInitialSupply(10)
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setTreasuryAccountId(AccountId(2ULL))
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTokenId.value());
+
+  CustomFixedFee customFixedFee;
+  EXPECT_NO_THROW(customFixedFee =
+                    CustomFixedFee().setAmount(1).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
+                      getTestClient().getOperatorAccountId().value()));
+
+  TopicId topicId;
+  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  std::shared_ptr<PrivateKey> accountKey;
+  ASSERT_NO_THROW(accountKey = ED25519PrivateKey::generatePrivateKey());
+
+  uint64_t accountTokenBalance = 1;
+
+  AccountId accountId;
+  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+                                .setKeyWithoutAlias(accountKey->getPublicKey())
+                                .setMaxAutomaticTokenAssociations(-1)
+                                .setInitialBalance(Hbar(2LL))
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient())
+                                .mAccountId.value());
+
+  // When / Then
+  EXPECT_NO_THROW(TransferTransaction()
+                    .addTokenTransfer(tokenId, getTestClient().getOperatorAccountId().value(), -accountTokenBalance)
+                    .addTokenTransfer(tokenId, accountId, accountTokenBalance)
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  CustomFeeLimit limit;
+  EXPECT_NO_THROW(limit = CustomFeeLimit().setPayerId(accountId).addCustomFee(
+                    CustomFixedFee().setAmount(1).setDenominatingTokenId(TokenId(0, 0, 0))));
+
+  setTestClientOperator(accountId, accountKey);
+  EXPECT_THROW(TopicMessageSubmitTransaction()
+                 .setTopicId(topicId)
+                 .addCustomFeeLimit(limit)
+                 .setMessage("message")
+                 .execute(getTestClient())
+                 .getReceipt(getTestClient()),
+               ReceiptStatusException); // NO_VALID_MAX_CUSTOM_FEE
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicDoesNotChargeTreasuries)
+{
+  // Given
+  std::shared_ptr<PrivateKey> accountKey;
+  ASSERT_NO_THROW(accountKey = ED25519PrivateKey::generatePrivateKey());
+
+  uint64_t accountTokenBalance = 10;
+
+  AccountId accountId;
+  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+                                .setKeyWithoutAlias(accountKey->getPublicKey())
+                                .setMaxAutomaticTokenAssociations(-1)
+                                .setInitialBalance(Hbar(2LL))
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient())
+                                .mAccountId.value());
+
+  TokenId tokenId;
+  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+                              .setTokenName("ffff")
+                              .setTokenSymbol("F")
+                              .setInitialSupply(10)
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setTreasuryAccountId(accountId)
+                              .freezeWith(&getTestClient())
+                              .sign(accountKey)
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTokenId.value());
+
+  EXPECT_NO_THROW(TokenAssociateTransaction()
+                    .setAccountId(getTestClient().getOperatorAccountId().value())
+                    .setTokenIds({ tokenId })
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  CustomFixedFee customFixedFee;
+  EXPECT_NO_THROW(customFixedFee =
+                    CustomFixedFee().setAmount(1).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
+                      getTestClient().getOperatorAccountId().value()));
+
+  TopicId topicId;
+  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  // When
+  EXPECT_NO_THROW(TransferTransaction()
+                    .addTokenTransfer(tokenId, accountId, -1ULL)
+                    .addTokenTransfer(tokenId, getTestClient().getOperatorAccountId().value(), 1ULL)
+                    .freezeWith(&getTestClient())
+                    .sign(accountKey)
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  setTestClientOperator(accountId, accountKey);
+  EXPECT_NO_THROW(TopicMessageSubmitTransaction()
+                    .setTopicId(topicId)
+                    .setMessage("message")
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  // Then
+  setDefaultTestClientOperator();
+  AccountBalance accountBalance;
+  EXPECT_NO_THROW(accountBalance = AccountBalanceQuery().setAccountId(accountId).execute(getTestClient()));
+
+  EXPECT_EQ(accountBalance.mTokens[tokenId], accountTokenBalance - 1); // -1 as 1 was sent to the operator account
 }

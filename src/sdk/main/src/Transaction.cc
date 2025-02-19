@@ -143,6 +143,14 @@ struct Transaction<SdkRequestType>::TransactionImpl
   // will use the Client's set transaction ID regeneration policy. If that's not
   // set, the default behavior is captured in DEFAULT_REGENERATE_TRANSACTION_ID.
   std::optional<bool> mTransactionIdRegenerationPolicy;
+
+  /**
+   * A list of maximum custom fees that the users are willing to pay.
+   * This field is OPTIONAL.
+   * If left empty, the users are accepting to pay any custom fee.
+   * If used with a transaction type that does not support custom fee limits, the transaction will fail.
+   */
+  std::vector<CustomFeeLimit> mCustomFeeLimits;
 };
 
 //-----
@@ -628,6 +636,33 @@ SdkRequestType& Transaction<SdkRequestType>::setTransactionMemo(const std::strin
 
 //-----
 template<typename SdkRequestType>
+SdkRequestType& Transaction<SdkRequestType>::setCustomFeeLimits(const std::vector<CustomFeeLimit>& customFeeLimits)
+{
+  requireNotFrozen();
+  mImpl->mCustomFeeLimits = customFeeLimits;
+  return static_cast<SdkRequestType&>(*this);
+}
+
+//-----
+template<typename SdkRequestType>
+SdkRequestType& Transaction<SdkRequestType>::addCustomFeeLimit(const CustomFeeLimit& customFeeLimit)
+{
+  requireNotFrozen();
+  mImpl->mCustomFeeLimits.push_back(customFeeLimit);
+  return static_cast<SdkRequestType&>(*this);
+}
+
+//-----
+template<typename SdkRequestType>
+SdkRequestType& Transaction<SdkRequestType>::clearCustomFeeLimits()
+{
+  requireNotFrozen();
+  mImpl->mCustomFeeLimits.clear();
+  return static_cast<SdkRequestType&>(*this);
+}
+
+//-----
+template<typename SdkRequestType>
 SdkRequestType& Transaction<SdkRequestType>::setRegenerateTransactionIdPolicy(bool regenerate)
 {
   requireNotFrozen();
@@ -675,6 +710,13 @@ template<typename SdkRequestType>
 std::string Transaction<SdkRequestType>::getTransactionMemo() const
 {
   return mImpl->mTransactionMemo;
+}
+
+//-----
+template<typename SdkRequestType>
+std::vector<CustomFeeLimit> Transaction<SdkRequestType>::getCustomFeeLimits() const
+{
+  return mImpl->mCustomFeeLimits;
 }
 
 //-----
@@ -766,6 +808,12 @@ Transaction<SdkRequestType>::Transaction(const proto::TransactionBody& txBody)
   }
 
   mImpl->mTransactionMemo = txBody.memo();
+
+  for (const auto& feeLimit : txBody.max_custom_fees())
+  {
+    mImpl->mCustomFeeLimits.push_back(CustomFeeLimit::fromProtobuf(feeLimit));
+  }
+
   mImpl->mSourceTransactionBody = txBody;
 }
 
@@ -879,6 +927,11 @@ Transaction<SdkRequestType>::Transaction(
   }
 
   mImpl->mTransactionMemo = mImpl->mSourceTransactionBody.memo();
+
+  for (const auto& feeLimit : mImpl->mSourceTransactionBody.max_custom_fees())
+  {
+    mImpl->mCustomFeeLimits.push_back(CustomFeeLimit::fromProtobuf(feeLimit));
+  }
 }
 
 //-----
@@ -944,6 +997,11 @@ void Transaction<SdkRequestType>::updateSourceTransactionBody(const Client* clie
   mImpl->mSourceTransactionBody.set_allocated_transactionvalidduration(
     internal::DurationConverter::toProtobuf(mImpl->mTransactionValidDuration));
   mImpl->mSourceTransactionBody.set_memo(mImpl->mTransactionMemo);
+
+  for (const auto& fee : mImpl->mCustomFeeLimits)
+  {
+    mImpl->mSourceTransactionBody.mutable_max_custom_fees()->AddAllocated(fee.toProtobuf().release());
+  }
 
   // Add derived Transaction fields to mSourceTransactionBody.
   addToBody(mImpl->mSourceTransactionBody);

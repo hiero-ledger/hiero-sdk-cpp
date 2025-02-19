@@ -65,6 +65,46 @@ TopicCreateTransaction& TopicCreateTransaction::setAutoRenewAccountId(const Acco
 }
 
 //-----
+TopicCreateTransaction& TopicCreateTransaction::setFeeScheduleKey(const std::shared_ptr<Key>& key)
+{
+  requireNotFrozen();
+  mFeeScheduleKey = key;
+  return *this;
+}
+
+//-----
+TopicCreateTransaction& TopicCreateTransaction::setFeeExemptKeys(const std::vector<std::shared_ptr<Key>>& keys)
+{
+  requireNotFrozen();
+  mFeeExemptKeys = keys;
+  return *this;
+}
+
+//-----
+TopicCreateTransaction& TopicCreateTransaction::addFeeExemptKey(const std::shared_ptr<Key>& key)
+{
+  requireNotFrozen();
+  mFeeExemptKeys.push_back(key);
+  return *this;
+}
+
+//-----
+TopicCreateTransaction& TopicCreateTransaction::setCustomFixedFees(const std::vector<CustomFixedFee>& fees)
+{
+  requireNotFrozen();
+  mCustomFixedFees = fees;
+  return *this;
+}
+
+//-----
+TopicCreateTransaction& TopicCreateTransaction::addCustomFixedFee(const CustomFixedFee& fee)
+{
+  requireNotFrozen();
+  mCustomFixedFees.push_back(fee);
+  return *this;
+}
+
+//-----
 grpc::Status TopicCreateTransaction::submitRequest(const proto::Transaction& request,
                                                    const std::shared_ptr<internal::Node>& node,
                                                    const std::chrono::system_clock::time_point& deadline,
@@ -121,6 +161,22 @@ void TopicCreateTransaction::initFromSourceTransactionBody()
   {
     mAutoRenewAccountId = AccountId::fromProtobuf(body.autorenewaccount());
   }
+
+  if (body.has_fee_schedule_key())
+  {
+    mFeeScheduleKey = Key::fromProtobuf(body.fee_schedule_key());
+  }
+
+  for (const auto& key : body.fee_exempt_key_list())
+  {
+    mFeeExemptKeys.push_back(Key::fromProtobuf(key));
+  }
+
+  for (const auto& fee : body.custom_fees())
+  {
+    mCustomFixedFees.push_back(CustomFixedFee::fromProtobuf(fee.fixed_fee())
+                                 .setFeeCollectorAccountId(AccountId::fromProtobuf(fee.fee_collector_account_id())));
+  }
 }
 
 //-----
@@ -145,6 +201,24 @@ proto::ConsensusCreateTopicTransactionBody* TopicCreateTransaction::build() cons
   if (mAutoRenewAccountId.has_value())
   {
     body->set_allocated_autorenewaccount(mAutoRenewAccountId->toProtobuf().release());
+  }
+
+  if (mFeeScheduleKey)
+  {
+    body->set_allocated_fee_schedule_key(mFeeScheduleKey->toProtobufKey().release());
+  }
+
+  for (const auto& key : mFeeExemptKeys)
+  {
+    body->mutable_fee_exempt_key_list()->AddAllocated(key->toProtobufKey().release());
+  }
+
+  for (const auto& fee : mCustomFixedFees)
+  {
+    std::unique_ptr<proto::FixedCustomFee> fixedCustomFee = std::make_unique<proto::FixedCustomFee>();
+    fixedCustomFee->set_allocated_fixed_fee(fee.toFixedFeeProtobuf().release());
+    fixedCustomFee->set_allocated_fee_collector_account_id(fee.getFeeCollectorAccountId().toProtobuf().release());
+    body->mutable_custom_fees()->AddAllocated(fixedCustomFee.release());
   }
 
   return body.release();
