@@ -87,7 +87,7 @@ TEST_F(TopicUpdateTransactionIntegrationTests, RevenueGeneratingTopicCannotUpdat
 {
   // Given
   std::shared_ptr<PrivateKey> feeScheduleKey;
-  EXPECT_NO_THROW(feeScheduleKey = ED25519PrivateKey::generatePrivateKey());
+  ASSERT_NO_THROW(feeScheduleKey = ED25519PrivateKey::generatePrivateKey());
 
   // When
   TopicId topicId;
@@ -112,7 +112,7 @@ TEST_F(TopicUpdateTransactionIntegrationTests, RevenueGeneratingTopicCannotUpdat
 {
   // Given
   TokenId tokenId;
-  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+  ASSERT_NO_THROW(tokenId = TokenCreateTransaction()
                               .setTokenName("ffff")
                               .setTokenSymbol("F")
                               .setTreasuryAccountId(AccountId(2ULL))
@@ -121,7 +121,7 @@ TEST_F(TopicUpdateTransactionIntegrationTests, RevenueGeneratingTopicCannotUpdat
                               .mTokenId.value());
 
   CustomFixedFee customFixedFee;
-  EXPECT_NO_THROW(customFixedFee =
+  ASSERT_NO_THROW(customFixedFee =
                     CustomFixedFee().setAmount(2).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
                       getTestClient().getOperatorAccountId().value()));
 

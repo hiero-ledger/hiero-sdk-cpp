@@ -88,12 +88,12 @@ TEST_F(TopicCreateTransactionIntegrationTests, RevenueGeneratingTopicCanCreate)
   std::vector<std::shared_ptr<Key>> exemptKeys;
   for (int i = 0; i < 2; i++)
   {
-    EXPECT_NO_THROW(exemptKeys.push_back(ED25519PrivateKey::generatePrivateKey()));
+    ASSERT_NO_THROW(exemptKeys.push_back(ED25519PrivateKey::generatePrivateKey()));
   }
   const std::string topicMemo = "memo";
 
   TokenId tokenId;
-  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+  ASSERT_NO_THROW(tokenId = TokenCreateTransaction()
                               .setTokenName("ffff")
                               .setTokenSymbol("F")
                               .setTreasuryAccountId(AccountId(2ULL))
@@ -102,7 +102,7 @@ TEST_F(TopicCreateTransactionIntegrationTests, RevenueGeneratingTopicCanCreate)
                               .mTokenId.value());
 
   CustomFixedFee customFixedFee;
-  EXPECT_NO_THROW(customFixedFee =
+  ASSERT_NO_THROW(customFixedFee =
                     CustomFixedFee().setAmount(2).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
                       getTestClient().getOperatorAccountId().value()));
 
@@ -138,7 +138,7 @@ TEST_F(TopicCreateTransactionIntegrationTests, RevenueGeneratingTopicCannotCreat
   std::vector<std::shared_ptr<Key>> exemptKeys;
   for (int i = 0; i < 11; i++)
   {
-    EXPECT_NO_THROW(exemptKeys.push_back(ED25519PrivateKey::generatePrivateKey()));
+    ASSERT_NO_THROW(exemptKeys.push_back(ED25519PrivateKey::generatePrivateKey()));
   }
 
   // When / Then

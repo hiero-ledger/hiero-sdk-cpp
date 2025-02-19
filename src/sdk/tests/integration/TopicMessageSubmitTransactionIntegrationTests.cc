@@ -382,11 +382,11 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
   int64_t feeAmount = 100000000; // 1 HBAR equivalent
 
   CustomFixedFee customFixedFee;
-  EXPECT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(feeAmount).setFeeCollectorAccountId(
+  ASSERT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(feeAmount).setFeeCollectorAccountId(
                     getTestClient().getOperatorAccountId().value()));
 
   TopicId topicId;
-  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
                               .setAdminKey(getTestClient().getOperatorPublicKey())
                               .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
                               .addCustomFixedFee({ customFixedFee })
@@ -400,7 +400,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
   Hbar initialBalance = Hbar(3LL);
 
   AccountId accountId;
-  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+  ASSERT_NO_THROW(accountId = AccountCreateTransaction()
                                 .setKeyWithoutAlias(accountKey->getPublicKey())
                                 .setInitialBalance(initialBalance)
                                 .execute(getTestClient())
@@ -408,7 +408,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
                                 .mAccountId.value());
 
   CustomFeeLimit limit;
-  EXPECT_NO_THROW(limit = CustomFeeLimit().setPayerId(accountId).addCustomFee(CustomFixedFee().setAmount(feeAmount)));
+  ASSERT_NO_THROW(limit = CustomFeeLimit().setPayerId(accountId).addCustomFee(CustomFixedFee().setAmount(feeAmount)));
 
   // When
   setTestClientOperator(accountId, accountKey);
@@ -434,11 +434,11 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
   int64_t feeAmount = 100000000; // 1 HBAR equivalent
 
   CustomFixedFee customFixedFee;
-  EXPECT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(feeAmount).setFeeCollectorAccountId(
+  ASSERT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(feeAmount).setFeeCollectorAccountId(
                     getTestClient().getOperatorAccountId().value()));
 
   TopicId topicId;
-  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
                               .setAdminKey(getTestClient().getOperatorPublicKey())
                               .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
                               .addCustomFixedFee({ customFixedFee })
@@ -452,7 +452,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
   Hbar initialBalance = Hbar(3LL);
 
   AccountId accountId;
-  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+  ASSERT_NO_THROW(accountId = AccountCreateTransaction()
                                 .setKeyWithoutAlias(accountKey->getPublicKey())
                                 .setInitialBalance(initialBalance)
                                 .execute(getTestClient())
@@ -480,7 +480,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
 {
   // Given
   TokenId tokenId;
-  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+  ASSERT_NO_THROW(tokenId = TokenCreateTransaction()
                               .setTokenName("ffff")
                               .setTokenSymbol("F")
                               .setInitialSupply(10)
@@ -491,12 +491,12 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
                               .mTokenId.value());
 
   CustomFixedFee customFixedFee;
-  EXPECT_NO_THROW(customFixedFee =
+  ASSERT_NO_THROW(customFixedFee =
                     CustomFixedFee().setAmount(1).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
                       getTestClient().getOperatorAccountId().value()));
 
   TopicId topicId;
-  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
                               .setAdminKey(getTestClient().getOperatorPublicKey())
                               .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
                               .addCustomFixedFee({ customFixedFee })
@@ -510,7 +510,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
   uint64_t accountTokenBalance = 1;
 
   AccountId accountId;
-  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+  ASSERT_NO_THROW(accountId = AccountCreateTransaction()
                                 .setKeyWithoutAlias(accountKey->getPublicKey())
                                 .setMaxAutomaticTokenAssociations(-1)
                                 .setInitialBalance(Hbar(2LL))
@@ -550,7 +550,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
 {
   // Given
   TokenId tokenId;
-  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+  ASSERT_NO_THROW(tokenId = TokenCreateTransaction()
                               .setTokenName("ffff")
                               .setTokenSymbol("F")
                               .setInitialSupply(10)
@@ -561,12 +561,12 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
                               .mTokenId.value());
 
   CustomFixedFee customFixedFee;
-  EXPECT_NO_THROW(customFixedFee =
+  ASSERT_NO_THROW(customFixedFee =
                     CustomFixedFee().setAmount(1).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
                       getTestClient().getOperatorAccountId().value()));
 
   TopicId topicId;
-  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
                               .setAdminKey(getTestClient().getOperatorPublicKey())
                               .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
                               .addCustomFixedFee({ customFixedFee })
@@ -580,7 +580,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
   uint64_t accountTokenBalance = 1;
 
   AccountId accountId;
-  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+  ASSERT_NO_THROW(accountId = AccountCreateTransaction()
                                 .setKeyWithoutAlias(accountKey->getPublicKey())
                                 .setMaxAutomaticTokenAssociations(-1)
                                 .setInitialBalance(Hbar(2LL))
@@ -620,7 +620,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicDoes
   Hbar initialBalance = Hbar(3LL);
 
   AccountId accountId;
-  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+  ASSERT_NO_THROW(accountId = AccountCreateTransaction()
                                 .setKeyWithoutAlias(accountKey->getPublicKey())
                                 .setInitialBalance(initialBalance)
                                 .execute(getTestClient())
@@ -630,11 +630,11 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicDoes
   int64_t feeAmount = 100000000; // 1 HBAR equivalent
 
   CustomFixedFee customFixedFee;
-  EXPECT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(feeAmount).setFeeCollectorAccountId(
+  ASSERT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(feeAmount).setFeeCollectorAccountId(
                     getTestClient().getOperatorAccountId().value()));
 
   TopicId topicId;
-  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
                               .setAdminKey(getTestClient().getOperatorPublicKey())
                               .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
                               .addFeeExemptKey(accountKey)
@@ -670,7 +670,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicDoes
   uint64_t accountTokenBalance = 1;
 
   AccountId accountId;
-  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+  ASSERT_NO_THROW(accountId = AccountCreateTransaction()
                                 .setKeyWithoutAlias(accountKey->getPublicKey())
                                 .setMaxAutomaticTokenAssociations(-1)
                                 .setInitialBalance(initialBalance)
@@ -679,7 +679,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicDoes
                                 .mAccountId.value());
 
   TokenId tokenId;
-  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+  ASSERT_NO_THROW(tokenId = TokenCreateTransaction()
                               .setTokenName("ffff")
                               .setTokenSymbol("F")
                               .setInitialSupply(10)
@@ -690,12 +690,12 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicDoes
                               .mTokenId.value());
 
   CustomFixedFee customFixedFee;
-  EXPECT_NO_THROW(customFixedFee =
+  ASSERT_NO_THROW(customFixedFee =
                     CustomFixedFee().setAmount(1).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
                       getTestClient().getOperatorAccountId().value()));
 
   TopicId topicId;
-  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
                               .setAdminKey(getTestClient().getOperatorPublicKey())
                               .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
                               .addFeeExemptKey(accountKey)
@@ -733,11 +733,11 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
   int64_t feeAmount = 100000000; // 1 HBAR equivalent
 
   CustomFixedFee customFixedFee;
-  EXPECT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(feeAmount).setFeeCollectorAccountId(
+  ASSERT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(feeAmount).setFeeCollectorAccountId(
                     getTestClient().getOperatorAccountId().value()));
 
   TopicId topicId;
-  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
                               .setAdminKey(getTestClient().getOperatorPublicKey())
                               .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
                               .addCustomFixedFee({ customFixedFee })
@@ -751,7 +751,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
   Hbar initialBalance = Hbar(3LL);
 
   AccountId accountId;
-  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+  ASSERT_NO_THROW(accountId = AccountCreateTransaction()
                                 .setKeyWithoutAlias(accountKey->getPublicKey())
                                 .setInitialBalance(initialBalance)
                                 .execute(getTestClient())
@@ -759,7 +759,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
                                 .mAccountId.value());
 
   CustomFeeLimit limit;
-  EXPECT_NO_THROW(limit =
+  ASSERT_NO_THROW(limit =
                     CustomFeeLimit().setPayerId(accountId).addCustomFee(CustomFixedFee().setAmount(feeAmount - 1)));
 
   // When / Then
@@ -779,7 +779,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
 {
   // Given
   TokenId tokenId;
-  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+  ASSERT_NO_THROW(tokenId = TokenCreateTransaction()
                               .setTokenName("ffff")
                               .setTokenSymbol("F")
                               .setInitialSupply(10)
@@ -790,12 +790,12 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
                               .mTokenId.value());
 
   CustomFixedFee customFixedFee;
-  EXPECT_NO_THROW(customFixedFee =
+  ASSERT_NO_THROW(customFixedFee =
                     CustomFixedFee().setAmount(2).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
                       getTestClient().getOperatorAccountId().value()));
 
   TopicId topicId;
-  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
                               .setAdminKey(getTestClient().getOperatorPublicKey())
                               .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
                               .addCustomFixedFee({ customFixedFee })
@@ -809,7 +809,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
   uint64_t accountTokenBalance = 1;
 
   AccountId accountId;
-  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+  ASSERT_NO_THROW(accountId = AccountCreateTransaction()
                                 .setKeyWithoutAlias(accountKey->getPublicKey())
                                 .setMaxAutomaticTokenAssociations(-1)
                                 .setInitialBalance(Hbar(2LL))
@@ -843,7 +843,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
 {
   // Given
   TokenId tokenId;
-  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+  ASSERT_NO_THROW(tokenId = TokenCreateTransaction()
                               .setTokenName("ffff")
                               .setTokenSymbol("F")
                               .setInitialSupply(10)
@@ -854,12 +854,12 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
                               .mTokenId.value());
 
   CustomFixedFee customFixedFee;
-  EXPECT_NO_THROW(customFixedFee =
+  ASSERT_NO_THROW(customFixedFee =
                     CustomFixedFee().setAmount(1).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
                       getTestClient().getOperatorAccountId().value()));
 
   TopicId topicId;
-  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
                               .setAdminKey(getTestClient().getOperatorPublicKey())
                               .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
                               .addCustomFixedFee({ customFixedFee })
@@ -873,7 +873,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
   uint64_t accountTokenBalance = 1;
 
   AccountId accountId;
-  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+  ASSERT_NO_THROW(accountId = AccountCreateTransaction()
                                 .setKeyWithoutAlias(accountKey->getPublicKey())
                                 .setMaxAutomaticTokenAssociations(-1)
                                 .setInitialBalance(Hbar(2LL))
@@ -912,7 +912,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicDoes
   uint64_t accountTokenBalance = 10;
 
   AccountId accountId;
-  EXPECT_NO_THROW(accountId = AccountCreateTransaction()
+  ASSERT_NO_THROW(accountId = AccountCreateTransaction()
                                 .setKeyWithoutAlias(accountKey->getPublicKey())
                                 .setMaxAutomaticTokenAssociations(-1)
                                 .setInitialBalance(Hbar(2LL))
@@ -921,7 +921,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicDoes
                                 .mAccountId.value());
 
   TokenId tokenId;
-  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+  ASSERT_NO_THROW(tokenId = TokenCreateTransaction()
                               .setTokenName("ffff")
                               .setTokenSymbol("F")
                               .setInitialSupply(10)
@@ -933,19 +933,19 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicDoes
                               .getReceipt(getTestClient())
                               .mTokenId.value());
 
-  EXPECT_NO_THROW(TokenAssociateTransaction()
+  ASSERT_NO_THROW(TokenAssociateTransaction()
                     .setAccountId(getTestClient().getOperatorAccountId().value())
                     .setTokenIds({ tokenId })
                     .execute(getTestClient())
                     .getReceipt(getTestClient()));
 
   CustomFixedFee customFixedFee;
-  EXPECT_NO_THROW(customFixedFee =
+  ASSERT_NO_THROW(customFixedFee =
                     CustomFixedFee().setAmount(1).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
                       getTestClient().getOperatorAccountId().value()));
 
   TopicId topicId;
-  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
                               .setAdminKey(getTestClient().getOperatorPublicKey())
                               .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
                               .addCustomFixedFee({ customFixedFee })
