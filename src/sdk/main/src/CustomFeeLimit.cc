@@ -2,6 +2,7 @@
 #include "CustomFeeLimit.h"
 
 #include "custom_fees.pb.h"
+#include <nlohmann/json.hpp>
 
 namespace Hiero
 {
@@ -77,30 +78,16 @@ std::vector<CustomFixedFee> CustomFeeLimit::getCustomFees() const
 //-----
 std::string CustomFeeLimit::toString() const
 {
-  std::string result = "CustomFeeLimit{PayerId: ";
+  nlohmann::json json;
 
-  if (mPayerId)
-  {
-    result += mPayerId->toString();
-  }
-  else
-  {
-    result += "None";
-  }
+  json["mPayerId"] = mPayerId ? mPayerId->toString() : "None";
 
-  result += ", CustomFees: [";
-
-  for (size_t i = 0; i < mCustomFees.size(); ++i)
+  json["mCustomFees"] = nlohmann::json::array();
+  for (const auto& fee : mCustomFees)
   {
-    if (i > 0)
-    {
-      result += ", ";
-    }
-    result += mCustomFees[i].toString();
+    json["mCustomFees"].push_back(fee.toString());
   }
 
-  result += "]}";
-
-  return result;
+  return json.dump();
 }
 }

@@ -178,16 +178,16 @@ std::string TopicInfo::toString() const
     json["mFeeScheduleKey"] = internal::HexConverter::bytesToHex(mFeeScheduleKey->toBytes());
   }
 
-  int i = 1;
+  json["mFeeExemptKeys"] = nlohmann::json::array();
   for (const auto& key : mFeeExemptKeys)
   {
-    json["mFeeExemptKey" + std::to_string(i++)] = internal::HexConverter::bytesToHex(key->toBytes());
+    json["mFeeExemptKeys"].push_back(internal::HexConverter::bytesToHex(key->toBytes()));
   }
 
-  i = 1;
+  json["mCustomFixedFees"] = nlohmann::json::array();
   for (const auto& fee : mCustomFixedFees)
   {
-    json["mCustomFixedFee" + std::to_string(i++)] = fee.toString();
+    json["mCustomFixedFees"].push_back(fee.toString());
   }
 
   return json.dump();

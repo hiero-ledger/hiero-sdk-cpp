@@ -92,10 +92,10 @@ int main(int argc, char** argv)
   AccountBalance accountBalanceAfter = AccountBalanceQuery().setAccountId(alice).execute(client);
   AccountBalance feeCollectorBalanceAfter = AccountBalanceQuery().setAccountId(operatorAccountId).execute(client);
 
-  std::cout << "Alice account Hbar balance before: " << accountBalanceBefore.toString() << std::endl;
-  std::cout << "Alice account Hbar balance after: " << accountBalanceAfter.toString() << std::endl;
-  std::cout << "Fee collector account Hbar balance before: " << feeCollectorBalanceBefore.toString() << std::endl;
-  std::cout << "Fee collector account Hbar balance after: " << feeCollectorBalanceAfter.toString() << std::endl;
+  std::cout << "Alice account balance before: " << accountBalanceBefore.toString() << std::endl;
+  std::cout << "Alice account balance after: " << accountBalanceAfter.toString() << std::endl;
+  std::cout << "Fee collector account balance before: " << feeCollectorBalanceBefore.toString() << std::endl;
+  std::cout << "Fee collector account balance after: " << feeCollectorBalanceAfter.toString() << std::endl;
 
   /*
    * Step 5:
@@ -156,10 +156,10 @@ int main(int argc, char** argv)
   accountBalanceAfter = AccountBalanceQuery().setAccountId(alice).execute(client);
   feeCollectorBalanceAfter = AccountBalanceQuery().setAccountId(operatorAccountId).execute(client);
 
-  std::cout << "Alice account Hbar balance before: " << accountBalanceBefore.toString() << std::endl;
-  std::cout << "Alice account Hbar balance after: " << accountBalanceAfter.toString() << std::endl;
-  std::cout << "Fee collector account Hbar balance before: " << feeCollectorBalanceBefore.toString() << std::endl;
-  std::cout << "Fee collector account Hbar balance after: " << feeCollectorBalanceAfter.toString() << std::endl;
+  std::cout << "Alice account balance before: " << accountBalanceBefore.toString() << std::endl;
+  std::cout << "Alice account balance after: " << accountBalanceAfter.toString() << std::endl;
+  std::cout << "Fee collector account balance before: " << feeCollectorBalanceBefore.toString() << std::endl;
+  std::cout << "Fee collector account balance after: " << feeCollectorBalanceAfter.toString() << std::endl;
 
   /*
    * Step 9:
@@ -214,8 +214,8 @@ int main(int argc, char** argv)
   accountBalanceAfter = AccountBalanceQuery().setAccountId(bob).execute(client);
   feeCollectorBalanceAfter = AccountBalanceQuery().setAccountId(operatorAccountId).execute(client);
 
-  std::cout << "Bob account Hbar balance before: " << accountBalanceBefore.toString() << std::endl;
-  std::cout << "Bob account Hbar balance after: " << accountBalanceAfter.toString() << std::endl;
+  std::cout << "Bob account balance before: " << accountBalanceBefore.toString() << std::endl;
+  std::cout << "Bob account balance after: " << accountBalanceAfter.toString() << std::endl;
 
   // Clean up:
   client.close();
