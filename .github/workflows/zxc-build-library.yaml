@@ -180,6 +180,7 @@ jobs:
           solo mirror-node deploy -n "${SOLO_NAMESPACE}" --pinger true
           kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-rest-)) 5551:5551 -n solo-e2e &
           kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-web)) 8545:8545 -n solo-e2e &
+          kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-grpc)) 5600:5600 -n solo-e2e &
 
       - name: Start CTest suite (Debug)
         run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug --output-on-failure
