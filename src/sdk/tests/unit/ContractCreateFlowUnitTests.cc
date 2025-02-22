@@ -9,7 +9,6 @@
 
 #include <cstddef>
 #include <gtest/gtest.h>
-#include <transaction_body.pb.h>
 #include <vector>
 
 using namespace Hiero;

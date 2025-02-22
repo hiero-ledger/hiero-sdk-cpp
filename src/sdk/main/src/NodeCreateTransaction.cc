@@ -8,7 +8,6 @@
 #include <node_create.pb.h>
 #include <stdexcept>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
 
 namespace Hiero
 {

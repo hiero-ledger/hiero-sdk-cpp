@@ -27,4 +27,17 @@ void BaseIntegrationTest::SetUp()
       .get<std::string>());
 }
 
+//-----
+void BaseIntegrationTest::setTestClientOperator(const AccountId& accountId,
+                                                const std::shared_ptr<PrivateKey>& privateKey)
+{
+  mClient.setOperator(accountId, privateKey);
+}
+
+//-----
+void BaseIntegrationTest::setDefaultTestClientOperator()
+{
+  setTestClientOperator(mDefaultTestAccountId, mDefaultTestPrivateKey);
+}
+
 } // namespace Hiero

@@ -46,7 +46,7 @@
 
 #include <gtest/gtest.h>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
+
 #include <transaction_contents.pb.h>
 #include <transaction_list.pb.h>
 

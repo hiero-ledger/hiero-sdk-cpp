@@ -98,7 +98,6 @@ set(PROTO_FILES
         token_update_nfts.proto
         token_wipe_account.proto
         transaction.proto
-        transaction_body.proto
         transaction_contents.proto
         transaction_get_fast_record.proto
         transaction_get_receipt.proto
@@ -111,9 +110,15 @@ set(PROTO_FILES
         util_prng.proto
         util_service.proto
 
+        auxiliary/history/history_proof_signature.proto
+        auxiliary/history/history_proof_key_publication.proto
+        auxiliary/history/history_proof_vote.proto
         auxiliary/tss/tss_message.proto
-        auxiliary/tss/tss_share_signature.proto
         auxiliary/tss/tss_vote.proto
+
+        event/state_signature_transaction.proto
+
+        state/history/history_types.proto
 
         mirror/consensus_service.proto
         mirror/mirror_network_service.proto)

@@ -5,7 +5,6 @@
 
 #include <ethereum_transaction.pb.h>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
 
 namespace Hiero
 {

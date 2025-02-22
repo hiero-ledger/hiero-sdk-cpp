@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 #include <stdexcept>
-#include <transaction_body.pb.h>
+#include <transaction.pb.h>
 #include <vector>
 
 using namespace Hiero;

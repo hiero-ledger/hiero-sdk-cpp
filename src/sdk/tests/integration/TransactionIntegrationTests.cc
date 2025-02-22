@@ -16,7 +16,6 @@
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
-#include <transaction_body.pb.h>
 
 using namespace Hiero;
 

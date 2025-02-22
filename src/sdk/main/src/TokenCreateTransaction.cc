@@ -10,7 +10,6 @@
 #include <stdexcept>
 #include <token_create.pb.h>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
 
 namespace Hiero
 {

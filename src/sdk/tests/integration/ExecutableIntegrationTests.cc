@@ -9,7 +9,6 @@
 #include "AccountInfoQuery.h"
 #include "AccountRecords.h"
 #include "AccountRecordsQuery.h"
-#include "AccountStakersQuery.h"
 #include "AccountUpdateTransaction.h"
 #include "BaseIntegrationTest.h"
 #include "ContractByteCodeQuery.h"
@@ -91,7 +90,6 @@ using ExecutableTypes = ::testing::Types<std::tuple<AccountAllowanceApproveTrans
                                          std::tuple<AccountDeleteTransaction, TransactionResponse>,
                                          std::tuple<AccountInfoQuery, AccountInfo>,
                                          std::tuple<AccountRecordsQuery, AccountRecords>,
-                                         std::tuple<AccountStakersQuery, AccountStakers>,
                                          std::tuple<AccountUpdateTransaction, TransactionResponse>,
                                          std::tuple<ContractByteCodeQuery, ContractByteCode>,
                                          std::tuple<ContractCallQuery, ContractFunctionResult>,

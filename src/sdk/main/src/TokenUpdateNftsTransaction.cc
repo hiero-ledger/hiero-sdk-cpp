@@ -9,7 +9,6 @@
 #include <stdexcept>
 #include <token_update_nfts.pb.h>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
 
 namespace Hiero
 {

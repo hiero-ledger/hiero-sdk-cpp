@@ -6,7 +6,6 @@
 
 #include <crypto_update.pb.h>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
 
 namespace Hiero
 {

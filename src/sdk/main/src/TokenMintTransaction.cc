@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <token_mint.pb.h>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
 
 namespace Hiero
 {

@@ -11,7 +11,6 @@ add_executable(${TEST_PROJECT_NAME}
         AccountInfoUnitTests.cc
         AccountRecordsQueryUnitTests.cc
         AccountRecordsUnitTests.cc
-        AccountStakersQueryUnitTests.cc
         AccountUpdateTransactionUnitTests.cc
         AddressBookQueryUnitTests.cc
         AssessedCustomFeesUnitTests.cc
@@ -32,6 +31,7 @@ add_executable(${TEST_PROJECT_NAME}
         ContractLogInfoUnitTests.cc
         ContractNonceInfoUnitTests.cc
         ContractUpdateTransactionUnitTests.cc
+        CustomFeeLimitUnitTests.cc
         CustomFixedFeeUnitTests.cc
         CustomFractionalFeeUnitTests.cc
         CustomRoyaltyFeeUnitTests.cc

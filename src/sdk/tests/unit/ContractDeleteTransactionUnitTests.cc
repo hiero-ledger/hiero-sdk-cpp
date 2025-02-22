@@ -6,10 +6,9 @@
 #include "ECDSAsecp256k1PrivateKey.h"
 #include "exceptions/IllegalStateException.h"
 
-#include <contract_delete.pb.h>
 #include <gtest/gtest.h>
 #include <memory>
-#include <transaction_body.pb.h>
+#include <transaction.pb.h>
 
 using namespace Hiero;
 

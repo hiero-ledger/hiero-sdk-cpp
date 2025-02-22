@@ -6,7 +6,6 @@
 #include "AccountInfoQuery.h"
 #include "AccountRecords.h"
 #include "AccountRecordsQuery.h"
-#include "AccountStakersQuery.h"
 #include "Client.h"
 #include "ContractByteCodeQuery.h"
 #include "ContractCallQuery.h"
@@ -367,7 +366,6 @@ std::optional<TransactionId> Query<SdkRequestType, SdkResponseType>::getTransact
 template class Query<AccountBalanceQuery, AccountBalance>;
 template class Query<AccountInfoQuery, AccountInfo>;
 template class Query<AccountRecordsQuery, AccountRecords>;
-template class Query<AccountStakersQuery, AccountStakers>;
 template class Query<ContractByteCodeQuery, ContractByteCode>;
 template class Query<ContractCallQuery, ContractFunctionResult>;
 template class Query<ContractInfoQuery, ContractInfo>;

@@ -49,6 +49,11 @@ std::string AccountBalance::toString() const
   nlohmann::json json;
   json["mBalance"] = mBalance.toString();
 
+  for (const auto& pair : mTokens)
+  {
+    json[pair.first.toString()] = pair.second;
+  }
+
   return json.dump();
 }
 

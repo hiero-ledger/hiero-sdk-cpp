@@ -6,10 +6,9 @@
 #include "impl/DurationConverter.h"
 #include "impl/TimestampConverter.h"
 
-#include <crypto_update.pb.h>
 #include <gtest/gtest.h>
 #include <limits>
-#include <transaction_body.pb.h>
+#include <transaction.pb.h>
 
 using namespace Hiero;
 

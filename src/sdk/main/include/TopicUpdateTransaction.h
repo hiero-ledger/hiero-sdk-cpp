@@ -3,6 +3,7 @@
 #define HIERO_SDK_CPP_TOPIC_UPDATE_TRANSACTION_H_
 
 #include "AccountId.h"
+#include "CustomFixedFee.h"
 #include "Key.h"
 #include "TopicId.h"
 #include "Transaction.h"
@@ -116,6 +117,51 @@ public:
   TopicUpdateTransaction& setAutoRenewAccountId(const AccountId& accountId);
 
   /**
+   * Set the new fee schedule key for the topic.
+   *
+   * @param key The new fee schedule key.
+   * @return A reference to this TopicUpdateTransaction object with the newly-set fee schedule key.
+   * @throws IllegalStateException If this TopicUpdateTransaction is frozen.
+   */
+  TopicUpdateTransaction& setFeeScheduleKey(const std::shared_ptr<Key>& key);
+
+  /**
+   * Set the list of fee-exempt keys for the topic.
+   *
+   * @param keys The list of fee-exempt keys.
+   * @return A reference to this TopicUpdateTransaction object with the newly-set fee-exempt keys.
+   * @throws IllegalStateException If this TopicUpdateTransaction is frozen.
+   */
+  TopicUpdateTransaction& setFeeExemptKeys(const std::vector<std::shared_ptr<Key>>& keys);
+
+  /**
+   * Add a key to the list of fee-exempt keys for the topic.
+   *
+   * @param key The key to add to the exempt list.
+   * @return A reference to this TopicUpdateTransaction object with the newly-added exempt key.
+   * @throws IllegalStateException If this TopicUpdateTransaction is frozen.
+   */
+  TopicUpdateTransaction& addFeeExemptKey(const std::shared_ptr<Key>& key);
+
+  /**
+   * Set the custom fixed fees for the topic.
+   *
+   * @param fees The new custom fixed fees.
+   * @return A reference to this TopicUpdateTransaction object with the newly-set custom fixed fees.
+   * @throws IllegalStateException If this TopicUpdateTransaction is frozen.
+   */
+  TopicUpdateTransaction& setCustomFixedFees(const std::vector<CustomFixedFee>& fees);
+
+  /**
+   * Add a custom fixed fee to the topic.
+   *
+   * @param fee The custom fixed fee to add.
+   * @return A reference to this TopicUpdateTransaction object with the newly-added custom fixed fee.
+   * @throws IllegalStateException If this TopicUpdateTransaction is frozen.
+   */
+  TopicUpdateTransaction& addCustomFixedFee(const CustomFixedFee& fee);
+
+  /**
    * Clear the memo for the topic.
    *
    * @return A reference to this TokenUpdateTransaction with the newly-cleared memo.
@@ -180,6 +226,27 @@ public:
    * @return The new submit key for the topic. Returns nullptr if the submit key has not been set.
    */
   [[nodiscard]] inline std::shared_ptr<Key> getSubmitKey() const { return mSubmitKey; }
+
+  /**
+   * Get the desired fee schedule key for the new topic.
+   *
+   * @return The fee schedule key for the new topic.
+   */
+  [[nodiscard]] inline std::shared_ptr<Key> getFeeScheduleKey() const { return mFeeScheduleKey; }
+
+  /**
+   * Get the list of fee-exempt keys for the new topic.
+   *
+   * @return The list of fee-exempt keys.
+   */
+  [[nodiscard]] inline std::vector<std::shared_ptr<Key>> getFeeExemptKeys() const { return mFeeExemptKeys; }
+
+  /**
+   * Get the list of custom fixed fees for the new topic.
+   *
+   * @return The list of custom fixed fees.
+   */
+  [[nodiscard]] inline std::vector<CustomFixedFee> getCustomFixedFees() const { return mCustomFixedFees; }
 
   /**
    * Get the new auto-renew period for the topic.
@@ -281,6 +348,46 @@ private:
    * The ID of the new account that should be charged to extend the lifetime of the topic at its expiration time.
    */
   std::optional<AccountId> mAutoRenewAccountId;
+
+  /**
+   * Access control for update or delete of custom fees.
+   * If set, subsequent `consensus_update_topic` transactions signed with this
+   * key MAY update or delete the custom fees for this topic.
+   * If not set, the custom fees for this topic SHALL BE immutable.
+   * If not set when the topic is created, this field CANNOT be set via update.
+   * If set when the topic is created, this field MAY be changed via update.
+   */
+  std::shared_ptr<Key> mFeeScheduleKey = nullptr;
+
+  /**
+   * A set of keys.
+   * Keys in this list are permitted to submit messages to this topic without
+   * paying custom fees associated with this topic.
+   * If a submit transaction is signed by _any_ key included in this set,
+   * custom fees SHALL NOT be charged for that transaction.
+   * This field MUST NOT contain more than 10 keys.
+   * fee_exempt_key_list SHALL NOT contain any duplicate keys.
+   * fee_exempt_key_list MAY contain keys for accounts that are inactive,
+   * deleted, or non-existent.
+   * If fee_exempt_key_list is unset in this transaction, there SHALL NOT be
+   * any fee-exempt keys.  In particular, the following keys SHALL NOT be
+   * implicitly or automatically added to this list:
+   * `adminKey`, `submitKey`, `fee_schedule_key`.
+   */
+  std::vector<std::shared_ptr<Key>> mFeeExemptKeys;
+
+  /**
+   * A set of custom fee definitions.
+   * These are fees to be assessed for each submit to this topic.
+   * Each fee defined in this set SHALL be evaluated for
+   * each message submitted to this topic, and the resultant
+   * total assessed fees SHALL be charged.
+   * Custom fees defined here SHALL be assessed in addition to the base
+   * network and node fees.
+   * custom_fees list SHALL NOT contain more than
+   * `MAX_CUSTOM_FEE_ENTRIES_FOR_TOPICS` entries.
+   */
+  std::vector<CustomFixedFee> mCustomFixedFees;
 };
 
 } // namespace Hiero
