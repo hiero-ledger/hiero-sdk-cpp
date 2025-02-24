@@ -19,7 +19,7 @@ public:
   /**
    * The default port on which to listen for HTTP requests from the TCK.
    */
-  [[maybe_unused]] constexpr static const int DEFAULT_HTTP_PORT = 80;
+  [[maybe_unused]] constexpr static const int DEFAULT_HTTP_PORT = 8544;
 
   /**
    * Methods involve taking JSON parameters, doing a function, then returning the status of the execution in another
