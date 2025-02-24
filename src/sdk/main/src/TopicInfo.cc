@@ -53,6 +53,23 @@ TopicInfo TopicInfo::fromProtobuf(const proto::ConsensusGetTopicInfoResponse& pr
 
   topicInfo.mLedgerId = LedgerId(internal::Utilities::stringToByteVector(consensusTopicInfo.ledger_id()));
 
+  if (consensusTopicInfo.has_fee_schedule_key())
+  {
+    topicInfo.mFeeScheduleKey = Key::fromProtobuf(consensusTopicInfo.fee_schedule_key());
+  }
+
+  for (const auto& key : consensusTopicInfo.fee_exempt_key_list())
+  {
+    topicInfo.mFeeExemptKeys.push_back(Key::fromProtobuf(key));
+  }
+
+  for (const auto& fee : consensusTopicInfo.custom_fees())
+  {
+    topicInfo.mCustomFixedFees.push_back(
+      CustomFixedFee::fromProtobuf(fee.fixed_fee())
+        .setFeeCollectorAccountId(AccountId::fromProtobuf(fee.fee_collector_account_id())));
+  }
+
   return topicInfo;
 }
 
@@ -98,6 +115,23 @@ std::unique_ptr<proto::ConsensusGetTopicInfoResponse> TopicInfo::toProtobuf() co
 
   protoTopicInfo->mutable_topicinfo()->set_ledger_id(internal::Utilities::byteVectorToString(mLedgerId.toBytes()));
 
+  if (mFeeScheduleKey)
+  {
+    protoTopicInfo->mutable_topicinfo()->set_allocated_fee_schedule_key(mFeeScheduleKey->toProtobufKey().release());
+  }
+
+  for (const auto& key : mFeeExemptKeys)
+  {
+    protoTopicInfo->mutable_topicinfo()->mutable_fee_exempt_key_list()->AddAllocated(key->toProtobufKey().release());
+  }
+
+  for (const auto& fee : mCustomFixedFees)
+  {
+    std::unique_ptr<proto::FixedCustomFee> fixedCustomFee = std::make_unique<proto::FixedCustomFee>();
+    fixedCustomFee->set_allocated_fixed_fee(fee.toFixedFeeProtobuf().release());
+    protoTopicInfo->mutable_topicinfo()->mutable_custom_fees()->AddAllocated(fixedCustomFee.release());
+  }
+
   return protoTopicInfo;
 }
 
@@ -138,6 +172,24 @@ std::string TopicInfo::toString() const
   }
 
   json["mLedgerId"] = mLedgerId.toString();
+
+  if (mFeeScheduleKey)
+  {
+    json["mFeeScheduleKey"] = internal::HexConverter::bytesToHex(mFeeScheduleKey->toBytes());
+  }
+
+  json["mFeeExemptKeys"] = nlohmann::json::array();
+  for (const auto& key : mFeeExemptKeys)
+  {
+    json["mFeeExemptKeys"].push_back(internal::HexConverter::bytesToHex(key->toBytes()));
+  }
+
+  json["mCustomFixedFees"] = nlohmann::json::array();
+  for (const auto& fee : mCustomFixedFees)
+  {
+    json["mCustomFixedFees"].push_back(fee.toString());
+  }
+
   return json.dump();
 }
 

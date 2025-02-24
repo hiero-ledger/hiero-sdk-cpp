@@ -5,7 +5,6 @@
 #include "AccountInfoQuery.h"
 #include "AccountRecords.h"
 #include "AccountRecordsQuery.h"
-#include "AccountStakersQuery.h"
 #include "BaseIntegrationTest.h"
 #include "ContractByteCodeQuery.h"
 #include "ContractCallQuery.h"
@@ -48,7 +47,6 @@ class QueryIntegrationTests : public BaseIntegrationTest
 using QueryTypes = ::testing::Types<AccountBalanceQuery,
                                     AccountInfoQuery,
                                     AccountRecordsQuery,
-                                    AccountStakersQuery,
                                     ContractByteCodeQuery,
                                     ContractCallQuery,
                                     ContractInfoQuery,
