@@ -3,7 +3,6 @@
 #define HIERO_SDK_CPP_TRANSACTION_H_
 
 #include "AccountId.h"
-#include "CustomFeeLimit.h"
 #include "Executable.h"
 #include "Hbar.h"
 #include "TransactionId.h"
@@ -235,32 +234,6 @@ public:
   SdkRequestType& setTransactionMemo(const std::string& memo);
 
   /**
-   * Set the maximum custom fees that the user is willing to pay for the transaction.
-   *
-   * @param customFeeLimits The list of maximum custom fees.
-   * @return A reference to this derived Transaction object with the newly-set custom fee limits.
-   * @throws IllegalStateException If this Transaction is frozen.
-   */
-  SdkRequestType& setCustomFeeLimits(const std::vector<CustomFeeLimit>& customFeeLimits);
-
-  /**
-   * Add a maximum custom fee that the user is willing to pay for the transaction.
-   *
-   * @param customFeeLimit The custom fee limit to be added.
-   * @return A reference to this derived Transaction object with the newly-added custom fee limit.
-   * @throws IllegalStateException If this Transaction is frozen.
-   */
-  SdkRequestType& addCustomFeeLimit(const CustomFeeLimit& customFeeLimit);
-
-  /**
-   * Clear all maximum custom fees that the user is willing to pay for the transaction.
-   *
-   * @return A reference to this derived Transaction object with cleared custom fee limits.
-   * @throws IllegalStateException If this Transaction is frozen.
-   */
-  SdkRequestType& clearCustomFeeLimits();
-
-  /**
    * Set the transaction ID regeneration policy for this Transaction.
    *
    * @param regenerate \c TRUE if it is desired for this Transaction to regenerate a transaction ID upon receiving a
@@ -308,13 +281,6 @@ public:
    * @return The memo for this Transaction.
    */
   [[nodiscard]] std::string getTransactionMemo() const;
-
-  /**
-   * Get the maximum custom fees that the user is willing to pay for the transaction.
-   *
-   * @return A vector containing the current custom fee limits.
-   */
-  [[nodiscard]] std::vector<CustomFeeLimit> getCustomFeeLimits() const;
 
   /**
    * Get the desired transaction ID regeneration policy of this Transaction.

@@ -53,6 +53,31 @@ TopicMessageSubmitTransaction& TopicMessageSubmitTransaction::setMessage(std::st
 }
 
 //-----
+TopicMessageSubmitTransaction& TopicMessageSubmitTransaction::setCustomFeeLimits(
+  const std::vector<CustomFeeLimit>& customFeeLimits)
+{
+  requireNotFrozen();
+  mCustomFeeLimits = customFeeLimits;
+  return *this;
+}
+
+//-----
+TopicMessageSubmitTransaction& TopicMessageSubmitTransaction::addCustomFeeLimit(const CustomFeeLimit& customFeeLimit)
+{
+  requireNotFrozen();
+  mCustomFeeLimits.push_back(customFeeLimit);
+  return *this;
+}
+
+//-----
+TopicMessageSubmitTransaction& TopicMessageSubmitTransaction::clearCustomFeeLimits()
+{
+  requireNotFrozen();
+  mCustomFeeLimits.clear();
+  return *this;
+}
+
+//-----
 grpc::Status TopicMessageSubmitTransaction::submitRequest(const proto::Transaction& request,
                                                           const std::shared_ptr<internal::Node>& node,
                                                           const std::chrono::system_clock::time_point& deadline,
@@ -80,6 +105,10 @@ void TopicMessageSubmitTransaction::addToChunk(uint32_t chunk, uint32_t total, p
   body.set_allocated_consensussubmitmessage(build(static_cast<int>(chunk)));
   body.mutable_consensussubmitmessage()->mutable_chunkinfo()->set_allocated_initialtransactionid(
     getTransactionId().toProtobuf().release());
+  for (const auto& fee : mCustomFeeLimits)
+  {
+    body.mutable_max_custom_fees()->AddAllocated(fee.toProtobuf().release());
+  }
   body.mutable_consensussubmitmessage()->mutable_chunkinfo()->set_number(static_cast<int32_t>(chunk + 1));
   body.mutable_consensussubmitmessage()->mutable_chunkinfo()->set_total(static_cast<int32_t>(total));
 }
@@ -122,6 +151,15 @@ void TopicMessageSubmitTransaction::initFromSourceTransactionBody()
 
     proto::TransactionBody txBody;
     txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
+
+    // Should also set the custom fee limits but only once as every chunk would contain the limits.
+    if (mCustomFeeLimits.empty())
+    {
+      for (const auto& feeLimit : txBody.max_custom_fees())
+      {
+        mCustomFeeLimits.push_back(CustomFeeLimit::fromProtobuf(feeLimit));
+      }
+    }
 
     data += txBody.consensussubmitmessage().message();
   }
