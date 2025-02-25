@@ -19,6 +19,7 @@
 #include "exceptions/PrecheckStatusException.h"
 #include "exceptions/ReceiptStatusException.h"
 #include "exceptions/UninitializedException.h"
+#include "impl/EntityIdHelper.h"
 #include "impl/HexConverter.h"
 #include "impl/Network.h"
 
@@ -29,18 +30,6 @@ using namespace Hiero;
 
 class AccountCreateTransactionIntegrationTests : public BaseIntegrationTest
 {
-protected:
-  bool isLongZero(const std::vector<std::byte> address)
-  {
-    for (int i = 0; i < 12; i++)
-    {
-      if (address[i] != std::byte{ 0 })
-      {
-        return false;
-      }
-    }
-    return true;
-  }
 };
 
 //-----
@@ -662,5 +651,6 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithAliasAndKe
   AccountInfo accountInfo;
   EXPECT_NO_THROW(accountInfo = AccountInfoQuery().setAccountId(accountId).execute(getTestClient()));
 
-  EXPECT_FALSE(isLongZero(internal::HexConverter::hexToBytes(accountInfo.mContractAccountId)));
+  EXPECT_FALSE(
+    internal::EntityIdHelper::isLongZeroAddress(internal::HexConverter::hexToBytes(accountInfo.mContractAccountId)));
 }
