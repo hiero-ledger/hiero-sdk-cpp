@@ -19,7 +19,6 @@
 #include "exceptions/PrecheckStatusException.h"
 #include "exceptions/ReceiptStatusException.h"
 #include "exceptions/UninitializedException.h"
-#include "impl/EntityIdHelper.h"
 #include "impl/HexConverter.h"
 #include "impl/Network.h"
 
