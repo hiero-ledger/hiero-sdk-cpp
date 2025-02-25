@@ -161,21 +161,6 @@ std::string checksum(std::string_view address, const LedgerId& ledgerId)
 }
 
 //-----
-bool isLongZeroAddress(const std::vector<std::byte>& address)
-{
-  // The address is a possible long-zero address if the first 10 bytes are zeros.
-  for (int i = 0; i < 10; ++i)
-  {
-    if (address.at(i) != std::byte(0x0))
-    {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-//-----
 std::vector<std::byte> decodeSolidityAddress(std::string_view address)
 {
   // Make sure the size of the address is correct.

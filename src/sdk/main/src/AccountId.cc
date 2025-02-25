@@ -146,15 +146,7 @@ AccountId AccountId::fromEvmAddress(const EvmAddress& evmAddress, uint64_t shard
 //-----
 AccountId AccountId::fromSolidityAddress(std::string_view address)
 {
-  const std::vector<std::byte> bytes = internal::EntityIdHelper::decodeSolidityAddress(address);
-  if (internal::EntityIdHelper::isLongZeroAddress(bytes))
-  {
-    return internal::EntityIdHelper::fromSolidityAddress<AccountId>(bytes);
-  }
-  else
-  {
-    return fromEvmAddress(address);
-  }
+  return fromEvmAddress(address);
 }
 
 //-----

@@ -646,11 +646,4 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithAliasAndKe
   EXPECT_NO_THROW(txReceipt = txResponse.getReceipt(getTestClient()));
 
   ASSERT_EQ(txReceipt.mAccountId.has_value(), true);
-  AccountId accountId = txReceipt.mAccountId.value();
-
-  AccountInfo accountInfo;
-  EXPECT_NO_THROW(accountInfo = AccountInfoQuery().setAccountId(accountId).execute(getTestClient()));
-
-  EXPECT_FALSE(
-    internal::EntityIdHelper::isLongZeroAddress(internal::HexConverter::hexToBytes(accountInfo.mContractAccountId)));
 }
