@@ -146,15 +146,7 @@ AccountId AccountId::fromEvmAddress(const EvmAddress& evmAddress, uint64_t shard
 //-----
 AccountId AccountId::fromSolidityAddress(std::string_view address)
 {
-  const std::vector<std::byte> bytes = internal::EntityIdHelper::decodeSolidityAddress(address);
-  if (internal::EntityIdHelper::isLongZeroAddress(bytes))
-  {
-    return internal::EntityIdHelper::fromSolidityAddress<AccountId>(bytes);
-  }
-  else
-  {
-    return fromEvmAddress(address);
-  }
+  return fromEvmAddress(address);
 }
 
 //-----
@@ -262,7 +254,7 @@ AccountId& AccountId::populateAccountEvmAddress(const Client& client)
   }
 
   // build url for Mirror Node
-  std::string url = "https://" + mirrorNetworks.front() + "/api/v1/accounts/0.0." + std::to_string(mAccountNum.value());
+  std::string url = "https://" + mirrorNetworks.front() + "/api/v1/accounts/" + toString();
 
   // fetch account data for this account from Mirror Node
   std::string response = internal::HttpClient::invokeREST(url, "GET");
