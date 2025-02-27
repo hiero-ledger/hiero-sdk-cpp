@@ -8,7 +8,6 @@
 #include <grpcpp/client_context.h>
 #include <schedule_create.pb.h>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
 
 namespace Hiero
 {

@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
-#include <transaction_body.pb.h>
+#include <transaction.pb.h>
 #include <vector>
 
 using namespace Hiero;

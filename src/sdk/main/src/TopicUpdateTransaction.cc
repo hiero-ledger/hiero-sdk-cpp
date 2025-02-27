@@ -8,7 +8,6 @@
 #include <consensus_update_topic.pb.h>
 #include <grpcpp/client_context.h>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
 
 namespace Hiero
 {
@@ -80,6 +79,46 @@ TopicUpdateTransaction& TopicUpdateTransaction::setAutoRenewAccountId(const Acco
 {
   requireNotFrozen();
   mAutoRenewAccountId = accountId;
+  return *this;
+}
+
+//-----
+TopicUpdateTransaction& TopicUpdateTransaction::setFeeScheduleKey(const std::shared_ptr<Key>& key)
+{
+  requireNotFrozen();
+  mFeeScheduleKey = key;
+  return *this;
+}
+
+//-----
+TopicUpdateTransaction& TopicUpdateTransaction::setFeeExemptKeys(const std::vector<std::shared_ptr<Key>>& keys)
+{
+  requireNotFrozen();
+  mFeeExemptKeys = keys;
+  return *this;
+}
+
+//-----
+TopicUpdateTransaction& TopicUpdateTransaction::addFeeExemptKey(const std::shared_ptr<Key>& key)
+{
+  requireNotFrozen();
+  mFeeExemptKeys.push_back(key);
+  return *this;
+}
+
+//-----
+TopicUpdateTransaction& TopicUpdateTransaction::setCustomFixedFees(const std::vector<CustomFixedFee>& fees)
+{
+  requireNotFrozen();
+  mCustomFixedFees = fees;
+  return *this;
+}
+
+//-----
+TopicUpdateTransaction& TopicUpdateTransaction::addCustomFixedFee(const CustomFixedFee& fee)
+{
+  requireNotFrozen();
+  mCustomFixedFees.push_back(fee);
   return *this;
 }
 
@@ -187,6 +226,22 @@ void TopicUpdateTransaction::initFromSourceTransactionBody()
   {
     mAutoRenewAccountId = AccountId::fromProtobuf(body.autorenewaccount());
   }
+
+  if (body.has_fee_schedule_key())
+  {
+    mFeeScheduleKey = Key::fromProtobuf(body.fee_schedule_key());
+  }
+
+  for (const auto& key : body.fee_exempt_key_list().keys())
+  {
+    mFeeExemptKeys.push_back(Key::fromProtobuf(key));
+  }
+
+  for (const auto& fee : body.custom_fees().fees())
+  {
+    mCustomFixedFees.push_back(CustomFixedFee::fromProtobuf(fee.fixed_fee())
+                                 .setFeeCollectorAccountId(AccountId::fromProtobuf(fee.fee_collector_account_id())));
+  }
 }
 
 //-----
@@ -227,6 +282,23 @@ proto::ConsensusUpdateTopicTransactionBody* TopicUpdateTransaction::build() cons
   if (mAutoRenewAccountId.has_value())
   {
     body->set_allocated_autorenewaccount(mAutoRenewAccountId->toProtobuf().release());
+  }
+
+  if (mFeeScheduleKey)
+  {
+    body->set_allocated_fee_schedule_key(mFeeScheduleKey->toProtobufKey().release());
+  }
+
+  for (const auto& key : mFeeExemptKeys)
+  {
+    body->mutable_fee_exempt_key_list()->mutable_keys()->AddAllocated(key->toProtobufKey().release());
+  }
+
+  for (const auto& fee : mCustomFixedFees)
+  {
+    std::unique_ptr<proto::FixedCustomFee> fixedCustomFee = std::make_unique<proto::FixedCustomFee>();
+    fixedCustomFee->set_allocated_fixed_fee(fee.toFixedFeeProtobuf().release());
+    body->mutable_custom_fees()->mutable_fees()->AddAllocated(fixedCustomFee.release());
   }
 
   return body.release();

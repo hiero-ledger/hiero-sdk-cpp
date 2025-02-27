@@ -9,7 +9,6 @@
 #include <stdexcept>
 #include <token_claim_airdrop.pb.h>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
 
 namespace Hiero
 {

@@ -66,7 +66,7 @@
 
 #include <basic_types.pb.h>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
+
 #include <transaction_contents.pb.h>
 #include <transaction_list.pb.h>
 #include <transaction_response.pb.h>
