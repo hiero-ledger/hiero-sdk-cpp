@@ -30,7 +30,6 @@ add_library(${PROJECT_NAME} STATIC
         src/AccountInfoQuery.cc
         src/AccountRecords.cc
         src/AccountRecordsQuery.cc
-        src/AccountStakersQuery.cc
         src/AccountUpdateTransaction.cc
         src/AddressBookQuery.cc
         src/AssessedCustomFee.cc
@@ -53,6 +52,7 @@ add_library(${PROJECT_NAME} STATIC
         src/ContractUpdateTransaction.cc
         src/CustomFee.cc
         src/CustomFeeBase.cc
+        src/CustomFeeLimit.cc
         src/CustomFixedFee.cc
         src/CustomFractionalFee.cc
         src/CustomRoyaltyFee.cc

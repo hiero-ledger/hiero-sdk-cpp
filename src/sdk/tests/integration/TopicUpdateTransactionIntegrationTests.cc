@@ -3,6 +3,7 @@
 #include "Defaults.h"
 #include "ECDSAsecp256k1PrivateKey.h"
 #include "ED25519PrivateKey.h"
+#include "TokenCreateTransaction.h"
 #include "TopicCreateTransaction.h"
 #include "TopicDeleteTransaction.h"
 #include "TopicInfo.h"
@@ -11,9 +12,10 @@
 #include "TransactionReceipt.h"
 #include "TransactionRecord.h"
 #include "TransactionResponse.h"
+#include "exceptions/PrecheckStatusException.h"
+#include "exceptions/ReceiptStatusException.h"
 
 #include <gtest/gtest.h>
-#include <transaction_body.pb.h>
 
 using namespace Hiero;
 
@@ -78,4 +80,65 @@ TEST_F(TopicUpdateTransactionIntegrationTests, ExecuteTopicUpdateTransaction)
                                 .sign(newKey)
                                 .execute(getTestClient())
                                 .getReceipt(getTestClient()));
+}
+
+//-----
+TEST_F(TopicUpdateTransactionIntegrationTests, RevenueGeneratingTopicCannotUpdateFeeScheduleKey)
+{
+  // Given
+  std::shared_ptr<PrivateKey> feeScheduleKey;
+  ASSERT_NO_THROW(feeScheduleKey = ED25519PrivateKey::generatePrivateKey());
+
+  // When
+  TopicId topicId;
+  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  // Then
+  // Update the revenue generating topic with new fee schedule key
+  EXPECT_THROW(TopicUpdateTransaction()
+                 .setTopicId(topicId)
+                 .setFeeScheduleKey(feeScheduleKey->getPublicKey())
+                 .execute(getTestClient())
+                 .getReceipt(getTestClient()),
+               ReceiptStatusException); // FEE_SCHEDULE_KEY_CANNOT_BE_UPDATED
+}
+
+//-----
+TEST_F(TopicUpdateTransactionIntegrationTests, RevenueGeneratingTopicCannotUpdateCustomFees)
+{
+  // Given
+  TokenId tokenId;
+  ASSERT_NO_THROW(tokenId = TokenCreateTransaction()
+                              .setTokenName("ffff")
+                              .setTokenSymbol("F")
+                              .setTreasuryAccountId(AccountId(2ULL))
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTokenId.value());
+
+  CustomFixedFee customFixedFee;
+  ASSERT_NO_THROW(customFixedFee =
+                    CustomFixedFee().setAmount(2).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
+                      getTestClient().getOperatorAccountId().value()));
+
+  // When
+  TopicId topicId;
+  EXPECT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  // Then
+  // Update the revenue generating topic with new custom fees
+  EXPECT_THROW(TopicUpdateTransaction()
+                 .setTopicId(topicId)
+                 .setCustomFixedFees({ customFixedFee })
+                 .execute(getTestClient())
+                 .getReceipt(getTestClient()),
+               ReceiptStatusException); // FEE_SCHEDULE_KEY_NOT_SET
 }

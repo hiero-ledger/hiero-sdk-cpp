@@ -50,7 +50,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
+        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
         with:
           egress-policy: audit
 
@@ -114,7 +114,7 @@ jobs:
         run: mkdir -p "${{ github.workspace }}/b/vcpkg_cache"
 
       - name: Install CMake & Ninja
-        uses: lukka/get-cmake@5f6e04f5267c8133f1273bf2103583fc72c46b17 # v3.31.5
+        uses: lukka/get-cmake@56d043d188c3612951d8755da8f4b709ec951ad6 # v3.31.6
         with:
           useCloudCache: true
 
@@ -174,12 +174,13 @@ jobs:
           solo node keys -i node1 --gossip-keys --tls-keys
           solo cluster setup
           solo network deploy -i node1 -n solo-e2e
-          solo node setup -i node1 -n solo-e2e -t v0.57.0
+          solo node setup -i node1 -n solo-e2e -t v0.59.0
           solo node start -i node1 -n solo-e2e
           kubectl port-forward svc/haproxy-node1-svc -n "${SOLO_NAMESPACE}" 50211:50211 &
           solo mirror-node deploy -n "${SOLO_NAMESPACE}" --pinger true
           kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-rest-)) 5551:5551 -n solo-e2e &
           kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-web)) 8545:8545 -n solo-e2e &
+          kubectl port-forward $(cut -d' ' -f1 <<<$(kubectl get pods -n solo-e2e | grep mirror-grpc)) 5600:5600 -n solo-e2e &
 
       - name: Start CTest suite (Debug)
         run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug --output-on-failure
@@ -194,7 +195,7 @@ jobs:
 
       - name: Attach Artifact
         if: github.event.pull_request.merged == true
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
@@ -210,7 +211,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
+        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
         with:
           egress-policy: audit
 
@@ -231,7 +232,7 @@ jobs:
           distribution: strawberry
 
       - name: Setup-nasm
-        uses: ilammy/setup-nasm@13cbeb366c45c4379d3478cdcbadd8295feb5028 # v1.5.1
+        uses: ilammy/setup-nasm@72793074d3c8cdda771dba85f6deafe00623038b # v1.5.2
 
       - name: Enable Git long paths
         run: git config --global core.longpaths true
@@ -256,7 +257,7 @@ jobs:
           Add-Content -Path $env:GITHUB_OUTPUT -Value "short=$short"
 
       - name: Attach Artifact
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
@@ -271,7 +272,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
+        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
         with:
           egress-policy: audit
 
@@ -299,7 +300,7 @@ jobs:
         run: echo "short=$(echo -n "${{ github.sha }}" | cut -c1-8)" >> $GITHUB_OUTPUT
 
       - name: Attach Artifact
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/

@@ -5,8 +5,7 @@
 #include "TokenId.h"
 
 #include <gtest/gtest.h>
-#include <token_claim_airdrop.pb.h>
-#include <transaction_body.pb.h>
+#include <transaction.pb.h>
 
 using namespace Hiero;
 

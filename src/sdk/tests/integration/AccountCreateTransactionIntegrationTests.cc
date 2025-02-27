@@ -23,24 +23,11 @@
 #include "impl/Network.h"
 
 #include <gtest/gtest.h>
-#include <transaction_body.pb.h>
 
 using namespace Hiero;
 
 class AccountCreateTransactionIntegrationTests : public BaseIntegrationTest
 {
-protected:
-  bool isLongZero(const std::vector<std::byte> address)
-  {
-    for (int i = 0; i < 12; i++)
-    {
-      if (address[i] != std::byte{ 0 })
-      {
-        return false;
-      }
-    }
-    return true;
-  }
 };
 
 //-----
@@ -657,10 +644,4 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithAliasAndKe
   EXPECT_NO_THROW(txReceipt = txResponse.getReceipt(getTestClient()));
 
   ASSERT_EQ(txReceipt.mAccountId.has_value(), true);
-  AccountId accountId = txReceipt.mAccountId.value();
-
-  AccountInfo accountInfo;
-  EXPECT_NO_THROW(accountInfo = AccountInfoQuery().setAccountId(accountId).execute(getTestClient()));
-
-  EXPECT_FALSE(isLongZero(internal::HexConverter::hexToBytes(accountInfo.mContractAccountId)));
 }

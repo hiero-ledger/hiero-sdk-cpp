@@ -5,7 +5,6 @@
 #include <file_delete.pb.h>
 #include <grpcpp/client_context.h>
 #include <transaction.pb.h>
-#include <transaction_body.pb.h>
 
 namespace Hiero
 {

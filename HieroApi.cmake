@@ -1,13 +1,13 @@
-set(HAPI_VERSION_TAG "v0.57.0" CACHE STRING "Use the configured version tag for the Hiero API protobufs")
+set(HAPI_VERSION_TAG "v0.59.0" CACHE STRING "Use the configured version tag for the Hiero API protobufs")
 
 if (HAPI_VERSION_TAG STREQUAL "")
-    set(HAPI_VERSION_TAG "v0.57.0")
+    set(HAPI_VERSION_TAG "v0.59.0")
 endif ()
 
 # Fetch the protobuf definitions
 FetchContent_Declare(
         HProto
-        GIT_REPOSITORY https://github.com/hashgraph/hedera-services.git
+        GIT_REPOSITORY https://github.com/hiero-ledger/hiero-consensus-node.git
         GIT_TAG ${HAPI_VERSION_TAG}
 )
 set(FETCHCONTENT_QUIET OFF)
@@ -50,6 +50,7 @@ endif()
 
 file(INSTALL ${PROJECT_SOURCE_DIR}/proto/service-external-proto/mirror/ DESTINATION ${PROTO_SRC}/mirror)
 file(INSTALL ${hproto_SOURCE_DIR}/hapi/hedera-protobufs/services/ DESTINATION ${PROTO_SRC})
+file(INSTALL ${hproto_SOURCE_DIR}/hapi/hedera-protobufs/platform/ DESTINATION ${PROTO_SRC})
 file(INSTALL ${PROJECT_SOURCE_DIR}/proto/service-external-proto/sdk/ DESTINATION ${PROTO_SRC})
 
 add_subdirectory(proto)

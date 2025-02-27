@@ -3,6 +3,7 @@
 #define HIERO_SDK_CPP_TOPIC_MESSAGE_SUBMIT_TRANSACTION_H_
 
 #include "ChunkedTransaction.h"
+#include "CustomFeeLimit.h"
 #include "TopicId.h"
 #include "TransactionId.h"
 
@@ -70,6 +71,32 @@ public:
   TopicMessageSubmitTransaction& setMessage(std::string_view message);
 
   /**
+   * Set the maximum custom fees that the user is willing to pay for the transaction.
+   *
+   * @param customFeeLimits The list of maximum custom fees.
+   * @return A reference to this derived Transaction object with the newly-set custom fee limits.
+   * @throws IllegalStateException If this Transaction is frozen.
+   */
+  TopicMessageSubmitTransaction& setCustomFeeLimits(const std::vector<CustomFeeLimit>& customFeeLimits);
+
+  /**
+   * Add a maximum custom fee that the user is willing to pay for the transaction.
+   *
+   * @param customFeeLimit The custom fee limit to be added.
+   * @return A reference to this derived Transaction object with the newly-added custom fee limit.
+   * @throws IllegalStateException If this Transaction is frozen.
+   */
+  TopicMessageSubmitTransaction& addCustomFeeLimit(const CustomFeeLimit& customFeeLimit);
+
+  /**
+   * Clear all maximum custom fees that the user is willing to pay for the transaction.
+   *
+   * @return A reference to this derived Transaction object with cleared custom fee limits.
+   * @throws IllegalStateException If this Transaction is frozen.
+   */
+  TopicMessageSubmitTransaction& clearCustomFeeLimits();
+
+  /**
    * Get the ID of the topic to which to submit a message.
    *
    * @return The ID of the topic to which to submit a message.
@@ -82,6 +109,13 @@ public:
    * @return The message to submit.
    */
   [[nodiscard]] inline std::vector<std::byte> getMessage() const { return getData(); }
+
+  /**
+   * Get the maximum custom fees that the user is willing to pay for the transaction.
+   *
+   * @return A vector containing the current custom fee limits.
+   */
+  [[nodiscard]] std::vector<CustomFeeLimit> getCustomFeeLimits() const;
 
 private:
   friend class WrappedTransaction;
@@ -148,6 +182,14 @@ private:
    * The ID of the topic to which to send a message.
    */
   TopicId mTopicId;
+
+  /**
+   * A list of maximum custom fees that the users are willing to pay.
+   * This field is OPTIONAL.
+   * If left empty, the users are accepting to pay any custom fee.
+   * If used with a transaction type that does not support custom fee limits, the transaction will fail.
+   */
+  std::vector<CustomFeeLimit> mCustomFeeLimits;
 };
 
 } // namespace Hiero

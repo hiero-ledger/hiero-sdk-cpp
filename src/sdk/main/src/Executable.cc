@@ -10,7 +10,6 @@
 #include "AccountInfoQuery.h"
 #include "AccountRecords.h"
 #include "AccountRecordsQuery.h"
-#include "AccountStakersQuery.h"
 #include "AccountUpdateTransaction.h"
 #include "Client.h"
 #include "ContractByteCodeQuery.h"
@@ -568,7 +567,6 @@ template class Executable<AccountDeleteTransaction,
                           TransactionResponse>;
 template class Executable<AccountInfoQuery, proto::Query, proto::Response, AccountInfo>;
 template class Executable<AccountRecordsQuery, proto::Query, proto::Response, AccountRecords>;
-template class Executable<AccountStakersQuery, proto::Query, proto::Response, AccountStakers>;
 template class Executable<AccountUpdateTransaction,
                           proto::Transaction,
                           proto::TransactionResponse,

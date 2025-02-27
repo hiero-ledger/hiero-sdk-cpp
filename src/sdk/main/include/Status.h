@@ -1704,7 +1704,90 @@ enum class Status
    * A scheduled transaction configured to wait for expiry to execute was not
    * given an explicit expiration time.
    */
-  MISSING_EXPIRY_TIME
+  MISSING_EXPIRY_TIME,
+
+  /**
+   * A contract operation attempted to schedule another transaction after it
+   * had already scheduled a recursive contract call.
+   */
+  NO_SCHEDULING_ALLOWED_AFTER_SCHEDULED_RECURSION,
+
+  /**
+   * A contract can schedule recursive calls a finite number of times (this is
+   * approximately four million times with typical network configuration.)
+   */
+  RECURSIVE_SCHEDULING_LIMIT_REACHED,
+
+  /**
+   * The target network is waiting for the ledger ID to be set, which is a
+   * side effect of finishing the network's TSS construction.
+   */
+  WAITING_FOR_LEDGER_ID,
+
+  /**
+   * The provided fee exempt key list size exceeded the limit.
+   */
+  MAX_ENTRIES_FOR_FEE_EXEMPT_KEY_LIST_EXCEEDED,
+
+  /**
+   * The provided fee exempt key list contains duplicated keys.
+   */
+  FEE_EXEMPT_KEY_LIST_CONTAINS_DUPLICATED_KEYS,
+
+  /**
+   * The provided fee exempt key list contains an invalid key.
+   */
+  INVALID_KEY_IN_FEE_EXEMPT_KEY_LIST,
+
+  /**
+   * The provided fee schedule key contains an invalid key.
+   */
+  INVALID_FEE_SCHEDULE_KEY,
+
+  /**
+   * If a fee schedule key is not set when we create a topic
+   * we cannot add it on update.
+   */
+  FEE_SCHEDULE_KEY_CANNOT_BE_UPDATED,
+
+  /**
+   * If the topic's custom fees are updated the topic SHOULD have a
+   * fee schedule key
+   */
+  FEE_SCHEDULE_KEY_NOT_SET,
+
+  /**
+   * The fee amount is exceeding the amount that the payer
+   * is willing to pay.
+   */
+  MAX_CUSTOM_FEE_LIMIT_EXCEEDED,
+
+  /**
+   * There are no corresponding custom fees.
+   */
+  NO_VALID_MAX_CUSTOM_FEE,
+
+  /**
+   * The provided list contains invalid max custom fee.
+   */
+  INVALID_MAX_CUSTOM_FEES,
+
+  /**
+   * The provided max custom fee list contains fees with
+   * duplicate denominations.
+   */
+  DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST,
+
+  /**
+   * The provided max custom fee list contains fees with
+   * duplicate account id.
+   */
+  DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST,
+
+  /**
+   * Max custom fees list is not supported for this operation.
+   */
+  MAX_CUSTOM_FEES_IS_NOT_SUPPORTED
 
 };
 
