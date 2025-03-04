@@ -110,14 +110,6 @@ template<typename T = uint64_t>
 [[nodiscard]] std::string checksum(std::string_view address, const LedgerId& ledgerId);
 
 /**
- * Determine if the input byte array could represent a long-zero address.
- *
- * @param address The byte array to determine if it could be a long-zero address.
- * @return \c TRUE if the input byte array could represent a long-zero address, otherwise \c FALSE.
- */
-[[nodiscard]] bool isLongZeroAddress(const std::vector<std::byte>& address);
-
-/**
  * Decode a Solidity address contained in a string to a byte array.
  *
  * @param address The Solidity address to decode.

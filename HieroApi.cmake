@@ -7,7 +7,7 @@ endif ()
 # Fetch the protobuf definitions
 FetchContent_Declare(
         HProto
-        GIT_REPOSITORY https://github.com/hashgraph/hedera-services.git
+        GIT_REPOSITORY https://github.com/hiero-ledger/hiero-consensus-node.git
         GIT_TAG ${HAPI_VERSION_TAG}
 )
 set(FETCHCONTENT_QUIET OFF)
