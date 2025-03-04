@@ -451,6 +451,21 @@ private:
   virtual void validateChecksums(const Client& client) const = 0;
 
   /**
+   * Assignment logic of the autoRenewAccount for a transaction.
+   *
+   * @param account The auto renew account to be assigned.
+   */
+  virtual void assignAutoRenewAccount(proto::TransactionBody& body, const AccountId& accountId) const;
+
+  /**
+   * Verify if transaction body is a transaction that should have autoRenewAccount
+   * assignment logic.
+   *
+   * @param body The transaction body to be verified.
+   */
+  bool autoRenewAssignable(proto::TransactionBody& body) const;
+
+  /**
    * Derived from Executable. Construct a TransactionResponse object from a TransactionResponse protobuf object.
    *
    * @param response The TransactionResponse protobuf object from which to construct a TransactionResponse object.

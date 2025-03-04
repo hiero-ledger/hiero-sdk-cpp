@@ -154,6 +154,12 @@ public:
   /**
    * Set the desired expiration time for the new token.
    *
+   * If autoRenewPeriod is set - this value will be ignored and the expiration
+   * time will be calculated based on: autoRenewPeriod + currentTime
+   *
+   * Setting this value will clear the autoRenewPeriod as the autoRenewPeriod period has
+   * a default value of 7890000 seconds and leaving it set will override the expiration time.
+   *
    * @param expiration The desired expiration time for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set default expiration time.
    */
@@ -168,7 +174,17 @@ public:
   TokenCreateTransaction& setAutoRenewAccountId(const AccountId& accountId);
 
   /**
+   * Assignment logic of the autoRenewAccount for a transaction.
+   *
+   * @param account The auto renew account to be assigned.
+   */
+  void assignAutoRenewAccount(proto::TransactionBody& body, const AccountId& accountId) const override;
+
+  /**
    * Set the desired auto-renew period for the new token.
+   *
+   * If expirationTime is set - autoRenewPeriod will be effectively ignored and
+   * it's effect will be replaced by expirationTime
    *
    * @param period The desired auto-renew period for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set auto-renew period.

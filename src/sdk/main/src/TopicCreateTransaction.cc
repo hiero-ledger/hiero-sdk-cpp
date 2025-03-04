@@ -65,6 +65,20 @@ TopicCreateTransaction& TopicCreateTransaction::setAutoRenewAccountId(const Acco
 }
 
 //-----
+void TopicCreateTransaction::assignAutoRenewAccount(proto::TransactionBody& body, const AccountId& accountId) const
+{
+  if (!body.has_consensuscreatetopic())
+  {
+    throw std::invalid_argument("Transaction body doesn't contain TopicCreate data");
+  }
+
+  if (!body.consensuscreatetopic().has_autorenewaccount())
+  {
+    body.mutable_consensuscreatetopic()->set_allocated_autorenewaccount(accountId.toProtobuf().release());
+  }
+}
+
+//-----
 TopicCreateTransaction& TopicCreateTransaction::setFeeScheduleKey(const std::shared_ptr<Key>& key)
 {
   requireNotFrozen();

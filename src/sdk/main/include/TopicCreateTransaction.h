@@ -104,6 +104,13 @@ public:
   TopicCreateTransaction& setAutoRenewAccountId(const AccountId& accountId);
 
   /**
+   * Assignment logic of the autoRenewAccount for a transaction.
+   *
+   * @param account The auto renew account to be assigned.
+   */
+  void assignAutoRenewAccount(proto::TransactionBody& body, const AccountId& accountId) const override;
+
+  /**
    * Set the fee schedule key for the new topic.
    *
    * @param key The key that controls fee schedule updates.
