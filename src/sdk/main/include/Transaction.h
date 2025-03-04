@@ -453,7 +453,8 @@ private:
   /**
    * Assignment logic of the autoRenewAccount for a transaction.
    *
-   * @param account The auto renew account to be assigned.
+   * @param body The body of the transaction that requires custom AutoRenewAccount assignment logic.
+   * @param accountId The auto renew account to be assigned.
    */
   virtual void assignAutoRenewAccount(proto::TransactionBody& body, const AccountId& accountId) const;
 
