@@ -1104,6 +1104,7 @@ TransactionId Transaction<SdkRequestType>::getCurrentTransactionId() const
 template<typename SdkRequestType>
 void Transaction<SdkRequestType>::assignAutoRenewAccount(proto::TransactionBody& body, const AccountId& accountId) const
 {
+  // Should be implemented by derived Transactions requiring AutoRenewAssignLogic. Otherwise does nothing.
 }
 
 //-----
