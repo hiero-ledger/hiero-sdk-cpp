@@ -65,15 +65,6 @@ TopicCreateTransaction& TopicCreateTransaction::setAutoRenewAccountId(const Acco
 }
 
 //-----
-void TopicCreateTransaction::assignAutoRenewAccount(proto::TransactionBody& body, const AccountId& accountId) const
-{
-  if (!body.consensuscreatetopic().has_autorenewaccount())
-  {
-    body.mutable_consensuscreatetopic()->set_allocated_autorenewaccount(accountId.toProtobuf().release());
-  }
-}
-
-//-----
 TopicCreateTransaction& TopicCreateTransaction::setFeeScheduleKey(const std::shared_ptr<Key>& key)
 {
   requireNotFrozen();
@@ -135,6 +126,12 @@ void TopicCreateTransaction::validateChecksums(const Client& client) const
 void TopicCreateTransaction::addToBody(proto::TransactionBody& body) const
 {
   body.set_allocated_consensuscreatetopic(build());
+
+  if (body.has_transactionid() && !body.consensuscreatetopic().has_autorenewaccount())
+  {
+    std::unique_ptr<proto::AccountID> accountId = std::make_unique<proto::AccountID>(body.transactionid().accountid());
+    body.mutable_consensuscreatetopic()->set_allocated_autorenewaccount(accountId.release());
+  }
 }
 
 //-----

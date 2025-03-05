@@ -174,14 +174,6 @@ public:
   TokenCreateTransaction& setAutoRenewAccountId(const AccountId& accountId);
 
   /**
-   * Assignment logic of the autoRenewAccount for a transaction.
-   *
-   * @param body The body of the transaction that requires custom AutoRenewAccount assignment logic.
-   * @param accountId The auto renew account to be assigned.
-   */
-  void assignAutoRenewAccount(proto::TransactionBody& body, const AccountId& accountId) const override;
-
-  /**
    * Set the desired auto-renew period for the new token.
    *
    * If expirationTime is set - autoRenewPeriod will be effectively ignored and

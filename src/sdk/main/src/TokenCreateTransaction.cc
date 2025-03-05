@@ -142,15 +142,6 @@ TokenCreateTransaction& TokenCreateTransaction::setAutoRenewAccountId(const Acco
 }
 
 //-----
-void TokenCreateTransaction::assignAutoRenewAccount(proto::TransactionBody& body, const AccountId& accountId) const
-{
-  if (!body.tokencreation().has_autorenewaccount())
-  {
-    body.mutable_tokencreation()->set_allocated_autorenewaccount(accountId.toProtobuf().release());
-  }
-}
-
-//-----
 TokenCreateTransaction& TokenCreateTransaction::setAutoRenewPeriod(const std::chrono::system_clock::duration& period)
 {
   requireNotFrozen();
@@ -261,6 +252,12 @@ void TokenCreateTransaction::validateChecksums(const Client& client) const
 void TokenCreateTransaction::addToBody(proto::TransactionBody& body) const
 {
   body.set_allocated_tokencreation(build());
+
+  if (body.has_transactionid() && !body.tokencreation().has_autorenewaccount())
+  {
+    std::unique_ptr<proto::AccountID> accountId = std::make_unique<proto::AccountID>(body.transactionid().accountid());
+    body.mutable_tokencreation()->set_allocated_autorenewaccount(accountId.release());
+  }
 }
 
 //-----

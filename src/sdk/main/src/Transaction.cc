@@ -947,12 +947,6 @@ void Transaction<SdkRequestType>::updateSourceTransactionBody(const Client* clie
 
   // Add derived Transaction fields to mSourceTransactionBody.
   addToBody(mImpl->mSourceTransactionBody);
-
-  // Assign auto-renew account if the transaction is auto-renew assignable
-  if (client && client->getOperatorAccountId().has_value() && autoRenewAssignable(mImpl->mSourceTransactionBody))
-  {
-    assignAutoRenewAccount(mImpl->mSourceTransactionBody, client->getOperatorAccountId().value());
-  }
 }
 
 //-----
@@ -1098,20 +1092,6 @@ template<typename SdkRequestType>
 TransactionId Transaction<SdkRequestType>::getCurrentTransactionId() const
 {
   return mImpl->mTransactionId.value_or(TransactionId());
-}
-
-//-----
-template<typename SdkRequestType>
-void Transaction<SdkRequestType>::assignAutoRenewAccount(proto::TransactionBody& body, const AccountId& accountId) const
-{
-  // Should be implemented by derived Transactions requiring AutoRenewAssignLogic. Otherwise does nothing.
-}
-
-//-----
-template<typename SdkRequestType>
-bool Transaction<SdkRequestType>::autoRenewAssignable(proto::TransactionBody& body) const
-{
-  return (body.has_tokencreation() || body.has_consensuscreatetopic());
 }
 
 //-----
