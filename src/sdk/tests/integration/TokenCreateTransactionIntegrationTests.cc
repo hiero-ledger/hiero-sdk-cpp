@@ -11,6 +11,8 @@
 #include "PrivateKey.h"
 #include "TokenCreateTransaction.h"
 #include "TokenDeleteTransaction.h"
+#include "TokenInfo.h"
+#include "TokenInfoQuery.h"
 #include "TransactionReceipt.h"
 #include "TransactionResponse.h"
 #include "exceptions/PrecheckStatusException.h"
@@ -448,4 +450,67 @@ TEST_F(TokenCreateTransactionIntegrationTests, CanCreateNftWithRoyaltyFee)
   // Clean up
   ASSERT_NO_THROW(txReceipt =
                     TokenDeleteTransaction().setTokenId(tokenId).execute(getTestClient()).getReceipt(getTestClient()));
+}
+
+//-----
+TEST_F(TokenCreateTransactionIntegrationTests, AutoSetAutoRenewAccount)
+{
+  // Given / When
+  TokenId tokenId;
+  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+                              .setTokenName("ffff")
+                              .setTokenSymbol("F")
+                              .setTreasuryAccountId(AccountId(2ULL))
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTokenId.value());
+
+  // Then
+  TokenInfo tokenInfo;
+  EXPECT_NO_THROW(tokenInfo = TokenInfoQuery().setTokenId(tokenId).execute(getTestClient()));
+
+  ASSERT_EQ(tokenInfo.mAutoRenewAccountId, AccountId(2ULL));
+}
+
+//-----
+TEST_F(TokenCreateTransactionIntegrationTests, DoesNotAutoSetAutoRenewAccount)
+{
+  // Given
+  std::shared_ptr<PrivateKey> operatorKey;
+  ASSERT_NO_THROW(
+    operatorKey = std::shared_ptr<PrivateKey>(
+      ED25519PrivateKey::fromString(
+        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137")
+        .release()));
+
+  std::shared_ptr<PrivateKey> accountKey;
+  ASSERT_NO_THROW(accountKey = ED25519PrivateKey::generatePrivateKey());
+
+  AccountId accountId;
+  ASSERT_NO_THROW(accountId = AccountCreateTransaction()
+                                .setKeyWithoutAlias(accountKey)
+                                .setInitialBalance(Hbar(5LL))
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient())
+                                .mAccountId.value());
+
+  // When
+  TokenId tokenId;
+  EXPECT_NO_THROW(tokenId = TokenCreateTransaction()
+                              .setTokenName("ffff")
+                              .setTokenSymbol("F")
+                              .setAutoRenewAccountId(accountId)
+                              .setTreasuryAccountId(AccountId(2ULL))
+                              .freezeWith(&getTestClient())
+                              .sign(accountKey)
+                              .sign(operatorKey)
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTokenId.value());
+
+  // Then
+  TokenInfo tokenInfo;
+  EXPECT_NO_THROW(tokenInfo = TokenInfoQuery().setTokenId(tokenId).execute(getTestClient()));
+
+  ASSERT_EQ(tokenInfo.mAutoRenewAccountId, accountId);
 }
