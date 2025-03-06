@@ -1,7 +1,7 @@
-set(HAPI_VERSION_TAG "v0.59.0" CACHE STRING "Use the configured version tag for the Hiero API protobufs")
+set(HAPI_VERSION_TAG "v0.60.0-alpha.0" CACHE STRING "Use the configured version tag for the Hiero API protobufs")
 
 if (HAPI_VERSION_TAG STREQUAL "")
-    set(HAPI_VERSION_TAG "v0.59.0")
+    set(HAPI_VERSION_TAG "v0.60.0-alpha.0")
 endif ()
 
 # Fetch the protobuf definitions

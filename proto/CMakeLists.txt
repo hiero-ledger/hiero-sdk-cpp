@@ -110,6 +110,10 @@ set(PROTO_FILES
         util_prng.proto
         util_service.proto
 
+        auxiliary/hints/crs_publication.proto
+        auxiliary/hints/hints_key_publication.proto
+        auxiliary/hints/hints_partial_signature.proto
+        auxiliary/hints/hints_preprocessing_vote.proto
         auxiliary/history/history_proof_signature.proto
         auxiliary/history/history_proof_key_publication.proto
         auxiliary/history/history_proof_vote.proto
@@ -118,6 +122,7 @@ set(PROTO_FILES
 
         event/state_signature_transaction.proto
 
+        state/hints/hints_types.proto
         state/history/history_types.proto
 
         mirror/consensus_service.proto
