@@ -127,7 +127,8 @@ void TopicCreateTransaction::addToBody(proto::TransactionBody& body) const
 {
   body.set_allocated_consensuscreatetopic(build());
 
-  if (body.has_transactionid() && !body.consensuscreatetopic().has_autorenewaccount())
+  if (body.has_transactionid() && !body.consensuscreatetopic().has_autorenewaccount() &&
+      body.consensuscreatetopic().has_adminkey())
   {
     std::unique_ptr<proto::AccountID> accountId = std::make_unique<proto::AccountID>(body.transactionid().accountid());
     body.mutable_consensuscreatetopic()->set_allocated_autorenewaccount(accountId.release());
