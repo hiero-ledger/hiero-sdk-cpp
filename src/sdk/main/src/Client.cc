@@ -720,12 +720,14 @@ Client& Client::setNetworkUpdatePeriod(const std::chrono::system_clock::duration
   // Cancel any previous network updates and wait for the thread to complete.
   cancelScheduledNetworkUpdate();
 
+  std::cout << update.count() << std::endl;
+
   // Update the network update period.
   mImpl->mNetworkUpdatePeriod = update;
 
   // If this was called before the initial network update was made, the initial update should be skipped.
   mImpl->mMadeInitialNetworkUpdate = true;
-
+  //
   // Start the thread with the new network update period.
   startNetworkUpdateThread(mImpl->mNetworkUpdatePeriod);
   return *this;
@@ -1049,7 +1051,7 @@ void Client::startNetworkUpdateThread(const std::chrono::system_clock::duration&
 {
   mImpl->mStartNetworkUpdateWaitTime = std::chrono::system_clock::now();
   mImpl->mNetworkUpdatePeriod = period;
-  // mImpl->mNetworkUpdateThread = std::make_unique<std::thread>(&Client::scheduleNetworkUpdate, this);
+  mImpl->mNetworkUpdateThread = std::make_unique<std::thread>(&Client::scheduleNetworkUpdate, this);
 }
 
 //-----
@@ -1058,11 +1060,14 @@ void Client::scheduleNetworkUpdate()
   // Network updates should keep occurring until they're cancelled.
   while (true)
   {
+    std::cout << mImpl->mNetworkUpdatePeriod.count() << std::endl;
+
     if (std::unique_lock lock(mImpl->mMutex); !mImpl->mConditionVariable.wait_for(
           lock, mImpl->mNetworkUpdatePeriod, [this]() { return mImpl->mCancelUpdate; }))
     {
       try
       {
+        std::cout << "looping network update" << std::endl;
         // Get the address book and set the network based on the address book.
         setNetworkFromAddressBookInternal(AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(*this));
 

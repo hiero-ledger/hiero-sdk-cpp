@@ -20,7 +20,7 @@ namespace Hiero
 void BaseIntegrationTest::SetUp()
 {
   mClient = Client::fromConfigFile((filesystem::current_path() / "local_node.json").string());
-  mClient.setNetworkUpdatePeriod(std::chrono::hours(24));
+  mClient.setNetworkUpdatePeriod(std::chrono::seconds(3));
 
   mFileContent = internal::Utilities::stringToByteVector(
     json::parse(std::ifstream(std::filesystem::current_path() / "hello_world.json", std::ios::in))["object"]
