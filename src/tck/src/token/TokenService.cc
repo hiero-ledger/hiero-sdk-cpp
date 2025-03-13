@@ -16,6 +16,7 @@
 #include "token/params/UnpauseTokenParams.h"
 #include "token/params/UpdateTokenFeeScheduleParams.h"
 #include "token/params/UpdateTokenParams.h"
+#include "token/params/WipeTokenParams.h"
 #include "json/JsonErrorType.h"
 #include "json/JsonRpcException.h"
 
@@ -38,12 +39,14 @@
 #include <TokenUnfreezeTransaction.h>
 #include <TokenUnpauseTransaction.h>
 #include <TokenUpdateTransaction.h>
+#include <TokenWipeTransaction.h>
 #include <TransactionReceipt.h>
 #include <TransactionResponse.h>
 #include <impl/EntityIdHelper.h>
 #include <impl/HexConverter.h>
 #include <impl/Utilities.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <nlohmann/json.hpp>
@@ -674,6 +677,49 @@ nlohmann::json updateToken(const UpdateTokenParams& params)
     {"status",
      gStatusToString.at(
         tokenUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json wipeToken(const WipeTokenParams& params)
+{
+  TokenWipeTransaction tokenWipeTransaction;
+  tokenWipeTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenWipeTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mAccountId.has_value())
+  {
+    tokenWipeTransaction.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  if (params.mAmount.has_value())
+  {
+    tokenWipeTransaction.setAmount(Hiero::internal::EntityIdHelper::getNum(params.mAmount.value()));
+  }
+
+  if (params.mSerialNumbers.has_value())
+  {
+    std::vector<uint64_t> serialNumbers;
+    for (const std::string& serialNumber : params.mSerialNumbers.value())
+    {
+      serialNumbers.push_back(internal::EntityIdHelper::getNum(serialNumber));
+    }
+    tokenWipeTransaction.setSerialNumbers(serialNumbers);
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenWipeTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenWipeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
