@@ -344,19 +344,19 @@ const std::unordered_map<proto::ResponseCodeEnum, Status> gProtobufResponseCodeT
   { proto::ResponseCodeEnum::FQDN_SIZE_TOO_LARGE,                                            Status::FQDN_SIZE_TOO_LARGE                    },
   { proto::ResponseCodeEnum::INVALID_ENDPOINT,                                               Status::INVALID_ENDPOINT                       },
   { proto::ResponseCodeEnum::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT,                                Status::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT        },
-  { proto::ResponseCodeEnum::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME, 
+  { proto::ResponseCodeEnum::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME,
    Status::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME                                                                      },
-  { proto::ResponseCodeEnum::SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE,                     
+  { proto::ResponseCodeEnum::SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE,
    Status::SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE                                                                                       },
   { proto::ResponseCodeEnum::SCHEDULE_EXPIRY_IS_BUSY,                                        Status::SCHEDULE_EXPIRY_IS_BUSY                },
   { proto::ResponseCodeEnum::MISSING_EXPIRY_TIME,                                            Status::MISSING_EXPIRY_TIME                    },
-  { proto::ResponseCodeEnum::NO_SCHEDULING_ALLOWED_AFTER_SCHEDULED_RECURSION,                
+  { proto::ResponseCodeEnum::NO_SCHEDULING_ALLOWED_AFTER_SCHEDULED_RECURSION,
    Status::NO_SCHEDULING_ALLOWED_AFTER_SCHEDULED_RECURSION                                                                                  },
   { proto::ResponseCodeEnum::RECURSIVE_SCHEDULING_LIMIT_REACHED,                             Status::RECURSIVE_SCHEDULING_LIMIT_REACHED     },
   { proto::ResponseCodeEnum::WAITING_FOR_LEDGER_ID,                                          Status::WAITING_FOR_LEDGER_ID                  },
-  { proto::ResponseCodeEnum::MAX_ENTRIES_FOR_FEE_EXEMPT_KEY_LIST_EXCEEDED,                   
+  { proto::ResponseCodeEnum::MAX_ENTRIES_FOR_FEE_EXEMPT_KEY_LIST_EXCEEDED,
    Status::MAX_ENTRIES_FOR_FEE_EXEMPT_KEY_LIST_EXCEEDED                                                                                     },
-  { proto::ResponseCodeEnum::FEE_EXEMPT_KEY_LIST_CONTAINS_DUPLICATED_KEYS,                   
+  { proto::ResponseCodeEnum::FEE_EXEMPT_KEY_LIST_CONTAINS_DUPLICATED_KEYS,
    Status::FEE_EXEMPT_KEY_LIST_CONTAINS_DUPLICATED_KEYS                                                                                     },
   { proto::ResponseCodeEnum::INVALID_KEY_IN_FEE_EXEMPT_KEY_LIST,                             Status::INVALID_KEY_IN_FEE_EXEMPT_KEY_LIST     },
   { proto::ResponseCodeEnum::INVALID_FEE_SCHEDULE_KEY,                                       Status::INVALID_FEE_SCHEDULE_KEY               },
@@ -365,12 +365,11 @@ const std::unordered_map<proto::ResponseCodeEnum, Status> gProtobufResponseCodeT
   { proto::ResponseCodeEnum::MAX_CUSTOM_FEE_LIMIT_EXCEEDED,                                  Status::MAX_CUSTOM_FEE_LIMIT_EXCEEDED          },
   { proto::ResponseCodeEnum::NO_VALID_MAX_CUSTOM_FEE,                                        Status::NO_VALID_MAX_CUSTOM_FEE                },
   { proto::ResponseCodeEnum::INVALID_MAX_CUSTOM_FEES,                                        Status::INVALID_MAX_CUSTOM_FEES                },
-  { proto::ResponseCodeEnum::DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST,                  
+  { proto::ResponseCodeEnum::DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST,
    Status::DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST                                                                                    },
-  { proto::ResponseCodeEnum::DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST,                    
+  { proto::ResponseCodeEnum::DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST,
    Status::DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST                                                                                      },
   { proto::ResponseCodeEnum::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED,                               Status::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED       }
-
 };
 
 //-----
@@ -712,19 +711,19 @@ const std::unordered_map<Status, proto::ResponseCodeEnum> gStatusToProtobufRespo
   { Status::FQDN_SIZE_TOO_LARGE,                                            proto::ResponseCodeEnum::FQDN_SIZE_TOO_LARGE                    },
   { Status::INVALID_ENDPOINT,                                               proto::ResponseCodeEnum::INVALID_ENDPOINT                       },
   { Status::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT,                                proto::ResponseCodeEnum::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT        },
-  { Status::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME,    
+  { Status::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME,
    proto::ResponseCodeEnum::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME                                                     },
-  { Status::SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE,                                       
+  { Status::SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE,
    proto::ResponseCodeEnum::SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE                                                                      },
   { Status::SCHEDULE_EXPIRY_IS_BUSY,                                        proto::ResponseCodeEnum::SCHEDULE_EXPIRY_IS_BUSY                },
   { Status::MISSING_EXPIRY_TIME,                                            proto::ResponseCodeEnum::MISSING_EXPIRY_TIME                    },
-  { Status::NO_SCHEDULING_ALLOWED_AFTER_SCHEDULED_RECURSION,           
+  { Status::NO_SCHEDULING_ALLOWED_AFTER_SCHEDULED_RECURSION,
    proto::ResponseCodeEnum::NO_SCHEDULING_ALLOWED_AFTER_SCHEDULED_RECURSION                                                                 },
   { Status::RECURSIVE_SCHEDULING_LIMIT_REACHED,                             proto::ResponseCodeEnum::RECURSIVE_SCHEDULING_LIMIT_REACHED     },
   { Status::WAITING_FOR_LEDGER_ID,                                          proto::ResponseCodeEnum::WAITING_FOR_LEDGER_ID                  },
-  { Status::MAX_ENTRIES_FOR_FEE_EXEMPT_KEY_LIST_EXCEEDED,                   
+  { Status::MAX_ENTRIES_FOR_FEE_EXEMPT_KEY_LIST_EXCEEDED,
    proto::ResponseCodeEnum::MAX_ENTRIES_FOR_FEE_EXEMPT_KEY_LIST_EXCEEDED                                                                    },
-  { Status::FEE_EXEMPT_KEY_LIST_CONTAINS_DUPLICATED_KEYS,                   
+  { Status::FEE_EXEMPT_KEY_LIST_CONTAINS_DUPLICATED_KEYS,
    proto::ResponseCodeEnum::FEE_EXEMPT_KEY_LIST_CONTAINS_DUPLICATED_KEYS                                                                    },
   { Status::INVALID_KEY_IN_FEE_EXEMPT_KEY_LIST,                             proto::ResponseCodeEnum::INVALID_KEY_IN_FEE_EXEMPT_KEY_LIST     },
   { Status::INVALID_FEE_SCHEDULE_KEY,                                       proto::ResponseCodeEnum::INVALID_FEE_SCHEDULE_KEY               },
@@ -733,12 +732,11 @@ const std::unordered_map<Status, proto::ResponseCodeEnum> gStatusToProtobufRespo
   { Status::MAX_CUSTOM_FEE_LIMIT_EXCEEDED,                                  proto::ResponseCodeEnum::MAX_CUSTOM_FEE_LIMIT_EXCEEDED          },
   { Status::NO_VALID_MAX_CUSTOM_FEE,                                        proto::ResponseCodeEnum::NO_VALID_MAX_CUSTOM_FEE                },
   { Status::INVALID_MAX_CUSTOM_FEES,                                        proto::ResponseCodeEnum::INVALID_MAX_CUSTOM_FEES                },
-  { Status::DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST,                  
+  { Status::DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST,
    proto::ResponseCodeEnum::DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST                                                                   },
-  { Status::DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST,                    
+  { Status::DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST,
    proto::ResponseCodeEnum::DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST                                                                     },
   { Status::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED,                               proto::ResponseCodeEnum::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED       }
-
 };
 
 //-----
@@ -1062,7 +1060,7 @@ const std::unordered_map<Status, std::string> gStatusToString = {
   { Status::FQDN_SIZE_TOO_LARGE,                                            "FQDN_SIZE_TOO_LARGE"                               },
   { Status::INVALID_ENDPOINT,                                               "INVALID_ENDPOINT"                                  },
   { Status::GOSSIP_ENDPOINTS_EXCEEDED_LIMIT,                                "GOSSIP_ENDPOINTS_EXCEEDED_LIMIT"                   },
-  { Status::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME,                  
+  { Status::SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME,
    "SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME"                                                                },
   { Status::SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE,                     "SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE"        },
   { Status::SCHEDULE_EXPIRY_IS_BUSY,                                        "SCHEDULE_EXPIRY_IS_BUSY"                           },
@@ -1082,8 +1080,6 @@ const std::unordered_map<Status, std::string> gStatusToString = {
   { Status::DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST,                  "DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST"     },
   { Status::DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST,                    "DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST"       },
   { Status::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED,                               "MAX_CUSTOM_FEES_IS_NOT_SUPPORTED"                  }
-
-
 };
 
 } // namespace Hiero
