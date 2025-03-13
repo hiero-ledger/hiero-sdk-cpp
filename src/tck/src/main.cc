@@ -27,6 +27,7 @@ int main(int argc, char** argv)
   tckServer.add("createAccount", tckServer.getHandle(&AccountService::createAccount));
   tckServer.add("deleteAccount", tckServer.getHandle(&AccountService::deleteAccount));
   tckServer.add("deleteAllowance", tckServer.getHandle(&AccountService::deleteAllowance));
+  tckServer.add("transferCrypto", tckServer.getHandle(&AccountService::transferCrypto));
   tckServer.add("updateAccount", tckServer.getHandle(&AccountService::updateAccount));
 
   // Add the TokenService functions.

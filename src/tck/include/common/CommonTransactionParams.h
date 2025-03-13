@@ -36,7 +36,15 @@ struct CommonTransactionParams
   {
     if (mTransactionId.has_value())
     {
-      transaction.setTransactionId(TransactionId::fromString(mTransactionId.value()));
+      // Transaction ID could be the entire transaction ID, or just the account ID of the payer.
+      try
+      {
+        transaction.setTransactionId(TransactionId::fromString(mTransactionId.value()));
+      }
+      catch (const std::invalid_argument&)
+      {
+        transaction.setTransactionId(TransactionId::generate(AccountId::fromString(mTransactionId.value())));
+      }
     }
 
     if (mMaxTransactionFee.has_value())
