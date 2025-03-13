@@ -252,6 +252,12 @@ void TokenCreateTransaction::validateChecksums(const Client& client) const
 void TokenCreateTransaction::addToBody(proto::TransactionBody& body) const
 {
   body.set_allocated_tokencreation(build());
+
+  if (body.has_transactionid() && !body.tokencreation().has_autorenewaccount())
+  {
+    std::unique_ptr<proto::AccountID> accountId = std::make_unique<proto::AccountID>(body.transactionid().accountid());
+    body.mutable_tokencreation()->set_allocated_autorenewaccount(accountId.release());
+  }
 }
 
 //-----

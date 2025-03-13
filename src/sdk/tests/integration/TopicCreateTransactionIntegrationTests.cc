@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+#include "AccountCreateTransaction.h"
 #include "AccountDeleteTransaction.h"
 #include "BaseIntegrationTest.h"
 #include "CustomFixedFee.h"
@@ -157,4 +158,79 @@ TEST_F(TopicCreateTransactionIntegrationTests, RevenueGeneratingTopicCannotCreat
                  .execute(getTestClient())
                  .getReceipt(getTestClient()),
                ReceiptStatusException); // MAX_ENTRIES_FOR_FEE_EXEMPT_KEY_LIST_EXCEEDED
+}
+
+//-----
+TEST_F(TopicCreateTransactionIntegrationTests, AutoSetAutoRenewAccount)
+{
+  // Given
+  const std::string memo = "topic create test memo";
+  const std::chrono::system_clock::duration autoRenewPeriod = DEFAULT_AUTO_RENEW_PERIOD + std::chrono::hours(10);
+
+  std::shared_ptr<PrivateKey> operatorKey;
+  ASSERT_NO_THROW(
+    operatorKey = ED25519PrivateKey::fromString(
+      "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"));
+
+  // When
+  TransactionReceipt txReceipt;
+  EXPECT_NO_THROW(txReceipt = TopicCreateTransaction()
+                                .setMemo(memo)
+                                .setAdminKey(operatorKey)
+                                .setSubmitKey(operatorKey)
+                                .setAutoRenewPeriod(autoRenewPeriod)
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient()));
+
+  // Then
+  TopicInfo topicInfo;
+  ASSERT_NO_THROW(topicInfo = TopicInfoQuery().setTopicId(txReceipt.mTopicId.value()).execute(getTestClient()));
+
+  ASSERT_TRUE(topicInfo.mAutoRenewAccountId.has_value());
+  EXPECT_EQ(topicInfo.mAutoRenewAccountId.value(), AccountId(2ULL));
+}
+
+//-----
+TEST_F(TopicCreateTransactionIntegrationTests, DoesNotAutoSetAutoRenewAccount)
+{
+  // Given
+  const std::string memo = "topic create test memo";
+  const std::chrono::system_clock::duration autoRenewPeriod = DEFAULT_AUTO_RENEW_PERIOD + std::chrono::hours(10);
+
+  std::shared_ptr<PrivateKey> operatorKey;
+  ASSERT_NO_THROW(
+    operatorKey = ED25519PrivateKey::fromString(
+      "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"));
+
+  std::shared_ptr<PrivateKey> accountKey;
+  ASSERT_NO_THROW(accountKey = ED25519PrivateKey::generatePrivateKey());
+
+  AccountId accountId;
+  ASSERT_NO_THROW(accountId = AccountCreateTransaction()
+                                .setKeyWithoutAlias(accountKey)
+                                .setInitialBalance(Hbar(5LL))
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient())
+                                .mAccountId.value());
+
+  // When
+  TransactionReceipt txReceipt;
+  EXPECT_NO_THROW(txReceipt = TopicCreateTransaction()
+                                .setMemo(memo)
+                                .setAdminKey(operatorKey)
+                                .setSubmitKey(operatorKey)
+                                .setAutoRenewPeriod(autoRenewPeriod)
+                                .setAutoRenewAccountId(accountId)
+                                .freezeWith(&getTestClient())
+                                .sign(operatorKey)
+                                .sign(accountKey)
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient()));
+
+  // Then
+  TopicInfo topicInfo;
+  ASSERT_NO_THROW(topicInfo = TopicInfoQuery().setTopicId(txReceipt.mTopicId.value()).execute(getTestClient()));
+
+  ASSERT_TRUE(topicInfo.mAutoRenewAccountId.has_value());
+  EXPECT_EQ(topicInfo.mAutoRenewAccountId.value(), accountId);
 }
