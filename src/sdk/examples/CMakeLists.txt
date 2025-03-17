@@ -63,6 +63,7 @@ set(TRANSFER_TOKENS_EXAMPLE_NAME ${PROJECT_NAME}-transfer-tokens-example)
 set(TRANSFER_USING_EVM_ADDRESS_EXAMPLE_NAME ${PROJECT_NAME}-transfer-using-evm-address-example)
 set(UPDATE_ACCOUNT_PUBLIC_KEY_EXAMPLE_NAME ${PROJECT_NAME}-update-account-public-key-example)
 set(VALIDATE_CHECKSUM_EXAMPLE_NAME ${PROJECT_NAME}-validate-checksum-example)
+set(VERSION_EXAMPLE_NAME ${PROJECT_NAME}-version-example)
 set(ZERO_TOKEN_OPERATIONS_EXAMPLE_NAME ${PROJECT_NAME}-zero-token-operations-example)
 
 add_executable(${ACCOUNT_ALIAS_EXAMPLE_NAME} AccountAliasExample.cc)
@@ -121,6 +122,7 @@ add_executable(${TRANSFER_TOKENS_EXAMPLE_NAME} TransferTokensExample.cc)
 add_executable(${TRANSFER_USING_EVM_ADDRESS_EXAMPLE_NAME} TransferUsingEvmAddressExample.cc)
 add_executable(${UPDATE_ACCOUNT_PUBLIC_KEY_EXAMPLE_NAME} UpdateAccountPublicKeyExample.cc)
 add_executable(${VALIDATE_CHECKSUM_EXAMPLE_NAME} ValidateChecksumExample.cc)
+add_executable(${VERSION_EXAMPLE_NAME} VersionExample.cc)
 add_executable(${ZERO_TOKEN_OPERATIONS_EXAMPLE_NAME} ZeroTokenOperationsExample.cc)
 
 file(COPY ${PROJECT_SOURCE_DIR}/addressbook/mainnet.pb
@@ -201,6 +203,7 @@ target_link_libraries(${TRANSFER_TOKENS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${TRANSFER_USING_EVM_ADDRESS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${UPDATE_ACCOUNT_PUBLIC_KEY_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${VALIDATE_CHECKSUM_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${VERSION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${ZERO_TOKEN_OPERATIONS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE} DESTINATION examples FILES_MATCHING PATTERN *)
@@ -259,5 +262,6 @@ install(TARGETS
         ${TRANSFER_USING_EVM_ADDRESS_EXAMPLE_NAME}
         ${UPDATE_ACCOUNT_PUBLIC_KEY_EXAMPLE_NAME}
         ${VALIDATE_CHECKSUM_EXAMPLE_NAME}
+        ${VERSION_EXAMPLE_NAME}
         ${ZERO_TOKEN_OPERATIONS_EXAMPLE_NAME}
         RUNTIME DESTINATION examples)
