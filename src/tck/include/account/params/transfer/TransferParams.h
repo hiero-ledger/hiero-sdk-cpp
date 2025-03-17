@@ -65,9 +65,10 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::TransferParam
     params.mApproved = Hiero::TCK::getOptionalJsonParameter<bool>(jsonFrom, "approved");
 
     // Only one allowance type should be allowed.
-    if ((!params.mHbar.has_value() || params.mToken.has_value() || params.mNft.has_value()) &&
-        (params.mHbar.has_value() || !params.mToken.has_value() || params.mNft.has_value()) &&
-        (params.mHbar.has_value() || params.mToken.has_value() || !params.mNft.has_value()))
+    const bool hasOnlyHbar = params.mHbar.has_value() && !params.mToken.has_value() && !params.mNft.has_value();
+    const bool hasOnlyToken = !params.mHbar.has_value() && params.mToken.has_value() && !params.mNft.has_value();
+    const bool hasOnlyNft = !params.mHbar.has_value() && !params.mToken.has_value() && params.mNft.has_value();
+    if (!hasOnlyHbar && !hasOnlyToken && !hasOnlyNft)
     {
       throw Hiero::TCK::JsonRpcException(Hiero::TCK::JsonErrorType::INVALID_PARAMS,
                                          "invalid parameters: only one type of transfer SHALL be provided.");
