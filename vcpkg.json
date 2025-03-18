@@ -24,10 +24,6 @@
       "version>=": "1.49.0"
     },
     {
-      "name": "upb",
-      "version>=": "2022-06-21"
-    },
-    {
       "name": "nlohmann-json"
     },
     {
