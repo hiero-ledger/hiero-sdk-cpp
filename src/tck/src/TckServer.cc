@@ -26,6 +26,7 @@
 #include "token/params/UnpauseTokenParams.h"
 #include "token/params/UpdateTokenFeeScheduleParams.h"
 #include "token/params/UpdateTokenParams.h"
+#include "token/params/WipeTokenParams.h"
 #include "json/JsonErrorType.h"
 #include "json/JsonRpcException.h"
 #include "json/JsonUtils.h"
@@ -397,5 +398,7 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::UpdateTokenF
   nlohmann::json (*method)(const TokenService::UpdateTokenFeeScheduleParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::UpdateTokenParams>(
   nlohmann::json (*method)(const TokenService::UpdateTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::WipeTokenParams>(
+  nlohmann::json (*method)(const TokenService::WipeTokenParams&));
 
 } // namespace Hiero::TCK
