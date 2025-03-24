@@ -2,6 +2,7 @@
 #include "token/TokenService.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
+#include "token/params/AirdropTokenParams.h"
 #include "token/params/AssociateTokenParams.h"
 #include "token/params/BurnTokenParams.h"
 #include "token/params/CreateTokenParams.h"
@@ -21,6 +22,7 @@
 
 #include <AccountId.h>
 #include <Status.h>
+#include <TokenAirdropTransaction.h>
 #include <TokenAssociateTransaction.h>
 #include <TokenBurnTransaction.h>
 #include <TokenCreateTransaction.h>
@@ -52,6 +54,79 @@
 
 namespace Hiero::TCK::TokenService
 {
+//-----
+nlohmann::json airdropToken(const AirdropTokenParams& params)
+{
+  TokenAirdropTransaction tokenAirdropTransaction;
+  tokenAirdropTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenTransfers.has_value())
+  {
+    for (const TransferParams& txParams : params.mTokenTransfers.value())
+    {
+      const bool approved = txParams.mApproved.has_value() && txParams.mApproved.value();
+
+      if (txParams.mToken.has_value())
+      {
+        const AccountId accountId = AccountId::fromString(txParams.mToken->mAccountId);
+        const TokenId tokenId = TokenId::fromString(txParams.mToken->mTokenId);
+        const auto amount = internal::EntityIdHelper::getNum<int64_t>(txParams.mToken->mAmount);
+
+        if (txParams.mToken->mDecimals.has_value())
+        {
+          const uint32_t decimals = txParams.mToken->mDecimals.value();
+          if (approved)
+          {
+            tokenAirdropTransaction.addApprovedTokenTransferWithDecimals(tokenId, accountId, amount, decimals);
+          }
+          else
+          {
+            tokenAirdropTransaction.addTokenTransferWithDecimals(tokenId, accountId, amount, decimals);
+          }
+        }
+        else
+        {
+          if (approved)
+          {
+            tokenAirdropTransaction.addApprovedTokenTransfer(tokenId, accountId, amount);
+          }
+          else
+          {
+            tokenAirdropTransaction.addTokenTransfer(tokenId, accountId, amount);
+          }
+        }
+      }
+      else
+      {
+        const AccountId senderAccountId = AccountId::fromString(txParams.mNft->mSenderAccountId);
+        const AccountId receiverAccountId = AccountId::fromString(txParams.mNft->mReceiverAccountId);
+        const NftId nftId = NftId(TokenId::fromString(txParams.mNft->mTokenId),
+                                  internal::EntityIdHelper::getNum(txParams.mNft->mSerialNumber));
+
+        if (approved)
+        {
+          tokenAirdropTransaction.addApprovedNftTransfer(nftId, senderAccountId, receiverAccountId);
+        }
+        else
+        {
+          tokenAirdropTransaction.addNftTransfer(nftId, senderAccountId, receiverAccountId);
+        }
+      }
+    }
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenAirdropTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenAirdropTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
 //-----
 nlohmann::json associateToken(const AssociateTokenParams& params)
 {

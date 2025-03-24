@@ -9,6 +9,7 @@ namespace Hiero::TCK::TokenService
 /**
  * Forward declarations.
  */
+struct AirdropTokenParams;
 struct AssociateTokenParams;
 struct BurnTokenParams;
 struct CreateTokenParams;
@@ -23,6 +24,14 @@ struct UnfreezeTokenParams;
 struct UnpauseTokenParams;
 struct UpdateTokenFeeScheduleParams;
 struct UpdateTokenParams;
+
+/**
+ * Airdrop tokens to accounts.
+ *
+ * @params params The parameters to use to airdrop tokens.
+ * @return A JSON response containing the status of the token airdrop.
+ */
+nlohmann::json airdropToken(const AirdropTokenParams& params);
 
 /**
  * Associate an account with tokens.
