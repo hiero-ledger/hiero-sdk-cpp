@@ -322,17 +322,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         absl::time_zone)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-        upb::upb
-        upb::descriptor_upb_proto
-        upb::extension_registry
-        upb::fastdecode
-        upb::json
-        upb::mini_table
-        upb::reflection
-        upb::textformat
-        upb::utf8_range)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
         c-ares::cares
         re2::re2
         ${ZLIB_LIBRARIES})
