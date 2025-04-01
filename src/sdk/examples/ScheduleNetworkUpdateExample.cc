@@ -34,5 +34,20 @@ int main(int argc, char** argv)
   client.setNetworkUpdatePeriod(newNetworkUpdatePeriod);
   std::cout << "Changed the network update period to " << defaultNetworkUpdatePeriod.count() << " hour" << std::endl;
 
+  /*
+   * Step 3: Wait for 1 hour
+   */
+  std::cout << "Waiting for 1 hour..." << std::endl;
+  std::this_thread::sleep_for(std::chrono::hours(1));
+  std::cout << "1 hour elapsed." << std::endl;
+
+  /*
+   * Step 4: Display client network
+   */
+  for (const auto node : client.getNetwork())
+  {
+    std::cout << "Node address: " << node.first << " Node account: " << node.second.toString() << std::endl;
+  }
+
   return 0;
 }
