@@ -1106,6 +1106,7 @@ void Client::cancelScheduledNetworkUpdate()
   {
     mImpl->mNetworkUpdateThread->join();
   }
+
   // The thread is finished executing, so it's safe to reset the network update thread.
   mImpl->mNetworkUpdateThread = nullptr;
 
