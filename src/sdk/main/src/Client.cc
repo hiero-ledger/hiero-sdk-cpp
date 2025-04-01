@@ -1082,7 +1082,6 @@ void Client::scheduleNetworkUpdate()
         break;
       }
     }
-
     // The network update was cancelled, stop looping.
     else
     {

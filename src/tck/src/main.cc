@@ -46,6 +46,7 @@ int main(int argc, char** argv)
   tckServer.add("unfreezeToken", tckServer.getHandle(&TokenService::unfreezeToken));
   tckServer.add("updateTokenFeeSchedule", tckServer.getHandle(&TokenService::updateTokenFeeSchedule));
   tckServer.add("updateToken", tckServer.getHandle(&TokenService::updateToken));
+  tckServer.add("wipeToken", tckServer.getHandle(&TokenService::wipeToken));
 
   // Start listening for requests.
   tckServer.startServer();
