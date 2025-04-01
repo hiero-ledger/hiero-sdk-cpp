@@ -571,9 +571,8 @@ std::optional<std::function<std::vector<std::byte>(const std::vector<std::byte>&
 
 void Client::close()
 {
-  cancelScheduledNetworkUpdate();
-
   std::unique_lock lock(mImpl->mMutex);
+  cancelScheduledNetworkUpdate();
 
   std::for_each(mImpl->mSubscriptions.begin(),
                 mImpl->mSubscriptions.end(),
@@ -716,10 +715,10 @@ Logger Client::getLogger() const
 //-----
 Client& Client::setNetworkUpdatePeriod(const std::chrono::system_clock::duration& update)
 {
+  std::unique_lock lock(mImpl->mMutex);
+
   // Cancel any previous network updates and wait for the thread to complete.
   cancelScheduledNetworkUpdate();
-
-  std::unique_lock lock(mImpl->mMutex);
 
   // Update the network update period.
   mImpl->mNetworkUpdatePeriod = update;
@@ -1059,20 +1058,18 @@ void Client::scheduleNetworkUpdate()
   // Network updates should keep occurring until they're cancelled.
   while (true)
   {
-    std::cout << "waiting for network update" << std::endl;
     if (std::unique_lock lock(mImpl->mMutex); !mImpl->mConditionVariable.wait_for(
           lock, mImpl->mNetworkUpdatePeriod, [this]() { return mImpl->mCancelUpdate; }))
     {
       try
       {
-        std::cout << "Network update" << std::endl;
         // Get the address book and set the network based on the address book.
         setNetworkFromAddressBookInternal(AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(*this));
 
         // Adjust the network update period if this is the initial update.
         if (!mImpl->mMadeInitialNetworkUpdate)
         {
-          mImpl->mNetworkUpdatePeriod = mImpl->mNetworkUpdatePeriod;
+          mImpl->mNetworkUpdatePeriod = DEFAULT_NETWORK_UPDATE_PERIOD;
           mImpl->mMadeInitialNetworkUpdate = true;
         }
 

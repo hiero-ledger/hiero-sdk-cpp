@@ -16,19 +16,23 @@ int main(int argc, char** argv)
   const AccountId operatorAccountId = AccountId::fromString(std::getenv("OPERATOR_ID"));
   const std::shared_ptr<PrivateKey> operatorPrivateKey = ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
 
-  // Get a client for the Hiero testnet, and set the operator account ID and key such that all generated transactions
-  // will be paid for by this account and be signed by this key.
+  /*
+   * Step 1: Initialize the client.
+   * Note: By default, the first network address book update will be executed now
+   * and subsequent updates will occur every 24 hours.
+   * This is controlled by network update period, which defaults to 24 hours.
+   */
   Client client = Client::forTestnet();
 
-  const auto period = std::chrono::seconds(10);
-  client.setNetworkUpdatePeriod(period);
+  const auto defaultNetworkUpdatePeriod = client.getNetworkUpdatePeriod();
+  std::cout << "The network update period is " << defaultNetworkUpdatePeriod.count() << " seconds" << std::endl;
 
-  const auto sleepPeriod = std::chrono::seconds(1);
-  while (true)
-  {
-    std::this_thread::sleep_for(sleepPeriod);
-    std::cout << sleepPeriod.count() << std::endl;
-  }
+  /*
+   * Step 2: Change network update period to 1 hour
+   */
+  const auto newNetworkUpdatePeriod = std::chrono::hours(1);
+  client.setNetworkUpdatePeriod(newNetworkUpdatePeriod);
+  std::cout << "Changed the network update period to " << defaultNetworkUpdatePeriod.count() << " hour" << std::endl;
 
   return 0;
 }
