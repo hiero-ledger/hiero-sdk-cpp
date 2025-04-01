@@ -725,7 +725,7 @@ Client& Client::setNetworkUpdatePeriod(const std::chrono::system_clock::duration
 
   // If this was called before the initial network update was made, the initial update should be skipped.
   mImpl->mMadeInitialNetworkUpdate = true;
-  //
+
   // Start the thread with the new network update period.
   startNetworkUpdateThread(mImpl->mNetworkUpdatePeriod);
   return *this;
@@ -1049,7 +1049,7 @@ void Client::startNetworkUpdateThread(const std::chrono::system_clock::duration&
 {
   mImpl->mStartNetworkUpdateWaitTime = std::chrono::system_clock::now();
   mImpl->mNetworkUpdatePeriod = period;
-  mImpl->mNetworkUpdateThread = std::make_unique<std::thread>(&Client::scheduleNetworkUpdate, this);
+  // mImpl->mNetworkUpdateThread = std::make_unique<std::thread>(&Client::scheduleNetworkUpdate, this);
 }
 
 //-----
