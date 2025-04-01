@@ -16,9 +16,6 @@ using namespace Hiero;
 class ContractCreateFlowUnitTests : public ::testing::Test
 {
 protected:
-  void SetUp() override { mClient.setOperator(AccountId(), ED25519PrivateKey::generatePrivateKey()); }
-
-  [[nodiscard]] inline const Client& getTestClient() const { return mClient; }
   [[nodiscard]] inline const std::vector<std::byte>& getTestBytecode() const { return mTestBytecode; }
   [[nodiscard]] inline const std::shared_ptr<PublicKey>& getTestAdminKey() const { return mTestAdminKey; }
   [[nodiscard]] inline const uint64_t& getTestGas() const { return mTestGas; }
@@ -41,7 +38,6 @@ protected:
   [[nodiscard]] inline unsigned int getTestMaxChunks() const { return mTestMaxChunks; }
 
 private:
-  Client mClient;
   const std::vector<std::byte> mTestBytecode = { std::byte(0x02), std::byte(0x03), std::byte(0x04) };
   const std::shared_ptr<PublicKey> mTestAdminKey = PublicKey::fromStringDer(
     "302A300506032B6570032100BCAF3153262A767B281CC8C888DB3E097C83D690AEF01B8C1BE64D3DE11AACC3");
