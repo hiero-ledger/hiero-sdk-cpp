@@ -81,10 +81,10 @@ MirrorNodeContractQuery& MirrorNodeContractQuery::setEstimate(bool estimate)
 //-----
 void MirrorNodeContractQuery::populateContractEvmAddress(const Client& client)
 {
-  const json contractInfo = internal::MirrorNodeGateway::MirrorNodeQuery(
-    client.getClientMirrorNetwork()->getNetwork()[0],
-    {getContractId().value().toString()},
-    internal::MirrorNodeGateway::CONTRACT_INFO_QUERY);
+  const json contractInfo =
+    internal::MirrorNodeGateway::MirrorNodeQuery(client.getClientMirrorNetwork()->getNetwork()[0],
+                                                 { getContractId().value().toString() },
+                                                 internal::MirrorNodeGateway::CONTRACT_INFO_QUERY);
 
   if (contractInfo.contains("evm_address"))
   {
