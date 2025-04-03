@@ -36,8 +36,27 @@ permissions:
   contents: read
 
 jobs:
+  get-modified-files:
+    name: Get Modified Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          submodules: true
+
+      - name: Get modified files
+        id: modified-files
+        run: |
+          # Get the list of changed files in this PR
+          files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.cc' '*.h')
+          echo "Modified files: $files"
+          echo "modified_files=$files" >> $GITHUB_ENV
+          echo "::set-output name=modified_files::$files"  # Set as output for passing to other jobs
+
   build:
     name: Build
+    needs: get-modified-files
     runs-on: hiero-client-sdk-linux-large
 
     env:
@@ -100,20 +119,12 @@ jobs:
         with:
           submodules: true
 
-      - name: Get modified files
-        id: modified-files
-        run: |
-            # Get the list of changed files in this PR
-            files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.cc' '*.h')
-            echo "Modified files: $files"
-            echo "modified_files=$files" >> $GITHUB_ENV
-  
       - name: Run Clang-Format on Modified Files
-        if: env.modified_files != ''
+        if: needs.get-modified-files.outputs.modified_files != ''
         uses: jidicula/clang-format-action@c74383674bf5f7c69f60ce562019c1c94bc1421a # v4.13.0
-          with:
-            clang-format-version: "17"
-            check-path: ${{ env.modified_files }}  # Only run clang-format on modified files
+        with:
+          clang-format-version: "17"
+          check-path: ${{ needs.get-modified-files.outputs.modified_files }} # Only run clang-format on modified files
 
       - name: Use Node.js 22
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
