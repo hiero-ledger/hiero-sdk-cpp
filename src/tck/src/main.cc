@@ -31,6 +31,7 @@ int main(int argc, char** argv)
   tckServer.add("updateAccount", tckServer.getHandle(&AccountService::updateAccount));
 
   // Add the TokenService functions.
+  tckServer.add("airdropToken", tckServer.getHandle(&TokenService::airdropToken));
   tckServer.add("associateToken", tckServer.getHandle(&TokenService::associateToken));
   tckServer.add("burnToken", tckServer.getHandle(&TokenService::burnToken));
   tckServer.add("createToken", tckServer.getHandle(&TokenService::createToken));

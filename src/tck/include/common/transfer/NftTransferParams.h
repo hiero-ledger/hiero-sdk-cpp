@@ -7,7 +7,7 @@
 #include <optional>
 #include <string>
 
-namespace Hiero::TCK::AccountService
+namespace Hiero::TCK
 {
 /**
  * Struct that contains the parameters of an NFT transfer.
@@ -35,7 +35,7 @@ struct NftTransferParams
   std::string mSerialNumber;
 };
 
-} // namespace Hiero::TCK::AccountService
+} // namespace Hiero::TCK
 
 namespace nlohmann
 {
@@ -43,7 +43,7 @@ namespace nlohmann
  * JSON serializer template specialization required to convert NftTransferParams arguments properly.
  */
 template<>
-struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::NftTransferParams>
+struct [[maybe_unused]] adl_serializer<Hiero::TCK::NftTransferParams>
 {
   /**
    * Convert a JSON object to a NftTransferParams.
@@ -51,7 +51,7 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::NftTransferPa
    * @param jsonFrom The JSON object with which to fill the NftTransferParams.
    * @param params   The NftTransferParams to fill with the JSON object.
    */
-  static void from_json(const json& jsonFrom, Hiero::TCK::AccountService::NftTransferParams& params)
+  static void from_json(const json& jsonFrom, Hiero::TCK::NftTransferParams& params)
   {
     params.mSenderAccountId = Hiero::TCK::getRequiredJsonParameter<std::string>(jsonFrom, "senderAccountId");
     params.mReceiverAccountId = Hiero::TCK::getRequiredJsonParameter<std::string>(jsonFrom, "receiverAccountId");

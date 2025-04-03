@@ -12,6 +12,7 @@
 #include "key/params/GenerateKeyParams.h"
 #include "sdk/params/ResetParams.h"
 #include "sdk/params/SetupParams.h"
+#include "token/params/AirdropTokenParams.h"
 #include "token/params/AssociateTokenParams.h"
 #include "token/params/BurnTokenParams.h"
 #include "token/params/CreateTokenParams.h"
@@ -370,6 +371,8 @@ template TckServer::MethodHandle TckServer::getHandle<SdkClient::ResetParams>(
 template TckServer::MethodHandle TckServer::getHandle<SdkClient::SetupParams>(
   nlohmann::json (*method)(const SdkClient::SetupParams&));
 
+template TckServer::MethodHandle TckServer::getHandle<TokenService::AirdropTokenParams>(
+  nlohmann::json (*method)(const TokenService::AirdropTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::AssociateTokenParams>(
   nlohmann::json (*method)(const TokenService::AssociateTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::BurnTokenParams>(

@@ -2,8 +2,8 @@
 #ifndef HIERO_TCK_CPP_TRANSFER_CRYPTO_PARAMS_H_
 #define HIERO_TCK_CPP_TRANSFER_CRYPTO_PARAMS_H_
 
-#include "account/params/transfer/TransferParams.h"
 #include "common/CommonTransactionParams.h"
+#include "common/transfer/TransferParams.h"
 #include "json/JsonUtils.h"
 
 #include <optional>
@@ -17,7 +17,7 @@ namespace Hiero::TCK::AccountService
 struct TransferCryptoParams
 {
   /**
-   * The desired key for the account.
+   * The transfer information.
    */
   std::optional<std::vector<TransferParams>> mTransfers;
 
@@ -45,8 +45,8 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::TransferCrypt
    */
   static void from_json(const json& jsonFrom, Hiero::TCK::AccountService::TransferCryptoParams& params)
   {
-    params.mTransfers = Hiero::TCK::getOptionalJsonParameter<std::vector<Hiero::TCK::AccountService::TransferParams>>(
-      jsonFrom, "transfers");
+    params.mTransfers =
+      Hiero::TCK::getOptionalJsonParameter<std::vector<Hiero::TCK::TransferParams>>(jsonFrom, "transfers");
     params.mCommonTxParams =
       Hiero::TCK::getOptionalJsonParameter<Hiero::TCK::CommonTransactionParams>(jsonFrom, "commonTransactionParams");
   }
