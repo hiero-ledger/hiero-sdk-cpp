@@ -461,7 +461,6 @@ SdkRequestType& Transaction<SdkRequestType>::freezeWith(const Client* client)
   if (isFrozen())
   {
     return static_cast<SdkRequestType&>(*this);
-    int a;
   }
 
   if (!mImpl->mTransactionId.has_value())
