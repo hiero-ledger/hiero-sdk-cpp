@@ -36,31 +36,8 @@ permissions:
   contents: read
 
 jobs:
-  get-modified-files:
-    name: Get Modified Files
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          submodules: true
-
-      - name: Get modified files
-        id: modified-files
-        run: |
-          # Fetch the latest changes for main branch
-          git fetch origin main
-
-          # Get the list of changed files between the current commit and the main branch
-          files=$(git diff --name-only origin/main ${{ github.sha }} -- '*.cc' '*.h')
-
-          # Output the modified files
-          echo "Modified files: $files"
-          echo "::set-output name=modified_files::$files"  # Set as output for passing to other jobs
-
   build:
     name: Build
-    needs: get-modified-files
     runs-on: hiero-client-sdk-linux-large
 
     env:
@@ -123,12 +100,25 @@ jobs:
         with:
           submodules: true
 
+      - name: Get modified files
+        id: modified-files
+        run: |
+          # Fetch the latest changes for main branch
+          git fetch origin main
+
+          # Get the list of changed files between the current commit and the main branch
+          files=$(git diff --name-only origin/main ${{ github.sha }} -- '*.cc' '*.h')
+
+          # Output the modified files
+          echo "Modified files: $files"
+          echo "::set-output name=modified_files::$files"  # Set as output for passing to other jobs
+
       - name: Run Clang-Format on Modified Files
-        if: needs.get-modified-files.outputs.modified_files != ''
+        if: steps.modified-files.outputs.modified_files != ''
         uses: jidicula/clang-format-action@c74383674bf5f7c69f60ce562019c1c94bc1421a # v4.13.0
         with:
           clang-format-version: "17"
-          check-path: ${{ needs.get-modified-files.outputs.modified_files }} # Only run clang-format on modified files
+          check-path: ${{ steps.modified-files.outputs.modified_files }} # Only run clang-format on modified files
 
       - name: Use Node.js 22
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
