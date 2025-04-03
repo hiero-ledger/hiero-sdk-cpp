@@ -100,11 +100,20 @@ jobs:
         with:
           submodules: true
 
-      - name: Run Clang-Format
+      - name: Get modified files
+        id: modified-files
+        run: |
+            # Get the list of changed files in this PR
+            files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.cc' '*.h')
+            echo "Modified files: $files"
+            echo "modified_files=$files" >> $GITHUB_ENV
+  
+      - name: Run Clang-Format on Modified Files
+        if: env.modified_files != ''
         uses: jidicula/clang-format-action@c74383674bf5f7c69f60ce562019c1c94bc1421a # v4.13.0
-        with:
-          clang-format-version: "17"
-          check-path: "src"
+          with:
+            clang-format-version: "17"
+            check-path: ${{ env.modified_files }}  # Only run clang-format on modified files
 
       - name: Use Node.js 22
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
