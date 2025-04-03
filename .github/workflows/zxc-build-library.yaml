@@ -54,6 +54,12 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Run Clang-Format
+        uses: jidicula/clang-format-action@c74383674bf5f7c69f60ce562019c1c94bc1421a # v4.13.0
+        with:
+          clang-format-version: "17"
+          check-path: "src"
+
       - name: Setup Control Groups
         id: cgroup
         run: |
@@ -156,7 +162,7 @@ jobs:
         run: sudo npm install -g @hashgraph/solo@0.34.0
 
       - name: Install Solo Required Tools
-        run: | 
+        run: |
           sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           sudo chmod +x ./kubectl
           sudo mv ./kubectl /usr/local/bin/kubectl
@@ -294,7 +300,7 @@ jobs:
         run: |
           cmake --preset macos-arm64-release
           cmake --build --preset macos-arm64-release -j 4
-          
+
       - name: Compute Short SHA
         id: sha
         run: echo "short=$(echo -n "${{ github.sha }}" | cut -c1-8)" >> $GITHUB_OUTPUT
