@@ -48,12 +48,11 @@ jobs:
       - name: Get modified files
         id: modified-files
         run: |
-          # Fetch the full history to ensure we can access the base commit
-          git fetch --prune --unshallow
+          # Fetch the latest changes for main branch
+          git fetch origin main
 
-          # Get the list of changed files in this PR (using merge base)
-          base_commit=$(git merge-base origin/main ${{ github.sha }})
-          files=$(git diff --name-only $base_commit ${{ github.sha }} -- '*.cc' '*.h')
+          # Get the list of changed files between the current commit and the main branch
+          files=$(git diff --name-only origin/main ${{ github.sha }} -- '*.cc' '*.h')
 
           # Output the modified files
           echo "Modified files: $files"
