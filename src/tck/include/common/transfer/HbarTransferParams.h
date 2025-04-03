@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace Hiero::TCK::AccountService
+namespace Hiero::TCK
 {
 /**
  * Struct that contains the parameters of an Hbar transfer.
@@ -33,7 +33,7 @@ struct HbarTransferParams
   std::string mAmount;
 };
 
-} // namespace Hiero::TCK::AccountService
+} // namespace Hiero::TCK
 
 namespace nlohmann
 {
@@ -41,7 +41,7 @@ namespace nlohmann
  * JSON serializer template specialization required to convert HbarTransferParams arguments properly.
  */
 template<>
-struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::HbarTransferParams>
+struct [[maybe_unused]] adl_serializer<Hiero::TCK::HbarTransferParams>
 {
   /**
    * Convert a JSON object to a HbarTransferParams.
@@ -49,7 +49,7 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::HbarTransferP
    * @param jsonFrom The JSON object with which to fill the HbarTransferParams.
    * @param params   The HbarTransferParams to fill with the JSON object.
    */
-  static void from_json(const json& jsonFrom, Hiero::TCK::AccountService::HbarTransferParams& params)
+  static void from_json(const json& jsonFrom, Hiero::TCK::HbarTransferParams& params)
   {
     params.mAccountId = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "accountId");
     params.mEvmAddress = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "evmAddress");

@@ -8,8 +8,8 @@
 #include "account/params/UpdateAccountParams.h"
 #include "account/params/allowance/AllowanceParams.h"
 #include "account/params/allowance/RemoveAllowanceParams.h"
-#include "account/params/transfer/TransferParams.h"
 #include "common/CommonTransactionParams.h"
+#include "common/transfer/TransferParams.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
 

@@ -2,16 +2,16 @@
 #ifndef HIERO_TCK_CPP_TRANSFER_PARAMS_H_
 #define HIERO_TCK_CPP_TRANSFER_PARAMS_H_
 
-#include "account/params/transfer/HbarTransferParams.h"
-#include "account/params/transfer/NftTransferParams.h"
-#include "account/params/transfer/TokenTransferParams.h"
+#include "common/transfer/HbarTransferParams.h"
+#include "common/transfer/NftTransferParams.h"
+#include "common/transfer/TokenTransferParams.h"
 #include "json/JsonErrorType.h"
 #include "json/JsonRpcException.h"
 #include "json/JsonUtils.h"
 
 #include <optional>
 
-namespace Hiero::TCK::AccountService
+namespace Hiero::TCK
 {
 /**
  * Struct that contains the parameters of a transfer.
@@ -39,7 +39,7 @@ struct TransferParams
   std::optional<bool> mApproved;
 };
 
-} // namespace Hiero::TCK::AccountService
+} // namespace Hiero::TCK
 
 namespace nlohmann
 {
@@ -47,7 +47,7 @@ namespace nlohmann
  * JSON serializer template specialization required to convert TransferParams arguments properly.
  */
 template<>
-struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::TransferParams>
+struct [[maybe_unused]] adl_serializer<Hiero::TCK::TransferParams>
 {
   /**
    * Convert a JSON object to a TransferParams.
@@ -55,13 +55,11 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::TransferParam
    * @param jsonFrom The JSON object with which to fill the TransferParams.
    * @param params   The TransferParams to fill with the JSON object.
    */
-  static void from_json(const json& jsonFrom, Hiero::TCK::AccountService::TransferParams& params)
+  static void from_json(const json& jsonFrom, Hiero::TCK::TransferParams& params)
   {
-    params.mHbar =
-      Hiero::TCK::getOptionalJsonParameter<Hiero::TCK::AccountService::HbarTransferParams>(jsonFrom, "hbar");
-    params.mToken =
-      Hiero::TCK::getOptionalJsonParameter<Hiero::TCK::AccountService::TokenTransferParams>(jsonFrom, "token");
-    params.mNft = Hiero::TCK::getOptionalJsonParameter<Hiero::TCK::AccountService::NftTransferParams>(jsonFrom, "nft");
+    params.mHbar = Hiero::TCK::getOptionalJsonParameter<Hiero::TCK::HbarTransferParams>(jsonFrom, "hbar");
+    params.mToken = Hiero::TCK::getOptionalJsonParameter<Hiero::TCK::TokenTransferParams>(jsonFrom, "token");
+    params.mNft = Hiero::TCK::getOptionalJsonParameter<Hiero::TCK::NftTransferParams>(jsonFrom, "nft");
     params.mApproved = Hiero::TCK::getOptionalJsonParameter<bool>(jsonFrom, "approved");
 
     // Only one allowance type should be allowed.

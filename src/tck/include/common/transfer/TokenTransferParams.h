@@ -7,7 +7,7 @@
 #include <optional>
 #include <string>
 
-namespace Hiero::TCK::AccountService
+namespace Hiero::TCK
 {
 /**
  * Struct that contains the parameters of a token transfer.
@@ -35,7 +35,7 @@ struct TokenTransferParams
   std::optional<uint32_t> mDecimals;
 };
 
-} // namespace Hiero::TCK::AccountService
+} // namespace Hiero::TCK
 
 namespace nlohmann
 {
@@ -43,7 +43,7 @@ namespace nlohmann
  * JSON serializer template specialization required to convert TokenTransferParams arguments properly.
  */
 template<>
-struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::TokenTransferParams>
+struct [[maybe_unused]] adl_serializer<Hiero::TCK::TokenTransferParams>
 {
   /**
    * Convert a JSON object to a TokenTransferParams.
@@ -51,7 +51,7 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::TokenTransfer
    * @param jsonFrom The JSON object with which to fill the TokenTransferParams.
    * @param params   The TokenTransferParams to fill with the JSON object.
    */
-  static void from_json(const json& jsonFrom, Hiero::TCK::AccountService::TokenTransferParams& params)
+  static void from_json(const json& jsonFrom, Hiero::TCK::TokenTransferParams& params)
   {
     params.mAccountId = Hiero::TCK::getRequiredJsonParameter<std::string>(jsonFrom, "accountId");
     params.mTokenId = Hiero::TCK::getRequiredJsonParameter<std::string>(jsonFrom, "tokenId");
