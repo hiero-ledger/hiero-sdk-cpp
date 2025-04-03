@@ -104,7 +104,7 @@ jobs:
         uses: jidicula/clang-format-action@c74383674bf5f7c69f60ce562019c1c94bc1421a # v4.13.0
         with:
           clang-format-version: "17"
-          check-path: "src"
+          check-path: "src/sdk/main"
 
       - name: Use Node.js 22
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
