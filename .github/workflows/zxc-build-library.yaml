@@ -100,30 +100,11 @@ jobs:
         with:
           submodules: true
 
-      - name: Get modified files
-        id: modified-files
-        run: |
-          # Fetch the latest changes for the main branch
-          git fetch origin main
-
-          # Get the list of changed files between the current commit and the main branch
-          files=$(git diff --name-only origin/main ${{ github.sha }} -- '*.cc' '*.h')
-
-          # If there are modified files, output them as space-separated values
-          if [ -z "$files" ]; then
-            echo "No modified files found."
-            echo "::set-output name=modified_files::"
-          else
-            echo "Modified files: $files"
-            echo "::set-output name=modified_files::$files"  # Set the modified files for passing to other jobs
-          fi
-
-      - name: Run Clang-Format on Modified Files
-        if: steps.modified-files.outputs.modified_files != '' # Only run if there are modified files
+      - name: Run Clang-Format
         uses: jidicula/clang-format-action@c74383674bf5f7c69f60ce562019c1c94bc1421a # v4.13.0
         with:
           clang-format-version: "17"
-          check-path: ${{ steps.modified-files.outputs.modified_files }} # Run clang-format only on modified files
+          check-path: "src"
 
       - name: Use Node.js 22
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
