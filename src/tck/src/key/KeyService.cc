@@ -17,7 +17,7 @@
 #include <impl/Utilities.h>
 
 #include <algorithm>
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <string>

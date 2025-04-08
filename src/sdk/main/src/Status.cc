@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "Status.h"
 
-#include <response_code.pb.h>
+#include <services/response_code.pb.h>
 
 namespace Hiero
 {

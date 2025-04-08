@@ -3,7 +3,7 @@
 #include "TokenId.h"
 #include "TokenNftAllowance.h"
 
-#include <crypto_approve_allowance.pb.h>
+#include <services/crypto_approve_allowance.pb.h>
 #include <gtest/gtest.h>
 
 using namespace Hiero;

@@ -2,7 +2,7 @@
 #include "TokenAssociation.h"
 #include "impl/Utilities.h"
 
-#include <custom_fees.pb.h>
+#include <services/custom_fees.pb.h>
 #include <nlohmann/json.hpp>
 
 namespace Hiero

@@ -6,10 +6,10 @@
 #include "TransferTransaction.h"
 #include "impl/Node.h"
 
-#include <query.pb.h>
-#include <query_header.pb.h>
-#include <response.pb.h>
-#include <token_get_nft_info.pb.h>
+#include <services/query.pb.h>
+#include <services/query_header.pb.h>
+#include <services/response.pb.h>
+#include <services/token_get_nft_info.pb.h>
 
 namespace Hiero
 {

@@ -4,7 +4,7 @@
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
-#include <network_get_version_info.pb.h>
+#include <services/network_get_version_info.pb.h>
 
 using namespace Hiero;
 

@@ -2,8 +2,8 @@
 #include "PendingAirdropRecord.h"
 #include "PendingAirdropId.h"
 
-#include <basic_types.pb.h>
-#include <transaction_record.pb.h>
+#include <services/basic_types.pb.h>
+#include <services/transaction_record.pb.h>
 
 namespace Hiero
 {

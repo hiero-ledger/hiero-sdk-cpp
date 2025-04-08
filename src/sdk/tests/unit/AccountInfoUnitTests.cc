@@ -9,7 +9,7 @@
 #include "impl/Utilities.h"
 
 #include <chrono>
-#include <crypto_get_info.pb.h>
+#include <services/crypto_get_info.pb.h>
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>

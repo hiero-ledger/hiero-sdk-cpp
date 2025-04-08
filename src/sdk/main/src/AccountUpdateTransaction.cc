@@ -4,8 +4,8 @@
 #include "impl/Node.h"
 #include "impl/TimestampConverter.h"
 
-#include <crypto_update.pb.h>
-#include <transaction.pb.h>
+#include <services/crypto_update.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

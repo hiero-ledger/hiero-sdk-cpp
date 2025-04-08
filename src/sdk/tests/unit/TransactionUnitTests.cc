@@ -45,9 +45,9 @@
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
-#include <transaction.pb.h>
+#include <services/transaction.pb.h>
 
-#include <transaction_contents.pb.h>
+#include <services/transaction_contents.pb.h>
 #include <transaction_list.pb.h>
 
 using namespace Hiero;

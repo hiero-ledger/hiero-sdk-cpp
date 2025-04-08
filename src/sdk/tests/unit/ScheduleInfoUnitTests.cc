@@ -6,7 +6,7 @@
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
-#include <schedule_get_info.pb.h>
+#include <services/schedule_get_info.pb.h>
 
 using namespace Hiero;
 

@@ -6,7 +6,7 @@
 #include "CustomRoyaltyFee.h"
 #include "impl/Utilities.h"
 
-#include <custom_fees.pb.h>
+#include <services/custom_fees.pb.h>
 
 namespace Hiero
 {

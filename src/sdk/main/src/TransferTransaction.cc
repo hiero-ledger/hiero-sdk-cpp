@@ -3,9 +3,9 @@
 #include "TransactionResponse.h"
 #include "impl/Node.h"
 
-#include <crypto_transfer.pb.h>
-#include <response.pb.h>
-#include <transaction.pb.h>
+#include <services/crypto_transfer.pb.h>
+#include <services/response.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

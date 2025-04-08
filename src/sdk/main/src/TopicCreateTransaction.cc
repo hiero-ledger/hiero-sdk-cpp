@@ -3,9 +3,9 @@
 #include "impl/DurationConverter.h"
 #include "impl/Node.h"
 
-#include <consensus_create_topic.pb.h>
+#include <services/consensus_create_topic.pb.h>
 #include <grpcpp/client_context.h>
-#include <transaction.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

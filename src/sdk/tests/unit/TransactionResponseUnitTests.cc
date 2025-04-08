@@ -2,7 +2,7 @@
 #include "TransactionResponse.h"
 
 #include <gtest/gtest.h>
-#include <transaction_response.pb.h>
+#include <services/transaction_response.pb.h>
 
 using namespace Hiero;
 

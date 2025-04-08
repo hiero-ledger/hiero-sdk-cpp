@@ -3,7 +3,7 @@
 #include "impl/HexConverter.h"
 #include "impl/Utilities.h"
 
-#include <contract_call_local.pb.h>
+#include <services/contract_call_local.pb.h>
 #include <nlohmann/json.hpp>
 
 namespace Hiero

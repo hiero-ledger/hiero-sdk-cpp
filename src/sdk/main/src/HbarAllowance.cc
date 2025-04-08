@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "HbarAllowance.h"
 
-#include <crypto_approve_allowance.pb.h>
+#include <services/crypto_approve_allowance.pb.h>
 
 namespace Hiero
 {

@@ -18,7 +18,7 @@
 #include "TransactionResponse.h"
 #include "impl/HexConverter.h"
 
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
 #include <fstream>
 #include <functional>
 #include <iostream>

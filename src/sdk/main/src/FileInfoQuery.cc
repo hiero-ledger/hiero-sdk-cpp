@@ -3,10 +3,10 @@
 #include "FileInfo.h"
 #include "impl/Node.h"
 
-#include <file_get_info.pb.h>
-#include <query.pb.h>
-#include <query_header.pb.h>
-#include <response.pb.h>
+#include <services/file_get_info.pb.h>
+#include <services/query.pb.h>
+#include <services/query_header.pb.h>
+#include <services/response.pb.h>
 
 namespace Hiero
 {

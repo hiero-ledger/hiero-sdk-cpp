@@ -3,10 +3,10 @@
 #include "AccountRecords.h"
 #include "impl/Node.h"
 
-#include <crypto_get_account_records.pb.h>
-#include <query.pb.h>
-#include <query_header.pb.h>
-#include <response.pb.h>
+#include <services/crypto_get_account_records.pb.h>
+#include <services/query.pb.h>
+#include <services/query_header.pb.h>
+#include <services/response.pb.h>
 
 namespace Hiero
 {

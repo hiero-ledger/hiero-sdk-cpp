@@ -4,7 +4,7 @@
 #include "FeeAssessmentMethod.h"
 #include "impl/Utilities.h"
 
-#include <custom_fees.pb.h>
+#include <services/custom_fees.pb.h>
 #include <gtest/gtest.h>
 #include <stdexcept>
 

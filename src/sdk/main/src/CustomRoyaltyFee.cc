@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "CustomRoyaltyFee.h"
 
-#include <custom_fees.pb.h>
+#include <services/custom_fees.pb.h>
 #include <nlohmann/json.hpp>
 
 namespace Hiero

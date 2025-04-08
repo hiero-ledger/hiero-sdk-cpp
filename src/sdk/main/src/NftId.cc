@@ -2,7 +2,7 @@
 #include "NftId.h"
 
 #include <charconv>
-#include <token_get_nft_info.pb.h>
+#include <services/token_get_nft_info.pb.h>
 
 namespace Hiero
 {

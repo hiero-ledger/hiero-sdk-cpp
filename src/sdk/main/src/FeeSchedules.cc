@@ -2,7 +2,7 @@
 #include "FeeSchedules.h"
 #include "impl/Utilities.h"
 
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
 #include <nlohmann/json.hpp>
 
 namespace Hiero

@@ -2,7 +2,7 @@
 #include "Endpoint.h"
 #include "impl/Utilities.h"
 
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
 
 namespace Hiero
 {

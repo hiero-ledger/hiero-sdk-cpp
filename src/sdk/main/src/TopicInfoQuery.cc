@@ -6,10 +6,10 @@
 #include "TransferTransaction.h"
 #include "impl/Node.h"
 
-#include <consensus_get_topic_info.pb.h>
-#include <query.pb.h>
-#include <query_header.pb.h>
-#include <response.pb.h>
+#include <services/consensus_get_topic_info.pb.h>
+#include <services/query.pb.h>
+#include <services/query_header.pb.h>
+#include <services/response.pb.h>
 
 namespace Hiero
 {

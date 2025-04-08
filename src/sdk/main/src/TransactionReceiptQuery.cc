@@ -4,10 +4,10 @@
 #include "TransactionReceipt.h"
 #include "impl/Node.h"
 
-#include <query.pb.h>
-#include <query_header.pb.h>
-#include <response.pb.h>
-#include <transaction_get_receipt.pb.h>
+#include <services/query.pb.h>
+#include <services/query_header.pb.h>
+#include <services/response.pb.h>
+#include <services/transaction_get_receipt.pb.h>
 
 namespace Hiero
 {

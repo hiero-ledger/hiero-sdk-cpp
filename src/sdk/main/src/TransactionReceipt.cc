@@ -6,8 +6,8 @@
 #include "impl/Utilities.h"
 
 #include <nlohmann/json.hpp>
-#include <transaction_get_receipt.pb.h>
-#include <transaction_receipt.pb.h>
+#include <services/transaction_get_receipt.pb.h>
+#include <services/transaction_receipt.pb.h>
 
 namespace Hiero
 {

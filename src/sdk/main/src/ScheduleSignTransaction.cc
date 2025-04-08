@@ -3,9 +3,9 @@
 #include "impl/Node.h"
 
 #include <grpcpp/client_context.h>
-#include <schedule_sign.pb.h>
+#include <services/schedule_sign.pb.h>
 #include <stdexcept>
-#include <transaction.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

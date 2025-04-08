@@ -5,7 +5,7 @@
 #include "impl/Utilities.h"
 
 #include <nlohmann/json.hpp>
-#include <schedule_get_info.pb.h>
+#include <services/schedule_get_info.pb.h>
 
 namespace Hiero
 {

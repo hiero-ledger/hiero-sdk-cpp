@@ -3,7 +3,7 @@
 #include "exceptions/UninitializedException.h"
 
 #include <memory>
-#include <transaction.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

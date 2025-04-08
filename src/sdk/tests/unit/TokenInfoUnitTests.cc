@@ -9,7 +9,7 @@
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
-#include <token_get_info.pb.h>
+#include <services/token_get_info.pb.h>
 
 using namespace Hiero;
 

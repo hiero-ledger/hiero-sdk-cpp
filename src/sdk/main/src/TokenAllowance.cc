@@ -2,7 +2,7 @@
 #include "TokenAllowance.h"
 #include "impl/Utilities.h"
 
-#include <crypto_approve_allowance.pb.h>
+#include <services/crypto_approve_allowance.pb.h>
 
 namespace Hiero
 {

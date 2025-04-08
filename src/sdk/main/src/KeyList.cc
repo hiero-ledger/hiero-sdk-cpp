@@ -3,7 +3,7 @@
 #include "impl/HexConverter.h"
 
 #include <algorithm>
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
 #include <cstddef>
 #include <nlohmann/json.hpp>
 

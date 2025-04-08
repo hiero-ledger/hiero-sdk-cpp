@@ -4,9 +4,9 @@
 #include "impl/Node.h"
 #include "impl/TimestampConverter.h"
 
-#include <contract_update.pb.h>
+#include <services/contract_update.pb.h>
 #include <grpcpp/client_context.h>
-#include <transaction.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

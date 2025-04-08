@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <limits>
-#include <token_get_nft_info.pb.h>
+#include <services/token_get_nft_info.pb.h>
 
 using namespace Hiero;
 

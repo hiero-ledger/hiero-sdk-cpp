@@ -4,8 +4,8 @@
 
 #include <grpcpp/client_context.h>
 #include <stdexcept>
-#include <token_burn.pb.h>
-#include <transaction.pb.h>
+#include <services/token_burn.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

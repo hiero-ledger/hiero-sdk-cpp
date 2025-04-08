@@ -4,7 +4,7 @@
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
-#include <transaction_receipt.pb.h>
+#include <services/transaction_receipt.pb.h>
 
 using namespace Hiero;
 

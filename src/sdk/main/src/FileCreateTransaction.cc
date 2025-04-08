@@ -4,9 +4,9 @@
 #include "impl/TimestampConverter.h"
 #include "impl/Utilities.h"
 
-#include <file_create.pb.h>
+#include <services/file_create.pb.h>
 #include <grpcpp/client_context.h>
-#include <transaction.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {
