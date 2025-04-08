@@ -5,9 +5,9 @@
 #include "impl/TimestampConverter.h"
 #include "impl/Utilities.h"
 
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
 #include <nlohmann/json.hpp>
-#include <token_get_info.pb.h>
+#include <services/token_get_info.pb.h>
 
 namespace Hiero
 {

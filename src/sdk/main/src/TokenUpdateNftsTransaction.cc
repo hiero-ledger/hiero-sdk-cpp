@@ -7,8 +7,8 @@
 
 #include <grpcpp/client_context.h>
 #include <stdexcept>
-#include <token_update_nfts.pb.h>
-#include <transaction.pb.h>
+#include <services/token_update_nfts.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

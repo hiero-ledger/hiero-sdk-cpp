@@ -7,7 +7,7 @@
 #include <Client.h>
 #include <PrivateKey.h>
 
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
 #include <nlohmann/json.hpp>
 #include <string>
 

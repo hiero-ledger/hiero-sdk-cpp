@@ -3,7 +3,7 @@
 #include "TokenAirdropTransaction.h"
 #include "TokenId.h"
 #include <gtest/gtest.h>
-#include <token_airdrop.pb.h>
+#include <services/token_airdrop.pb.h>
 
 using namespace Hiero;
 

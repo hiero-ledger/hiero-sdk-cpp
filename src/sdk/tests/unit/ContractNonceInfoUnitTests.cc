@@ -3,7 +3,7 @@
 #include "ContractNonceInfo.h"
 #include "impl/Utilities.h"
 
-#include <contract_types.pb.h>
+#include <services/contract_types.pb.h>
 #include <cstddef>
 #include <gtest/gtest.h>
 #include <vector>

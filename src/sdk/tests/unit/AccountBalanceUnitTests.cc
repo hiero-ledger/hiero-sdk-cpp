@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "AccountBalance.h"
 
-#include <crypto_get_account_balance.pb.h>
+#include <services/crypto_get_account_balance.pb.h>
 #include <gtest/gtest.h>
 
 using namespace Hiero;

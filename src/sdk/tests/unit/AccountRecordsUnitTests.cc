@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "AccountRecords.h"
 
-#include <crypto_get_account_records.pb.h>
+#include <services/crypto_get_account_records.pb.h>
 #include <gtest/gtest.h>
 
 using namespace Hiero;

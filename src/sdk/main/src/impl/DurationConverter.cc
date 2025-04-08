@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "impl/DurationConverter.h"
 
-#include <duration.pb.h>
+#include <services/duration.pb.h>
 
 namespace Hiero::internal::DurationConverter
 {

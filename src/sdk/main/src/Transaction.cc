@@ -64,12 +64,12 @@
 #include "impl/Utilities.h"
 #include "impl/openssl_utils/OpenSSLUtils.h"
 
-#include <basic_types.pb.h>
-#include <transaction.pb.h>
+#include <services/basic_types.pb.h>
+#include <services/transaction.pb.h>
 
-#include <transaction_contents.pb.h>
+#include <services/transaction_contents.pb.h>
 #include <transaction_list.pb.h>
-#include <transaction_response.pb.h>
+#include <services/transaction_response.pb.h>
 #include <vector>
 
 namespace Hiero

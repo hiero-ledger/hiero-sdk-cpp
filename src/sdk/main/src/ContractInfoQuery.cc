@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
-#include <contract_get_info.pb.h>
+#include <services/contract_get_info.pb.h>
 
 #include "ContractInfo.h"
 #include "ContractInfoQuery.h"
 #include "impl/Node.h"
 
-#include <query.pb.h>
-#include <query_header.pb.h>
-#include <response.pb.h>
+#include <services/query.pb.h>
+#include <services/query_header.pb.h>
+#include <services/response.pb.h>
 
 #include <nlohmann/json.hpp>
 

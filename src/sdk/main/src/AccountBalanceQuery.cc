@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-#include <crypto_get_account_balance.pb.h>
+#include <services/crypto_get_account_balance.pb.h>
 
 #include "AccountBalance.h"
 #include "AccountBalanceQuery.h"
@@ -7,9 +7,9 @@
 #include "exceptions/UninitializedException.h"
 #include "impl/Node.h"
 
-#include <query.pb.h>
-#include <query_header.pb.h>
-#include <response.pb.h>
+#include <services/query.pb.h>
+#include <services/query_header.pb.h>
+#include <services/response.pb.h>
 
 #include <cstddef>
 #include <string>

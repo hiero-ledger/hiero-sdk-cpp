@@ -8,7 +8,7 @@
 #include <optional>
 #include <string>
 
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
 
 namespace proto
 {

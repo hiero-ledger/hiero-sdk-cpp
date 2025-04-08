@@ -5,8 +5,8 @@
 
 #include <grpcpp/client_context.h>
 #include <stdexcept>
-#include <system_undelete.pb.h>
-#include <transaction.pb.h>
+#include <services/system_undelete.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

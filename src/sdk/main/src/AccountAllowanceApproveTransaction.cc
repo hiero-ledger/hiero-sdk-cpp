@@ -3,11 +3,11 @@
 #include "NftId.h"
 #include "impl/Node.h"
 
-#include <crypto_approve_allowance.pb.h>
+#include <services/crypto_approve_allowance.pb.h>
 #include <grpcpp/client_context.h>
 #include <stdexcept>
-#include <transaction.pb.h>
-#include <transaction_response.pb.h>
+#include <services/transaction.pb.h>
+#include <services/transaction_response.pb.h>
 
 namespace Hiero
 {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "FileId.h"
 
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
 #include <stdexcept>
 

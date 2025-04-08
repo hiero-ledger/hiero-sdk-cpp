@@ -8,8 +8,8 @@
 
 #include <grpcpp/client_context.h>
 #include <stdexcept>
-#include <token_create.pb.h>
-#include <transaction.pb.h>
+#include <services/token_create.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

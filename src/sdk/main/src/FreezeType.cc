@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "FreezeType.h"
 
-#include <freeze_type.pb.h>
+#include <services/freeze_type.pb.h>
 
 namespace Hiero
 {

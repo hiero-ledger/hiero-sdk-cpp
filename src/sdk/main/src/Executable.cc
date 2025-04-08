@@ -89,12 +89,12 @@
 #include <algorithm>
 #include <grpcpp/impl/codegen/status.h>
 #include <limits>
-#include <query.pb.h>
-#include <response.pb.h>
+#include <services/query.pb.h>
+#include <services/response.pb.h>
 #include <stdexcept>
 #include <thread>
-#include <transaction.pb.h>
-#include <transaction_response.pb.h>
+#include <services/transaction.pb.h>
+#include <services/transaction_response.pb.h>
 
 namespace Hiero
 {
