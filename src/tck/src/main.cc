@@ -27,9 +27,11 @@ int main(int argc, char** argv)
   tckServer.add("createAccount", tckServer.getHandle(&AccountService::createAccount));
   tckServer.add("deleteAccount", tckServer.getHandle(&AccountService::deleteAccount));
   tckServer.add("deleteAllowance", tckServer.getHandle(&AccountService::deleteAllowance));
+  tckServer.add("transferCrypto", tckServer.getHandle(&AccountService::transferCrypto));
   tckServer.add("updateAccount", tckServer.getHandle(&AccountService::updateAccount));
 
   // Add the TokenService functions.
+  tckServer.add("airdropToken", tckServer.getHandle(&TokenService::airdropToken));
   tckServer.add("associateToken", tckServer.getHandle(&TokenService::associateToken));
   tckServer.add("burnToken", tckServer.getHandle(&TokenService::burnToken));
   tckServer.add("createToken", tckServer.getHandle(&TokenService::createToken));
@@ -44,6 +46,7 @@ int main(int argc, char** argv)
   tckServer.add("unfreezeToken", tckServer.getHandle(&TokenService::unfreezeToken));
   tckServer.add("updateTokenFeeSchedule", tckServer.getHandle(&TokenService::updateTokenFeeSchedule));
   tckServer.add("updateToken", tckServer.getHandle(&TokenService::updateToken));
+  tckServer.add("wipeToken", tckServer.getHandle(&TokenService::wipeToken));
 
   // Start listening for requests.
   tckServer.startServer();

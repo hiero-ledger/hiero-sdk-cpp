@@ -7,10 +7,12 @@
 #include "account/params/CreateAccountParams.h"
 #include "account/params/DeleteAccountParams.h"
 #include "account/params/DeleteAllowanceParams.h"
+#include "account/params/TransferCryptoParams.h"
 #include "account/params/UpdateAccountParams.h"
 #include "key/params/GenerateKeyParams.h"
 #include "sdk/params/ResetParams.h"
 #include "sdk/params/SetupParams.h"
+#include "token/params/AirdropTokenParams.h"
 #include "token/params/AssociateTokenParams.h"
 #include "token/params/BurnTokenParams.h"
 #include "token/params/CreateTokenParams.h"
@@ -25,6 +27,7 @@
 #include "token/params/UnpauseTokenParams.h"
 #include "token/params/UpdateTokenFeeScheduleParams.h"
 #include "token/params/UpdateTokenParams.h"
+#include "token/params/WipeTokenParams.h"
 #include "json/JsonErrorType.h"
 #include "json/JsonRpcException.h"
 #include "json/JsonUtils.h"
@@ -355,6 +358,8 @@ template TckServer::MethodHandle TckServer::getHandle<AccountService::DeleteAcco
   nlohmann::json (*method)(const AccountService::DeleteAccountParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::DeleteAllowanceParams>(
   nlohmann::json (*method)(const AccountService::DeleteAllowanceParams&));
+template TckServer::MethodHandle TckServer::getHandle<AccountService::TransferCryptoParams>(
+  nlohmann::json (*method)(const AccountService::TransferCryptoParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::UpdateAccountParams>(
   nlohmann::json (*method)(const AccountService::UpdateAccountParams&));
 
@@ -366,6 +371,8 @@ template TckServer::MethodHandle TckServer::getHandle<SdkClient::ResetParams>(
 template TckServer::MethodHandle TckServer::getHandle<SdkClient::SetupParams>(
   nlohmann::json (*method)(const SdkClient::SetupParams&));
 
+template TckServer::MethodHandle TckServer::getHandle<TokenService::AirdropTokenParams>(
+  nlohmann::json (*method)(const TokenService::AirdropTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::AssociateTokenParams>(
   nlohmann::json (*method)(const TokenService::AssociateTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::BurnTokenParams>(
@@ -394,5 +401,7 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::UpdateTokenF
   nlohmann::json (*method)(const TokenService::UpdateTokenFeeScheduleParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::UpdateTokenParams>(
   nlohmann::json (*method)(const TokenService::UpdateTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::WipeTokenParams>(
+  nlohmann::json (*method)(const TokenService::WipeTokenParams&));
 
 } // namespace Hiero::TCK

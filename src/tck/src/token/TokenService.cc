@@ -2,6 +2,7 @@
 #include "token/TokenService.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
+#include "token/params/AirdropTokenParams.h"
 #include "token/params/AssociateTokenParams.h"
 #include "token/params/BurnTokenParams.h"
 #include "token/params/CreateTokenParams.h"
@@ -16,11 +17,13 @@
 #include "token/params/UnpauseTokenParams.h"
 #include "token/params/UpdateTokenFeeScheduleParams.h"
 #include "token/params/UpdateTokenParams.h"
+#include "token/params/WipeTokenParams.h"
 #include "json/JsonErrorType.h"
 #include "json/JsonRpcException.h"
 
 #include <AccountId.h>
 #include <Status.h>
+#include <TokenAirdropTransaction.h>
 #include <TokenAssociateTransaction.h>
 #include <TokenBurnTransaction.h>
 #include <TokenCreateTransaction.h>
@@ -38,12 +41,14 @@
 #include <TokenUnfreezeTransaction.h>
 #include <TokenUnpauseTransaction.h>
 #include <TokenUpdateTransaction.h>
+#include <TokenWipeTransaction.h>
 #include <TransactionReceipt.h>
 #include <TransactionResponse.h>
 #include <impl/EntityIdHelper.h>
 #include <impl/HexConverter.h>
 #include <impl/Utilities.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <nlohmann/json.hpp>
@@ -52,6 +57,79 @@
 
 namespace Hiero::TCK::TokenService
 {
+//-----
+nlohmann::json airdropToken(const AirdropTokenParams& params)
+{
+  TokenAirdropTransaction tokenAirdropTransaction;
+  tokenAirdropTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenTransfers.has_value())
+  {
+    for (const TransferParams& txParams : params.mTokenTransfers.value())
+    {
+      const bool approved = txParams.mApproved.has_value() && txParams.mApproved.value();
+
+      if (txParams.mToken.has_value())
+      {
+        const AccountId accountId = AccountId::fromString(txParams.mToken->mAccountId);
+        const TokenId tokenId = TokenId::fromString(txParams.mToken->mTokenId);
+        const auto amount = internal::EntityIdHelper::getNum<int64_t>(txParams.mToken->mAmount);
+
+        if (txParams.mToken->mDecimals.has_value())
+        {
+          const uint32_t decimals = txParams.mToken->mDecimals.value();
+          if (approved)
+          {
+            tokenAirdropTransaction.addApprovedTokenTransferWithDecimals(tokenId, accountId, amount, decimals);
+          }
+          else
+          {
+            tokenAirdropTransaction.addTokenTransferWithDecimals(tokenId, accountId, amount, decimals);
+          }
+        }
+        else
+        {
+          if (approved)
+          {
+            tokenAirdropTransaction.addApprovedTokenTransfer(tokenId, accountId, amount);
+          }
+          else
+          {
+            tokenAirdropTransaction.addTokenTransfer(tokenId, accountId, amount);
+          }
+        }
+      }
+      else
+      {
+        const AccountId senderAccountId = AccountId::fromString(txParams.mNft->mSenderAccountId);
+        const AccountId receiverAccountId = AccountId::fromString(txParams.mNft->mReceiverAccountId);
+        const NftId nftId = NftId(TokenId::fromString(txParams.mNft->mTokenId),
+                                  internal::EntityIdHelper::getNum(txParams.mNft->mSerialNumber));
+
+        if (approved)
+        {
+          tokenAirdropTransaction.addApprovedNftTransfer(nftId, senderAccountId, receiverAccountId);
+        }
+        else
+        {
+          tokenAirdropTransaction.addNftTransfer(nftId, senderAccountId, receiverAccountId);
+        }
+      }
+    }
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenAirdropTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenAirdropTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
 //-----
 nlohmann::json associateToken(const AssociateTokenParams& params)
 {
@@ -674,6 +752,49 @@ nlohmann::json updateToken(const UpdateTokenParams& params)
     {"status",
      gStatusToString.at(
         tokenUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json wipeToken(const WipeTokenParams& params)
+{
+  TokenWipeTransaction tokenWipeTransaction;
+  tokenWipeTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mTokenId.has_value())
+  {
+    tokenWipeTransaction.setTokenId(TokenId::fromString(params.mTokenId.value()));
+  }
+
+  if (params.mAccountId.has_value())
+  {
+    tokenWipeTransaction.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  if (params.mAmount.has_value())
+  {
+    tokenWipeTransaction.setAmount(Hiero::internal::EntityIdHelper::getNum(params.mAmount.value()));
+  }
+
+  if (params.mSerialNumbers.has_value())
+  {
+    std::vector<uint64_t> serialNumbers;
+    for (const std::string& serialNumber : params.mSerialNumbers.value())
+    {
+      serialNumbers.push_back(internal::EntityIdHelper::getNum(serialNumber));
+    }
+    tokenWipeTransaction.setSerialNumbers(serialNumbers);
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenWipeTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenWipeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
