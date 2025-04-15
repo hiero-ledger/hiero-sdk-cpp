@@ -3,6 +3,7 @@
 #define HIERO_SDK_CPP_FILE_ID_H_
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -42,6 +43,33 @@ public:
    * The current exchange rate of HBAR to USD for the current network.
    */
   [[maybe_unused]] static const FileId EXCHANGE_RATES;
+
+  /**
+   * Get the address book file ID for a particular realm and/or shard.
+   *
+   * @param realm The realm from which to get the address book file.
+   * @param shard The shard from which to get the address book file.
+   * @return The ID of the address book file from the input realm and/or shard.
+   */
+  [[nodiscard]] static FileId getAddressBookFileIdFor(int64_t realm, int64_t shard);
+
+  /**
+   * Get the fee schedule file ID for a particular realm and/or shard.
+   *
+   * @param realm The realm from which to get the fee schedule file.
+   * @param shard The shard from which to get the fee schedule file.
+   * @return The ID of the fee schedule file from the input realm and/or shard.
+   */
+  [[nodiscard]] static FileId getFeeScheduleFileIdFor(int64_t realm, int64_t shard);
+
+  /**
+   * Get the exchange rates file ID for a particular realm and/or shard.
+   *
+   * @param realm The realm from which to get the exchange rates file.
+   * @param shard The shard from which to get the exchange rates file.
+   * @return The ID of the exchange rates file from the input realm and/or shard.
+   */
+  [[nodiscard]] static FileId getExchangeRatesFileIdFor(int64_t realm, int64_t shard);
 
   /**
    * Construct with a file number.
