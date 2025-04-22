@@ -7,6 +7,7 @@
 #include "AccountCreateTransaction.h"
 #include "AccountDeleteTransaction.h"
 #include "AccountUpdateTransaction.h"
+#include "BatchTransaction.h"
 #include "ContractCreateTransaction.h"
 #include "ContractDeleteTransaction.h"
 #include "ContractExecuteTransaction.h"
@@ -77,6 +78,7 @@ public:
                                               AccountCreateTransaction,
                                               AccountDeleteTransaction,
                                               AccountUpdateTransaction,
+                                              BatchTransaction,
                                               ContractCreateTransaction,
                                               ContractDeleteTransaction,
                                               ContractExecuteTransaction,

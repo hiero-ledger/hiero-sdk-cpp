@@ -145,6 +145,11 @@ struct Transaction<SdkRequestType>::TransactionImpl
   // will use the Client's set transaction ID regeneration policy. If that's not
   // set, the default behavior is captured in DEFAULT_REGENERATE_TRANSACTION_ID.
   std::optional<bool> mTransactionIdRegenerationPolicy;
+
+  /**
+   * The public key of the trusted batch assembler.
+   */
+  std::shared_ptr<Key>& batchKey = nullptr;
 };
 
 //-----
@@ -217,6 +222,8 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
       return WrappedTransaction(AccountDeleteTransaction(transactions));
     case proto::TransactionBody::kCryptoUpdateAccount:
       return WrappedTransaction(AccountUpdateTransaction(transactions));
+    case proto::TransactionBody::kAtomicBatch:
+      return WrappedTransaction(BatchTransaction(transactions));
     case proto::TransactionBody::kContractCreateInstance:
       return WrappedTransaction(ContractCreateTransaction(transactions));
     case proto::TransactionBody::kContractDeleteInstance:

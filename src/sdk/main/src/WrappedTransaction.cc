@@ -16,7 +16,11 @@ WrappedTransaction::WrappedTransaction(AnyPossibleTransaction transaction)
 //-----
 WrappedTransaction WrappedTransaction::fromProtobuf(const proto::TransactionBody& proto)
 {
-  if (proto.has_cryptoapproveallowance())
+  if (proto.has_atomic_batch())
+  {
+    return WrappedTransaction(BatchTransaction(proto));
+  }
+  else if (proto.has_cryptoapproveallowance())
   {
     return WrappedTransaction(AccountAllowanceApproveTransaction(proto));
   }
@@ -472,6 +476,12 @@ std::unique_ptr<proto::TransactionBody> WrappedTransaction::toProtobuf() const
     case ACCOUNT_UPDATE_TRANSACTION:
     {
       const auto transaction = getTransaction<AccountUpdateTransaction>();
+      transaction->updateSourceTransactionBody(nullptr);
+      return std::make_unique<proto::TransactionBody>(transaction->getSourceTransactionBody());
+    }
+    case BATCH_TRANSACTION:
+    {
+      const auto transaction = getTransaction<BatchTransaction>();
       transaction->updateSourceTransactionBody(nullptr);
       return std::make_unique<proto::TransactionBody>(transaction->getSourceTransactionBody());
     }
