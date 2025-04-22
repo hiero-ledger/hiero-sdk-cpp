@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-#include "AccountBalance.h"
 #include "AccountBalanceQuery.h"
+#include "AccountBalance.h"
 #include "TokenId.h"
 #include "exceptions/UninitializedException.h"
 #include "impl/Node.h"
