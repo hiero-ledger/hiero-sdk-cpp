@@ -13,7 +13,9 @@ class TransactionBody;
 
 namespace Hiero
 {
-
+/**
+ * A transaction body for handling a set of transactions atomically.
+ */
 class BatchTransaction : public Transaction<BatchTransaction>
 {
 public:
@@ -37,22 +39,13 @@ public:
 
   /**
    * Append a transaction to the list of transactions this BatchTransaction will execute.
-   * Requirements for the inner transaction:
-   *
-   * Must be frozen (use .freezе() or freezeWith(client)).
-   * Must have a batch key set (use .setBatchKey(key) or .batchify(client, key)}).
-   * Must not be a blacklisted transaction type.
    *
    * @param transaction The transaction to be added
-   *
-   * @throws NullPointerException if transaction is null
    * @throws IllegalStateException if this transaction is frozen
    * @throws IllegalStateException if the inner transaction is not frozen or missing a batch key
-   * @throws IllegalStateException if the transaction is of a blacklisted type
-   *
    * @return A reference to this BatchTransaction with the newly-set transaction
    */
-  BatchTransaction& addInnerTransaction(const Transaction& transaction);
+  BatchTransaction& addInnerTransaction(const WrappedTransaction& transaction);
 
   /**
    * Set the list of transactions that this BatchTransaction will execute.
@@ -60,14 +53,14 @@ public:
    * @param transactions The list of transactions that this BatchTransaction will execute.
    * @return A reference to this BatchTransaction with the newly-set transactions.
    */
-  BatchTransaction& setInnerTransactions(const std::vector<Transaction>& transactions);
+  BatchTransaction& setInnerTransactions(const std::vector<WrappedTransaction>& transactions);
 
   /**
    * Get the list of transactions that this BatchTransaction will execute.
    *
    * @return The list of transactions that this BatchTransaction will execute.
    */
-  [[nodiscard]] const std::vector<Transaction>& getInnerTransactions() const;
+  [[nodiscard]] inline std::vector<WrappedTransaction> getInnerTransactions() const { return mInnerTransactions; }
 
 private:
   friend class WrappedTransaction;

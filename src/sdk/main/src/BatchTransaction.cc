@@ -25,6 +25,22 @@ BatchTransaction::BatchTransaction(const std::map<TransactionId, std::map<Accoun
 }
 
 //-----
+BatchTransaction& BatchTransaction::addInnerTransaction(const WrappedTransaction& transaction)
+{
+  requireNotFrozen();
+  mInnerTransactions.push_back(transaction);
+  return *this;
+}
+
+//-----
+BatchTransaction& BatchTransaction::setInnerTransactions(const std::vector<WrappedTransaction>& transactions)
+{
+  requireNotFrozen();
+  mInnerTransactions = transactions;
+  return *this;
+}
+
+//-----
 grpc::Status BatchTransaction::submitRequest(const proto::Transaction& request,
                                              const std::shared_ptr<internal::Node>& node,
                                              const std::chrono::system_clock::time_point& deadline,
