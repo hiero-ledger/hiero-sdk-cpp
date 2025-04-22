@@ -5,6 +5,7 @@
 #include "AccountCreateTransaction.h"
 #include "AccountDeleteTransaction.h"
 #include "AccountUpdateTransaction.h"
+#include "BatchTransaction.h"
 #include "Client.h"
 #include "ContractCreateTransaction.h"
 #include "ContractDeleteTransaction.h"
@@ -1274,6 +1275,7 @@ template class Transaction<AccountAllowanceDeleteTransaction>;
 template class Transaction<AccountCreateTransaction>;
 template class Transaction<AccountDeleteTransaction>;
 template class Transaction<AccountUpdateTransaction>;
+template class Transaction<BatchTransaction>;
 template class Transaction<ContractCreateTransaction>;
 template class Transaction<ContractDeleteTransaction>;
 template class Transaction<ContractExecuteTransaction>;

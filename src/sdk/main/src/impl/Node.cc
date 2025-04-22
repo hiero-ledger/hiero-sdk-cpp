@@ -185,6 +185,8 @@ grpc::Status Node::submitTransaction(proto::TransactionBody::DataCase funcEnum,
       return mTokenStub->updateToken(&context, transaction, response);
     case proto::TransactionBody::DataCase::kTokenWipe:
       return mTokenStub->wipeTokenAccount(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kAtomicBatch:
+      return mUtilStub->atomicBatch(&context, transaction, response);
     case proto::TransactionBody::DataCase::kUtilPrng:
       return mUtilStub->prng(&context, transaction, response);
     default:

@@ -11,6 +11,7 @@
 #include "AccountRecords.h"
 #include "AccountRecordsQuery.h"
 #include "AccountUpdateTransaction.h"
+#include "BatchTransaction.h"
 #include "Client.h"
 #include "ContractByteCodeQuery.h"
 #include "ContractCallQuery.h"
@@ -571,6 +572,7 @@ template class Executable<AccountUpdateTransaction,
                           proto::Transaction,
                           proto::TransactionResponse,
                           TransactionResponse>;
+template class Executable<BatchTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 template class Executable<ContractByteCodeQuery, proto::Query, proto::Response, ContractByteCode>;
 template class Executable<ContractCallQuery, proto::Query, proto::Response, ContractFunctionResult>;
 template class Executable<ContractCreateTransaction,
