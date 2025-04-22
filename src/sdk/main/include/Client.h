@@ -70,9 +70,13 @@ public:
    *
    * @param mirrorNetwork The mirror node network from which to grab the address book and initialize the Client's
    *                      consensus network.
-   * @return A Client with the input mirror network and the corresponding address book consensus network
+   * @param realm         The realm of the network from which to grab the address book.
+   * @param shard         The shard of the network from which to grab the address book.
+   * @return A Client with the input mirror network and the corresponding address book consensus network.
    */
-  [[nodiscard]] static Client forMirrorNetwork(const std::vector<std::string>& mirrorNetwork);
+  [[nodiscard]] static Client forMirrorNetwork(const std::vector<std::string>& mirrorNetwork,
+                                               int64_t realm = 0LL,
+                                               int64_t shard = 0LL);
 
   /**
    * Construct a Client by a name. The name must be one of "mainnet", "testnet", or "previewnet", otherwise this will
