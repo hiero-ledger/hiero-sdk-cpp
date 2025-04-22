@@ -5,12 +5,12 @@
 #include "TokenRelationship.h"
 #include "impl/Node.h"
 
+#include <nlohmann/json.hpp>
+
 #include <services/crypto_get_info.pb.h>
 #include <services/query.pb.h>
 #include <services/query_header.pb.h>
 #include <services/response.pb.h>
-
-#include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 

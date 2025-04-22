@@ -5,12 +5,12 @@
 #include "exceptions/UninitializedException.h"
 #include "impl/Node.h"
 
+#include <nlohmann/json.hpp>
+
 #include <services/crypto_get_account_balance.pb.h>
 #include <services/query.pb.h>
 #include <services/query_header.pb.h>
 #include <services/response.pb.h>
-
-#include <nlohmann/json.hpp>
 
 #include <cstddef>
 #include <string>
