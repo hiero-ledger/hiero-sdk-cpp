@@ -33,6 +33,7 @@ add_library(${PROJECT_NAME} STATIC
         src/AccountUpdateTransaction.cc
         src/AddressBookQuery.cc
         src/AssessedCustomFee.cc
+        src/BatchTransaction.cc
         src/ChunkedTransaction.cc
         src/Client.cc
         src/ContractId.cc
