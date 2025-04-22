@@ -5,7 +5,6 @@
 #include "impl/Utilities.h"
 
 #include <services/contract_call.pb.h>
-#include <grpcpp/client_context.h>
 #include <services/transaction.pb.h>
 #include <services/transaction_response.pb.h>
 

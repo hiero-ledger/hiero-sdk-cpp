@@ -5,7 +5,6 @@
 #include "impl/TimestampConverter.h"
 
 #include <services/contract_update.pb.h>
-#include <grpcpp/client_context.h>
 #include <services/transaction.pb.h>
 
 namespace Hiero

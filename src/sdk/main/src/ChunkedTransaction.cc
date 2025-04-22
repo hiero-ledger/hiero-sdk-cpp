@@ -10,11 +10,12 @@
 #include "impl/Utilities.h"
 #include "impl/openssl_utils/OpenSSLUtils.h"
 
+#include <services/transaction.pb.h>
+#include <services/transaction_contents.pb.h>
+
 #include <algorithm>
 #include <cmath>
 #include <iterator>
-#include <services/transaction.pb.h>
-#include <services/transaction_contents.pb.h>
 
 namespace Hiero
 {

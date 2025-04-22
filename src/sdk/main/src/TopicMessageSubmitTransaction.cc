@@ -4,11 +4,11 @@
 #include "impl/Utilities.h"
 
 #include <services/consensus_submit_message.pb.h>
-#include <grpcpp/client_context.h>
-#include <stdexcept>
-#include <string>
 #include <services/transaction.pb.h>
 #include <services/transaction_contents.pb.h>
+
+#include <stdexcept>
+#include <string>
 
 namespace Hiero
 {

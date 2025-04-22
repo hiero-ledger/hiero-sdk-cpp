@@ -3,8 +3,9 @@
 #include "impl/HexConverter.h"
 #include "impl/Utilities.h"
 
-#include <services/contract_call_local.pb.h>
 #include <nlohmann/json.hpp>
+
+#include <services/contract_call_local.pb.h>
 
 namespace Hiero
 {

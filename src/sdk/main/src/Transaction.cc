@@ -67,10 +67,11 @@
 
 #include <services/basic_types.pb.h>
 #include <services/transaction.pb.h>
-
 #include <services/transaction_contents.pb.h>
-#include <transaction_list.pb.h>
 #include <services/transaction_response.pb.h>
+
+#include <transaction_list.pb.h>
+
 #include <vector>
 
 namespace Hiero

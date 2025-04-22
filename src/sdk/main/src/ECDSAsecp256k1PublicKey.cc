@@ -20,10 +20,11 @@
 #include "impl/openssl_utils/OSSL_LIB_CTX.h"
 #include "impl/openssl_utils/OpenSSLUtils.h"
 
-#include <services/basic_types.pb.h>
 #include <openssl/decoder.h>
 #include <openssl/ec.h>
 #include <openssl/x509.h>
+
+#include <services/basic_types.pb.h>
 
 namespace Hiero
 {

@@ -2,10 +2,12 @@
 #include "KeyList.h"
 #include "impl/HexConverter.h"
 
-#include <algorithm>
-#include <services/basic_types.pb.h>
-#include <cstddef>
 #include <nlohmann/json.hpp>
+
+#include <services/basic_types.pb.h>
+
+#include <algorithm>
+#include <cstddef>
 
 namespace Hiero
 {

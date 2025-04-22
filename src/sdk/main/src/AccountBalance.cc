@@ -2,8 +2,9 @@
 #include "AccountBalance.h"
 #include "impl/Utilities.h"
 
-#include <services/crypto_get_account_balance.pb.h>
 #include <nlohmann/json.hpp>
+
+#include <services/crypto_get_account_balance.pb.h>
 
 namespace Hiero
 {

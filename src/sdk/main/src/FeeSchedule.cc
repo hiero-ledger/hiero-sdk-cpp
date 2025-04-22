@@ -3,8 +3,9 @@
 #include "impl/TimestampConverter.h"
 #include "impl/Utilities.h"
 
-#include <services/basic_types.pb.h>
 #include <nlohmann/json.hpp>
+
+#include <services/basic_types.pb.h>
 
 namespace Hiero
 {

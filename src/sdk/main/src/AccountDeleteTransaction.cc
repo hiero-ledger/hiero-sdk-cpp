@@ -3,9 +3,9 @@
 #include "impl/Node.h"
 
 #include <services/crypto_delete.pb.h>
-#include <grpcpp/client_context.h>
-#include <stdexcept>
 #include <services/transaction.pb.h>
+
+#include <stdexcept>
 
 namespace Hiero
 {

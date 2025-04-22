@@ -8,6 +8,7 @@
 #include "impl/Utilities.h"
 
 #include <services/basic_types.pb.h>
+
 #include <limits>
 
 namespace Hiero

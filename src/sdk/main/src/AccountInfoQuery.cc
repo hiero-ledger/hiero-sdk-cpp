@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-#include <services/crypto_get_info.pb.h>
-
 #include "AccountInfo.h"
 #include "AccountInfoQuery.h"
 #include "TokenId.h"
 #include "TokenRelationship.h"
 #include "impl/Node.h"
 
+#include <services/crypto_get_info.pb.h>
 #include <services/query.pb.h>
 #include <services/query_header.pb.h>
 #include <services/response.pb.h>

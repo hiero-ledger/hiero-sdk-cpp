@@ -87,15 +87,17 @@
 #include "impl/Node.h"
 #include "impl/Utilities.h"
 
-#include <algorithm>
 #include <grpcpp/impl/codegen/status.h>
-#include <limits>
+
 #include <services/query.pb.h>
 #include <services/response.pb.h>
-#include <stdexcept>
-#include <thread>
 #include <services/transaction.pb.h>
 #include <services/transaction_response.pb.h>
+
+#include <algorithm>
+#include <limits>
+#include <stdexcept>
+#include <thread>
 
 namespace Hiero
 {

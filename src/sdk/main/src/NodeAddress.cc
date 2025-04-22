@@ -5,6 +5,7 @@
 #include "impl/Utilities.h"
 
 #include <services/basic_types.pb.h>
+
 #include <iomanip>
 #include <memory>
 #include <sstream>

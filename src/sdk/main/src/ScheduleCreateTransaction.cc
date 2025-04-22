@@ -5,7 +5,6 @@
 #include "impl/Node.h"
 #include "impl/TimestampConverter.h"
 
-#include <grpcpp/client_context.h>
 #include <services/schedule_create.pb.h>
 #include <services/transaction.pb.h>
 

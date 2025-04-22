@@ -4,7 +4,6 @@
 #include "impl/Utilities.h"
 
 #include <services/file_append.pb.h>
-#include <grpcpp/client_context.h>
 #include <services/transaction.pb.h>
 
 namespace Hiero

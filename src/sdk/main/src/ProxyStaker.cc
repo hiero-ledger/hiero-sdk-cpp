@@ -2,8 +2,9 @@
 #include "ProxyStaker.h"
 #include "impl/Utilities.h"
 
-#include <services/crypto_get_stakers.pb.h>
 #include <nlohmann/json.hpp>
+
+#include <services/crypto_get_stakers.pb.h>
 
 namespace Hiero
 {

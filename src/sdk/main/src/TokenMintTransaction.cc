@@ -3,10 +3,10 @@
 #include "impl/Node.h"
 #include "impl/Utilities.h"
 
-#include <grpcpp/client_context.h>
-#include <stdexcept>
 #include <services/token_mint.pb.h>
 #include <services/transaction.pb.h>
+
+#include <stdexcept>
 
 namespace Hiero
 {

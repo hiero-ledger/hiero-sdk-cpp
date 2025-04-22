@@ -3,6 +3,7 @@
 #include "impl/Utilities.h"
 
 #include "nlohmann/json.hpp"
+
 #include <services/basic_types.pb.h>
 
 namespace Hiero

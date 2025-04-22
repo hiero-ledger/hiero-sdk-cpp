@@ -5,6 +5,7 @@
 #include "impl/Utilities.h"
 
 #include <nlohmann/json.hpp>
+
 #include <services/transaction_get_record.pb.h>
 #include <services/transaction_record.pb.h>
 

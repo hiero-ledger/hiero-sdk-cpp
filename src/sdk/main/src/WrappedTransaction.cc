@@ -2,9 +2,9 @@
 #include "WrappedTransaction.h"
 #include "exceptions/UninitializedException.h"
 
-#include <memory>
 #include <services/transaction.pb.h>
 
+#include <memory>
 namespace Hiero
 {
 //-----

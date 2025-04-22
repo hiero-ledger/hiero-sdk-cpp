@@ -4,10 +4,10 @@
 #include "impl/Node.h"
 #include "impl/Utilities.h"
 
-#include <grpcpp/client_context.h>
 #include <services/node_update.pb.h>
-#include <stdexcept>
 #include <services/transaction.pb.h>
+
+#include <stdexcept>
 
 namespace Hiero
 {

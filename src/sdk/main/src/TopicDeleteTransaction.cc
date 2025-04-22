@@ -3,9 +3,9 @@
 #include "impl/Node.h"
 
 #include <services/consensus_delete_topic.pb.h>
-#include <grpcpp/client_context.h>
-#include <stdexcept>
 #include <services/transaction.pb.h>
+
+#include <stdexcept>
 
 namespace Hiero
 {

@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "CustomFractionalFee.h"
 
-#include <services/custom_fees.pb.h>
 #include <nlohmann/json.hpp>
+
+#include <services/custom_fees.pb.h>
+
 #include <stdexcept>
 
 namespace Hiero
