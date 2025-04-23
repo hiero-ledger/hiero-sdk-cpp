@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "BatchTransaction.h"
+#include "WrappedTransaction.h"
 #include "impl/Node.h"
 #include "impl/Utilities.h"
 

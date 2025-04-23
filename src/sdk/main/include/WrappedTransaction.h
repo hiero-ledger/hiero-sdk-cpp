@@ -58,6 +58,7 @@
 
 namespace proto
 {
+class AtomicBatchTransactionBody;
 class SchedulableTransactionBody;
 class TransactionBody;
 }

@@ -3,12 +3,12 @@
 #define HIERO_SDK_CPP_BATCH_TRANSACTION_H_
 
 #include "Transaction.h"
-#include "WrappedTransaction.h"
 
 namespace proto
 {
 class AtomicBatchTransactionBody;
 class TransactionBody;
+class WrappedTransaction;
 }
 
 namespace Hiero

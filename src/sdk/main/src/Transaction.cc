@@ -149,7 +149,7 @@ struct Transaction<SdkRequestType>::TransactionImpl
   /**
    * The public key of the trusted batch assembler.
    */
-  std::shared_ptr<Key>& batchKey = nullptr;
+  std::shared_ptr<Key> mBatchKey = nullptr;
 };
 
 //-----
@@ -395,6 +395,31 @@ SdkRequestType& Transaction<SdkRequestType>::signWithOperator(const Client& clie
   freezeWith(&client);
 
   return signInternal(client.getOperatorPublicKey(), client.getOperatorSigner().value());
+}
+
+//------
+template<typename SdkRequestType>
+SdkRequestType& Transaction<SdkRequestType>::batchify(const Client& client, const std::shared_ptr<Key>& batchKey)
+{
+  // Freeze the transaction if it isn't already frozen
+  if (!isFrozen())
+  {
+    freezeWith(&client);
+  }
+
+  // Set the provided batch key
+  if (batchKey)
+  {
+    mImpl->mBatchKey = batchKey;
+  }
+
+  // Sign the transaction with the client’s operator, if applicable
+  if (client.getOperatorAccountId().has_value())
+  {
+    signWithOperator(client);
+  }
+
+  return static_cast<SdkRequestType&>(*this);
 }
 
 //-----
@@ -775,6 +800,7 @@ Transaction<SdkRequestType>::Transaction(const proto::TransactionBody& txBody)
   }
 
   mImpl->mTransactionMemo = txBody.memo();
+  mImpl->mBatchKey = Key::fromProtobuf(txBody.batch_key());
   mImpl->mSourceTransactionBody = txBody;
 }
 
@@ -888,6 +914,7 @@ Transaction<SdkRequestType>::Transaction(
   }
 
   mImpl->mTransactionMemo = mImpl->mSourceTransactionBody.memo();
+  mImpl->mBatchKey = Key::fromProtobuf(mImpl->mSourceTransactionBody.batch_key());
 }
 
 //-----

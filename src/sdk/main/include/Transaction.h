@@ -119,6 +119,31 @@ public:
   SdkRequestType& signWithOperator(const Client& client);
 
   /**
+   * This method is used to mark a transaction as part of a batch transaction or make it so-called inner
+   * transaction. The Transaction will be frozen and signed by the operator of the client.
+   *
+   * @param client The Client with which to sign this Transaction.
+   * @param batchKey The batch key
+   * @return A reference to this derived Transaction object.
+   */
+  SdkRequestType& batchify(const Client& client, const std::shared_ptr<Key>& batchKey);
+
+  /**
+   * Set the key that will sign the batch of which this Transaction is a part of.
+   *
+   * @param batchKey The batch key
+   * @return A reference to this derived Transaction object.
+   */
+  SdkRequestType& setBatchKey(const std::shared_ptr<Key>& batchKey);
+
+  /**
+   * Get the key that will sign the batch of which this Transaction is a part of.
+   *
+   * @return The batch key of the Transaction.
+   */
+  [[nodiscard]] inline const std::shared_ptr<Key>& getBatchKey() { return mImpl->mBatchKey; }
+
+  /**
    * Add a signature to this Transaction.
    *
    * @param publicKey The associated PublicKey of the PrivateKey that generated the signature.
