@@ -13,6 +13,7 @@ namespace Hiero
 //-----
 std::unique_ptr<Key> Key::fromProtobuf(const proto::Key& key)
 {
+  std::cout<< key.key_case() << std::endl;
   switch (key.key_case())
   {
     case proto::Key::KeyCase::kContractID:

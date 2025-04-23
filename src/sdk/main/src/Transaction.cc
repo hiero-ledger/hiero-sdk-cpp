@@ -800,7 +800,12 @@ Transaction<SdkRequestType>::Transaction(const proto::TransactionBody& txBody)
   }
 
   mImpl->mTransactionMemo = txBody.memo();
-  mImpl->mBatchKey = Key::fromProtobuf(txBody.batch_key());
+
+  if (txBody.has_batch_key())
+  {
+    mImpl->mBatchKey = Key::fromProtobuf(txBody.batch_key());
+  }
+
   mImpl->mSourceTransactionBody = txBody;
 }
 
@@ -914,7 +919,11 @@ Transaction<SdkRequestType>::Transaction(
   }
 
   mImpl->mTransactionMemo = mImpl->mSourceTransactionBody.memo();
-  mImpl->mBatchKey = Key::fromProtobuf(mImpl->mSourceTransactionBody.batch_key());
+
+  if (mImpl->mSourceTransactionBody.has_batch_key())
+  {
+    mImpl->mBatchKey = Key::fromProtobuf(mImpl->mSourceTransactionBody.batch_key());
+  }
 }
 
 //-----
