@@ -86,15 +86,8 @@ proto::AtomicBatchTransactionBody* BatchTransaction::build() const
 
   for (const auto& transaction : mInnerTransactions)
   {
-    std::unique_ptr<proto::TransactionBody> transactionProto = transaction.toProtobuf();
-
-    proto::SignedTransaction signedTx;
-    signedTx.set_bodybytes(transactionProto->SerializeAsString());
-
-    proto::Transaction tx;
-    tx.set_signedtransactionbytes(signedTx.SerializeAsString());
-
-    body->add_transactions(tx.signedtransactionbytes());
+    std::unique_ptr<proto::Transaction> transactionProto = transaction.toProtobufTransaction();
+    body->add_transactions(transactionProto->signedtransactionbytes());
   }
 
   return body.release();

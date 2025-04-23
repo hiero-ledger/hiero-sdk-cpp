@@ -401,23 +401,24 @@ SdkRequestType& Transaction<SdkRequestType>::signWithOperator(const Client& clie
 template<typename SdkRequestType>
 SdkRequestType& Transaction<SdkRequestType>::batchify(const Client& client, const std::shared_ptr<Key>& batchKey)
 {
-  // Freeze the transaction if it isn't already frozen
-  if (!isFrozen())
-  {
-    freezeWith(&client);
-  }
-
   // Set the provided batch key
   if (batchKey)
   {
     mImpl->mBatchKey = batchKey;
   }
 
+  // HIP-551 States that batchified transactions should always have the zero account ID for the node
+  Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::setNodeAccountIds(
+    { DUMMY_ACCOUNT_ID });
+
   // Sign the transaction with the client’s operator, if applicable
   if (client.getOperatorAccountId().has_value())
   {
     signWithOperator(client);
   }
+
+  // Build the transaction sigmap for the signed body bytes
+  buildTransaction(0);
 
   return static_cast<SdkRequestType&>(*this);
 }
@@ -989,6 +990,11 @@ void Transaction<SdkRequestType>::updateSourceTransactionBody(const Client* clie
   mImpl->mSourceTransactionBody.set_allocated_transactionvalidduration(
     internal::DurationConverter::toProtobuf(mImpl->mTransactionValidDuration));
   mImpl->mSourceTransactionBody.set_memo(mImpl->mTransactionMemo);
+
+  if (mImpl->mBatchKey)
+  {
+    mImpl->mSourceTransactionBody.set_allocated_batch_key(mImpl->mBatchKey->toProtobufKey().release());
+  }
 
   // Add derived Transaction fields to mSourceTransactionBody.
   addToBody(mImpl->mSourceTransactionBody);

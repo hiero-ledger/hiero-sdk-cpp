@@ -160,6 +160,14 @@ public:
   [[nodiscard]] std::unique_ptr<proto::TransactionBody> toProtobuf() const;
 
   /**
+   * Construct a Transaction protobuf object from this WrappedTransaction object.
+   *
+   * @return A pointer to the created Transaction protobuf object.
+   * @throws UninitializedException If no Transaction is contained within this WrappedTransaction.
+   */
+  [[nodiscard]] std::unique_ptr<proto::Transaction> toProtobufTransaction() const;
+
+  /**
    * Construct a SchedulableTransactionBody protobuf object from this WrappedTransaction object.
    *
    * @return A pointer to the created SchedulableTransactionBody protobuf object.
