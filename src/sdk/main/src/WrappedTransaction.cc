@@ -838,6 +838,7 @@ std::unique_ptr<proto::Transaction> WrappedTransaction::toProtobufTransaction() 
     }
     case FREEZE_TRANSACTION:
     {
+      std::cout << "FreezeTransaction" << std::endl;
       const auto transaction = getTransaction<FreezeTransaction>();
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
