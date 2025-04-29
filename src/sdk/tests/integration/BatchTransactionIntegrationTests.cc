@@ -234,3 +234,54 @@ TEST_F(BatchTransactionIntegrationTests, CanExecuteBatchTransactionWithChunkedIn
   TransactionReceipt txReceipt;
   ASSERT_NO_THROW(txReceipt = txResponse.getReceipt(getTestClient()););
 }
+
+//-----
+TEST_F(BatchTransactionIntegrationTests, BatchTransactionIncursFeesEvenIfOneInnerFailed)
+{
+  // Given
+  std::shared_ptr<PrivateKey> operatorKey;
+  ASSERT_NO_THROW(
+    operatorKey = ED25519PrivateKey::fromString(
+      "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"));
+
+  Hbar initialAccountBalance;
+  ASSERT_NO_THROW(initialAccountBalance = AccountInfoQuery()
+                                            .setAccountId(getTestClient().getOperatorAccountId().value())
+                                            .execute(getTestClient())
+                                            .mBalance);
+
+  std::shared_ptr<PrivateKey> accountKey1;
+  ASSERT_NO_THROW(accountKey1 = ED25519PrivateKey::generatePrivateKey());
+
+  WrappedTransaction innerTransaction1(AccountCreateTransaction()
+                                         .setKeyWithoutAlias(accountKey1)
+                                         .setInitialBalance(Hbar(1))
+                                         .batchify(getTestClient(), operatorKey));
+
+  std::shared_ptr<PrivateKey> accountKey2;
+  ASSERT_NO_THROW(accountKey2 = ED25519PrivateKey::generatePrivateKey());
+
+  WrappedTransaction innerTransaction2(AccountCreateTransaction()
+                                         .setKeyWithoutAlias(accountKey2)
+                                         .setInitialBalance(Hbar(1))
+                                         .setReceiverSignatureRequired(true)
+                                         .batchify(getTestClient(), operatorKey));
+
+  // When
+  BatchTransaction batchTransaction = BatchTransaction().setInnerTransactions({ innerTransaction1, innerTransaction2 });
+
+  TransactionResponse txResponse;
+  ASSERT_NO_THROW(txResponse = batchTransaction.execute(getTestClient()););
+
+  TransactionReceipt txReceipt;
+  ASSERT_THROW(txReceipt = txResponse.getReceipt(getTestClient()), ReceiptStatusException);
+
+  // Then
+  Hbar finalAccountBalance;
+  ASSERT_NO_THROW(finalAccountBalance = AccountInfoQuery()
+                                          .setAccountId(getTestClient().getOperatorAccountId().value())
+                                          .execute(getTestClient())
+                                          .mBalance);
+
+  EXPECT_LT(finalAccountBalance.toTinybars(), initialAccountBalance.toTinybars());
+}
