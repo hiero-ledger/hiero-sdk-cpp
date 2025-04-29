@@ -179,7 +179,6 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
 
   if (!batchified)
   {
-
     // Serialized object is a TransactionList protobuf object.
     if (proto::TransactionList txList;
         txList.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())) && txList.transaction_list_size() > 0)
@@ -869,7 +868,10 @@ Transaction<SdkRequestType>::Transaction(
     txBody.ParseFromString(signedTx.bodybytes());
 
     // If the transaction was a batchified transaction we need a full transaction proto object
-    mImpl->mTransactions.push_back(transactionMap.cbegin()->second);
+    if (txBody.has_batch_key())
+    {
+      mImpl->mTransactions.push_back(transactionMap.cbegin()->second);
+    }
 
     mImpl->mSourceTransactionBody = txBody;
   }
