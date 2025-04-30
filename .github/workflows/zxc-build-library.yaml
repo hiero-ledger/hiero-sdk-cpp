@@ -153,17 +153,17 @@ jobs:
         working-directory: vcpkg
         run: git fetch --unshallow --prune
 
-      # - name: CMake Build (Debug)
-      #   env:
-      #     VCPKG_BINARY_SOURCES: clear
-      #   run: |
-      #     echo "::group::Configure Project"
-      #     ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-debug -DBUILD_TESTS=ON
-      #     echo "::endgroup::"
+      - name: CMake Build (Debug)
+        env:
+          VCPKG_BINARY_SOURCES: clear
+        run: |
+          echo "::group::Configure Project"
+          ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-debug -DBUILD_TESTS=ON
+          echo "::endgroup::"
 
-      #     echo "::group::Build Project"
-      #     ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-debug
-      #     echo "::endgroup::"
+          echo "::group::Build Project"
+          ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-debug
+          echo "::endgroup::"
 
       - name: CMake Build (Release)
         if: github.event.pull_request.merged == true
