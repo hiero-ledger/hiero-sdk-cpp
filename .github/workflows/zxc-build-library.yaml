@@ -180,7 +180,7 @@ jobs:
 
       - name: Prepare Hiero Solo
         id: solo
-        uses: hiero-ledger/hiero-solo-action@35efe2334bffb73298716402a5c688321ec29260 # v0.6
+        uses: hiero-ledger/hiero-solo-action@3ae7d0c6cf9e5e8a2fd46fb8ac33b9d11fa4fc28
         with:
           installMirrorNode: true
           hederaVersion: "v0.61.4"
