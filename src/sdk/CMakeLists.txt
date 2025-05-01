@@ -7,6 +7,17 @@ if(BUILD_EXAMPLES)
 else()
     message(STATUS "Examples are not included in the build.")
 endif()
+
+# Optional Snippets build
+option(BUILD_SNIPPETS "Build the snippets builds" ON)
+
+if(BUILD_SNIPPETS)
+    message(STATUS "Including snippets in the build.")
+    add_subdirectory(snippets)
+else()
+    message(STATUS "Snippets are not included in the build.")
+endif()
+
 add_subdirectory(main)
 # Optional Tests build
 option(BUILD_TESTS "Build the test suite" OFF)
