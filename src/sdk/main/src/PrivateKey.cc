@@ -13,9 +13,11 @@
 #include "impl/openssl_utils/OpenSSLUtils.h"
 
 #include <openssl/x509.h>
+
+#include <services/transaction.pb.h>
+#include <services/transaction_contents.pb.h>
+
 #include <stdexcept>
-#include <transaction.pb.h>
-#include <transaction_contents.pb.h>
 
 namespace Hiero
 {

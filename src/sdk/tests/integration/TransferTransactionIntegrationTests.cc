@@ -24,7 +24,7 @@
 #include "impl/HexConverter.h"
 
 #include <gtest/gtest.h>
-#include <transaction_record.pb.h>
+#include <services/transaction_record.pb.h>
 
 using namespace Hiero;
 

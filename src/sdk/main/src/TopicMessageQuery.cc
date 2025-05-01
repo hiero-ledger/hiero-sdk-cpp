@@ -10,9 +10,9 @@
 #include "impl/TimestampConverter.h"
 #include "impl/Utilities.h"
 
-#include <chrono>
-#include <grpcpp/grpcpp.h>
 #include <mirror/consensus_service.grpc.pb.h>
+
+#include <chrono>
 #include <thread>
 #include <unordered_map>
 

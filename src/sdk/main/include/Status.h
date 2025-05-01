@@ -1787,8 +1787,53 @@ enum class Status
   /**
    * Max custom fees list is not supported for this operation.
    */
-  MAX_CUSTOM_FEES_IS_NOT_SUPPORTED
+  MAX_CUSTOM_FEES_IS_NOT_SUPPORTED,
 
+  /**
+   * The list of batch transactions is empty
+   */
+  BATCH_LIST_EMPTY,
+
+  /**
+   * The list of batch transactions contains duplicated transactions
+   */
+  BATCH_LIST_CONTAINS_DUPLICATES,
+
+  /**
+   * The list of batch transactions contains a transaction type that is
+   * in the AtomicBatch blacklist as configured in the network.
+   */
+  BATCH_TRANSACTION_IN_BLACKLIST,
+
+  /**
+   * The inner transaction of a batch transaction failed
+   */
+  INNER_TRANSACTION_FAILED,
+
+  /**
+   * The inner transaction of a batch transaction is missing a batch key
+   */
+  MISSING_BATCH_KEY,
+
+  /**
+   * The batch key is set for a non batch transaction
+   */
+  BATCH_KEY_SET_ON_NON_INNER_TRANSACTION,
+
+  /**
+   * The batch key is not valid
+   */
+  INVALID_BATCH_KEY,
+
+  /**
+   * The provided schedule expiry time is not configurable.
+   */
+  SCHEDULE_EXPIRY_NOT_CONFIGURABLE,
+
+  /**
+   * The network just started at genesis and is creating system entities.
+   */
+  CREATING_SYSTEM_ENTITIES
 };
 
 /**

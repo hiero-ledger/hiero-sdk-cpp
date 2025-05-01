@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
-#include <crypto_get_info.pb.h>
-
-#include "AccountInfo.h"
 #include "AccountInfoQuery.h"
+#include "AccountInfo.h"
 #include "TokenId.h"
 #include "TokenRelationship.h"
 #include "impl/Node.h"
 
-#include <query.pb.h>
-#include <query_header.pb.h>
-#include <response.pb.h>
-
 #include <nlohmann/json.hpp>
+
+#include <services/crypto_get_info.pb.h>
+#include <services/query.pb.h>
+#include <services/query_header.pb.h>
+#include <services/response.pb.h>
 
 using json = nlohmann::json;
 

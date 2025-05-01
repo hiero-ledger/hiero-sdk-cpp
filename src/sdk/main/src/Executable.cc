@@ -11,6 +11,7 @@
 #include "AccountRecords.h"
 #include "AccountRecordsQuery.h"
 #include "AccountUpdateTransaction.h"
+#include "BatchTransaction.h"
 #include "Client.h"
 #include "ContractByteCodeQuery.h"
 #include "ContractCallQuery.h"
@@ -86,15 +87,17 @@
 #include "impl/Node.h"
 #include "impl/Utilities.h"
 
-#include <algorithm>
 #include <grpcpp/impl/codegen/status.h>
+
+#include <services/query.pb.h>
+#include <services/response.pb.h>
+#include <services/transaction.pb.h>
+#include <services/transaction_response.pb.h>
+
+#include <algorithm>
 #include <limits>
-#include <query.pb.h>
-#include <response.pb.h>
 #include <stdexcept>
 #include <thread>
-#include <transaction.pb.h>
-#include <transaction_response.pb.h>
 
 namespace Hiero
 {
@@ -571,6 +574,7 @@ template class Executable<AccountUpdateTransaction,
                           proto::Transaction,
                           proto::TransactionResponse,
                           TransactionResponse>;
+template class Executable<BatchTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 template class Executable<ContractByteCodeQuery, proto::Query, proto::Response, ContractByteCode>;
 template class Executable<ContractCallQuery, proto::Query, proto::Response, ContractFunctionResult>;
 template class Executable<ContractCreateTransaction,

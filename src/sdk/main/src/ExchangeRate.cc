@@ -3,8 +3,9 @@
 #include "impl/TimestampConverter.h"
 #include "impl/Utilities.h"
 
-#include <exchange_rate.pb.h>
 #include <nlohmann/json.hpp>
+
+#include <services/exchange_rate.pb.h>
 
 namespace Hiero
 {

@@ -2,7 +2,7 @@
 #include "AccountId.h"
 #include "TokenAllowance.h"
 
-#include <crypto_approve_allowance.pb.h>
+#include <services/crypto_approve_allowance.pb.h>
 #include <gtest/gtest.h>
 
 using namespace Hiero;

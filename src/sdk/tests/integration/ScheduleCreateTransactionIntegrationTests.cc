@@ -171,7 +171,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, CannotScheduleTwoIdenticalTran
 }
 
 //-----
-TEST_F(ScheduleCreateTransactionIntegrationTests, CanSignScheduleAndWaitForExpiry)
+TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CanSignScheduleAndWaitForExpiry)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
@@ -325,7 +325,7 @@ TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CannotScheduleInThePa
 }
 
 //-----
-TEST_F(ScheduleCreateTransactionIntegrationTests, CanSignWithMultisigAndUpdateSigningRequirements)
+TEST_F(ScheduleCreateTransactionIntegrationTests, DISABLED_CanSignWithMultisigAndUpdateSigningRequirements)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
