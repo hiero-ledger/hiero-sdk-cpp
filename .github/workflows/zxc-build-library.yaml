@@ -184,7 +184,7 @@ jobs:
         with:
           installMirrorNode: true
           hederaVersion: "v0.61.4"
-          # mirrorNodePort: "5600"
+          mirrorNodePort: "5600"
 
       - name: Start CTest suite (Debug)
         run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug --output-on-failure
