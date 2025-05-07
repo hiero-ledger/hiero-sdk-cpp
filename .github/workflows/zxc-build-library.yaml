@@ -184,8 +184,8 @@ jobs:
         with:
           installMirrorNode: true
           hieroVersion: "v0.61.4"
-          mirrorNodePortGrpc: "5600"
-          mirrorNodePortRest: "5551"
+          # mirrorNodePortGrpc: "5600"
+          # mirrorNodePortRest: "5551"
 
 
       - name: Start CTest suite (Debug)
