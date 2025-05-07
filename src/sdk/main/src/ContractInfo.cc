@@ -5,8 +5,9 @@
 #include "impl/TimestampConverter.h"
 #include "impl/Utilities.h"
 
-#include <contract_get_info.pb.h>
 #include <nlohmann/json.hpp>
+
+#include <services/contract_get_info.pb.h>
 
 namespace Hiero
 {

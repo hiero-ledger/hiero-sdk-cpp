@@ -5,7 +5,8 @@
 #include "impl/Utilities.h"
 
 #include <nlohmann/json.hpp>
-#include <token_get_nft_info.pb.h>
+
+#include <services/token_get_nft_info.pb.h>
 
 namespace Hiero
 {

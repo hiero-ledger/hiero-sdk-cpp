@@ -2,7 +2,7 @@
 
 #include "TokenRelationship.h"
 
-#include <crypto_get_info.pb.h>
+#include <services/crypto_get_info.pb.h>
 
 using namespace Hiero;
 

@@ -883,9 +883,12 @@ src/proto/*.proto
 ### Ignore Proto Files From Services Repo
 /proto/*.proto
 /proto/mirror
+/proto/services
 /proto/state
 /proto/auxiliary
 /proto/event
+/proto/sdk
+/proto/platform
 
 ### Ignore Generated Package Files
 package

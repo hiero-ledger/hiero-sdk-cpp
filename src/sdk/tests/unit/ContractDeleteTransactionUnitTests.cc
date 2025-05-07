@@ -8,7 +8,7 @@
 
 #include <gtest/gtest.h>
 #include <memory>
-#include <transaction.pb.h>
+#include <services/transaction.pb.h>
 
 using namespace Hiero;
 

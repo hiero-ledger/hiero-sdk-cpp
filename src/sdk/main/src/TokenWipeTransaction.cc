@@ -2,10 +2,10 @@
 #include "TokenWipeTransaction.h"
 #include "impl/Node.h"
 
-#include <grpcpp/client_context.h>
+#include <services/token_wipe_account.pb.h>
+#include <services/transaction.pb.h>
+
 #include <stdexcept>
-#include <token_wipe_account.pb.h>
-#include <transaction.pb.h>
 
 namespace Hiero
 {

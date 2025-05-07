@@ -5,6 +5,7 @@
 #include "AccountCreateTransaction.h"
 #include "AccountDeleteTransaction.h"
 #include "AccountUpdateTransaction.h"
+#include "BatchTransaction.h"
 #include "Client.h"
 #include "ContractCreateTransaction.h"
 #include "ContractDeleteTransaction.h"
@@ -64,12 +65,13 @@
 #include "impl/Utilities.h"
 #include "impl/openssl_utils/OpenSSLUtils.h"
 
-#include <basic_types.pb.h>
-#include <transaction.pb.h>
+#include <services/basic_types.pb.h>
+#include <services/transaction.pb.h>
+#include <services/transaction_contents.pb.h>
+#include <services/transaction_response.pb.h>
 
-#include <transaction_contents.pb.h>
 #include <transaction_list.pb.h>
-#include <transaction_response.pb.h>
+
 #include <vector>
 
 namespace Hiero
@@ -143,6 +145,11 @@ struct Transaction<SdkRequestType>::TransactionImpl
   // will use the Client's set transaction ID regeneration policy. If that's not
   // set, the default behavior is captured in DEFAULT_REGENERATE_TRANSACTION_ID.
   std::optional<bool> mTransactionIdRegenerationPolicy;
+
+  /**
+   * The public key of the trusted batch assembler.
+   */
+  std::shared_ptr<Key> mBatchKey = nullptr;
 };
 
 //-----
@@ -156,13 +163,44 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
   proto::SignedTransaction signedTx;
   proto::TransactionBody txBody;
 
-  // Serialized object is a TransactionList protobuf object.
-  if (proto::TransactionList txList;
-      txList.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())) && txList.transaction_list_size() > 0)
+  bool batchified = false;
+
+  // Check if batchified
+  tx.set_signedtransactionbytes(internal::Utilities::byteVectorToString(bytes));
+  signedTx.ParseFromArray(tx.signedtransactionbytes().data(), static_cast<int>(tx.signedtransactionbytes().size()));
+  txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
+  if (txBody.has_batch_key())
   {
-    for (int i = 0; i < txList.transaction_list_size(); ++i)
+    batchified = true;
+    transactions[txBody.has_transactionid() ? TransactionId::fromProtobuf(txBody.transactionid())
+                                            : DUMMY_TRANSACTION_ID]
+                [txBody.has_nodeaccountid() ? AccountId::fromProtobuf(txBody.nodeaccountid()) : DUMMY_ACCOUNT_ID] = tx;
+  }
+
+  if (!batchified)
+  {
+    // Serialized object is a TransactionList protobuf object.
+    if (proto::TransactionList txList;
+        txList.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())) && txList.transaction_list_size() > 0)
     {
-      tx = txList.transaction_list(i);
+      for (int i = 0; i < txList.transaction_list_size(); ++i)
+      {
+        tx = txList.transaction_list(i);
+        signedTx.ParseFromArray(tx.signedtransactionbytes().data(),
+                                static_cast<int>(tx.signedtransactionbytes().size()));
+        txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
+
+        transactions[txBody.has_transactionid() ? TransactionId::fromProtobuf(txBody.transactionid())
+                                                : DUMMY_TRANSACTION_ID]
+                    [txBody.has_nodeaccountid() ? AccountId::fromProtobuf(txBody.nodeaccountid()) : DUMMY_ACCOUNT_ID] =
+                      tx;
+      }
+    }
+
+    // Transaction protobuf object.
+    else if (txBody.data_case() == proto::TransactionBody::DataCase::DATA_NOT_SET &&
+             tx.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())) && !tx.signedtransactionbytes().empty())
+    {
       signedTx.ParseFromArray(tx.signedtransactionbytes().data(), static_cast<int>(tx.signedtransactionbytes().size()));
       txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
 
@@ -171,36 +209,25 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
                   [txBody.has_nodeaccountid() ? AccountId::fromProtobuf(txBody.nodeaccountid()) : DUMMY_ACCOUNT_ID] =
                     tx;
     }
-  }
 
-  // Transaction protobuf object.
-  else if (txBody.data_case() == proto::TransactionBody::DataCase::DATA_NOT_SET &&
-           tx.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())) && !tx.signedtransactionbytes().empty())
-  {
-    signedTx.ParseFromArray(tx.signedtransactionbytes().data(), static_cast<int>(tx.signedtransactionbytes().size()));
-    txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
+    // TransactionBody protobuf object.
+    else if (txBody.data_case() == proto::TransactionBody::DataCase::DATA_NOT_SET &&
+             txBody.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())))
+    {
+      signedTx.set_bodybytes(txBody.SerializeAsString());
+      tx.set_signedtransactionbytes(signedTx.SerializeAsString());
 
-    transactions[txBody.has_transactionid() ? TransactionId::fromProtobuf(txBody.transactionid())
-                                            : DUMMY_TRANSACTION_ID]
-                [txBody.has_nodeaccountid() ? AccountId::fromProtobuf(txBody.nodeaccountid()) : DUMMY_ACCOUNT_ID] = tx;
-  }
+      transactions[txBody.has_transactionid() ? TransactionId::fromProtobuf(txBody.transactionid())
+                                              : DUMMY_TRANSACTION_ID]
+                  [txBody.has_nodeaccountid() ? AccountId::fromProtobuf(txBody.nodeaccountid()) : DUMMY_ACCOUNT_ID] =
+                    tx;
+    }
 
-  // TransactionBody protobuf object.
-  else if (txBody.data_case() == proto::TransactionBody::DataCase::DATA_NOT_SET &&
-           txBody.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())))
-  {
-    signedTx.set_bodybytes(txBody.SerializeAsString());
-    tx.set_signedtransactionbytes(signedTx.SerializeAsString());
-
-    transactions[txBody.has_transactionid() ? TransactionId::fromProtobuf(txBody.transactionid())
-                                            : DUMMY_TRANSACTION_ID]
-                [txBody.has_nodeaccountid() ? AccountId::fromProtobuf(txBody.nodeaccountid()) : DUMMY_ACCOUNT_ID] = tx;
-  }
-
-  // If not any Transaction, throw.
-  else
-  {
-    throw std::invalid_argument("Unable to construct Transaction from input bytes.");
+    // If not any Transaction, throw.
+    else
+    {
+      throw std::invalid_argument("Unable to construct Transaction from input bytes.");
+    }
   }
 
   switch (txBody.data_case())
@@ -215,6 +242,8 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
       return WrappedTransaction(AccountDeleteTransaction(transactions));
     case proto::TransactionBody::kCryptoUpdateAccount:
       return WrappedTransaction(AccountUpdateTransaction(transactions));
+    case proto::TransactionBody::kAtomicBatch:
+      return WrappedTransaction(BatchTransaction(transactions));
     case proto::TransactionBody::kContractCreateInstance:
       return WrappedTransaction(ContractCreateTransaction(transactions));
     case proto::TransactionBody::kContractDeleteInstance:
@@ -386,6 +415,32 @@ SdkRequestType& Transaction<SdkRequestType>::signWithOperator(const Client& clie
   freezeWith(&client);
 
   return signInternal(client.getOperatorPublicKey(), client.getOperatorSigner().value());
+}
+
+//------
+template<typename SdkRequestType>
+SdkRequestType& Transaction<SdkRequestType>::batchify(const Client& client, const std::shared_ptr<Key>& batchKey)
+{
+  // Set the provided batch key
+  if (batchKey)
+  {
+    mImpl->mBatchKey = batchKey;
+  }
+
+  // HIP-551 States that batchified transactions should always have the zero account ID for the node
+  Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::setNodeAccountIds(
+    { DUMMY_ACCOUNT_ID });
+
+  // Sign the transaction with the client’s operator, if applicable
+  if (client.getOperatorAccountId().has_value())
+  {
+    signWithOperator(client);
+  }
+
+  // Build the transaction sigmap for the signed body bytes
+  buildTransaction(0);
+
+  return static_cast<SdkRequestType&>(*this);
 }
 
 //-----
@@ -766,6 +821,12 @@ Transaction<SdkRequestType>::Transaction(const proto::TransactionBody& txBody)
   }
 
   mImpl->mTransactionMemo = txBody.memo();
+
+  if (txBody.has_batch_key())
+  {
+    mImpl->mBatchKey = Key::fromProtobuf(txBody.batch_key());
+  }
+
   mImpl->mSourceTransactionBody = txBody;
 }
 
@@ -805,6 +866,12 @@ Transaction<SdkRequestType>::Transaction(
 
     proto::TransactionBody txBody;
     txBody.ParseFromString(signedTx.bodybytes());
+
+    // If the transaction was a batchified transaction we need a full transaction proto object
+    if (txBody.has_batch_key())
+    {
+      mImpl->mTransactions.push_back(transactionMap.cbegin()->second);
+    }
 
     mImpl->mSourceTransactionBody = txBody;
   }
@@ -879,6 +946,11 @@ Transaction<SdkRequestType>::Transaction(
   }
 
   mImpl->mTransactionMemo = mImpl->mSourceTransactionBody.memo();
+
+  if (mImpl->mSourceTransactionBody.has_batch_key())
+  {
+    mImpl->mBatchKey = Key::fromProtobuf(mImpl->mSourceTransactionBody.batch_key());
+  }
 }
 
 //-----
@@ -944,6 +1016,11 @@ void Transaction<SdkRequestType>::updateSourceTransactionBody(const Client* clie
   mImpl->mSourceTransactionBody.set_allocated_transactionvalidduration(
     internal::DurationConverter::toProtobuf(mImpl->mTransactionValidDuration));
   mImpl->mSourceTransactionBody.set_memo(mImpl->mTransactionMemo);
+
+  if (mImpl->mBatchKey)
+  {
+    mImpl->mSourceTransactionBody.set_allocated_batch_key(mImpl->mBatchKey->toProtobufKey().release());
+  }
 
   // Add derived Transaction fields to mSourceTransactionBody.
   addToBody(mImpl->mSourceTransactionBody);
@@ -1274,6 +1351,7 @@ template class Transaction<AccountAllowanceDeleteTransaction>;
 template class Transaction<AccountCreateTransaction>;
 template class Transaction<AccountDeleteTransaction>;
 template class Transaction<AccountUpdateTransaction>;
+template class Transaction<BatchTransaction>;
 template class Transaction<ContractCreateTransaction>;
 template class Transaction<ContractDeleteTransaction>;
 template class Transaction<ContractExecuteTransaction>;

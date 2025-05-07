@@ -2,10 +2,10 @@
 #include "PrngTransaction.h"
 #include "impl/Node.h"
 
-#include <grpcpp/client_context.h>
+#include <services/transaction.pb.h>
+#include <services/util_prng.pb.h>
+
 #include <stdexcept>
-#include <transaction.pb.h>
-#include <util_prng.pb.h>
 
 namespace Hiero
 {

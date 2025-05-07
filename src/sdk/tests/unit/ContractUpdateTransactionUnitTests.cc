@@ -7,10 +7,10 @@
 #include "impl/DurationConverter.h"
 #include "impl/TimestampConverter.h"
 
-#include <contract_update.pb.h>
+#include <services/contract_update.pb.h>
 #include <gtest/gtest.h>
 #include <limits>
-#include <transaction.pb.h>
+#include <services/transaction.pb.h>
 
 using namespace Hiero;
 

@@ -2,8 +2,9 @@
 #include "AssessedCustomFee.h"
 #include "impl/Utilities.h"
 
-#include <custom_fees.pb.h>
 #include <nlohmann/json.hpp>
+
+#include <services/custom_fees.pb.h>
 
 namespace Hiero
 {

@@ -2,7 +2,7 @@
 #include "AccountId.h"
 #include "TokenNftTransfer.h"
 
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
 
 using namespace Hiero;

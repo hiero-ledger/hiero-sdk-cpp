@@ -4,10 +4,9 @@
 #include "impl/Node.h"
 #include "impl/Utilities.h"
 
-#include <contract_call.pb.h>
-#include <grpcpp/client_context.h>
-#include <transaction.pb.h>
-#include <transaction_response.pb.h>
+#include <services/contract_call.pb.h>
+#include <services/transaction.pb.h>
+#include <services/transaction_response.pb.h>
 
 namespace Hiero
 {

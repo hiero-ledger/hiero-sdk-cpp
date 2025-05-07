@@ -2,10 +2,10 @@
 #include "ScheduleDeleteTransaction.h"
 #include "impl/Node.h"
 
-#include <grpcpp/client_context.h>
-#include <schedule_delete.pb.h>
+#include <services/schedule_delete.pb.h>
+#include <services/transaction.pb.h>
+
 #include <stdexcept>
-#include <transaction.pb.h>
 
 namespace Hiero
 {

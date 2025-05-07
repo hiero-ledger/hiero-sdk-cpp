@@ -2,16 +2,16 @@
 #ifndef HIERO_SDK_CPP_IMPL_NODE_H_
 #define HIERO_SDK_CPP_IMPL_NODE_H_
 
-#include <address_book_service.grpc.pb.h>
-#include <consensus_service.grpc.pb.h>
-#include <crypto_service.grpc.pb.h>
-#include <file_service.grpc.pb.h>
-#include <freeze_service.grpc.pb.h>
-#include <network_service.grpc.pb.h>
-#include <schedule_service.grpc.pb.h>
-#include <smart_contract_service.grpc.pb.h>
-#include <token_service.grpc.pb.h>
-#include <util_service.grpc.pb.h>
+#include <services/address_book_service.grpc.pb.h>
+#include <services/consensus_service.grpc.pb.h>
+#include <services/crypto_service.grpc.pb.h>
+#include <services/file_service.grpc.pb.h>
+#include <services/freeze_service.grpc.pb.h>
+#include <services/network_service.grpc.pb.h>
+#include <services/schedule_service.grpc.pb.h>
+#include <services/smart_contract_service.grpc.pb.h>
+#include <services/token_service.grpc.pb.h>
+#include <services/util_service.grpc.pb.h>
 
 #include "AccountId.h"
 #include "BaseNode.h"

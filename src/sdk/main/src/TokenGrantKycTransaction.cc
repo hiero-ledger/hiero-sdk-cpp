@@ -2,10 +2,10 @@
 #include "TokenGrantKycTransaction.h"
 #include "impl/Node.h"
 
-#include <grpcpp/client_context.h>
+#include <services/token_grant_kyc.pb.h>
+#include <services/transaction.pb.h>
+
 #include <stdexcept>
-#include <token_grant_kyc.pb.h>
-#include <transaction.pb.h>
 
 namespace Hiero
 {
