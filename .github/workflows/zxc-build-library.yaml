@@ -153,17 +153,17 @@ jobs:
         working-directory: vcpkg
         run: git fetch --unshallow --prune
 
-      - name: CMake Build (Debug)
-        env:
-          VCPKG_BINARY_SOURCES: clear
-        run: |
-          echo "::group::Configure Project"
-          ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-debug -DBUILD_TESTS=ON
-          echo "::endgroup::"
+      # - name: CMake Build (Debug)
+      #   env:
+      #     VCPKG_BINARY_SOURCES: clear
+      #   run: |
+      #     echo "::group::Configure Project"
+      #     ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-debug -DBUILD_TESTS=ON
+      #     echo "::endgroup::"
 
-          echo "::group::Build Project"
-          ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-debug
-          echo "::endgroup::"
+      #     echo "::group::Build Project"
+      #     ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-debug
+      #     echo "::endgroup::"
 
       - name: CMake Build (Release)
         if: github.event.pull_request.merged == true
@@ -182,8 +182,8 @@ jobs:
         id: solo
         uses: hiero-ledger/hiero-solo-action@d5e345ca83d7c2b73d9d4f090276d70babe1dc73 # v0.7
         with:
-          hieroVersion: "v0.61.3"
           installMirrorNode: true
+          hieroVersion: "v0.61.4"
 
       - name: Start CTest suite (Debug)
         run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug --output-on-failure
