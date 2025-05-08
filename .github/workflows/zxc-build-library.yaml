@@ -186,7 +186,7 @@ jobs:
       #     hieroVersion: v0.58.
       
       - name: Install Solo
-        run: sudo npm install -g @hashgraph/solo@0.34.0
+        run: sudo npm install -g @hashgraph/solo@0.35.2
 
       - name: Install Solo Required Tools
         run: |
