@@ -445,6 +445,20 @@ SdkRequestType& Transaction<SdkRequestType>::batchify(const Client& client, cons
 
 //-----
 template<typename SdkRequestType>
+SdkRequestType& Transaction<SdkRequestType>::setBatchKey(const std::shared_ptr<Key>& batchKey)
+{
+  requireNotFrozen();
+
+  if (batchKey)
+  {
+    mImpl->mBatchKey = batchKey;
+  }
+
+  return static_cast<SdkRequestType&>(*this);
+}
+
+//-----
+template<typename SdkRequestType>
 SdkRequestType& Transaction<SdkRequestType>::addSignature(const std::shared_ptr<PublicKey>& publicKey,
                                                           const std::vector<std::byte>& signature)
 {
