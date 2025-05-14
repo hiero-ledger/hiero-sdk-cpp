@@ -1,7 +1,7 @@
 FetchContent_Declare(
         dotenv-cpp
         GIT_REPOSITORY https://github.com/laserpants/dotenv-cpp.git
-        GIT_TAG master
+        GIT_TAG a64ee31a34271f8703b5ad0c4e5417b2cc8bdb94
 )
 FetchContent_MakeAvailable(dotenv-cpp)
 include_directories(${dotenv-cpp_SOURCE_DIR}/include/laserpants/dotenv)
