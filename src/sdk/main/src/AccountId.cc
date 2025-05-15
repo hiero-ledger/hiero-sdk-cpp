@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
+// Windows build requires this to be included first for some reason.
+#include <services/basic_types.pb.h> // NOLINT
+
 #include "AccountId.h"
 #include "Client.h"
 #include "LedgerId.h"
@@ -11,8 +14,6 @@
 #include "impl/HttpClient.h"
 #include "impl/MirrorNetwork.h"
 #include "impl/Utilities.h"
-
-#include <services/basic_types.pb.h>
 
 #include <nlohmann/json.hpp>
 
