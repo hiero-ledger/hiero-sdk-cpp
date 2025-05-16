@@ -14,11 +14,11 @@ Maintainers are assigned the following scopes in this repository:
 
 <!-- Please keep this sorted alphabetically by github -->
 
-| Name | GitHub ID  | Scope | LFID | Discord ID  | Email | Company Affiliation |
-|----- | ---------- | ----- | ---- | ----------- | ----- | ------------------- |
-|      | rwalworth  |       |      | robborg     |       | Hashgraph           |
-|      | SimiHunjan |       |      |             |       | Hashgraph           |
-|      | gsstoykov  |       |      | glime_39042 |       | LimeChain           |
+| Name           | GitHub ID  | Scope | LFID | Discord ID  | Email | Company Affiliation |
+|--------------- | ---------- | ----- | ---- | ----------- | ----- | ------------------- |
+| Rob Walworth   | rwalworth  |       |      | robborg     |       | Hashgraph           |
+| Simi Hunjan    | SimiHunjan |       |      |             |       | Hashgraph           |
+| Georgi Stoykov | gsstoykov  |       |      | glime_39042 |       | LimeChain           |
 
 
 ## Emeritus Maintainers
