@@ -119,6 +119,13 @@ public:
   [[nodiscard]] const std::shared_ptr<Key>& getAdminKey() const { return mAdminKey; };
 
   /**
+   * Gets whether this node declines rewards.
+   *
+   * @return true if rewards are declined; false if accepted.
+   */
+  [[nodiscard]] bool getDeclineReward() const { return mDeclineReward; };
+
+  /**
    * Set the node account identifier.
    *
    * @param accountId The AccountId to set.
@@ -173,6 +180,14 @@ public:
    * @return A reference to this NodeCreateTransaction with the newly-set administrative key.
    */
   NodeCreateTransaction& setAdminKey(const std::shared_ptr<Key>& key);
+
+  /**
+   * Sets whether this node should decline rewards.
+   *
+   * @param decline true to decline rewards, false to accept.
+   * @return A reference to this NodeCreateTransaction with the newly-set reward decline policy.
+   */
+  NodeCreateTransaction& setDeclineReward(bool decline);
 
 private:
   friend class WrappedTransaction;
@@ -301,6 +316,14 @@ private:
    * This field is REQUIRED and MUST NOT be set to an empty `KeyList`.
    */
   std::shared_ptr<Key> mAdminKey;
+
+  /**
+   * An optional boolean flag indicating whether the node operator declines to receive
+   * node rewards.
+   * If this flag is set to `true`, the node operator declines to receive
+   * node rewards.
+   */
+  bool mDeclineReward = false;
 };
 
 } // namespace Hiero
