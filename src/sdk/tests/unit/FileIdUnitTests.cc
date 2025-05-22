@@ -175,3 +175,81 @@ TEST_F(FileIdUnitTests, ToString)
             std::to_string(getTestShardNum()) + '.' + std::to_string(getTestRealmNum()) + '.' +
               std::to_string(getTestFileNum()));
 }
+
+//-----
+TEST_F(FileIdUnitTests, GetAddressBookFileIdForReturnsCorrectFileId)
+{
+  // Given / When
+  const uint64_t defaultAddressBookFileIdShard = 0ULL;
+  const uint64_t defaultAddressBookFileIdRealm = 0ULL;
+
+  const uint64_t customAddressBookFileIdShard = 5ULL;
+  const uint64_t customAddressBookFileIdRealm = 10ULL;
+
+  const FileId defaultAddressBookFileId =
+    FileId::getAddressBookFileIdFor(defaultAddressBookFileIdRealm, defaultAddressBookFileIdShard);
+
+  const FileId customAddressBookFileId =
+    FileId::getAddressBookFileIdFor(customAddressBookFileIdRealm, customAddressBookFileIdShard);
+
+  // Then
+  EXPECT_EQ(defaultAddressBookFileId.mShardNum, defaultAddressBookFileIdShard);
+  EXPECT_EQ(defaultAddressBookFileId.mRealmNum, defaultAddressBookFileIdRealm);
+  EXPECT_EQ(defaultAddressBookFileId.mFileNum, 102ULL);
+
+  EXPECT_EQ(customAddressBookFileId.mShardNum, customAddressBookFileIdShard);
+  EXPECT_EQ(customAddressBookFileId.mRealmNum, customAddressBookFileIdRealm);
+  EXPECT_EQ(customAddressBookFileId.mFileNum, 102ULL);
+}
+
+//-----
+TEST_F(FileIdUnitTests, GetScheduleFileIdForReturnsCorrectFileId)
+{
+  // Given / When
+  const uint64_t defaultScheduleFileIdShard = 0ULL;
+  const uint64_t defaultScheduleFileIdRealm = 0ULL;
+
+  const uint64_t customScheduleFileIdShard = 5ULL;
+  const uint64_t customScheduleFileIdRealm = 10ULL;
+
+  const FileId defaultScheduleFileId =
+    FileId::getFeeScheduleFileIdFor(defaultScheduleFileIdRealm, defaultScheduleFileIdShard);
+
+  const FileId customScheduleFileId =
+    FileId::getFeeScheduleFileIdFor(customScheduleFileIdRealm, customScheduleFileIdShard);
+
+  // Then
+  EXPECT_EQ(defaultScheduleFileId.mShardNum, defaultScheduleFileIdShard);
+  EXPECT_EQ(defaultScheduleFileId.mRealmNum, defaultScheduleFileIdRealm);
+  EXPECT_EQ(defaultScheduleFileId.mFileNum, 101ULL);
+
+  EXPECT_EQ(customScheduleFileId.mShardNum, customScheduleFileIdShard);
+  EXPECT_EQ(customScheduleFileId.mRealmNum, customScheduleFileIdRealm);
+  EXPECT_EQ(customScheduleFileId.mFileNum, 101ULL);
+}
+
+//-----
+TEST_F(FileIdUnitTests, GetExchangeRatesFileIdForReturnsCorrectFileId)
+{
+  // Given / When
+  const uint64_t defaultExchangeRatesFileIdShard = 0ULL;
+  const uint64_t defaultExchangeRatesFileIdRealm = 0ULL;
+
+  const uint64_t customExchangeRatesFileIdShard = 5ULL;
+  const uint64_t customExchangeRatesFileIdRealm = 10ULL;
+
+  const FileId defaultExchangeRatesFileId =
+    FileId::getExchangeRatesFileIdFor(defaultExchangeRatesFileIdRealm, defaultExchangeRatesFileIdShard);
+
+  const FileId customExchangeRatesFileId =
+    FileId::getExchangeRatesFileIdFor(customExchangeRatesFileIdRealm, customExchangeRatesFileIdShard);
+
+  // Then
+  EXPECT_EQ(defaultExchangeRatesFileId.mShardNum, defaultExchangeRatesFileIdShard);
+  EXPECT_EQ(defaultExchangeRatesFileId.mRealmNum, defaultExchangeRatesFileIdRealm);
+  EXPECT_EQ(defaultExchangeRatesFileId.mFileNum, 112ULL);
+
+  EXPECT_EQ(customExchangeRatesFileId.mShardNum, customExchangeRatesFileIdShard);
+  EXPECT_EQ(customExchangeRatesFileId.mRealmNum, customExchangeRatesFileIdRealm);
+  EXPECT_EQ(customExchangeRatesFileId.mFileNum, 112ULL);
+}
