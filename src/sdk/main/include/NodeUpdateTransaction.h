@@ -335,7 +335,7 @@ private:
   std::shared_ptr<Key> mAdminKey;
 
   /**
-   * An optional boolean flag indicating whether the node operator declines to receive
+   * Boolean flag indicating whether the node operator declines to receive
    * node rewards.
    * If this flag is set to `true`, the node operator declines to receive
    * node rewards.
