@@ -83,6 +83,14 @@ NodeCreateTransaction& NodeCreateTransaction::setAdminKey(const std::shared_ptr<
 }
 
 //-----
+NodeCreateTransaction& NodeCreateTransaction::setDeclineReward(bool decline)
+{
+  requireNotFrozen();
+  mDeclineReward = decline;
+  return *this;
+}
+
+//-----
 grpc::Status NodeCreateTransaction::submitRequest(const proto::Transaction& request,
                                                   const std::shared_ptr<internal::Node>& node,
                                                   const std::chrono::system_clock::time_point& deadline,
@@ -137,6 +145,8 @@ void NodeCreateTransaction::initFromSourceTransactionBody()
   {
     mAdminKey = Key::fromProtobuf(body.admin_key());
   }
+
+  mDeclineReward = body.decline_reward();
 }
 
 //-----
@@ -172,6 +182,8 @@ aproto::NodeCreateTransactionBody* NodeCreateTransaction::build() const
   {
     body->set_allocated_admin_key(mAdminKey->toProtobufKey().release());
   }
+
+  body->set_decline_reward(mDeclineReward);
 
   return body.release();
 }

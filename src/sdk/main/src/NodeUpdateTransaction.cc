@@ -91,6 +91,14 @@ NodeUpdateTransaction& NodeUpdateTransaction::setAdminKey(const std::shared_ptr<
 }
 
 //-----
+NodeUpdateTransaction& NodeUpdateTransaction::setDeclineReward(bool decline)
+{
+  requireNotFrozen();
+  mDeclineReward = decline;
+  return *this;
+}
+
+//-----
 grpc::Status NodeUpdateTransaction::submitRequest(const proto::Transaction& request,
                                                   const std::shared_ptr<internal::Node>& node,
                                                   const std::chrono::system_clock::time_point& deadline,
@@ -152,6 +160,11 @@ void NodeUpdateTransaction::initFromSourceTransactionBody()
   {
     mAdminKey = Key::fromProtobuf(body.admin_key());
   }
+
+  if (body.has_decline_reward())
+  {
+    mDeclineReward = body.decline_reward().value();
+  }
 }
 
 //-----
@@ -191,6 +204,10 @@ aproto::NodeUpdateTransactionBody* NodeUpdateTransaction::build() const
   {
     body->set_allocated_admin_key(mAdminKey->toProtobufKey().release());
   }
+
+  auto boolValue = std::make_unique<google::protobuf::BoolValue>();
+  boolValue->set_value(mDeclineReward);
+  body->set_allocated_decline_reward(boolValue.release());
 
   return body.release();
 }
