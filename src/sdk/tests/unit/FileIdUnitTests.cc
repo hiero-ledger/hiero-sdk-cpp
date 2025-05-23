@@ -221,11 +221,11 @@ TEST_F(FileIdUnitTests, GetScheduleFileIdForReturnsCorrectFileId)
   // Then
   EXPECT_EQ(defaultScheduleFileId.mShardNum, defaultScheduleFileIdShard);
   EXPECT_EQ(defaultScheduleFileId.mRealmNum, defaultScheduleFileIdRealm);
-  EXPECT_EQ(defaultScheduleFileId.mFileNum, 101ULL);
+  EXPECT_EQ(defaultScheduleFileId.mFileNum, 111ULL);
 
   EXPECT_EQ(customScheduleFileId.mShardNum, customScheduleFileIdShard);
   EXPECT_EQ(customScheduleFileId.mRealmNum, customScheduleFileIdRealm);
-  EXPECT_EQ(customScheduleFileId.mFileNum, 101ULL);
+  EXPECT_EQ(customScheduleFileId.mFileNum, 111ULL);
 }
 
 //-----
