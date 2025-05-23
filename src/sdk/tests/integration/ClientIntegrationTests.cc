@@ -109,3 +109,19 @@ TEST_F(ClientIntegrationTests, ConnectToLocalNode)
   EXPECT_NE(client.getOperatorPublicKey(), nullptr);
   EXPECT_FALSE(newAccountId.toString().empty());
 }
+
+//-----
+TEST_F(ClientIntegrationTests, InitWithMirrorNetworkAnCustomRealmAndShard)
+{
+  // Given
+  const std::string_view mirrorNetworkUrl = "127.0.0.1:5600";
+  const int64_t customShardNum = 0ULL;
+  const int64_t customRealmNum = 0ULL;
+
+  // When
+  Client client = Client::forMirrorNetwork({ mirrorNetworkUrl.data() }, customShardNum, customRealmNum);
+  std::vector<std::string> mirrorNetwork = client.getMirrorNetwork();
+
+  // Then
+  EXPECT_EQ(mirrorNetwork.size(), 1);
+}
