@@ -56,6 +56,13 @@ TEST_F(NodeCreateTransactionUnitTests, ConstructNodeCreateTransactionFromTransac
   const std::shared_ptr<ED25519PrivateKey> key = ED25519PrivateKey::generatePrivateKey();
   body->set_allocated_admin_key(key->toProtobufKey().release());
 
+  // Set Decline Reward
+  body->set_decline_reward(true);
+
+  // Set gRPC Web Proxy Endpoint
+  Endpoint grpcWebProxyEndpoint = Endpoint().setDomainName("grpc-web.example.com").setPort(443);
+  body->set_allocated_grpc_proxy_endpoint(grpcWebProxyEndpoint.toProtobuf().release());
+
   // When
   NodeCreateTransaction nodeCreateTransaction(transactionBody);
 
@@ -71,6 +78,9 @@ TEST_F(NodeCreateTransactionUnitTests, ConstructNodeCreateTransactionFromTransac
   EXPECT_EQ(nodeCreateTransaction.getGrpcCertificateHash(), bytes);
   EXPECT_EQ(nodeCreateTransaction.getAdminKey()->toProtobufKey()->SerializeAsString(),
             key->toProtobufKey()->SerializeAsString());
+  EXPECT_TRUE(nodeCreateTransaction.getDeclineReward());
+  EXPECT_EQ(nodeCreateTransaction.getGrpcWebProxyEndpoint().value().getDomainName(),
+            grpcWebProxyEndpoint.getDomainName());
 }
 
 //-----
@@ -164,4 +174,38 @@ TEST_F(NodeCreateTransactionUnitTests, SetAndGetAdminKey)
 
   // Then
   ASSERT_EQ(transaction.getAdminKey(), adminKey);
+}
+
+//-----
+TEST_F(NodeCreateTransactionUnitTests, SetAndGetDeclineReward)
+{
+  // When
+  transaction.setDeclineReward(true);
+
+  // Then
+  ASSERT_TRUE(transaction.getDeclineReward());
+
+  // When
+  transaction.setDeclineReward(false);
+
+  // Then
+  ASSERT_FALSE(transaction.getDeclineReward());
+}
+
+//-----
+TEST_F(NodeCreateTransactionUnitTests, SetAndGetGrpcWebProxyEndpoint)
+{
+  // Given
+  Endpoint proxyEndpoint = Endpoint().setDomainName("grpc-web.example.com").setPort(443);
+
+  // When
+  transaction.setGrpcWebProxyEndpoint(proxyEndpoint);
+
+  // Then
+  ASSERT_TRUE(transaction.getGrpcWebProxyEndpoint().has_value());
+  ASSERT_EQ(transaction.getGrpcWebProxyEndpoint().value().getDomainName(), proxyEndpoint.getDomainName());
+
+  // Test clearing the optional value
+  transaction.setGrpcWebProxyEndpoint(std::nullopt);
+  ASSERT_FALSE(transaction.getGrpcWebProxyEndpoint().has_value());
 }

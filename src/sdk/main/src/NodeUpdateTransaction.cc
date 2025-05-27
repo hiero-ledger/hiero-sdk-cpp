@@ -99,6 +99,14 @@ NodeUpdateTransaction& NodeUpdateTransaction::setDeclineReward(bool decline)
 }
 
 //-----
+NodeUpdateTransaction& NodeUpdateTransaction::setGrpcWebProxyEndpoint(const std::optional<Endpoint>& endpoint)
+{
+  requireNotFrozen();
+  mGrpcWebProxyEndpoint = endpoint;
+  return *this;
+}
+
+//-----
 grpc::Status NodeUpdateTransaction::submitRequest(const proto::Transaction& request,
                                                   const std::shared_ptr<internal::Node>& node,
                                                   const std::chrono::system_clock::time_point& deadline,
@@ -165,6 +173,11 @@ void NodeUpdateTransaction::initFromSourceTransactionBody()
   {
     mDeclineReward = body.decline_reward().value();
   }
+
+  if (body.has_grpc_proxy_endpoint())
+  {
+    mGrpcWebProxyEndpoint = Endpoint::fromProtobuf(body.grpc_proxy_endpoint());
+  }
 }
 
 //-----
@@ -208,6 +221,11 @@ aproto::NodeUpdateTransactionBody* NodeUpdateTransaction::build() const
   auto boolValue = std::make_unique<google::protobuf::BoolValue>();
   boolValue->set_value(mDeclineReward);
   body->set_allocated_decline_reward(boolValue.release());
+
+  if (mGrpcWebProxyEndpoint.has_value())
+  {
+    body->set_allocated_grpc_proxy_endpoint(mGrpcWebProxyEndpoint->toProtobuf().release());
+  }
 
   return body.release();
 }

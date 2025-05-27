@@ -124,7 +124,14 @@ public:
    *
    * @return true if rewards are declined; false if accepted.
    */
-  [[nodiscard]] const bool getDeclineReward() const { return mDeclineReward; };
+  [[nodiscard]] bool getDeclineReward() const { return mDeclineReward; };
+
+  /**
+   * Get the gRPC-Web proxy endpoint.
+   *
+   * @return An optional Endpoint object representing the gRPC-Web proxy endpoint.
+   */
+  [[nodiscard]] std::optional<Endpoint> getGrpcWebProxyEndpoint() const { return mGrpcWebProxyEndpoint; };
 
   /**
    * Set the consensus node identifier in the network state.
@@ -197,6 +204,14 @@ public:
    * @return A reference to this NodeUpdateTransaction with the newly-set reward decline policy.
    */
   NodeUpdateTransaction& setDeclineReward(bool decline);
+
+  /**
+   * Set the gRPC-Web proxy endpoint.
+   *
+   * @param endpoint An optional Endpoint object representing the gRPC-Web proxy endpoint.
+   * @return A reference to this NodeUpdateTransaction with the newly-set gRPC-Web proxy endpoint.
+   */
+  NodeUpdateTransaction& setGrpcWebProxyEndpoint(const std::optional<Endpoint>& endpoint);
 
 private:
   friend class WrappedTransaction;
@@ -341,6 +356,19 @@ private:
    * node rewards.
    */
   bool mDeclineReward = false;
+
+  /**
+   * A web proxy for gRPC from non-gRPC clients.
+   *
+   * This endpoint SHALL be a Fully Qualified Domain Name (FQDN) using the HTTPS
+   * protocol, and SHALL support gRPC-Web for use by browser-based clients.
+   * This endpoint MUST be signed by a trusted certificate authority.
+   * This endpoint MUST use a valid port and SHALL be reachable over TLS.
+   * This field MAY be omitted if the node does not support gRPC-Web access.
+   * This field MUST be updated if the gRPC-Web endpoint changes.
+   * This field SHALL enable frontend clients to avoid hard-coded proxy endpoints.
+   */
+  std::optional<Endpoint> mGrpcWebProxyEndpoint;
 };
 
 } // namespace Hiero
