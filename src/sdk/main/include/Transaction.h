@@ -316,6 +316,20 @@ public:
    */
   [[nodiscard]] std::optional<bool> getRegenerateTransactionIdPolicy() const;
 
+  /**
+   * Get the size of the Transaction protobuf object for this Transaction.
+   *
+   * @return The byte size of the Transaction protobuf object for this Transaction.
+   */
+  [[nodiscard]] size_t getTransactionSize() const;
+
+  /**
+   * Get the size of the TransactionBody protobuf object for this Transaction.
+   *
+   * @return The byte size of the TransactionBody protobuf object for this Transaction.
+   */
+  [[nodiscard]] size_t getTransactionBodySize() const;
+
 protected:
   /**
    * Dummy transaction and account IDs used to assist in deserializing incomplete Transactions.
