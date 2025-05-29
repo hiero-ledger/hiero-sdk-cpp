@@ -755,6 +755,28 @@ std::optional<bool> Transaction<SdkRequestType>::getRegenerateTransactionIdPolic
 
 //-----
 template<typename SdkRequestType>
+size_t Transaction<SdkRequestType>::getTransactionSize() const
+{
+  if (!isFrozen())
+  {
+    throw IllegalStateException("Transaction must be frozen in order to calculate its size.");
+  }
+  return makeRequest(0).ByteSizeLong();
+}
+
+//-----
+template<typename SdkRequestType>
+size_t Transaction<SdkRequestType>::getTransactionBodySize() const
+{
+  if (!isFrozen())
+  {
+    throw IllegalStateException("Transaction must be frozen in order to calculate its body size.");
+  }
+  return mImpl->mSourceTransactionBody.ByteSizeLong();
+}
+
+//-----
+template<typename SdkRequestType>
 Transaction<SdkRequestType>::Transaction()
   : Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>()
   , mImpl(std::make_unique<TransactionImpl>())
