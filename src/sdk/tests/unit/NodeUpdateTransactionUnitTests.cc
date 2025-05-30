@@ -58,6 +58,15 @@ TEST_F(NodeUpdateTransactionUnitTests, ConstructNodeUpdateTransactionFromTransac
   const std::shared_ptr<ED25519PrivateKey> key = ED25519PrivateKey::generatePrivateKey();
   body->set_allocated_admin_key(key->toProtobufKey().release());
 
+  // Set Decline Reward
+  auto boolValue = std::make_unique<google::protobuf::BoolValue>();
+  boolValue->set_value(true);
+  body->set_allocated_decline_reward(boolValue.release());
+
+  // Set gRPC Web Proxy Endpoint
+  Endpoint grpcWebProxyEndpoint = Endpoint().setDomainName("grpc-web.example.com").setPort(443);
+  body->set_allocated_grpc_proxy_endpoint(grpcWebProxyEndpoint.toProtobuf().release());
+
   // When
   NodeUpdateTransaction nodeUpdateTransaction(transactionBody);
 
@@ -73,6 +82,9 @@ TEST_F(NodeUpdateTransactionUnitTests, ConstructNodeUpdateTransactionFromTransac
   EXPECT_EQ(nodeUpdateTransaction.getGrpcCertificateHash(), bytes);
   EXPECT_EQ(nodeUpdateTransaction.getAdminKey()->toProtobufKey()->SerializeAsString(),
             key->toProtobufKey()->SerializeAsString());
+  EXPECT_TRUE(nodeUpdateTransaction.getDeclineReward());
+  EXPECT_EQ(nodeUpdateTransaction.getGrpcWebProxyEndpoint().value().getDomainName(),
+            grpcWebProxyEndpoint.getDomainName());
 }
 
 //-----
@@ -166,4 +178,34 @@ TEST_F(NodeUpdateTransactionUnitTests, SetAndGetAdminKey)
 
   // Then
   ASSERT_EQ(transaction.getAdminKey(), adminKey);
+}
+
+//-----
+TEST_F(NodeUpdateTransactionUnitTests, SetAndGetDeclineReward)
+{
+  // When
+  transaction.setDeclineReward(true);
+
+  // Then
+  ASSERT_TRUE(transaction.getDeclineReward());
+
+  // When
+  transaction.setDeclineReward(false);
+
+  // Then
+  ASSERT_FALSE(transaction.getDeclineReward());
+}
+
+//-----
+TEST_F(NodeUpdateTransactionUnitTests, SetAndGetGrpcWebProxyEndpoint)
+{
+  // Given
+  Endpoint proxyEndpoint = Endpoint().setDomainName("grpc-web.example.com").setPort(443);
+
+  // When
+  transaction.setGrpcWebProxyEndpoint(proxyEndpoint);
+
+  // Then
+  ASSERT_TRUE(transaction.getGrpcWebProxyEndpoint().has_value());
+  ASSERT_EQ(transaction.getGrpcWebProxyEndpoint().value().getDomainName(), proxyEndpoint.getDomainName());
 }

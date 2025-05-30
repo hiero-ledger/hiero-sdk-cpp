@@ -120,6 +120,20 @@ public:
   [[nodiscard]] const std::shared_ptr<Key>& getAdminKey() const { return mAdminKey; };
 
   /**
+   * Gets whether this node declines rewards.
+   *
+   * @return true if rewards are declined; false if accepted.
+   */
+  [[nodiscard]] bool getDeclineReward() const { return mDeclineReward; };
+
+  /**
+   * Get the gRPC-Web proxy endpoint.
+   *
+   * @return An optional Endpoint object representing the gRPC-Web proxy endpoint.
+   */
+  [[nodiscard]] std::optional<Endpoint> getGrpcWebProxyEndpoint() const { return mGrpcWebProxyEndpoint; };
+
+  /**
    * Set the consensus node identifier in the network state.
    *
    * @param nodeId A uint64_t representing the node identifier.
@@ -182,6 +196,22 @@ public:
    * @return A reference to this NodeUpdateTransaction with the newly-set administrative key.
    */
   NodeUpdateTransaction& setAdminKey(const std::shared_ptr<Key>& key);
+
+  /**
+   * Sets whether this node should decline rewards.
+   *
+   * @param decline true to decline rewards, false to accept.
+   * @return A reference to this NodeUpdateTransaction with the newly-set reward decline policy.
+   */
+  NodeUpdateTransaction& setDeclineReward(bool decline);
+
+  /**
+   * Set the gRPC-Web proxy endpoint.
+   *
+   * @param endpoint An Endpoint object representing the gRPC-Web proxy endpoint.
+   * @return A reference to this NodeUpdateTransaction with the newly-set gRPC-Web proxy endpoint.
+   */
+  NodeUpdateTransaction& setGrpcWebProxyEndpoint(const Endpoint& endpoint);
 
 private:
   friend class WrappedTransaction;
@@ -318,6 +348,27 @@ private:
    * This field is REQUIRED and MUST NOT be set to an empty `KeyList`.
    */
   std::shared_ptr<Key> mAdminKey;
+
+  /**
+   * Boolean flag indicating whether the node operator declines to receive
+   * node rewards.
+   * If this flag is set to `true`, the node operator declines to receive
+   * node rewards.
+   */
+  bool mDeclineReward = false;
+
+  /**
+   * A web proxy for gRPC from non-gRPC clients.
+   *
+   * This endpoint SHALL be a Fully Qualified Domain Name (FQDN) using the HTTPS
+   * protocol, and SHALL support gRPC-Web for use by browser-based clients.
+   * This endpoint MUST be signed by a trusted certificate authority.
+   * This endpoint MUST use a valid port and SHALL be reachable over TLS.
+   * This field MAY be omitted if the node does not support gRPC-Web access.
+   * This field MUST be updated if the gRPC-Web endpoint changes.
+   * This field SHALL enable frontend clients to avoid hard-coded proxy endpoints.
+   */
+  std::optional<Endpoint> mGrpcWebProxyEndpoint;
 };
 
 } // namespace Hiero
