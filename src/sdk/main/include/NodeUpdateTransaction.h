@@ -208,10 +208,10 @@ public:
   /**
    * Set the gRPC-Web proxy endpoint.
    *
-   * @param endpoint An optional Endpoint object representing the gRPC-Web proxy endpoint.
+   * @param endpoint An Endpoint object representing the gRPC-Web proxy endpoint.
    * @return A reference to this NodeUpdateTransaction with the newly-set gRPC-Web proxy endpoint.
    */
-  NodeUpdateTransaction& setGrpcWebProxyEndpoint(const std::optional<Endpoint>& endpoint);
+  NodeUpdateTransaction& setGrpcWebProxyEndpoint(const Endpoint& endpoint);
 
 private:
   friend class WrappedTransaction;

@@ -208,8 +208,4 @@ TEST_F(NodeUpdateTransactionUnitTests, SetAndGetGrpcWebProxyEndpoint)
   // Then
   ASSERT_TRUE(transaction.getGrpcWebProxyEndpoint().has_value());
   ASSERT_EQ(transaction.getGrpcWebProxyEndpoint().value().getDomainName(), proxyEndpoint.getDomainName());
-
-  // Test clearing the optional value
-  transaction.setGrpcWebProxyEndpoint(std::nullopt);
-  ASSERT_FALSE(transaction.getGrpcWebProxyEndpoint().has_value());
 }

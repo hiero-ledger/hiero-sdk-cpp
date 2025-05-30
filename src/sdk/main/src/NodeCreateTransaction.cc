@@ -91,7 +91,7 @@ NodeCreateTransaction& NodeCreateTransaction::setDeclineReward(bool decline)
 }
 
 //-----
-NodeCreateTransaction& NodeCreateTransaction::setGrpcWebProxyEndpoint(const std::optional<Endpoint>& endpoint)
+NodeCreateTransaction& NodeCreateTransaction::setGrpcWebProxyEndpoint(const Endpoint& endpoint)
 {
   requireNotFrozen();
   mGrpcWebProxyEndpoint = endpoint;
