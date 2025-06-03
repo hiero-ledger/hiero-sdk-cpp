@@ -16,13 +16,47 @@ namespace Hiero
 class BaseIntegrationTest : public testing::Test
 {
 protected:
+  /** Get the test Client used in integration tests.
+   *
+   * @return The test Client.
+   */
   [[nodiscard]] inline const Client& getTestClient() const { return mClient; }
+
+  /** Get the test file content used in integration tests.
+   *
+   * @return The test file content.
+   */
   [[nodiscard]] inline const std::vector<std::byte>& getTestFileContent() const { return mFileContent; }
+
+  /** Get tge test smart contract bytecode used in integration tests.
+   *
+   * @return The test smart contract bytecode in hex format.
+   */
   [[nodiscard]] inline const std::string& getTestSmartContractBytecode() const { return mTestContractBytecodeHex; }
+
+  /** Get the test big contents used in integration tests.
+   *
+   * @return The test big contents.
+   */
   [[nodiscard]] inline const std::string& getTestBigContents() const { return mBigContents; }
 
+  /** Set the test Client operator with the given account ID and private key.
+   *
+   * @param accountId The account ID of the operator.
+   * @param privateKey The private key of the operator.
+   */
   void setTestClientOperator(const AccountId& accountId, const std::shared_ptr<PrivateKey>& privateKey);
+
+  /** Set the test Client operator with the default test account ID and private key.
+   *
+   * This method is used to set the operator for integration tests.
+   */
   void setDefaultTestClientOperator();
+
+  /** Set up the test environment.
+   *
+   * This method is called before each test case to initialize the test Client and file content.
+   */
   void SetUp() override;
 
 private:
