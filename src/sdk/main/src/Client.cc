@@ -157,13 +157,14 @@ Client Client::forNetwork(const std::unordered_map<std::string, AccountId>& netw
 }
 
 //-----
-Client Client::forMirrorNetwork(const std::vector<std::string>& mirrorNetwork)
+Client Client::forMirrorNetwork(const std::vector<std::string>& mirrorNetwork, int64_t realm, int64_t shard)
 {
   Client client;
   client.setMirrorNetwork(mirrorNetwork);
   client.mImpl->mNetwork =
     std::make_shared<internal::Network>(internal::Network::forNetwork(internal::Network::getNetworkFromAddressBook(
-      AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(client), internal::BaseNodeAddress::PORT_NODE_PLAIN)));
+      AddressBookQuery().setFileId(FileId::getAddressBookFileIdFor(realm, shard)).execute(client),
+      internal::BaseNodeAddress::PORT_NODE_PLAIN)));
 
   return client;
 }
@@ -1082,7 +1083,6 @@ void Client::scheduleNetworkUpdate()
         break;
       }
     }
-
     // The network update was cancelled, stop looping.
     else
     {

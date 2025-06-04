@@ -11,30 +11,30 @@
 # NOTE: Must be placed last to ensure enforcement over all other rules
 
 # Protection Rules for Github Configuration Files and Actions Workflows
-/.github/                                       @hiero-ledger/github-committers @hiero-ledger/github-maintainers 
-/.github/workflows/                             @hiero-ledger/github-committers @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
+/.github/                                       @hiero-ledger/github-maintainers 
+/.github/workflows/                             @hiero-ledger/github-maintainers @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
 
 # Cmake project files and inline plugins
-**/.clang*                                      @hiero-ledger/github-committers @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
-**/.clang-format                                @hiero-ledger/github-committers @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
-**/.clang-tidy                                  @hiero-ledger/github-committers @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
-**/CMakeLists.txt                               @hiero-ledger/github-committers @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
-**/CMakePresets.json                            @hiero-ledger/github-committers @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
+**/.clang*                                      @hiero-ledger/github-maintainers @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
+**/.clang-format                                @hiero-ledger/github-maintainers @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
+**/.clang-tidy                                  @hiero-ledger/github-maintainers @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
+**/CMakeLists.txt                               @hiero-ledger/github-maintainers @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
+**/CMakePresets.json                            @hiero-ledger/github-maintainers @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
 
 # Codacy Tool Configurations
-/config/                                        @hiero-ledger/github-committers @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
-.remarkrc                                       @hiero-ledger/github-committers @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
+/config/                                        @hiero-ledger/github-maintainers @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
+.remarkrc                                       @hiero-ledger/github-maintainers @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
 
 # Self-protection for root CODEOWNERS files (this file should not exist and should definitely require approval)
-/CODEOWNERS                                     @hiero-ledger/github-committers @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
+/CODEOWNERS                                     @hiero-ledger/github-maintainers @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
 
 # Protect the repository root files
-/README.md                                      @hiero-ledger/github-committers @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
+/README.md                                      @hiero-ledger/github-maintainers @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
 **/LICENSE                                      @hiero-ledger/github-maintainers @hiero-ledger/tsc
 
 # CodeCov configuration
 **/codecov.yml                                  @hiero-ledger/github-maintainers
 
 # Git Ignore definitions
-**/.gitignore                                   @hiero-ledger/github-committers @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
-**/.gitignore.*                                 @hiero-ledger/github-committers @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
+**/.gitignore                                   @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
+**/.gitignore.*                                 @hiero-ledger/github-maintainers  @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers

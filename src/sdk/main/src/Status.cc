@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "Status.h"
 
-#include <response_code.pb.h>
+#include <services/response_code.pb.h>
 
 namespace Hiero
 {
@@ -369,7 +369,16 @@ const std::unordered_map<proto::ResponseCodeEnum, Status> gProtobufResponseCodeT
    Status::DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST                                                                                    },
   { proto::ResponseCodeEnum::DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST,
    Status::DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST                                                                                      },
-  { proto::ResponseCodeEnum::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED,                               Status::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED       }
+  { proto::ResponseCodeEnum::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED,                               Status::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED       },
+  { proto::ResponseCodeEnum::BATCH_LIST_EMPTY,                                               Status::BATCH_LIST_EMPTY                       },
+  { proto::ResponseCodeEnum::BATCH_LIST_CONTAINS_DUPLICATES,                                 Status::BATCH_LIST_CONTAINS_DUPLICATES         },
+  { proto::ResponseCodeEnum::BATCH_TRANSACTION_IN_BLACKLIST,                                 Status::BATCH_TRANSACTION_IN_BLACKLIST         },
+  { proto::ResponseCodeEnum::INNER_TRANSACTION_FAILED,                                       Status::INNER_TRANSACTION_FAILED               },
+  { proto::ResponseCodeEnum::MISSING_BATCH_KEY,                                              Status::MISSING_BATCH_KEY                      },
+  { proto::ResponseCodeEnum::BATCH_KEY_SET_ON_NON_INNER_TRANSACTION,                         Status::BATCH_KEY_SET_ON_NON_INNER_TRANSACTION },
+  { proto::ResponseCodeEnum::INVALID_BATCH_KEY,                                              Status::INVALID_BATCH_KEY                      },
+  { proto::ResponseCodeEnum::SCHEDULE_EXPIRY_NOT_CONFIGURABLE,                               Status::SCHEDULE_EXPIRY_NOT_CONFIGURABLE       },
+  { proto::ResponseCodeEnum::CREATING_SYSTEM_ENTITIES,                                       Status::CREATING_SYSTEM_ENTITIES               }
 };
 
 //-----
@@ -736,7 +745,16 @@ const std::unordered_map<Status, proto::ResponseCodeEnum> gStatusToProtobufRespo
    proto::ResponseCodeEnum::DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST                                                                   },
   { Status::DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST,
    proto::ResponseCodeEnum::DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST                                                                     },
-  { Status::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED,                               proto::ResponseCodeEnum::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED       }
+  { Status::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED,                               proto::ResponseCodeEnum::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED       },
+  { Status::BATCH_LIST_EMPTY,                                               proto::ResponseCodeEnum::BATCH_LIST_EMPTY                       },
+  { Status::BATCH_LIST_CONTAINS_DUPLICATES,                                 proto::ResponseCodeEnum::BATCH_LIST_CONTAINS_DUPLICATES         },
+  { Status::BATCH_TRANSACTION_IN_BLACKLIST,                                 proto::ResponseCodeEnum::BATCH_TRANSACTION_IN_BLACKLIST         },
+  { Status::INNER_TRANSACTION_FAILED,                                       proto::ResponseCodeEnum::INNER_TRANSACTION_FAILED               },
+  { Status::MISSING_BATCH_KEY,                                              proto::ResponseCodeEnum::MISSING_BATCH_KEY                      },
+  { Status::BATCH_KEY_SET_ON_NON_INNER_TRANSACTION,                         proto::ResponseCodeEnum::BATCH_KEY_SET_ON_NON_INNER_TRANSACTION },
+  { Status::INVALID_BATCH_KEY,                                              proto::ResponseCodeEnum::INVALID_BATCH_KEY                      },
+  { Status::SCHEDULE_EXPIRY_NOT_CONFIGURABLE,                               proto::ResponseCodeEnum::SCHEDULE_EXPIRY_NOT_CONFIGURABLE       },
+  { Status::CREATING_SYSTEM_ENTITIES,                                       proto::ResponseCodeEnum::CREATING_SYSTEM_ENTITIES               }
 };
 
 //-----
@@ -1079,7 +1097,16 @@ const std::unordered_map<Status, std::string> gStatusToString = {
   { Status::INVALID_MAX_CUSTOM_FEES,                                        "INVALID_MAX_CUSTOM_FEES"                           },
   { Status::DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST,                  "DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST"     },
   { Status::DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST,                    "DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST"       },
-  { Status::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED,                               "MAX_CUSTOM_FEES_IS_NOT_SUPPORTED"                  }
+  { Status::MAX_CUSTOM_FEES_IS_NOT_SUPPORTED,                               "MAX_CUSTOM_FEES_IS_NOT_SUPPORTED"                  },
+  { Status::BATCH_LIST_EMPTY,                                               "BATCH_LIST_EMPTY"                                  },
+  { Status::BATCH_LIST_CONTAINS_DUPLICATES,                                 "BATCH_LIST_CONTAINS_DUPLICATES"                    },
+  { Status::BATCH_TRANSACTION_IN_BLACKLIST,                                 "BATCH_TRANSACTION_IN_BLACKLIST"                    },
+  { Status::INNER_TRANSACTION_FAILED,                                       "INNER_TRANSACTION_FAILED"                          },
+  { Status::MISSING_BATCH_KEY,                                              "MISSING_BATCH_KEY"                                 },
+  { Status::BATCH_KEY_SET_ON_NON_INNER_TRANSACTION,                         "BATCH_KEY_SET_ON_NON_INNER_TRANSACTION"            },
+  { Status::INVALID_BATCH_KEY,                                              "INVALID_BATCH_KEY"                                 },
+  { Status::SCHEDULE_EXPIRY_NOT_CONFIGURABLE,                               "SCHEDULE_EXPIRY_NOT_CONFIGURABLE"                  },
+  { Status::CREATING_SYSTEM_ENTITIES,                                       "CREATING_SYSTEM_ENTITIES"                          }
 };
 
 } // namespace Hiero

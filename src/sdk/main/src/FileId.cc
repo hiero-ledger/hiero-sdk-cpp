@@ -5,19 +5,48 @@
 #include "impl/EntityIdHelper.h"
 #include "impl/Utilities.h"
 
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
+
 #include <limits>
 
 namespace Hiero
 {
-//-----
-const FileId FileId::ADDRESS_BOOK = FileId(0ULL, 0ULL, 102ULL);
+namespace
+{
+// The entity number of the address book file.
+const uint64_t ADDRESS_BOOK_ENTITY_NUM = 102ULL;
+// The entity number of the fee schedule file.
+const uint64_t FEE_SCHEDULE_ENTITY_NUM = 111ULL;
+// The entity number of the exchange rates file.
+const uint64_t EXCHANGE_RATES_ENTITY_NUM = 112ULL;
+}
 
 //-----
-const FileId FileId::FEE_SCHEDULE = FileId(0ULL, 0ULL, 111ULL);
+const FileId FileId::ADDRESS_BOOK = FileId(ADDRESS_BOOK_ENTITY_NUM);
 
 //-----
-const FileId FileId::EXCHANGE_RATES = FileId(0ULL, 0ULL, 112ULL);
+const FileId FileId::FEE_SCHEDULE = FileId(FEE_SCHEDULE_ENTITY_NUM);
+
+//-----
+const FileId FileId::EXCHANGE_RATES = FileId(EXCHANGE_RATES_ENTITY_NUM);
+
+//-----
+FileId FileId::getAddressBookFileIdFor(int64_t realm, int64_t shard)
+{
+  return FileId(shard, realm, ADDRESS_BOOK_ENTITY_NUM);
+}
+
+//-----
+FileId FileId::getFeeScheduleFileIdFor(int64_t realm, int64_t shard)
+{
+  return FileId(shard, realm, FEE_SCHEDULE_ENTITY_NUM);
+}
+
+//-----
+FileId FileId::getExchangeRatesFileIdFor(int64_t realm, int64_t shard)
+{
+  return FileId(shard, realm, EXCHANGE_RATES_ENTITY_NUM);
+}
 
 //-----
 FileId::FileId(uint64_t num)

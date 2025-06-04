@@ -2,10 +2,10 @@
 #include "TokenFeeScheduleUpdateTransaction.h"
 #include "impl/Node.h"
 
-#include <grpcpp/client_context.h>
+#include <services/token_fee_schedule_update.pb.h>
+#include <services/transaction.pb.h>
+
 #include <stdexcept>
-#include <token_fee_schedule_update.pb.h>
-#include <transaction.pb.h>
 
 namespace Hiero
 {

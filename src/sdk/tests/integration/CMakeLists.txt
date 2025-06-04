@@ -9,6 +9,7 @@ add_executable(${TEST_PROJECT_NAME}
         AccountUpdateTransactionIntegrationTests.cc
         AddressBookQueryIntegrationTests.cc
         BaseIntegrationTest.cc
+        BatchTransactionIntegrationTests.cc
         ChunkedTransactionIntegrationTests.cc
         ClientIntegrationTests.cc
         ContractBytecodeQueryIntegrationTests.cc

@@ -2,9 +2,8 @@
 #include "FileDeleteTransaction.h"
 #include "impl/Node.h"
 
-#include <file_delete.pb.h>
-#include <grpcpp/client_context.h>
-#include <transaction.pb.h>
+#include <services/file_delete.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

@@ -2,10 +2,10 @@
 #include "TopicDeleteTransaction.h"
 #include "impl/Node.h"
 
-#include <consensus_delete_topic.pb.h>
-#include <grpcpp/client_context.h>
+#include <services/consensus_delete_topic.pb.h>
+#include <services/transaction.pb.h>
+
 #include <stdexcept>
-#include <transaction.pb.h>
 
 namespace Hiero
 {

@@ -3,10 +3,10 @@
 #include "impl/Node.h"
 #include "impl/TimestampConverter.h"
 
-#include <grpcpp/client_context.h>
+#include <services/system_undelete.pb.h>
+#include <services/transaction.pb.h>
+
 #include <stdexcept>
-#include <system_undelete.pb.h>
-#include <transaction.pb.h>
 
 namespace Hiero
 {

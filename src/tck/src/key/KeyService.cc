@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-#include "key/KeyService.h"
-#include "key/params/GenerateKeyParams.h"
-#include "json/JsonErrorType.h"
-#include "json/JsonRpcException.h"
+#include <algorithm>
+#include <memory>
+#include <string>
+#include <unordered_map>
+
+#include <nlohmann/json.hpp>
 
 #include <ECDSAsecp256k1PrivateKey.h>
 #include <ECDSAsecp256k1PublicKey.h>
@@ -15,12 +17,12 @@
 #include <exceptions/BadKeyException.h>
 #include <impl/HexConverter.h>
 #include <impl/Utilities.h>
+#include <services/basic_types.pb.h>
 
-#include <algorithm>
-#include <basic_types.pb.h>
-#include <memory>
-#include <nlohmann/json.hpp>
-#include <string>
+#include "key/KeyService.h"
+#include "key/params/GenerateKeyParams.h"
+#include "json/JsonErrorType.h"
+#include "json/JsonRpcException.h"
 
 namespace Hiero::TCK::KeyService
 {

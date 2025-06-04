@@ -39,6 +39,7 @@ add_library(${PROJECT_NAME} STATIC
         src/AccountUpdateTransaction.cc
         src/AddressBookQuery.cc
         src/AssessedCustomFee.cc
+        src/BatchTransaction.cc
         src/ChunkedTransaction.cc
         src/Client.cc
         src/ContractId.cc
@@ -326,17 +327,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         absl::throw_delegate
         absl::time
         absl::time_zone)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-        upb::upb
-        upb::descriptor_upb_proto
-        upb::extension_registry
-        upb::fastdecode
-        upb::json
-        upb::mini_table
-        upb::reflection
-        upb::textformat
-        upb::utf8_range)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         c-ares::cares

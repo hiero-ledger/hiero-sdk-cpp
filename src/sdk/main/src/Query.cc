@@ -37,9 +37,9 @@
 #include "exceptions/UninitializedException.h"
 #include "impl/Network.h"
 
-#include <query.pb.h>
-#include <query_header.pb.h>
-#include <transaction.pb.h>
+#include <services/query.pb.h>
+#include <services/query_header.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

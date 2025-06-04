@@ -2,8 +2,9 @@
 #include "NetworkVersionInfo.h"
 #include "impl/Utilities.h"
 
-#include <network_get_version_info.pb.h>
 #include <nlohmann/json.hpp>
+
+#include <services/network_get_version_info.pb.h>
 
 namespace Hiero
 {

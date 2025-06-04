@@ -4,10 +4,10 @@
 #include "impl/Node.h"
 #include "impl/Utilities.h"
 
-#include <grpcpp/client_context.h>
-#include <node_create.pb.h>
+#include <services/node_create.pb.h>
+#include <services/transaction.pb.h>
+
 #include <stdexcept>
-#include <transaction.pb.h>
 
 namespace Hiero
 {
@@ -83,6 +83,22 @@ NodeCreateTransaction& NodeCreateTransaction::setAdminKey(const std::shared_ptr<
 }
 
 //-----
+NodeCreateTransaction& NodeCreateTransaction::setDeclineReward(bool decline)
+{
+  requireNotFrozen();
+  mDeclineReward = decline;
+  return *this;
+}
+
+//-----
+NodeCreateTransaction& NodeCreateTransaction::setGrpcWebProxyEndpoint(const Endpoint& endpoint)
+{
+  requireNotFrozen();
+  mGrpcWebProxyEndpoint = endpoint;
+  return *this;
+}
+
+//-----
 grpc::Status NodeCreateTransaction::submitRequest(const proto::Transaction& request,
                                                   const std::shared_ptr<internal::Node>& node,
                                                   const std::chrono::system_clock::time_point& deadline,
@@ -137,6 +153,13 @@ void NodeCreateTransaction::initFromSourceTransactionBody()
   {
     mAdminKey = Key::fromProtobuf(body.admin_key());
   }
+
+  mDeclineReward = body.decline_reward();
+
+  if (body.has_grpc_proxy_endpoint())
+  {
+    mGrpcWebProxyEndpoint = Endpoint::fromProtobuf(body.grpc_proxy_endpoint());
+  }
 }
 
 //-----
@@ -171,6 +194,13 @@ aproto::NodeCreateTransactionBody* NodeCreateTransaction::build() const
   if (mAdminKey != nullptr)
   {
     body->set_allocated_admin_key(mAdminKey->toProtobufKey().release());
+  }
+
+  body->set_decline_reward(mDeclineReward);
+
+  if (mGrpcWebProxyEndpoint.has_value())
+  {
+    body->set_allocated_grpc_proxy_endpoint(mGrpcWebProxyEndpoint->toProtobuf().release());
   }
 
   return body.release();

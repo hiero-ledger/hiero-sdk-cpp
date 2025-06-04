@@ -1,7 +1,7 @@
-set(HAPI_VERSION_TAG "v0.60.0-alpha.0" CACHE STRING "Use the configured version tag for the Hiero API protobufs")
+set(HAPI_VERSION_TAG "v0.62.0" CACHE STRING "Use the configured version tag for the Hiero API protobufs")
 
 if (HAPI_VERSION_TAG STREQUAL "")
-    set(HAPI_VERSION_TAG "v0.60.0-alpha.0")
+    set(HAPI_VERSION_TAG "v0.62.0")
 endif ()
 
 # Fetch the protobuf definitions
@@ -49,9 +49,10 @@ if (FILES_TO_REMOVE)
 endif()
 
 file(INSTALL ${PROJECT_SOURCE_DIR}/proto/service-external-proto/mirror/ DESTINATION ${PROTO_SRC}/mirror)
-file(INSTALL ${hproto_SOURCE_DIR}/hapi/hedera-protobufs/services/ DESTINATION ${PROTO_SRC})
-file(INSTALL ${hproto_SOURCE_DIR}/hapi/hedera-protobufs/platform/ DESTINATION ${PROTO_SRC})
 file(INSTALL ${PROJECT_SOURCE_DIR}/proto/service-external-proto/sdk/ DESTINATION ${PROTO_SRC})
+
+file(INSTALL ${hproto_SOURCE_DIR}/hapi/hedera-protobuf-java-api/src/main/proto/platform/ DESTINATION ${PROTO_SRC}/platform)
+file(INSTALL ${hproto_SOURCE_DIR}/hapi/hedera-protobuf-java-api/src/main/proto/services/ DESTINATION ${PROTO_SRC}/services)
 
 add_subdirectory(proto)
 

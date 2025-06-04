@@ -3,10 +3,10 @@
 #include "ScheduleInfo.h"
 #include "impl/Node.h"
 
-#include <query.pb.h>
-#include <query_header.pb.h>
-#include <response.pb.h>
-#include <schedule_get_info.pb.h>
+#include <services/query.pb.h>
+#include <services/query_header.pb.h>
+#include <services/response.pb.h>
+#include <services/schedule_get_info.pb.h>
 
 namespace Hiero
 {

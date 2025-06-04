@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "PendingAirdropId.h"
 
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
 
 namespace Hiero
 {

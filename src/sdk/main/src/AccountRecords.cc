@@ -3,8 +3,9 @@
 #include "TransactionRecord.h"
 #include "impl/Utilities.h"
 
-#include <crypto_get_account_records.pb.h>
 #include <nlohmann/json.hpp>
+
+#include <services/crypto_get_account_records.pb.h>
 
 namespace Hiero
 {

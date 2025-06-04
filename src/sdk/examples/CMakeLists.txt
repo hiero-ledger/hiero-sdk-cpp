@@ -1,7 +1,7 @@
 FetchContent_Declare(
         dotenv-cpp
         GIT_REPOSITORY https://github.com/laserpants/dotenv-cpp.git
-        GIT_TAG master
+        GIT_TAG a64ee31a34271f8703b5ad0c4e5417b2cc8bdb94
 )
 FetchContent_MakeAvailable(dotenv-cpp)
 include_directories(${dotenv-cpp_SOURCE_DIR}/include/laserpants/dotenv)
@@ -12,6 +12,7 @@ set(ACCOUNT_ALLOWANCE_SERIALIZED_EXAMPLE_NAME ${PROJECT_NAME}-account-allowance-
 set(ACCOUNT_CREATE_WITH_HTS_EXAMPLE_NAME ${PROJECT_NAME}-account-create-with-hts-example)
 set(ACCOUNT_CREATION_WAYS_EXAMPLE_NAME ${PROJECT_NAME}-account-creation-ways-example)
 set(AUTO_CREATE_ACCOUNT_TRANSFER_TRANSACTION_EXAMPLE_NAME ${PROJECT_NAME}-auto-create-account-transfer-transaction-example)
+set(BATCH_TRANSACTION_EXAMPLE_NAME ${PROJECT_NAME}-batch-transaction-example)
 set(CONSENSUS_PUB_SUB_EXAMPLE_NAME ${PROJECT_NAME}-consensus-pub-sub-example)
 set(CONSENSUS_PUB_SUB_CHUNKED_EXAMPLE_NAME ${PROJECT_NAME}-consensus-pub-sub-chunked-example)
 set(CONSENSUS_PUB_SUB_WITH_SUBMIT_KEY_EXAMPLE_NAME ${PROJECT_NAME}-consensus-pub-sub-with-submit-key-example)
@@ -48,6 +49,7 @@ set(REVENUE_GENERATING_TOPICS_EXAMPLE_NAME ${PROJECT_NAME}-revenue-generating-to
 set(SCHEDULE_EXAMPLE_NAME ${PROJECT_NAME}-schedule-example)
 set(SCHEDULE_IDENTICAL_TRANSACTION_EXAMPLE_NAME ${PROJECT_NAME}-schedule-identical-transaction-example)
 set(SCHEDULE_MULTI_SIG_TRANSACTION_EXAMPLE_NAME ${PROJECT_NAME}-schedule-multisig-transaction-example)
+set(SCHEDULE_NETWORK_UPDATE_EXAMPLE_NAME ${PROJECT_NAME}-schedule-network-update-example)
 set(SCHEDULE_TRANSACTION_MULTI_SIG_TRANSACTION_EXAMPLE_NAME ${PROJECT_NAME}-schedule-transaction-multisig-threshold-example)
 set(SCHEDULE_TRANSFER_EXAMPLE_NAME ${PROJECT_NAME}-schedule-transfer-example)
 set(SIGN_TRANSACTION_EXAMPLE_NAME ${PROJECT_NAME}-sign-transaction-example)
@@ -72,6 +74,7 @@ add_executable(${ACCOUNT_ALLOWANCE_SERIALIZED_EXAMPLE_NAME} AccountAllowanceSeri
 add_executable(${ACCOUNT_CREATE_WITH_HTS_EXAMPLE_NAME} AccountCreateWithHtsExample.cc)
 add_executable(${ACCOUNT_CREATION_WAYS_EXAMPLE_NAME} AccountCreationWaysExample.cc)
 add_executable(${AUTO_CREATE_ACCOUNT_TRANSFER_TRANSACTION_EXAMPLE_NAME} AutoCreateAccountTransferTransactionExample.cc)
+add_executable(${BATCH_TRANSACTION_EXAMPLE_NAME} BatchTransactionExample.cc)
 add_executable(${CONSENSUS_PUB_SUB_EXAMPLE_NAME} ConsensusPubSubExample.cc)
 add_executable(${CONSENSUS_PUB_SUB_CHUNKED_EXAMPLE_NAME} ConsensusPubSubChunkedExample.cc)
 add_executable(${CONSENSUS_PUB_SUB_WITH_SUBMIT_KEY_EXAMPLE_NAME} ConsensusPubSubWithSubmitKeyExample.cc)
@@ -107,6 +110,7 @@ add_executable(${REVENUE_GENERATING_TOPICS_EXAMPLE_NAME} RevenueGeneratingTopics
 add_executable(${SCHEDULE_EXAMPLE_NAME} ScheduleExample.cc)
 add_executable(${SCHEDULE_IDENTICAL_TRANSACTION_EXAMPLE_NAME} ScheduleIdenticalTransactionExample.cc)
 add_executable(${SCHEDULE_MULTI_SIG_TRANSACTION_EXAMPLE_NAME} ScheduleMultiSigTransactionExample.cc)
+add_executable(${SCHEDULE_NETWORK_UPDATE_EXAMPLE_NAME} ScheduleNetworkUpdateExample.cc)
 add_executable(${SCHEDULE_TRANSACTION_MULTI_SIG_TRANSACTION_EXAMPLE_NAME} ScheduleTransactionMultiSigThresholdExample.cc)
 add_executable(${SCHEDULE_TRANSFER_EXAMPLE_NAME} ScheduleTransferExample.cc)
 add_executable(${SIGN_TRANSACTION_EXAMPLE_NAME} SignTransactionExample.cc)
@@ -153,6 +157,7 @@ target_link_libraries(${ACCOUNT_ALLOWANCE_SERIALIZED_EXAMPLE_NAME} PUBLIC ${PROJ
 target_link_libraries(${ACCOUNT_CREATE_WITH_HTS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${ACCOUNT_CREATION_WAYS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${AUTO_CREATE_ACCOUNT_TRANSFER_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${BATCH_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${CONSENSUS_PUB_SUB_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${CONSENSUS_PUB_SUB_CHUNKED_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${CONSENSUS_PUB_SUB_WITH_SUBMIT_KEY_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
@@ -188,6 +193,7 @@ target_link_libraries(${REVENUE_GENERATING_TOPICS_EXAMPLE_NAME} PUBLIC ${PROJECT
 target_link_libraries(${SCHEDULE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${SCHEDULE_IDENTICAL_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${SCHEDULE_MULTI_SIG_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${SCHEDULE_NETWORK_UPDATE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${SCHEDULE_TRANSACTION_MULTI_SIG_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${SCHEDULE_TRANSFER_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${SIGN_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
@@ -214,6 +220,7 @@ install(TARGETS
         ${ACCOUNT_CREATE_WITH_HTS_EXAMPLE_NAME}
         ${ACCOUNT_CREATION_WAYS_EXAMPLE_NAME}
         ${AUTO_CREATE_ACCOUNT_TRANSFER_TRANSACTION_EXAMPLE_NAME}
+        ${BATCH_TRANSACTION_EXAMPLE_NAME}
         ${CONSENSUS_PUB_SUB_EXAMPLE_NAME}
         ${CONSENSUS_PUB_SUB_CHUNKED_EXAMPLE_NAME}
         ${CONSENSUS_PUB_SUB_WITH_SUBMIT_KEY_EXAMPLE_NAME}
@@ -249,6 +256,7 @@ install(TARGETS
         ${SCHEDULE_EXAMPLE_NAME}
         ${SCHEDULE_IDENTICAL_TRANSACTION_EXAMPLE_NAME}
         ${SCHEDULE_MULTI_SIG_TRANSACTION_EXAMPLE_NAME}
+        ${SCHEDULE_NETWORK_UPDATE_EXAMPLE_NAME}
         ${SCHEDULE_TRANSACTION_MULTI_SIG_TRANSACTION_EXAMPLE_NAME}
         ${SCHEDULE_TRANSFER_EXAMPLE_NAME}
         ${SIGN_TRANSACTION_EXAMPLE_NAME}

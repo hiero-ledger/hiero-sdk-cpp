@@ -2,10 +2,10 @@
 #include "AccountDeleteTransaction.h"
 #include "impl/Node.h"
 
-#include <crypto_delete.pb.h>
-#include <grpcpp/client_context.h>
+#include <services/crypto_delete.pb.h>
+#include <services/transaction.pb.h>
+
 #include <stdexcept>
-#include <transaction.pb.h>
 
 namespace Hiero
 {

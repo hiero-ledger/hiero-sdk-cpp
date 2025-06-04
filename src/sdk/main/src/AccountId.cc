@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-#include <basic_types.pb.h>
+// Windows build requires this to be included first for some reason.
+#include <services/basic_types.pb.h> // NOLINT
 
 #include "AccountId.h"
 #include "Client.h"
@@ -14,8 +15,9 @@
 #include "impl/MirrorNetwork.h"
 #include "impl/Utilities.h"
 
-#include <limits>
 #include <nlohmann/json.hpp>
+
+#include <limits>
 #include <stdexcept>
 
 using json = nlohmann::json;

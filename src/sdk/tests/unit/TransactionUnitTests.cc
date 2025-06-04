@@ -4,6 +4,7 @@
 #include "AccountCreateTransaction.h"
 #include "AccountDeleteTransaction.h"
 #include "AccountUpdateTransaction.h"
+#include "BaseUnitTest.h"
 #include "ContractCreateTransaction.h"
 #include "ContractDeleteTransaction.h"
 #include "ContractExecuteTransaction.h"
@@ -42,17 +43,18 @@
 #include "TransactionType.h"
 #include "TransferTransaction.h"
 #include "WrappedTransaction.h"
+#include "exceptions/IllegalStateException.h"
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
-#include <transaction.pb.h>
+#include <services/transaction.pb.h>
 
-#include <transaction_contents.pb.h>
+#include <services/transaction_contents.pb.h>
 #include <transaction_list.pb.h>
 
 using namespace Hiero;
 
-class TransactionUnitTests : public ::testing::Test
+class TransactionUnitTests : public BaseUnitTest
 {
 };
 
@@ -2718,4 +2720,103 @@ TEST_F(TransactionUnitTests, TransferTransactionFromTransactionListBytes)
   // Then
   ASSERT_EQ(wrappedTx.getTransactionType(), TransactionType::TRANSFER_TRANSACTION);
   EXPECT_NE(wrappedTx.getTransaction<TransferTransaction>(), nullptr);
+}
+
+//-----
+TEST_F(TransactionUnitTests, GetTransactionAndTransactionBodySize)
+{
+  // Given
+  AccountCreateTransaction accountCreateTransaction;
+  ASSERT_NO_THROW(accountCreateTransaction = AccountCreateTransaction()
+                                               .setTransactionMemo("Test Memo")
+                                               .setNodeAccountIds({ AccountId(3) })
+                                               .setTransactionId(getTestTransactionIdMock())
+                                               .freezeWith(&getTestClientMock()));
+
+  // When
+  size_t transactionBodySize;
+  ASSERT_NO_THROW(transactionBodySize = accountCreateTransaction.getTransactionBodySize());
+
+  size_t transactionSize;
+  ASSERT_NO_THROW(transactionSize = accountCreateTransaction.getTransactionSize());
+
+  // Then
+  ASSERT_GT(transactionSize, transactionBodySize);
+}
+
+//-----
+TEST_F(TransactionUnitTests, CannotGetTransactionAndTransactionBodySizeWhenNotFrozen)
+{
+  // Given / When
+  AccountCreateTransaction accountCreateTransaction;
+  ASSERT_NO_THROW(accountCreateTransaction = AccountCreateTransaction()
+                                               .setTransactionMemo("Test Memo")
+                                               .setNodeAccountIds({ AccountId(3) })
+                                               .setTransactionId(getTestTransactionIdMock()));
+
+  // Then
+  size_t transactionBodySize;
+  EXPECT_THROW(transactionBodySize = accountCreateTransaction.getTransactionBodySize(), IllegalStateException);
+
+  size_t transactionSize;
+  EXPECT_THROW(transactionSize = accountCreateTransaction.getTransactionSize(), IllegalStateException);
+}
+
+//-----
+TEST_F(TransactionUnitTests, GetTransactionSizeWithSignatures)
+{
+  // Given
+  const std::shared_ptr<ED25519PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
+
+  AccountCreateTransaction accountCreateTransaction;
+  ASSERT_NO_THROW(accountCreateTransaction = AccountCreateTransaction()
+                                               .setTransactionMemo("Test Memo")
+                                               .setNodeAccountIds({ AccountId(3) })
+                                               .setTransactionId(getTestTransactionIdMock())
+                                               .setKey(privateKey->getPublicKey())
+                                               .freezeWith(&getTestClientMock()));
+
+  // When
+  size_t transactionSizeBeforeSign;
+  ASSERT_NO_THROW(transactionSizeBeforeSign = accountCreateTransaction.getTransactionSize());
+
+  ASSERT_NO_THROW(accountCreateTransaction.sign(privateKey));
+
+  size_t transactionSizeAfterSign;
+  ASSERT_NO_THROW(transactionSizeAfterSign = accountCreateTransaction.getTransactionSize());
+
+  // Then
+  ASSERT_GT(transactionSizeAfterSign, transactionSizeBeforeSign);
+}
+
+//-----
+TEST_F(TransactionUnitTests, GetTransactionBodySizeForBigAndSmallData)
+{
+  // Given
+  AccountCreateTransaction bigBodyTransaction;
+  ASSERT_NO_THROW(
+    bigBodyTransaction =
+      AccountCreateTransaction()
+        .setTransactionMemo("This is a very long memo that exceeds the typical size limit for a transaction memo. "
+                            "It is designed to test the handling of larger transaction bodies.")
+        .setNodeAccountIds({ AccountId(3) })
+        .setTransactionId(getTestTransactionIdMock())
+        .freezeWith(&getTestClientMock()));
+
+  AccountCreateTransaction smallBodyTransaction;
+  ASSERT_NO_THROW(smallBodyTransaction = AccountCreateTransaction()
+                                           .setTransactionMemo("memo")
+                                           .setNodeAccountIds({ AccountId(3) })
+                                           .setTransactionId(getTestTransactionIdMock())
+                                           .freezeWith(&getTestClientMock()));
+
+  // When
+  size_t transactionBigBodySize;
+  ASSERT_NO_THROW(transactionBigBodySize = bigBodyTransaction.getTransactionBodySize());
+
+  size_t transactionSmallBodySize;
+  ASSERT_NO_THROW(transactionSmallBodySize = smallBodyTransaction.getTransactionBodySize());
+
+  // Then
+  ASSERT_GT(transactionBigBodySize, transactionSmallBodySize);
 }

@@ -2,17 +2,25 @@
 #include "Endpoint.h"
 #include "impl/Utilities.h"
 
-#include <basic_types.pb.h>
+#include <services/basic_types.pb.h>
 
 namespace Hiero
 {
 //-----
 Endpoint Endpoint::fromProtobuf(const proto::ServiceEndpoint& protoServiceEndpoint)
 {
-  return Endpoint()
-    .setAddress(IPv4Address::fromBytes(internal::Utilities::stringToByteVector(protoServiceEndpoint.ipaddressv4())))
-    .setPort(static_cast<unsigned int>(protoServiceEndpoint.port()))
-    .setDomainName(protoServiceEndpoint.domain_name());
+  if (protoServiceEndpoint.ipaddressv4().empty())
+  {
+    return Endpoint()
+      .setDomainName(protoServiceEndpoint.domain_name())
+      .setPort(static_cast<unsigned int>(protoServiceEndpoint.port()));
+  }
+  else
+  {
+    return Endpoint()
+      .setAddress(IPv4Address::fromBytes(internal::Utilities::stringToByteVector(protoServiceEndpoint.ipaddressv4())))
+      .setPort(static_cast<unsigned int>(protoServiceEndpoint.port()));
+  }
 }
 
 //-----

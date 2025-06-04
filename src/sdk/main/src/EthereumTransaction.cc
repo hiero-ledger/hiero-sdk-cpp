@@ -3,8 +3,8 @@
 #include "impl/Node.h"
 #include "impl/Utilities.h"
 
-#include <ethereum_transaction.pb.h>
-#include <transaction.pb.h>
+#include <services/ethereum_transaction.pb.h>
+#include <services/transaction.pb.h>
 
 namespace Hiero
 {

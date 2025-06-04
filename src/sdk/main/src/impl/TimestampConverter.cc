@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "impl/TimestampConverter.h"
 
-#include <timestamp.pb.h>
+#include <services/timestamp.pb.h>
 
 namespace Hiero::internal::TimestampConverter
 {

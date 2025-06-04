@@ -2,7 +2,7 @@
 #ifndef HIERO_SDK_CPP_IMPL_BASE_NODE_H_
 #define HIERO_SDK_CPP_IMPL_BASE_NODE_H_
 
-#include <basic_types.pb.h> // This is needed for Windows to build for some reason.
+#include <services/basic_types.pb.h> // This is needed for Windows to build for some reason.
 
 #include "BaseNodeAddress.h"
 #include "Defaults.h"
