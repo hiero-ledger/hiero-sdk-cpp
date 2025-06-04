@@ -3,9 +3,12 @@
 
 int main()
 {
-  std::cout << "Software Version: " << PROJECT_VERSION_MAJOR << "." << PROJECT_VERSION_MINOR << "."
-            << PROJECT_VERSION_PATCH << std::endl;
+  std::cout << "Project Description: ";
+  std::cout << PROJECT_DESCRIPTION << std::endl;
+  std::cout << "Project Software Version: ";
+  std::cout << PROJECT_VERSION_MAJOR << "." << PROJECT_VERSION_MINOR << "." << PROJECT_VERSION_PATCH << std::endl;
+  std::cout << "Project Version String: ";
+  std::cout << PROJECT_VERSION_STRING << std::endl;
 
-  std::cout << "Version String: " << PROJECT_VERSION_STRING << std::endl;
   return 0;
 }
