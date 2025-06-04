@@ -16,6 +16,12 @@ if (WIN32)
     set(APR_UTIL_LIBRARIES ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-windows/lib/libaprutil-1.lib)
 endif ()
 
+# Configure a header file with the version info
+configure_file(
+        include/impl/version.h.in
+        ${HAPI_LIB_DIR}/version.h
+)
+
 FetchContent_MakeAvailable(log4cxx)
 
 add_library(${PROJECT_NAME} STATIC

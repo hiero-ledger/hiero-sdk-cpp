@@ -2,6 +2,7 @@
 #include "impl/Node.h"
 #include "impl/BaseNodeAddress.h"
 #include "impl/HieroCertificateVerifier.h"
+#include "version.h"
 
 #include <algorithm>
 #include <utility>
@@ -27,10 +28,10 @@ grpc::Status Node::submitQuery(proto::Query::QueryCase funcEnum,
                                const std::chrono::system_clock::time_point& deadline,
                                proto::Response* response)
 {
-  std::unique_lock lock(*getLock());
-
   grpc::ClientContext context;
-  context.set_deadline(deadline);
+  setClientContext(context, deadline);
+
+  std::unique_lock lock(*getLock());
 
   switch (funcEnum)
   {
@@ -78,10 +79,10 @@ grpc::Status Node::submitTransaction(proto::TransactionBody::DataCase funcEnum,
                                      const std::chrono::system_clock::time_point& deadline,
                                      proto::TransactionResponse* response)
 {
-  std::unique_lock lock(*getLock());
-
   grpc::ClientContext context;
-  context.set_deadline(deadline);
+  setClientContext(context, deadline);
+
+  std::unique_lock lock(*getLock());
 
   switch (funcEnum)
   {
@@ -236,6 +237,14 @@ Node::Node(const Node& node, const BaseNodeAddress& address)
   , mNodeCertificateHash(node.mNodeCertificateHash)
   , mVerifyCertificates(node.mVerifyCertificates)
 {
+}
+
+//-----
+void Node::setClientContext(grpc::ClientContext& context, const std::chrono::system_clock::time_point& deadline)
+{
+  context.set_deadline(deadline);
+  context.AddMetadata("user-agent-id", "hiero-sdk-cpp");
+  context.AddMetadata("version", PROJECT_VERSION_STRING);
 }
 
 //-----

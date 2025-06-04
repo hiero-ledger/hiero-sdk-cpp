@@ -158,6 +158,14 @@ private:
   explicit Node(const Node& node, const BaseNodeAddress& address);
 
   /**
+   * Set the ClientContext to use to submit a request.
+   *
+   * @param context The context to set.
+   * @param deadline The deadline of the submission attempt.
+   */
+  static void setClientContext(grpc::ClientContext& context, const std::chrono::system_clock::time_point& deadline);
+
+  /**
    * Derived from BaseNode. Get the TLS credentials of this Node's gRPC channel.
    *
    * @return A pointer to the TLS credentials for this Node's gRPC channel.
