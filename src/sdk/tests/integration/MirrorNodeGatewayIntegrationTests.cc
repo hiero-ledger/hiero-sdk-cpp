@@ -16,7 +16,7 @@ protected:
   [[nodiscard]] inline const std::string& getMirrorNetworkUrl() const { return mMirrorNetworkUrl; }
 
 private:
-  const std::string mAccountIdStr = "0.0.3";
+  const std::string mAccountIdStr = "0.0.2";
   const std::string mMirrorNetworkUrl = "http://127.0.0.1:5551";
 };
 
