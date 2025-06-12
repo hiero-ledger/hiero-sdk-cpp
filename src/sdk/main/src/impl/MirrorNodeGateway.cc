@@ -61,7 +61,7 @@ std::string buildUrlForNetwork(std::string_view mirrorNodeUrl,
     url = httpPrefix + url;
     if (requestType == "GET")
     {
-      url.replace(url.length() - 4, 4, "5551");
+      url.replace(url.length() - 4, 4, "80");
     }
     else if (requestType == "POST")
     {
