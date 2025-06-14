@@ -3,6 +3,8 @@
 ![](https://img.shields.io/badge/c++-17-blue)
 ![](https://img.shields.io/badge/cmake-3.24-blue)
 [![](https://github.com/hiero-ledger/hiero-sdk-cpp/actions/workflows/flow-pull-request-checks.yaml/badge.svg)](https://github.com/hiero-ledger/hiero-sdk-cpp/actions/workflows/flow-pull-request-checks.yaml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-sdk-cpp/badge)](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-sdk-cpp)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/10697/badge)](https://bestpractices.coreinfrastructure.org/projects/10697)
 
 The C++ SDK for interacting with a Hiero network.
 
@@ -201,6 +203,14 @@ review the [Contributing Guide for C++](CONTRIBUTING.md).
 
 More instructions for contribution can be found in the
 [Global Contributing Guide](https://github.com/hiero-ledger/.github/blob/main/CONTRIBUTING.md).
+
+## Help/Community
+
+- Join our [community discussions](https://discord.lfdecentralizedtrust.org/) on discord.
+
+## About Users and Maintainers
+
+- Users and Maintainers guidelies are located in **[Hiero-Ledger's roles and groups guidelines](https://github.com/hiero-ledger/governance/blob/main/roles-and-groups.md#maintainers).**
 
 ## Code of Conduct
 
