@@ -17,7 +17,7 @@ protected:
 
 private:
   const std::string mAccountIdStr = "0.0.2";
-  const std::string mMirrorNetworkUrl = "http://127.0.0.1:80";
+  const std::string mMirrorNetworkUrl = "http://127.0.0.1:5551";
 };
 
 //-----
