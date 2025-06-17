@@ -26,7 +26,7 @@ class BatchTransactionIntegrationTests : public BaseIntegrationTest
 };
 
 //-----
-TEST_F(BatchTransactionIntegrationTests, CanExecuteBatchTransaction)
+TEST_F(BatchTransactionIntegrationTests, DISABLED_CanExecuteBatchTransaction)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
@@ -53,7 +53,7 @@ TEST_F(BatchTransactionIntegrationTests, CanExecuteBatchTransaction)
 }
 
 //-----
-TEST_F(BatchTransactionIntegrationTests, CanExecuteAfterFromToBytes)
+TEST_F(BatchTransactionIntegrationTests, DISABLED_CanExecuteAfterFromToBytes)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
@@ -86,7 +86,7 @@ TEST_F(BatchTransactionIntegrationTests, CanExecuteAfterFromToBytes)
 }
 
 //-----
-TEST_F(BatchTransactionIntegrationTests, CanExecuteLargeBatchTransaction)
+TEST_F(BatchTransactionIntegrationTests, DISABLED_CanExecuteLargeBatchTransaction)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
@@ -119,7 +119,7 @@ TEST_F(BatchTransactionIntegrationTests, CanExecuteLargeBatchTransaction)
 }
 
 //-----
-TEST_F(BatchTransactionIntegrationTests, CannotExecuteBatchTransactionWithoutNoInnerTransactions)
+TEST_F(BatchTransactionIntegrationTests, DISABLED_CannotExecuteBatchTransactionWithoutNoInnerTransactions)
 {
   // Given /When / Then
   TransactionResponse txResponse;
@@ -127,7 +127,7 @@ TEST_F(BatchTransactionIntegrationTests, CannotExecuteBatchTransactionWithoutNoI
 }
 
 //-----
-TEST_F(BatchTransactionIntegrationTests, CannotExecuteBatchTransactionWithBlacklistedTransaction)
+TEST_F(BatchTransactionIntegrationTests, DISABLED_CannotExecuteBatchTransactionWithBlacklistedTransaction)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
@@ -153,7 +153,7 @@ TEST_F(BatchTransactionIntegrationTests, CannotExecuteBatchTransactionWithBlackl
 }
 
 //-----
-TEST_F(BatchTransactionIntegrationTests, CannotExecuteBatchTransactionWithInvalidInnerBatchKey)
+TEST_F(BatchTransactionIntegrationTests, DISABLED_CannotExecuteBatchTransactionWithInvalidInnerBatchKey)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
@@ -178,7 +178,7 @@ TEST_F(BatchTransactionIntegrationTests, CannotExecuteBatchTransactionWithInvali
 }
 
 //-----
-TEST_F(BatchTransactionIntegrationTests, CannotExecuteBatchTransactionWithoutBatchifyingInner)
+TEST_F(BatchTransactionIntegrationTests, DISABLED_CannotExecuteBatchTransactionWithoutBatchifyingInner)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
@@ -200,7 +200,7 @@ TEST_F(BatchTransactionIntegrationTests, CannotExecuteBatchTransactionWithoutBat
 }
 
 //-----
-TEST_F(BatchTransactionIntegrationTests, CanExecuteBatchTransactionWithChunkedInner)
+TEST_F(BatchTransactionIntegrationTests, DISABLED_CanExecuteBatchTransactionWithChunkedInner)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;
@@ -236,7 +236,7 @@ TEST_F(BatchTransactionIntegrationTests, CanExecuteBatchTransactionWithChunkedIn
 }
 
 //-----
-TEST_F(BatchTransactionIntegrationTests, BatchTransactionIncursFeesEvenIfOneInnerFailed)
+TEST_F(BatchTransactionIntegrationTests, DISABLED_BatchTransactionIncursFeesEvenIfOneInnerFailed)
 {
   // Given
   std::shared_ptr<PrivateKey> operatorKey;

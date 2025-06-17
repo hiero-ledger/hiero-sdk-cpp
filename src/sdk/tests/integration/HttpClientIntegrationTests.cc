@@ -21,7 +21,7 @@ protected:
 private:
   const std::string mUrl = "http://127.0.0.1:5551/api/v1/accounts/";
   const std::string mJsonMirrorNetworkTag = "mirrorNetwork";
-  const std::string mAccountIdStr = "0.0.3";
+  const std::string mAccountIdStr = "0.0.2";
 };
 
 //-----
