@@ -12,6 +12,7 @@ namespace Hiero::TCK::TokenService
 struct AirdropTokenParams;
 struct AssociateTokenParams;
 struct BurnTokenParams;
+struct ClaimAirdropParams;
 struct CreateTokenParams;
 struct DeleteTokenParams;
 struct DissociateTokenParams;
@@ -49,6 +50,14 @@ nlohmann::json associateToken(const AssociateTokenParams& params);
  * @return A JSON response containing the status of the token burn and the new total supply of the token.
  */
 nlohmann::json burnToken(const BurnTokenParams& params);
+
+/**
+ * Claim an airdrop.
+ *
+ * @param params The parameters to use to claim an airdrop.
+ * @return A JSON response containing the status of the airdrop claim.
+ */
+nlohmann::json claimAirdrop(const ClaimAirdropParams& params);
 
 /**
  * Create a token.
