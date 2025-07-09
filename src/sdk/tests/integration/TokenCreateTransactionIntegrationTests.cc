@@ -514,3 +514,185 @@ TEST_F(TokenCreateTransactionIntegrationTests, DoesNotAutoSetAutoRenewAccount)
 
   ASSERT_EQ(tokenInfo.mAutoRenewAccountId, accountId);
 }
+
+//-----
+TEST_F(TokenCreateTransactionIntegrationTests, CanCreateTokenWithDecimalAdjustmentForSupplyValues)
+{
+  // Given
+  int decimals = 3;
+  int64_t userInputInitialSupply = 1000;
+  int64_t userInputMaxSupply = 10000;
+  int64_t expectedInitialSupply = userInputInitialSupply * 1000;
+  int64_t expectedMaxSupply = userInputMaxSupply * 1000;
+
+  std::shared_ptr<PrivateKey> operatorKey;
+  ASSERT_NO_THROW(
+    operatorKey = std::shared_ptr<PrivateKey>(
+      ED25519PrivateKey::fromString(
+        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137")
+        .release()));
+
+  // When
+  TransactionReceipt txReceipt;
+  EXPECT_NO_THROW(txReceipt = TokenCreateTransaction()
+                                .setTokenName("DecimalTest")
+                                .setTokenSymbol("DT")
+                                .setDecimals(decimals)
+                                .setInitialSupply(expectedInitialSupply)
+                                .setMaxSupply(expectedMaxSupply)
+                                .setSupplyType(TokenSupplyType::FINITE)
+                                .setTreasuryAccountId(AccountId(2ULL))
+                                .setAdminKey(operatorKey)
+                                .setSupplyKey(operatorKey)
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient()));
+
+  TokenId tokenId;
+  EXPECT_NO_THROW(tokenId = txReceipt.mTokenId.value());
+
+  // Then
+  TokenInfo tokenInfo;
+  EXPECT_NO_THROW(tokenInfo = TokenInfoQuery().setTokenId(tokenId).execute(getTestClient()));
+  ASSERT_EQ(tokenInfo.mDecimals, decimals);
+  ASSERT_EQ(tokenInfo.mTotalSupply, expectedInitialSupply);
+  ASSERT_EQ(tokenInfo.mMaxSupply, expectedMaxSupply);
+
+  // Clean up
+  ASSERT_NO_THROW(txReceipt =
+                    TokenDeleteTransaction().setTokenId(tokenId).execute(getTestClient()).getReceipt(getTestClient()));
+}
+//-----
+TEST_F(TokenCreateTransactionIntegrationTests, CanCreateNftWithZeroDecimalsAndZeroInitialSupply)
+{
+  // Given
+  std::shared_ptr<PrivateKey> operatorKey;
+  ASSERT_NO_THROW(
+    operatorKey = std::shared_ptr<PrivateKey>(
+      ED25519PrivateKey::fromString(
+        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137")
+        .release()));
+
+  // When
+  TransactionReceipt txReceipt;
+  EXPECT_NO_THROW(txReceipt = TokenCreateTransaction()
+                                .setTokenName("NFTTest")
+                                .setTokenSymbol("NFT")
+                                .setTokenType(TokenType::NON_FUNGIBLE_UNIQUE)
+                                .setDecimals(0)
+                                .setInitialSupply(0)
+                                .setTreasuryAccountId(AccountId(2ULL))
+                                .setAdminKey(operatorKey)
+                                .setSupplyKey(operatorKey)
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient()));
+
+  TokenId tokenId;
+  EXPECT_NO_THROW(tokenId = txReceipt.mTokenId.value());
+
+  // Then
+  TokenInfo tokenInfo;
+  EXPECT_NO_THROW(tokenInfo = TokenInfoQuery().setTokenId(tokenId).execute(getTestClient()));
+  ASSERT_EQ(tokenInfo.mTokenType, TokenType::NON_FUNGIBLE_UNIQUE);
+  ASSERT_EQ(tokenInfo.mDecimals, 0);
+  ASSERT_EQ(tokenInfo.mTotalSupply, 0);
+
+  // Clean up
+  ASSERT_NO_THROW(txReceipt =
+                    TokenDeleteTransaction().setTokenId(tokenId).execute(getTestClient()).getReceipt(getTestClient()));
+}
+//-----
+TEST_F(TokenCreateTransactionIntegrationTests, CanCreateTokenWithDifferentDecimalPrecisionValues)
+{
+  // Given
+  std::shared_ptr<PrivateKey> operatorKey;
+  ASSERT_NO_THROW(
+    operatorKey = std::shared_ptr<PrivateKey>(
+      ED25519PrivateKey::fromString(
+        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137")
+        .release()));
+
+  std::vector<int> decimalValues = {0, 1, 2, 6, 8, 18};
+  int64_t userInputSupply = 100;
+
+  for (int decimals : decimalValues)
+  {
+    int64_t expectedSupply = userInputSupply;
+    for (int i = 0; i < decimals; ++i)
+    {
+      expectedSupply *= 10;
+    }
+
+    TransactionReceipt txReceipt;
+    EXPECT_NO_THROW(txReceipt = TokenCreateTransaction()
+                                  .setTokenName("DecimalTest" + std::to_string(decimals))
+                                  .setTokenSymbol("DT" + std::to_string(decimals))
+                                  .setDecimals(decimals)
+                                  .setInitialSupply(expectedSupply)
+                                  .setTreasuryAccountId(AccountId(2ULL))
+                                  .setAdminKey(operatorKey)
+                                  .execute(getTestClient())
+                                  .getReceipt(getTestClient()));
+
+    TokenId tokenId;
+    EXPECT_NO_THROW(tokenId = txReceipt.mTokenId.value());
+
+    TokenInfo tokenInfo;
+    EXPECT_NO_THROW(tokenInfo = TokenInfoQuery().setTokenId(tokenId).execute(getTestClient()));
+    ASSERT_EQ(tokenInfo.mDecimals, decimals);
+    ASSERT_EQ(tokenInfo.mTotalSupply, expectedSupply);
+
+    // Clean up
+    ASSERT_NO_THROW(txReceipt =
+                      TokenDeleteTransaction().setTokenId(tokenId).execute(getTestClient()).getReceipt(getTestClient()));
+  }
+}
+//-----
+TEST_F(TokenCreateTransactionIntegrationTests, CanCreateTokenWhenAutoRenewPeriodIsNull)
+{
+  // Given
+  std::shared_ptr<PrivateKey> operatorKey;
+  ASSERT_NO_THROW(
+    operatorKey = std::shared_ptr<PrivateKey>(
+      ED25519PrivateKey::fromString(
+        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137")
+        .release()));
+
+  // Calculate expiration time 90 days from now
+  using namespace std::chrono;
+  auto expirationTime = system_clock::now() + hours(24 * 90);
+
+  // When
+  TransactionReceipt txReceipt;
+  EXPECT_NO_THROW(txReceipt = TokenCreateTransaction()
+                                .setTokenName("TEST")
+                                .setTokenSymbol("TEST")
+                                .setTokenType(TokenType::FUNGIBLE_COMMON)
+                                .setSupplyType(TokenSupplyType::INFINITE)
+                                .setAutoRenewAccountId(AccountId(2ULL))
+                                .setInitialSupply(1)
+                                .setMaxTransactionFee(Hbar(100LL))
+                                .setTreasuryAccountId(AccountId(2ULL))
+                                .setExpirationTime(expirationTime)
+                                .setDecimals(0)
+                                .setAdminKey(operatorKey)
+                                // autoRenewPeriod is intentionally NOT set
+                                .execute(getTestClient())
+                                .getReceipt(getTestClient()));
+
+  ASSERT_EQ(txReceipt.mStatus, Status::SUCCESS);
+
+  TokenId tokenId;
+  EXPECT_NO_THROW(tokenId = txReceipt.mTokenId.value());
+
+  TokenInfo tokenInfo;
+  EXPECT_NO_THROW(tokenInfo = TokenInfoQuery().setTokenId(tokenId).execute(getTestClient()));
+  ASSERT_EQ(tokenInfo.mTokenName, "TEST");
+  ASSERT_EQ(tokenInfo.mTokenSymbol, "TEST");
+  ASSERT_EQ(tokenInfo.mTokenType, TokenType::FUNGIBLE_COMMON);
+  ASSERT_EQ(tokenInfo.mSupplyType, TokenSupplyType::INFINITE);
+  ASSERT_EQ(tokenInfo.mAutoRenewAccountId, AccountId(2ULL));
+
+  // Clean up
+  ASSERT_NO_THROW(txReceipt =
+                    TokenDeleteTransaction().setTokenId(tokenId).execute(getTestClient()).getReceipt(getTestClient()));
+}
