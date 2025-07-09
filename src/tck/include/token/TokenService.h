@@ -53,7 +53,7 @@ nlohmann::json associateToken(const AssociateTokenParams& params);
 nlohmann::json burnToken(const BurnTokenParams& params);
 
 /**
- *Cancel an airdrop.
+ * Cancel an airdrop.
  *
  * @param params The parameters to use to cancel an airdrop.
  * @return A JSON response containing the status of the airdrop cancel.
