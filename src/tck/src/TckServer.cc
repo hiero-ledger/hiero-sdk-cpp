@@ -15,6 +15,7 @@
 #include "token/params/AirdropTokenParams.h"
 #include "token/params/AssociateTokenParams.h"
 #include "token/params/BurnTokenParams.h"
+#include "token/params/CancelAirdropParams.h"
 #include "token/params/ClaimAirdropParams.h"
 #include "token/params/CreateTokenParams.h"
 #include "token/params/DeleteTokenParams.h"
@@ -378,6 +379,8 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::AssociateTok
   nlohmann::json (*method)(const TokenService::AssociateTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::BurnTokenParams>(
   nlohmann::json (*method)(const TokenService::BurnTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::CancelAirdropParams>(
+  nlohmann::json (*method)(const TokenService::CancelAirdropParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::ClaimAirdropParams>(
   nlohmann::json (*method)(const TokenService::ClaimAirdropParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::CreateTokenParams>(
