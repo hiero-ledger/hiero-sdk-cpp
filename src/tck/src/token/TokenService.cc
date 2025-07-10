@@ -6,6 +6,7 @@
 #include "token/params/AssociateTokenParams.h"
 #include "token/params/BurnTokenParams.h"
 #include "token/params/CancelAirdropParams.h"
+#include "token/params/ClaimAirdropParams.h"
 #include "token/params/CreateTokenParams.h"
 #include "token/params/DeleteTokenParams.h"
 #include "token/params/DissociateTokenParams.h"
@@ -28,6 +29,7 @@
 #include <TokenAssociateTransaction.h>
 #include <TokenBurnTransaction.h>
 #include <TokenCancelAirdropTransaction.h>
+#include <TokenClaimAirdropTransaction.h>
 #include <TokenCreateTransaction.h>
 #include <TokenDeleteTransaction.h>
 #include <TokenDissociateTransaction.h>
@@ -237,6 +239,40 @@ nlohmann::json cancelAirdrop(const CancelAirdropParams& params)
     {"status",
      gStatusToString.at(
         tokenCancelAirdropTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json claimAirdrop(const ClaimAirdropParams& params)
+{
+  TokenClaimAirdropTransaction tokenClaimAirdropTransaction;
+  tokenClaimAirdropTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  PendingAirdropId pendingAirdropId;
+  pendingAirdropId.mSender = AccountId::fromString(params.mSenderAccountId);
+  pendingAirdropId.mReceiver = AccountId::fromString(params.mReceiverAccountId);
+
+  const TokenId tokenId = TokenId::fromString(params.mTokenId);
+
+  if (params.mSerialNumbers.has_value())
+  {
+    std::vector<PendingAirdropId> nftAirdrops;
+    for (const auto& serialNumber : params.mSerialNumbers.value())
+    {
+      nftAirdrops.push_back(pendingAirdropId);
+      nftAirdrops.back().mNft = NftId(tokenId, Hiero::internal::EntityIdHelper::getNum(serialNumber));
+    }
+  }
+  else
+  {
+    pendingAirdropId.mFt = tokenId;
+    tokenClaimAirdropTransaction.setPendingAirdrops({ pendingAirdropId });
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        tokenClaimAirdropTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 

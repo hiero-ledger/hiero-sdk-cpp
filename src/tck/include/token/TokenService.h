@@ -13,6 +13,7 @@ struct AirdropTokenParams;
 struct AssociateTokenParams;
 struct BurnTokenParams;
 struct CancelAirdropParams;
+struct ClaimAirdropParams;
 struct CreateTokenParams;
 struct DeleteTokenParams;
 struct DissociateTokenParams;
@@ -58,6 +59,14 @@ nlohmann::json burnToken(const BurnTokenParams& params);
  * @return A JSON response containing the status of the airdrop cancel.
  */
 nlohmann::json cancelAirdrop(const CancelAirdropParams& params);
+
+/**
+ * Claim an airdrop.
+ *
+ * @param params The parameters to use to claim an airdrop.
+ * @return A JSON response containing the status of the airdrop claim.
+ */
+nlohmann::json claimAirdrop(const ClaimAirdropParams& params);
 
 /**
  * Create a token.

@@ -35,6 +35,7 @@ int main(int argc, char** argv)
   tckServer.add("associateToken", tckServer.getHandle(&TokenService::associateToken));
   tckServer.add("burnToken", tckServer.getHandle(&TokenService::burnToken));
   tckServer.add("cancelAirdrop", tckServer.getHandle(&TokenService::cancelAirdrop));
+  tckServer.add("claimAirdrop", tckServer.getHandle(&TokenService::claimAirdrop));
   tckServer.add("createToken", tckServer.getHandle(&TokenService::createToken));
   tckServer.add("deleteToken", tckServer.getHandle(&TokenService::deleteToken));
   tckServer.add("dissociateToken", tckServer.getHandle(&TokenService::dissociateToken));
