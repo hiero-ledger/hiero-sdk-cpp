@@ -243,8 +243,7 @@ Node::Node(const Node& node, const BaseNodeAddress& address)
 void Node::setClientContext(grpc::ClientContext& context, const std::chrono::system_clock::time_point& deadline)
 {
   context.set_deadline(deadline);
-  context.AddMetadata("user-agent-id", "hiero-sdk-cpp");
-  context.AddMetadata("version", PROJECT_VERSION_STRING);
+  context.AddMetadata("x-user-agent", std::string("hiero-sdk-cpp/") + PROJECT_VERSION_STRING);
 }
 
 //-----
