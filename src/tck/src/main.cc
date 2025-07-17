@@ -44,6 +44,7 @@ int main(int argc, char** argv)
   tckServer.add("mintToken", tckServer.getHandle(&TokenService::mintToken));
   tckServer.add("pauseToken", tckServer.getHandle(&TokenService::pauseToken));
   tckServer.add("revokeTokenKyc", tckServer.getHandle(&TokenService::revokeTokenKyc));
+  tckServer.add("rejectToken", tckServer.getHandle(&TokenService::rejectToken));
   tckServer.add("unpauseToken", tckServer.getHandle(&TokenService::unpauseToken));
   tckServer.add("unfreezeToken", tckServer.getHandle(&TokenService::unfreezeToken));
   tckServer.add("updateTokenFeeSchedule", tckServer.getHandle(&TokenService::updateTokenFeeSchedule));

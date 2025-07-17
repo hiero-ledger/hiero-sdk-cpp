@@ -25,6 +25,7 @@
 #include "token/params/MintTokenParams.h"
 #include "token/params/PauseTokenParams.h"
 #include "token/params/RevokeTokenKycParams.h"
+#include "token/params/TokenRejectParams.h"
 #include "token/params/UnfreezeTokenParams.h"
 #include "token/params/UnpauseTokenParams.h"
 #include "token/params/UpdateTokenFeeScheduleParams.h"
@@ -247,9 +248,9 @@ nlohmann::json TckServer::handleSingleRequest(const nlohmann::json& request)
       }
 
       return {
-        {"jsonrpc", "2.0"                                                                  },
-        { "id",     requestId                                                              },
-        { "result", method->second(hasParams ? request["params"] : nlohmann::json::array())}
+        { "jsonrpc", "2.0"                                                                   },
+        { "id",      requestId                                                               },
+        { "result",  method->second(hasParams ? request["params"] : nlohmann::json::array()) }
       };
     }
 
@@ -269,8 +270,8 @@ nlohmann::json TckServer::handleSingleRequest(const nlohmann::json& request)
   catch (const JsonRpcException& ex)
   {
     nlohmann::json error = {
-      {"code",     ex.getCode()   },
-      { "message", ex.getMessage()}
+      { "code",    ex.getCode()    },
+      { "message", ex.getMessage() }
     };
 
     if (!ex.getData().is_null())
@@ -279,9 +280,9 @@ nlohmann::json TckServer::handleSingleRequest(const nlohmann::json& request)
     }
 
     return nlohmann::json{
-      {"jsonrpc", "2.0"    },
-      { "id",     requestId},
-      { "error",  error    }
+      { "jsonrpc", "2.0"     },
+      { "id",      requestId },
+      { "error",   error     }
     };
   }
 
@@ -399,6 +400,8 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::PauseTokenPa
   nlohmann::json (*method)(const TokenService::PauseTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::RevokeTokenKycParams>(
   nlohmann::json (*method)(const TokenService::RevokeTokenKycParams&));
+template TckServer::MethodHandle TckServer::getHandle<TokenService::RejectTokenParams>(
+  nlohmann::json (*method)(const TokenService::RejectTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::UnfreezeTokenParams>(
   nlohmann::json (*method)(const TokenService::UnfreezeTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::UnpauseTokenParams>(
