@@ -15,6 +15,7 @@
 #include "token/params/MintTokenParams.h"
 #include "token/params/PauseTokenParams.h"
 #include "token/params/RevokeTokenKycParams.h"
+#include "token/params/TokenRejectParams.h"
 #include "token/params/UnfreezeTokenParams.h"
 #include "token/params/UnpauseTokenParams.h"
 #include "token/params/UpdateTokenFeeScheduleParams.h"
@@ -39,6 +40,7 @@
 #include <TokenId.h>
 #include <TokenMintTransaction.h>
 #include <TokenPauseTransaction.h>
+#include <TokenRejectTransaction.h>
 #include <TokenRevokeKycTransaction.h>
 #include <TokenSupplyType.h>
 #include <TokenType.h>
@@ -867,6 +869,49 @@ nlohmann::json wipeToken(const WipeTokenParams& params)
     {"status",
      gStatusToString.at(
         tokenWipeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json rejectToken(const RejectTokenParams& params)
+{
+  TokenRejectTransaction tokenRejectTransaction;
+  tokenRejectTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mOwnerAccountId.has_value())
+  {
+    tokenRejectTransaction.setOwner(AccountId::fromString(params.mOwnerAccountId.value()));
+  }
+
+  if (params.mFungibleTokenIds.has_value())
+  {
+    std::vector<TokenId> fts;
+    for (const std::string& tokenId : params.mFungibleTokenIds.value())
+    {
+      fts.push_back(TokenId::fromString(tokenId));
+    }
+    tokenRejectTransaction.setFts(fts);
+  }
+
+  if (params.mNftIds.has_value())
+  {
+    std::vector<NftId> nfts;
+    for (const std::string& nftId : params.mNftIds.value())
+    {
+      nfts.push_back(NftId::fromString(nftId));
+    }
+    tokenRejectTransaction.setNfts(nfts);
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(tokenRejectTransaction, SdkClient::getClient());
+  }
+
+  const TransactionReceipt txReceipt =
+    tokenRejectTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
+  return {
+    {"status", gStatusToString.at(txReceipt.mStatus)}
   };
 }
 

@@ -21,6 +21,7 @@ struct FreezeTokenParams;
 struct GrantTokenKycParams;
 struct MintTokenParams;
 struct PauseTokenParams;
+struct RejectTokenParams;
 struct RevokeTokenKycParams;
 struct UnfreezeTokenParams;
 struct UnpauseTokenParams;
@@ -171,6 +172,14 @@ nlohmann::json updateToken(const UpdateTokenParams& params);
  * @ return A JSON response containing the status of the token wipe.
  */
 nlohmann::json wipeToken(const WipeTokenParams& params);
+
+/**
+ * Reject a token.
+ *
+ * @param params The parameters to use to reject a token.
+ * @return A JSON response containing the status of the token rejection.
+ */
+nlohmann::json rejectToken(const RejectTokenParams& params);
 
 } // namespace Hiero::TCK::TokenService
 
