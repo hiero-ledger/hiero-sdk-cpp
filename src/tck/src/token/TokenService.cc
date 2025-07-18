@@ -130,9 +130,9 @@ nlohmann::json airdropToken(const AirdropTokenParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenAirdropTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenAirdropTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -164,9 +164,9 @@ nlohmann::json associateToken(const AssociateTokenParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenAssociateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenAssociateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -205,8 +205,8 @@ nlohmann::json burnToken(const BurnTokenParams& params)
   const TransactionReceipt txReceipt =
     tokenBurnTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
   return {
-    { "status",         gStatusToString.at(txReceipt.mStatus)             },
-    { "newTotalSupply", std::to_string(txReceipt.mNewTotalSupply.value()) }
+    {"status",          gStatusToString.at(txReceipt.mStatus)            },
+    { "newTotalSupply", std::to_string(txReceipt.mNewTotalSupply.value())}
   };
 }
 
@@ -238,9 +238,9 @@ nlohmann::json cancelAirdrop(const CancelAirdropParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenCancelAirdropTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenCancelAirdropTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -272,9 +272,9 @@ nlohmann::json claimAirdrop(const ClaimAirdropParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenClaimAirdropTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenClaimAirdropTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -424,8 +424,8 @@ nlohmann::json createToken(const CreateTokenParams& params)
   const TransactionReceipt txReceipt =
     tokenCreateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
   return {
-    { "tokenId", txReceipt.mTokenId->toString()        },
-    { "status",  gStatusToString.at(txReceipt.mStatus) }
+    {"tokenId", txReceipt.mTokenId->toString()       },
+    { "status", gStatusToString.at(txReceipt.mStatus)}
   };
 }
 
@@ -446,9 +446,9 @@ nlohmann::json deleteToken(const DeleteTokenParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -480,9 +480,9 @@ nlohmann::json dissociateToken(const DissociateTokenParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenDissociateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenDissociateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -508,9 +508,9 @@ nlohmann::json freezeToken(const FreezeTokenParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenFreezeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenFreezeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -536,9 +536,9 @@ nlohmann::json grantTokenKyc(const GrantTokenKycParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenGrantKycTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenGrantKycTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -578,8 +578,8 @@ nlohmann::json mintToken(const MintTokenParams& params)
     tokenMintTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
 
   nlohmann::json response = {
-    { "status",         gStatusToString.at(txReceipt.mStatus)             },
-    { "newTotalSupply", std::to_string(txReceipt.mNewTotalSupply.value()) }
+    {"status",          gStatusToString.at(txReceipt.mStatus)            },
+    { "newTotalSupply", std::to_string(txReceipt.mNewTotalSupply.value())}
   };
 
   if (!txReceipt.mSerialNumbers.empty())
@@ -610,9 +610,9 @@ nlohmann::json pauseToken(const PauseTokenParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenPauseTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenPauseTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -638,9 +638,9 @@ nlohmann::json revokeTokenKyc(const RevokeTokenKycParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenRevokeKycTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenRevokeKycTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -666,9 +666,9 @@ nlohmann::json unfreezeToken(const UnfreezeTokenParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenUnfreezeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenUnfreezeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -689,9 +689,9 @@ nlohmann::json unpauseToken(const UnpauseTokenParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenUnpauseTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenUnpauseTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -717,9 +717,9 @@ nlohmann::json updateTokenFeeSchedule(const UpdateTokenFeeScheduleParams& params
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenFeeScheduleUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenFeeScheduleUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -823,9 +823,9 @@ nlohmann::json updateToken(const UpdateTokenParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -866,9 +866,9 @@ nlohmann::json wipeToken(const WipeTokenParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        tokenWipeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        tokenWipeTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -911,7 +911,7 @@ nlohmann::json rejectToken(const RejectTokenParams& params)
   const TransactionReceipt txReceipt =
     tokenRejectTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
   return {
-    { "status", gStatusToString.at(txReceipt.mStatus) }
+    {"status", gStatusToString.at(txReceipt.mStatus)}
   };
 }
 
