@@ -431,7 +431,7 @@ SdkRequestType& Transaction<SdkRequestType>::batchify(const Client& client, cons
   Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::setNodeAccountIds(
     { DUMMY_ACCOUNT_ID });
 
-  // Sign the transaction with the client’s operator, if applicable
+  // Sign the transaction with the client's operator, if applicable
   if (client.getOperatorAccountId().has_value())
   {
     signWithOperator(client);
@@ -491,6 +491,71 @@ SdkRequestType& Transaction<SdkRequestType>::addSignature(const std::shared_ptr<
   // only one node account ID, there's only one SignedTransaction protobuf
   // object in the vector.
   *mImpl->mSignedTransactions.begin()->mutable_sigmap()->add_sigpair() = *publicKey->toSignaturePairProtobuf(signature);
+
+  return static_cast<SdkRequestType&>(*this);
+}
+
+//-----
+template<typename SdkRequestType>
+SdkRequestType& Transaction<SdkRequestType>::addSignature(const std::shared_ptr<PublicKey>& publicKey,
+                                                          const std::vector<std::byte>& signature,
+                                                          const TransactionId& transactionId,
+                                                          const AccountId& nodeId)
+{
+  // A signature can only be added to frozen Transactions.
+  if (!isFrozen())
+  {
+    throw IllegalStateException("Adding a signature to a Transaction requires the Transaction to be frozen");
+  }
+
+  bool signedAtLeastOne = false;
+  for (auto& signedTx : mImpl->mSignedTransactions)
+  {
+    proto::TransactionBody txBody;
+    if (!txBody.ParseFromString(signedTx.bodybytes()))
+    {
+      // This should not happen with a correctly constructed transaction.
+      throw std::runtime_error("Failed to parse TransactionBody from SignedTransaction body bytes.");
+    }
+
+    if (txBody.has_transactionid() && txBody.has_nodeaccountid() &&
+        TransactionId::fromProtobuf(txBody.transactionid()) == transactionId &&
+        AccountId::fromProtobuf(txBody.nodeaccountid()) == nodeId)
+    {
+      // Check if this public key has already signed this specific SignedTransaction
+      bool alreadySigned = false;
+      const std::string pkBytesStr = internal::Utilities::byteVectorToString(publicKey->toBytesRaw());
+      for (const auto& sigPair : signedTx.sigmap().sigpair())
+      {
+        if (sigPair.pubkeyprefix() == pkBytesStr)
+        {
+          alreadySigned = true;
+          break;
+        }
+      }
+
+      if (!alreadySigned)
+      {
+        *signedTx.mutable_sigmap()->add_sigpair() = *publicKey->toSignaturePairProtobuf(signature);
+        signedAtLeastOne = true;
+      }
+    }
+  }
+
+  if (signedAtLeastOne)
+  {
+    // Adding a signature will require all Transaction protobuf objects to be regenerated.
+    mImpl->mTransactions.clear();
+    mImpl->mTransactions.resize(mImpl->mSignedTransactions.size());
+
+    // If this key hasn't been seen before for this whole transaction, add it to the list of signatories so it's known
+    // this key is a signer.
+    if (!keyAlreadySigned(publicKey))
+    {
+      mImpl->mSignatories.emplace(publicKey, std::function<std::vector<std::byte>(const std::vector<std::byte>&)>());
+      mImpl->mPrivateKeys.emplace(publicKey, nullptr);
+    }
+  }
 
   return static_cast<SdkRequestType&>(*this);
 }
@@ -1377,6 +1442,33 @@ SdkRequestType& Transaction<SdkRequestType>::signInternal(
   }
 
   return static_cast<SdkRequestType&>(*this);
+}
+
+//-----
+template<typename SdkRequestType>
+std::vector<SignableNodeTransactionBodyBytes> Transaction<SdkRequestType>::getSignableNodeBodyBytesList() const
+{
+  if (!isFrozen()) {
+    throw IllegalStateException("Transaction must be frozen in order to get signable node body bytes.");
+  }
+
+  std::vector<SignableNodeTransactionBodyBytes> result;
+  result.reserve(mImpl->mSignedTransactions.size());
+
+  for (const auto& signedTx : mImpl->mSignedTransactions) {
+    proto::TransactionBody body;
+    if (!body.ParseFromString(signedTx.bodybytes())) {
+      throw std::runtime_error("Failed to parse TransactionBody from SignedTransaction body bytes.");
+    }
+    AccountId nodeId = body.has_nodeaccountid() ? AccountId::fromProtobuf(body.nodeaccountid()) : AccountId();
+    TransactionId transactionId = body.has_transactionid() ? TransactionId::fromProtobuf(body.transactionid()) : TransactionId();
+    result.push_back(SignableNodeTransactionBodyBytes{
+      nodeId,
+      internal::Utilities::stringToByteVector(signedTx.bodybytes()),
+      transactionId
+    });
+  }
+  return result;
 }
 
 /**

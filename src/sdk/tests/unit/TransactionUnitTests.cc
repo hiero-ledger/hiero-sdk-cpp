@@ -2820,3 +2820,139 @@ TEST_F(TransactionUnitTests, GetTransactionBodySizeForBigAndSmallData)
   // Then
   ASSERT_GT(transactionBigBodySize, transactionSmallBodySize);
 }
+
+//-----
+TEST_F(TransactionUnitTests, GetSignableNodeBodyBytesListWorksForFrozenTransaction)
+{
+  // Given
+  AccountId nodeId(1ULL, 2ULL, 3ULL);
+  TransactionId txId = TransactionId::generate(AccountId(7ULL, 8ULL, 9ULL));
+  AccountCreateTransaction transaction;
+  transaction.setNodeAccountIds({ nodeId });
+  transaction.setTransactionId(txId);
+  transaction.freeze();
+
+  // When
+  std::vector<SignableNodeTransactionBodyBytes> result;
+  ASSERT_NO_THROW(result = transaction.getSignableNodeBodyBytesList());
+
+  // Then
+  ASSERT_EQ(result.size(), 1U);
+  EXPECT_EQ(result[0].nodeId, nodeId);
+  EXPECT_EQ(result[0].transactionId, txId);
+  EXPECT_FALSE(result[0].body.empty());
+}
+
+//-----
+TEST_F(TransactionUnitTests, GetSignableNodeBodyBytesListThrowsIfNotFrozen)
+{
+  // Given
+  AccountCreateTransaction transaction;
+  // Not frozen
+
+  // When / Then
+  EXPECT_THROW(transaction.getSignableNodeBodyBytesList(), IllegalStateException);
+}
+
+//-----
+TEST_F(TransactionUnitTests, AddSignatureV2AddsSignatureToCorrectChunk)
+{
+  // Given
+  AccountId nodeId1(1ULL, 2ULL, 3ULL);
+  AccountId nodeId2(4ULL, 5ULL, 6ULL);
+  TransactionId txId1 = TransactionId::generate(AccountId(7ULL, 8ULL, 9ULL));
+  TransactionId txId2 = TransactionId::generate(AccountId(10ULL, 11ULL, 12ULL));
+  std::shared_ptr<ED25519PrivateKey> privKey = ED25519PrivateKey::generatePrivateKey();
+  std::shared_ptr<PublicKey> pubKey = privKey->getPublicKey();
+  std::vector<std::byte> signature = privKey->sign({std::byte{0x01}, std::byte{0x02}});
+
+  // Build proto objects for each chunk
+  proto::TransactionBody txBody1, txBody2;
+  txBody1.set_allocated_cryptocreateaccount(new proto::CryptoCreateTransactionBody());
+  txBody2.set_allocated_cryptocreateaccount(new proto::CryptoCreateTransactionBody());
+  txBody1.set_allocated_transactionid(txId1.toProtobuf().release());
+  txBody2.set_allocated_transactionid(txId2.toProtobuf().release());
+
+  proto::SignedTransaction signedTx1, signedTx2;
+  signedTx1.set_bodybytes(txBody1.SerializeAsString());
+  signedTx2.set_bodybytes(txBody2.SerializeAsString());
+
+  proto::Transaction protoTx1, protoTx2;
+  protoTx1.set_signedtransactionbytes(signedTx1.SerializeAsString());
+  protoTx2.set_signedtransactionbytes(signedTx2.SerializeAsString());
+
+  std::map<TransactionId, std::map<AccountId, proto::Transaction>> transactions;
+  transactions[txId1][nodeId1] = protoTx1;
+  transactions[txId2][nodeId2] = protoTx2;
+
+  AccountCreateTransaction tx(transactions);
+  tx.freeze();
+
+  // When: Add signature to chunk with txId2 and nodeId2
+  EXPECT_NO_THROW(tx.addSignature(pubKey, signature, txId2, nodeId2));
+
+  // Then: Only the second chunk should have the signature
+  // Use getSignatures() to check
+  auto signatures = tx.getSignatures();
+  // nodeId1 chunk should not have the signature
+  bool found1 = false;
+  if (signatures.count(nodeId1)) {
+    for (const auto& [key, sig] : signatures[nodeId1]) {
+      if (key && pubKey && key->toBytesRaw() == pubKey->toBytesRaw()) found1 = true;
+    }
+  }
+  // nodeId2 chunk should have the signature
+  bool found2 = false;
+  if (signatures.count(nodeId2)) {
+    for (const auto& [key, sig] : signatures[nodeId2]) {
+      if (key && pubKey && key->toBytesRaw() == pubKey->toBytesRaw()) found2 = true;
+    }
+  }
+  EXPECT_FALSE(found1);
+  EXPECT_TRUE(found2);
+}
+
+//-----
+TEST_F(TransactionUnitTests, AddSignatureV2ThrowsIfNotFrozen)
+{
+  // Given
+  AccountCreateTransaction tx;
+  std::shared_ptr<ED25519PrivateKey> privKey = ED25519PrivateKey::generatePrivateKey();
+  std::shared_ptr<PublicKey> pubKey = privKey->getPublicKey();
+  std::vector<std::byte> signature = privKey->sign({std::byte{0x01}, std::byte{0x02}});
+  TransactionId txId = TransactionId::generate(AccountId(1ULL));
+  AccountId nodeId(2ULL);
+
+  // When / Then
+  EXPECT_THROW(tx.addSignature(pubKey, signature, txId, nodeId), IllegalStateException);
+}
+
+//-----
+TEST_F(TransactionUnitTests, AddSignatureV2DoesNotDuplicateSignature)
+{
+  // Given
+  AccountId nodeId(1ULL, 2ULL, 3ULL);
+  TransactionId txId = TransactionId::generate(AccountId(7ULL, 8ULL, 9ULL));
+  std::shared_ptr<ED25519PrivateKey> privKey = ED25519PrivateKey::generatePrivateKey();
+  std::shared_ptr<PublicKey> pubKey = privKey->getPublicKey();
+  std::vector<std::byte> signature = privKey->sign({std::byte{0x01}, std::byte{0x02}});
+  AccountCreateTransaction tx;
+  tx.setNodeAccountIds({nodeId});
+  tx.setTransactionId(txId);
+  tx.freeze();
+
+  // Add signature once
+  EXPECT_NO_THROW(tx.addSignature(pubKey, signature, txId, nodeId));
+  // Add signature again
+  EXPECT_NO_THROW(tx.addSignature(pubKey, signature, txId, nodeId));
+
+  // Then: Only one signature should be present
+  auto signatures = tx.getSignatures();
+  int count = 0;
+  if (signatures.count(nodeId)) {
+    for (const auto& [key, sig] : signatures[nodeId]) {
+      if (key && pubKey && key->toBytesRaw() == pubKey->toBytesRaw()) count++;
+    }
+  }
+  EXPECT_EQ(count, 1);
+}

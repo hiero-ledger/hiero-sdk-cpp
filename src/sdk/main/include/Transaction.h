@@ -35,6 +35,13 @@ class TransactionResponse;
 
 namespace Hiero
 {
+
+struct SignableNodeTransactionBodyBytes {
+  AccountId nodeId;
+  std::vector<std::byte> body;
+  TransactionId transactionId;
+};
+
 /**
  * Base class for all transactions that can be submitted to a Hiero network.
  *
@@ -153,6 +160,22 @@ public:
    */
   virtual SdkRequestType& addSignature(const std::shared_ptr<PublicKey>& publicKey,
                                        const std::vector<std::byte>& signature);
+
+  /**
+   * Add a signature to this Transaction for a specific transaction ID and node account ID. This is useful for signing
+   * chunked transactions that have multiple transaction IDs.
+   *
+   * @param publicKey     The public key that is adding a signature.
+   * @param signature     The signature to add.
+   * @param transactionId The ID of the transaction to which to add the signature.
+   * @param nodeId        The ID of the node account for the transaction to which to add the signature.
+   * @return A reference to this derived Transaction object with the newly-added signature.
+   * @throws IllegalStateException If this Transaction is not frozen.
+   */
+  virtual SdkRequestType& addSignature(const std::shared_ptr<PublicKey>& publicKey,
+                                       const std::vector<std::byte>& signature,
+                                       const TransactionId& transactionId,
+                                       const AccountId& nodeId);
 
   /**
    * Get the signatures of each potential Transaction protobuf object this Transaction may send.
@@ -329,6 +352,16 @@ public:
    * @return The byte size of the TransactionBody protobuf object for this Transaction.
    */
   [[nodiscard]] size_t getTransactionBodySize() const;
+
+  /**
+   * Get a list of signable node transaction body bytes for each signed transaction in the transaction list.
+   * The NodeId represents the node that this transaction is signed for.
+   * The TransactionId is useful for signing chunked transactions like FileAppendTransaction, since they can have multiple transaction ids.
+   * @return A vector of SignableNodeTransactionBodyBytes, one for each signed transaction.
+   * @throws IllegalStateException If this Transaction is not frozen.
+   * @throws std::runtime_error If parsing the TransactionBody fails.
+   */
+  [[nodiscard]] std::vector<SignableNodeTransactionBodyBytes> getSignableNodeBodyBytesList() const;
 
 protected:
   /**
