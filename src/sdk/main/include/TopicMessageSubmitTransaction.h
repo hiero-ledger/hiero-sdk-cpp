@@ -115,7 +115,7 @@ public:
    *
    * @return A vector containing the current custom fee limits.
    */
-  [[nodiscard]] std::vector<CustomFeeLimit> getCustomFeeLimits() const;
+  [[nodiscard]] inline std::vector<CustomFeeLimit> getCustomFeeLimits() const { return mCustomFeeLimits; }
 
 private:
   friend class WrappedTransaction;
