@@ -1845,13 +1845,13 @@ enum class Status
    * Token airdrop transactions can not contain multiple senders for a single token.
    */
   AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN,
- 
+
   /**
    * The GRPC proxy endpoint is set in the NodeCreate or NodeUpdate transaction,
    * which the network does not support.
    */
   GRPC_WEB_PROXY_NOT_SUPPORTED,
- 
+
   /**
    * An NFT transfers list referenced a token type other than NON_FUNGIBLE_UNIQUE.
    */
