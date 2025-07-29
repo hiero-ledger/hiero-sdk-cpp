@@ -1833,7 +1833,29 @@ enum class Status
   /**
    * The network just started at genesis and is creating system entities.
    */
-  CREATING_SYSTEM_ENTITIES
+  CREATING_SYSTEM_ENTITIES,
+
+  /**
+   * The least common multiple of the throttle group's milliOpsPerSec is
+   * too large and it's overflowing.
+   */
+  THROTTLE_GROUP_LCM_OVERFLOW,
+
+  /**
+   * Token airdrop transactions can not contain multiple senders for a single token.
+   */
+  AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN,
+ 
+  /**
+   * The GRPC proxy endpoint is set in the NodeCreate or NodeUpdate transaction,
+   * which the network does not support.
+   */
+  GRPC_WEB_PROXY_NOT_SUPPORTED,
+ 
+  /**
+   * An NFT transfers list referenced a token type other than NON_FUNGIBLE_UNIQUE.
+   */
+  NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE
 };
 
 /**
