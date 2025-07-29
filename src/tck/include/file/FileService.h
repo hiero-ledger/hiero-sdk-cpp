@@ -10,6 +10,7 @@ namespace Hiero::TCK::FileService
  * Forward declarations.
  */
 struct CreateFileParams;
+struct UpdateFileParams;
 
 /**
  * Create a file.
@@ -18,6 +19,14 @@ struct CreateFileParams;
  * @return A JSON response containing the created file ID and the status of the file creation.
  */
 nlohmann::json createFile(const CreateFileParams& params);
+
+/**
+ * Update a file.
+ *
+ * @param params The parameters to use to update a file.
+ * @return A JSON response containing the status of the file update.
+ */
+nlohmann::json updateFile(const UpdateFileParams& params);
 
 } // namespace Hiero::TCK::FileService
 

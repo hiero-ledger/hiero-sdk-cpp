@@ -54,6 +54,7 @@ int main(int argc, char** argv)
 
   // Add the FileService functions.
   tckServer.add("createFile", tckServer.getHandle(&FileService::createFile));
+  tckServer.add("updateFile", tckServer.getHandle(&FileService::updateFile));
 
   // Start listening for requests.
   tckServer.startServer();
