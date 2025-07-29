@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+// clang-format off
 #include "Status.h"
 
 #include <services/response_code.pb.h>
@@ -378,7 +379,13 @@ const std::unordered_map<proto::ResponseCodeEnum, Status> gProtobufResponseCodeT
   { proto::ResponseCodeEnum::BATCH_KEY_SET_ON_NON_INNER_TRANSACTION,                         Status::BATCH_KEY_SET_ON_NON_INNER_TRANSACTION },
   { proto::ResponseCodeEnum::INVALID_BATCH_KEY,                                              Status::INVALID_BATCH_KEY                      },
   { proto::ResponseCodeEnum::SCHEDULE_EXPIRY_NOT_CONFIGURABLE,                               Status::SCHEDULE_EXPIRY_NOT_CONFIGURABLE       },
-  { proto::ResponseCodeEnum::CREATING_SYSTEM_ENTITIES,                                       Status::CREATING_SYSTEM_ENTITIES               }
+  { proto::ResponseCodeEnum::CREATING_SYSTEM_ENTITIES,                                       Status::CREATING_SYSTEM_ENTITIES               },
+  { proto::ResponseCodeEnum::THROTTLE_GROUP_LCM_OVERFLOW,                                    Status::THROTTLE_GROUP_LCM_OVERFLOW            },
+  { proto::ResponseCodeEnum::AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN,                  
+   Status::AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN                                                                                          },
+  { proto::ResponseCodeEnum::GRPC_WEB_PROXY_NOT_SUPPORTED,                                   Status::GRPC_WEB_PROXY_NOT_SUPPORTED           },
+  { proto::ResponseCodeEnum::NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE,             
+   Status::NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE                                                                                     }
 };
 
 //-----
@@ -754,7 +761,13 @@ const std::unordered_map<Status, proto::ResponseCodeEnum> gStatusToProtobufRespo
   { Status::BATCH_KEY_SET_ON_NON_INNER_TRANSACTION,                         proto::ResponseCodeEnum::BATCH_KEY_SET_ON_NON_INNER_TRANSACTION },
   { Status::INVALID_BATCH_KEY,                                              proto::ResponseCodeEnum::INVALID_BATCH_KEY                      },
   { Status::SCHEDULE_EXPIRY_NOT_CONFIGURABLE,                               proto::ResponseCodeEnum::SCHEDULE_EXPIRY_NOT_CONFIGURABLE       },
-  { Status::CREATING_SYSTEM_ENTITIES,                                       proto::ResponseCodeEnum::CREATING_SYSTEM_ENTITIES               }
+  { Status::CREATING_SYSTEM_ENTITIES,                                       proto::ResponseCodeEnum::CREATING_SYSTEM_ENTITIES               },
+  { Status::THROTTLE_GROUP_LCM_OVERFLOW,                                    proto::ResponseCodeEnum::THROTTLE_GROUP_LCM_OVERFLOW            },
+  { Status::AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN,                  
+   proto::ResponseCodeEnum::AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN                                                                         },
+  { Status::GRPC_WEB_PROXY_NOT_SUPPORTED,                                   proto::ResponseCodeEnum::GRPC_WEB_PROXY_NOT_SUPPORTED           },
+  { Status::NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE,             
+   proto::ResponseCodeEnum::NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE                                                                                     }
 };
 
 //-----
@@ -1106,7 +1119,13 @@ const std::unordered_map<Status, std::string> gStatusToString = {
   { Status::BATCH_KEY_SET_ON_NON_INNER_TRANSACTION,                         "BATCH_KEY_SET_ON_NON_INNER_TRANSACTION"            },
   { Status::INVALID_BATCH_KEY,                                              "INVALID_BATCH_KEY"                                 },
   { Status::SCHEDULE_EXPIRY_NOT_CONFIGURABLE,                               "SCHEDULE_EXPIRY_NOT_CONFIGURABLE"                  },
-  { Status::CREATING_SYSTEM_ENTITIES,                                       "CREATING_SYSTEM_ENTITIES"                          }
+  { Status::CREATING_SYSTEM_ENTITIES,                                       "CREATING_SYSTEM_ENTITIES"                          },
+  { Status::THROTTLE_GROUP_LCM_OVERFLOW,                                    "THROTTLE_GROUP_LCM_OVERFLOW"                       },
+  { Status::AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN,                  
+   "AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN"                                                                                    },
+  { Status::GRPC_WEB_PROXY_NOT_SUPPORTED,                                   "GRPC_WEB_PROXY_NOT_SUPPORTED"                      },
+  { Status::NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE,             
+   "NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE"                                                                               }
 };
 
 } // namespace Hiero
