@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "TckServer.h"
 #include "account/AccountService.h"
+#include "file/FileService.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
 #include "token/TokenService.h"
@@ -50,6 +51,9 @@ int main(int argc, char** argv)
   tckServer.add("updateTokenFeeSchedule", tckServer.getHandle(&TokenService::updateTokenFeeSchedule));
   tckServer.add("updateToken", tckServer.getHandle(&TokenService::updateToken));
   tckServer.add("wipeToken", tckServer.getHandle(&TokenService::wipeToken));
+
+  // Add the FileService functions.
+  tckServer.add("createFile", tckServer.getHandle(&FileService::createFile));
 
   // Start listening for requests.
   tckServer.startServer();
