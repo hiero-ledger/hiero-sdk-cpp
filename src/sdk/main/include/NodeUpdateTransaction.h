@@ -213,6 +213,13 @@ public:
    */
   NodeUpdateTransaction& setGrpcWebProxyEndpoint(const Endpoint& endpoint);
 
+  /**
+   * Deletes the gRPC-Web proxy endpoint and sets it to null in the mirror node.
+   *
+   * @return A reference to this NodeUpdateTransaction with the gRPC-Web proxy endpoint cleared.
+   */
+  NodeUpdateTransaction& deleteGrpcWebProxyEndpoint();
+
 private:
   friend class WrappedTransaction;
 

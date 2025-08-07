@@ -209,3 +209,20 @@ TEST_F(NodeUpdateTransactionUnitTests, SetAndGetGrpcWebProxyEndpoint)
   ASSERT_TRUE(transaction.getGrpcWebProxyEndpoint().has_value());
   ASSERT_EQ(transaction.getGrpcWebProxyEndpoint().value().getDomainName(), proxyEndpoint.getDomainName());
 }
+
+//-----
+TEST_F(NodeUpdateTransactionUnitTests, DeleteGrpcWebProxyEndpoint)
+{
+  // Given
+  Endpoint proxyEndpoint = Endpoint().setDomainName("grpc-web.example.com").setPort(443);
+  transaction.setGrpcWebProxyEndpoint(proxyEndpoint);
+
+  // Verify endpoint is initially set
+  ASSERT_TRUE(transaction.getGrpcWebProxyEndpoint().has_value());
+
+  // When
+  transaction.deleteGrpcWebProxyEndpoint();
+
+  // Then
+  ASSERT_FALSE(transaction.getGrpcWebProxyEndpoint().has_value());
+}
