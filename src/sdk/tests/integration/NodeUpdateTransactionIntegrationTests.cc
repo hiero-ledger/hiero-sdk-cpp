@@ -68,7 +68,7 @@ private:
 };
 
 //-----
-TEST_F(NodeUpdateTransactionIntegrationTests, DISABLED_CanExecuteNodeUpdateTransaction)
+TEST_F(NodeUpdateTransactionIntegrationTests, CanExecuteNodeUpdateTransaction)
 {
   // Given
   const std::shared_ptr<PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
