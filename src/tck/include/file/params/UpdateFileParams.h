@@ -20,7 +20,7 @@ struct UpdateFileParams
   /**
    * The ID of the file to update.
    */
-  std::string mFileId;
+  std::optional<std::string> mFileId;
 
   /**
    * The keys that must sign when mutating the file.
@@ -60,7 +60,7 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::FileService::UpdateFileParams
 {
   static void from_json(const json& jsonFrom, Hiero::TCK::FileService::UpdateFileParams& params)
   {
-    params.mFileId = Hiero::TCK::getRequiredJsonParameter<std::string>(jsonFrom, "fileId");
+    params.mFileId = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "fileId");
     params.mKeys = Hiero::TCK::getOptionalJsonParameter<std::vector<std::string>>(jsonFrom, "keys");
     params.mContents = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "contents");
     params.mFileMemo = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "fileMemo");
