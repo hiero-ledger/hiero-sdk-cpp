@@ -82,12 +82,11 @@ nlohmann::json updateFile(const UpdateFileParams& params)
   FileUpdateTransaction fileUpdateTransaction;
   fileUpdateTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
 
-  // Set the file ID (required)
-  if (!params.mFileId.has_value())
+  // Set the file ID (optional)
+  if (params.mFileId.has_value())
   {
-    throw JsonRpcException(JsonErrorType::INVALID_PARAMS, "invalid parameters: fileId is required");
+    fileUpdateTransaction.setFileId(FileId::fromString(params.mFileId.value()));
   }
-  fileUpdateTransaction.setFileId(FileId::fromString(params.mFileId.value()));
 
   if (params.mKeys.has_value())
   {
