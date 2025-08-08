@@ -14,92 +14,92 @@
 
 #include <dotenv.h>
 #include <iostream>
+#include <stdexcept>
+#include <string>
 
-using namespace Hiero;
+using namespace Hedera; // Assuming the namespace is Hedera; adjust if it's Hiero
 
-int main(int argc, char** argv)
-{
-  dotenv::init();
-  const AccountId operatorAccountId = AccountId::fromString(std::getenv("OPERATOR_ID"));
-  const std::shared_ptr<PrivateKey> operatorPrivateKey = ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
+int main(int argc, char** argv) {
+    dotenv::init();
 
-  // Get a client for the Hiero testnet, and set the operator account ID and key such that all generated transactions
-  // will be paid for by this account and be signed by this key.
-  Client client = Client::forTestnet();
-  client.setOperator(operatorAccountId, operatorPrivateKey);
+    // Load environment variables and validate
+    const std::string operatorIdStr = std::getenv("OPERATOR_ID");
+    const std::string operatorKeyStr = std::getenv("OPERATOR_KEY");
+    if (operatorIdStr.empty() || operatorKeyStr.empty()) {
+        std::cerr << "Error: OPERATOR_ID and OPERATOR_KEY must be set in .env file." << std::endl;
+        return 1;
+    }
 
-  /*
-   * Step 1:
-   * Create batch key
-   */
-  const std::shared_ptr<PrivateKey> batchKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
+    const AccountId operatorAccountId = AccountId::fromString(operatorIdStr);
+    const std::shared_ptr<PrivateKey> operatorPrivateKey = ED25519PrivateKey::fromString(operatorKeyStr);
 
-  /*
-   * Step 2:
-   * Create acccount - alice
-   */
-  std::cout << "Creating Alice account and preparing batched transfer..." << std::endl;
-  const std::shared_ptr<PrivateKey> aliceKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
-  AccountId alice = AccountCreateTransaction()
-                      .setKeyWithoutAlias(aliceKey)
-                      .setInitialBalance(Hbar(15))
-                      .execute(client)
-                      .getReceipt(client)
-                      .mAccountId.value();
+    // Create client for the Hedera testnet and set operator
+    Client client = Client::forTestnet();
+    client.setOperator(operatorAccountId, operatorPrivateKey);
 
-  std::cout << "Created Alice: " << alice.toString() << std::endl;
+    try {
+        // Step 1: Generate batch key
+        const std::shared_ptr<PrivateKey> batchKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
 
-  /*
-   * Step 3:
-   * Create client for alice
-   */
-  Client aliceClient = Client::forTestnet();
-  aliceClient.setOperator(alice, aliceKey);
+        // Step 2: Create Alice's account
+        std::cout << "Creating Alice's account and preparing batched transfer..." << std::endl;
+        const std::shared_ptr<PrivateKey> aliceKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
+        AccountCreateTransaction createTx;
+        createTx.setKey(aliceKey->getPublicKey()); // Assuming setKeyWithoutAlias is a typo or deprecated; use setKey if appropriate
+        createTx.setInitialBalance(Hbar(15LL));
 
-  /*
-   * Step 4:
-   * Batchify a transfer transaction
-   */
-  WrappedTransaction aliceBatchedTransfer(TransferTransaction()
-                                            .addHbarTransfer(client.getOperatorAccountId().value(), Hbar(1LL))
-                                            .addHbarTransfer(alice, Hbar(1LL).negated())
-                                            .batchify(aliceClient, batchKey));
+        TransactionResponse createResponse = createTx.execute(client);
+        TransactionReceipt createReceipt = createResponse.getReceipt(client);
+        AccountId aliceId = createReceipt.mAccountId.value();
 
-  /*
-   * Step 5:
-   * Get the balances in order to compare after the batch execution
-   */
-  Hbar aliceBalanceBefore = AccountBalanceQuery().setAccountId(alice).execute(client).mBalance;
-  Hbar operatorBalanceBefore =
-    AccountBalanceQuery().setAccountId(client.getOperatorAccountId().value()).execute(client).mBalance;
+        std::cout << "Created Alice's account: " << aliceId.toString() << std::endl;
 
-  /*
-   * Step 6:
-   * Execute the batch
-   */
-  std::cout << "Executing batch transaction..." << std::endl;
-  TransactionReceipt txReceipt = BatchTransaction()
-                                   .addInnerTransaction(aliceBatchedTransfer)
-                                   .freezeWith(&client)
-                                   .sign(batchKey)
-                                   .execute(client)
-                                   .getReceipt(client);
+        // Step 3: Create client for Alice
+        Client aliceClient = Client::forTestnet();
+        aliceClient.setOperator(aliceId, aliceKey);
 
-  std::cout << "Batch transaction executed" << std::endl;
+        // Step 4: Batchify a transfer transaction (Alice transfers 1 Hbar to operator)
+        TransferTransaction transferTx;
+        transferTx.addHbarTransfer(client.getOperatorAccountId().value(), Hbar(1LL));
+        transferTx.addHbarTransfer(aliceId, Hbar(1LL).negated());
 
-  /*
-   * Step 7:
-   * Verify the new balances
-   */
-  std::cout << "Verifying the balances after batch execution..." << std::endl;
-  Hbar aliceBalanceAfter = AccountBalanceQuery().setAccountId(alice).execute(client).mBalance;
-  Hbar operatorBalanceAfter =
-    AccountBalanceQuery().setAccountId(client.getOperatorAccountId().value()).execute(client).mBalance;
+        WrappedTransaction aliceBatchedTransfer = transferTx.batchify(aliceClient, batchKey);
 
-  std::cout << "Alice's initial balance: " << aliceBalanceBefore.toString()
-            << ", after: " + aliceBalanceAfter.toString() << std::endl;
-  std::cout << "Operator's initial balance: " << operatorBalanceBefore.toString()
-            << ", after: " << operatorBalanceAfter.toString() << std::endl;
+        // Step 5: Get initial balances for comparison
+        Hbar aliceBalanceBefore = AccountBalanceQuery().setAccountId(aliceId).execute(client).mBalance;
+        Hbar operatorBalanceBefore = AccountBalanceQuery().setAccountId(client.getOperatorAccountId().value()).execute(client).mBalance;
 
-  return 0;
+        // Step 6: Execute the batch transaction
+        std::cout << "Executing batch transaction..." << std::endl;
+        BatchTransaction batchTx;
+        batchTx.addInnerTransaction(aliceBatchedTransfer);
+        batchTx.freezeWith(&client);
+        batchTx.sign(batchKey);
+
+        TransactionResponse batchResponse = batchTx.execute(client);
+        TransactionReceipt batchReceipt = batchResponse.getReceipt(client);
+
+        if (batchReceipt.mStatus != Status::SUCCESS) {
+            throw std::runtime_error("Batch transaction failed with status: " + batchReceipt.mStatus.toString());
+        }
+
+        std::cout << "Batch transaction executed successfully." << std::endl;
+
+        // Step 7: Verify new balances
+        std::cout << "Verifying balances after batch execution..." << std::endl;
+        Hbar aliceBalanceAfter = AccountBalanceQuery().setAccountId(aliceId).execute(client).mBalance;
+        Hbar operatorBalanceAfter = AccountBalanceQuery().setAccountId(client.getOperatorAccountId().value()).execute(client).mBalance;
+
+        std::cout << "Alice's balance - Before: " << aliceBalanceBefore.toString() << ", After: " << aliceBalanceAfter.toString() << std::endl;
+        std::cout << "Operator's balance - Before: " << operatorBalanceBefore.toString() << ", After: " << operatorBalanceAfter.toString() << std::endl;
+
+    } catch (const std::exception& ex) {
+        std::cerr << "Error: " << ex.what() << std::endl;
+        client.close();
+        return 1;
+    }
+
+    // Clean up
+    client.close();
+    return 0;
 }

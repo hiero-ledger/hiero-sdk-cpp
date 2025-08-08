@@ -19,12 +19,18 @@ using namespace Hiero;
 int main(int argc, char** argv)
 {
   dotenv::init();
-  const AccountId operatorAccountId = AccountId::fromString(std::getenv("OPERATOR_ID"));
-  const std::shared_ptr<PrivateKey> operatorPrivateKey = ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
+  const char* envOperatorId = std::getenv("OPERATOR_ID");
+  const char* envOperatorKey = std::getenv("OPERATOR_KEY");
+  if (!envOperatorId || !envOperatorKey) {
+    std::cerr << "Error: OPERATOR_ID or OPERATOR_KEY environment variable not set." << std::endl;
+    return 1;
+  }
+  const AccountId operatorAccountId = AccountId::fromString(envOperatorId);
+  const auto operatorPrivateKey = ED25519PrivateKey::fromString(envOperatorKey);
 
   // Get a client for the Hiero testnet, and set the operator account ID and key such that all generated transactions
   // will be paid for by this account and be signed by this key.
-  Client client = Client::forTestnet();
+  auto client = Client::forTestnet();
   client.setOperator(operatorAccountId, operatorPrivateKey);
 
   /*
@@ -50,14 +56,15 @@ int main(int argc, char** argv)
    */
 
   // Generate a ED25519 private, public key pair
-  const std::shared_ptr<PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
-  const std::shared_ptr<PublicKey> publicKey = privateKey->getPublicKey();
+  const auto privateKey = ED25519PrivateKey::generatePrivateKey();
+  const auto publicKey = privateKey->getPublicKey();
 
   std::cout << "Generated private key: " << privateKey->toStringDer() << std::endl;
   std::cout << "Generated public key: " << publicKey->toStringDer() << std::endl;
 
   // Get an account ID from the generated public key (use default 0 for shared and realm).
   const AccountId aliasAccountId = publicKey->toAccountId();
+  // (Add further error handling and improvements as needed for additional logic.)
 
   /*
    * Note that no queries or transactions have taken place yet. This account "creation" process is entirely local.

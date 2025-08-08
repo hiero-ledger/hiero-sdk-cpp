@@ -14,7 +14,12 @@ using namespace Hiero;
 int main(int argc, char** argv)
 {
   dotenv::init();
-  const std::string networkName = std::getenv("HIERO_NETWORK");
+  const char* envNetwork = std::getenv("HIERO_NETWORK");
+  if (!envNetwork) {
+    std::cerr << "Error: HIERO_NETWORK environment variable not set." << std::endl;
+    return 1;
+  }
+  const std::string networkName = envNetwork;
 
   /*
    * Here are some ways you can construct and configure a client. A client has a network and an operator.
@@ -37,16 +42,17 @@ int main(int argc, char** argv)
 
   // Here's the simplest way to construct a client. These clients' networks are filled with default lists of nodes that
   // are baked into the SDK. Their operators are not yet set, and trying to use them now will result in exceptions.
-  Client previewClient = Client::forPreviewnet();
-  Client testClient = Client::forTestnet();
-  Client mainClient = Client::forMainnet();
+  auto previewClient = Client::forPreviewnet();
+  auto testClient = Client::forTestnet();
+  auto mainClient = Client::forMainnet();
 
   // We can also construct a client for previewnet, testnet, or mainnet depending on the value of a network name string.
   // If, for example, the input string equals "testnet", this client will be configured to connect to the Hiero
   // Testnet.
-  Client namedNetworkClient = Client::forName(networkName);
+  auto namedNetworkClient = Client::forName(networkName);
 
   // Set the operator on testClient (the AccountId and PrivateKey here are fake, this is just an example).
+  // Example: Set the operator on testClient (replace with real credentials in production).
   testClient.setOperator(
     AccountId::fromString("0.0.3"),
     ED25519PrivateKey::fromString(
@@ -55,9 +61,9 @@ int main(int argc, char** argv)
   // Create a Client with a custom network.
   const std::unordered_map<std::string, AccountId> network = {
     {"2.testnet.hedera.com:50211",  AccountId(5ULL)},
-    { "3.testnet.hedera.com:50211", AccountId(6ULL)}
+    {"3.testnet.hedera.com:50211",  AccountId(6ULL)}
   };
-  Client customClient = Client::forNetwork(network);
+  auto customClient = Client::forNetwork(network);
 
   // Since the customClient's network is in this case a subset of the Hiero Testnet, we should set the LedgerId of the
   // Client to testnet's LedgerId. If we don't do this, checksum validation won't work (See ValidateChecksumExample.cc).

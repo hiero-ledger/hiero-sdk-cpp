@@ -22,23 +22,23 @@ int main(int argc, char** argv)
 
   // An Account ID in shard.realm.number format, i.e. `0.0.10` with the corresponding
   // `0x000000000000000000000000000000000000000A` ethereum address.
-  const AccountId hieroFormat = AccountId::fromString("0.0.10");
-  std::cout << "Account ID: " + hieroFormat.toString() << std::endl;
-  std::cout << "Account " + hieroFormat.toString() + " corresponding Long-Zero address: "
+  const auto hieroFormat = AccountId::fromString("0.0.10");
+  std::cout << "Account ID: " << hieroFormat.toString() << std::endl;
+  std::cout << "Account " << hieroFormat.toString() << " corresponding Long-Zero address: "
             << hieroFormat.toSolidityAddress() << std::endl;
 
   // The Hiero Long-Form Account ID: 0.0.aliasPublicKey, i.e.
   // `0.0.302D300706052B8104000A032200036847776633520568B5B4B1D074C647BE63579B3D7DC9E4B638042CB4E041C8B8`
-  const std::unique_ptr<ECDSAsecp256k1PrivateKey> privateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
-  const AccountId aliasAccountId = privateKey->getPublicKey()->toAccountId();
-  std::cout << "Hiero Long-Form Account ID: " + aliasAccountId.toString() << std::endl;
+  const auto privateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
+  const auto aliasAccountId = privateKey->getPublicKey()->toAccountId();
+  std::cout << "Hiero Long-Form Account ID: " << aliasAccountId.toString() << std::endl;
 
   // The Hiero Account Long-Zero address `0x000000000000000000000000000000000000000a` (for accountId 0.0.10)
-  const AccountId longZeroAddress = AccountId::fromString("0x000000000000000000000000000000000000000a");
+  const auto longZeroAddress = AccountId::fromString("0x000000000000000000000000000000000000000a");
   std::cout << "Hiero Account Long-Zero address: " << longZeroAddress.toString() << std::endl;
 
   // The Ethereum Account Address / public-address `0xb794f5ea0ba39494ce839613fffba74279579268`.
-  const AccountId evmAddress = AccountId::fromString("0xb794f5ea0ba39494ce839613fffba74279579268");
+  const auto evmAddress = AccountId::fromString("0xb794f5ea0ba39494ce839613fffba74279579268");
   std::cout << "Ethereum Account Address / public-address: " << evmAddress.toString() << std::endl;
 
   return 0;
