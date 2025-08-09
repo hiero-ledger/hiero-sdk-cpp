@@ -213,6 +213,12 @@ WrappedTransaction WrappedTransaction::fromProtobuf(const proto::SchedulableTran
   txBody.set_memo(proto.memo());
   txBody.set_transactionfee(proto.transactionfee());
 
+  // Copy custom fee limits from the schedulable transaction body
+  if (proto.max_custom_fees_size() > 0)
+  {
+    *txBody.mutable_max_custom_fees() = proto.max_custom_fees();
+  }
+
   if (proto.has_cryptoapproveallowance())
   {
     *txBody.mutable_cryptoapproveallowance() = proto.cryptoapproveallowance();
@@ -1027,6 +1033,12 @@ std::unique_ptr<proto::SchedulableTransactionBody> WrappedTransaction::toSchedul
   auto schedulableTxBody = std::make_unique<proto::SchedulableTransactionBody>();
   schedulableTxBody->set_transactionfee(txBody.transactionfee());
   schedulableTxBody->set_memo(txBody.memo());
+
+  // Copy custom fee limits from the transaction body
+  if (txBody.max_custom_fees_size() > 0)
+  {
+    *schedulableTxBody->mutable_max_custom_fees() = txBody.max_custom_fees();
+  }
 
   if (txBody.has_cryptoapproveallowance())
   {

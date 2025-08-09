@@ -230,3 +230,46 @@ TEST_F(ScheduleCreateTransactionTests, GetSetWaitForExpiryFrozen)
   // When / Then
   EXPECT_THROW(transaction.setWaitForExpiry(getTestWaitForExpiry()), IllegalStateException);
 }
+
+//-----
+TEST_F(ScheduleCreateTransactionTests, ToFromSchedulableTransactionBodyWithCustomFeeLimits)
+{
+  // Create a TopicMessageSubmitTransaction with custom fee limits
+  const TopicId topicId = TopicId::fromString("0.0.123");
+  const std::string message = "test message";
+  const AccountId payerId = AccountId::fromString("0.0.456");
+  const Hbar feeAmount = Hbar(10LL);
+
+  auto topicMessageTx = TopicMessageSubmitTransaction().setTopicId(topicId).setMessage(message);
+
+  // Add custom fee limit
+  CustomFeeLimit customFeeLimit;
+  customFeeLimit.setPayerId(payerId);
+  CustomFixedFee customFee;
+  customFee.setAmount(static_cast<uint64_t>(feeAmount.toTinybars()));
+  customFeeLimit.addCustomFee(customFee);
+  topicMessageTx.addCustomFeeLimit(customFeeLimit);
+
+  // Wrap the transaction
+  WrappedTransaction wrappedTx(topicMessageTx);
+
+  // Convert to SchedulableTransactionBody
+  auto schedulableProto = wrappedTx.toSchedulableProtobuf();
+
+  // Verify custom fee limits are present
+  EXPECT_EQ(schedulableProto->max_custom_fees_size(), 1);
+  EXPECT_TRUE(schedulableProto->max_custom_fees(0).has_account_id());
+  EXPECT_EQ(schedulableProto->max_custom_fees(0).fees_size(), 1);
+
+  // Convert back from SchedulableTransactionBody
+  WrappedTransaction reconstructedTx = WrappedTransaction::fromProtobuf(*schedulableProto);
+
+  // Verify the reconstructed transaction has the custom fee limits
+  const auto* reconstructedTopicTx = reconstructedTx.getTransaction<TopicMessageSubmitTransaction>();
+  ASSERT_NE(reconstructedTopicTx, nullptr);
+
+  const auto reconstructedCustomFeeLimits = reconstructedTopicTx->getCustomFeeLimits();
+  EXPECT_EQ(reconstructedCustomFeeLimits.size(), 1);
+  EXPECT_EQ(reconstructedCustomFeeLimits[0].getPayerId().value(), payerId);
+  EXPECT_EQ(reconstructedCustomFeeLimits[0].getCustomFees().size(), 1);
+}
