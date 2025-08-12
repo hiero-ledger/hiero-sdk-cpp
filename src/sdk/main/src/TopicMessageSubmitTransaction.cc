@@ -96,6 +96,12 @@ void TopicMessageSubmitTransaction::validateChecksums(const Client& client) cons
 void TopicMessageSubmitTransaction::addToBody(proto::TransactionBody& body) const
 {
   body.set_allocated_consensussubmitmessage(build());
+
+  // Add custom fee limits to the transaction body
+  for (const auto& fee : mCustomFeeLimits)
+  {
+    body.mutable_max_custom_fees()->AddAllocated(fee.toProtobuf().release());
+  }
 }
 
 //-----
@@ -126,6 +132,13 @@ void TopicMessageSubmitTransaction::initFromSourceTransactionBody()
       body.has_topicid())
   {
     mTopicId = TopicId::fromProtobuf(body.topicid());
+  }
+
+  // Read custom fee limits from the transaction body
+  mCustomFeeLimits.clear();
+  for (const auto& protoFeeLimit : transactionBody.max_custom_fees())
+  {
+    mCustomFeeLimits.push_back(CustomFeeLimit::fromProtobuf(protoFeeLimit));
   }
 
   // Construct the data from the various Transaction protobuf objects.
