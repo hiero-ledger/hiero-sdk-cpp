@@ -23,27 +23,33 @@ using namespace Hiero;
 int main(int argc, char** argv)
 {
   dotenv::init();
-  const AccountId operatorAccountId = AccountId::fromString(std::getenv("OPERATOR_ID"));
-  const std::shared_ptr<PrivateKey> operatorPrivateKey = ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
+  const char* envOperatorId = std::getenv("OPERATOR_ID");
+  const char* envOperatorKey = std::getenv("OPERATOR_KEY");
+  if (!envOperatorId || !envOperatorKey) {
+    std::cerr << "Error: OPERATOR_ID or OPERATOR_KEY environment variable not set." << std::endl;
+    return 1;
+  }
+  const AccountId operatorAccountId = AccountId::fromString(envOperatorId);
+  const auto operatorPrivateKey = ED25519PrivateKey::fromString(envOperatorKey);
 
   // Get a client for the Hiero testnet, and set the operator account ID and key such that all generated transactions
   // will be paid for by this account and be signed by this key.
-  Client client = Client::forTestnet();
+  auto client = Client::forTestnet();
   client.setOperator(operatorAccountId, operatorPrivateKey);
 
   // Generate ECDSAsecp256k1 key combinations for Alice, Bob, and Charlie.
-  const std::shared_ptr<PrivateKey> alicePrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
-  const std::shared_ptr<PrivateKey> bobPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
-  const std::shared_ptr<PrivateKey> charliePrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
+  const auto alicePrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
+  const auto bobPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
+  const auto charliePrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
 
   std::cout << "Generated Alice private key: " << alicePrivateKey->toStringRaw() << std::endl;
   std::cout << "Generated Bob private key: " << bobPrivateKey->toStringRaw() << std::endl;
   std::cout << "Generated Charlie private key: " << charliePrivateKey->toStringRaw() << std::endl << std::endl;
 
   // Grab the public keys for Alice, Bob, and Charlie.
-  const std::shared_ptr<PublicKey> alicePublicKey = alicePrivateKey->getPublicKey();
-  const std::shared_ptr<PublicKey> bobPublicKey = bobPrivateKey->getPublicKey();
-  const std::shared_ptr<PublicKey> charliePublicKey = charliePrivateKey->getPublicKey();
+  const auto alicePublicKey = alicePrivateKey->getPublicKey();
+  const auto bobPublicKey = bobPrivateKey->getPublicKey();
+  const auto charliePublicKey = charliePrivateKey->getPublicKey();
 
   // Generate accounts for Alice, Bob, and Charlie, giving each 5 Hbar.
   const AccountId aliceAccountId = AccountCreateTransaction()
