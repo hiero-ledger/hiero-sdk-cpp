@@ -107,6 +107,14 @@ NodeUpdateTransaction& NodeUpdateTransaction::setGrpcWebProxyEndpoint(const Endp
 }
 
 //-----
+NodeUpdateTransaction& NodeUpdateTransaction::deleteGrpcWebProxyEndpoint()
+{
+  requireNotFrozen();
+  mGrpcWebProxyEndpoint.reset();
+  return *this;
+}
+
+//-----
 grpc::Status NodeUpdateTransaction::submitRequest(const proto::Transaction& request,
                                                   const std::shared_ptr<internal::Node>& node,
                                                   const std::chrono::system_clock::time_point& deadline,
