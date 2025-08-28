@@ -9,6 +9,8 @@
 #include "account/params/DeleteAllowanceParams.h"
 #include "account/params/TransferCryptoParams.h"
 #include "account/params/UpdateAccountParams.h"
+#include "file/params/CreateFileParams.h"
+#include "file/params/UpdateFileParams.h"
 #include "key/params/GenerateKeyParams.h"
 #include "sdk/params/ResetParams.h"
 #include "sdk/params/SetupParams.h"
@@ -412,5 +414,9 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::UpdateTokenP
   nlohmann::json (*method)(const TokenService::UpdateTokenParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::WipeTokenParams>(
   nlohmann::json (*method)(const TokenService::WipeTokenParams&));
+template TckServer::MethodHandle TckServer::getHandle<FileService::CreateFileParams>(
+  nlohmann::json (*method)(const FileService::CreateFileParams&));
+template TckServer::MethodHandle TckServer::getHandle<FileService::UpdateFileParams>(
+  nlohmann::json (*method)(const FileService::UpdateFileParams&));
 
 } // namespace Hiero::TCK

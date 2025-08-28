@@ -1,6 +1,7 @@
 set(TCK_SERVER_NAME ${PROJECT_NAME}-tck)
 add_executable(${TCK_SERVER_NAME}
         src/account/AccountService.cc
+        src/file/FileService.cc
         src/json/JsonRpcException.cc
         src/json/JsonUtils.cc
         src/key/KeyService.cc
