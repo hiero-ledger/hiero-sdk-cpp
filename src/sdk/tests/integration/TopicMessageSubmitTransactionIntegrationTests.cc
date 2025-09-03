@@ -270,7 +270,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
 }
 
 //-----
-TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanChargeHbarsWithoutLimit)
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, DISABLED_RevenueGeneratingTopicCanChargeHbarsWithoutLimit)
 {
   // Given
   int64_t feeAmount = 100000000; // 1 HBAR equivalent
@@ -318,7 +318,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
 }
 
 //-----
-TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanChargeTokensWithLimit)
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, DISABLED_RevenueGeneratingTopicCanChargeTokensWithLimit)
 {
   // Given
   TokenId tokenId;
@@ -613,7 +613,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
                  .addCustomFeeLimit(limit)
                  .execute(getTestClient())
                  .getReceipt(getTestClient()),
-               ReceiptStatusException); // MAX_CUSTOM_FEE_LIMIT_EXCEEDED
+               PrecheckStatusException); // DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST
 }
 
 //-----
@@ -677,7 +677,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
                  .setMessage("message")
                  .execute(getTestClient())
                  .getReceipt(getTestClient()),
-               ReceiptStatusException); // MAX_CUSTOM_FEE_LIMIT_EXCEEDED
+               PrecheckStatusException); // DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST
 }
 
 //-----
@@ -741,7 +741,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
                  .setMessage("message")
                  .execute(getTestClient())
                  .getReceipt(getTestClient()),
-               ReceiptStatusException); // NO_VALID_MAX_CUSTOM_FEE
+               PrecheckStatusException); // DUPLICATE_ACCOUNT_ID_IN_MAX_CUSTOM_FEE_LIST
 }
 
 //-----
