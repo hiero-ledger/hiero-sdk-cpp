@@ -1028,7 +1028,24 @@ std::unique_ptr<proto::Transaction> WrappedTransaction::toProtobufTransaction() 
 //-----
 std::unique_ptr<proto::SchedulableTransactionBody> WrappedTransaction::toSchedulableProtobuf() const
 {
-  proto::TransactionBody txBody = *toProtobuf();
+  // Use source transaction body directly to avoid rebuilding and duplicating custom fee limits
+  // Get the existing source transaction body without calling updateSourceTransactionBody() which would duplicate custom fee limits
+  proto::TransactionBody txBody;
+  switch (getTransactionType())
+  {
+    case TOPIC_MESSAGE_SUBMIT_TRANSACTION:
+    {
+      const auto transaction = getTransaction<TopicMessageSubmitTransaction>();
+      txBody = transaction->getSourceTransactionBody();
+      break;
+    }
+    default:
+    {
+      // For other transaction types, fall back to the original behavior
+      txBody = *toProtobuf();
+      break;
+    }
+  }
 
   auto schedulableTxBody = std::make_unique<proto::SchedulableTransactionBody>();
   schedulableTxBody->set_transactionfee(txBody.transactionfee());
