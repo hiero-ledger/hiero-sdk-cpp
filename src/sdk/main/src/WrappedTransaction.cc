@@ -1029,7 +1029,8 @@ std::unique_ptr<proto::Transaction> WrappedTransaction::toProtobufTransaction() 
 std::unique_ptr<proto::SchedulableTransactionBody> WrappedTransaction::toSchedulableProtobuf() const
 {
   // Use source transaction body directly to avoid rebuilding and duplicating custom fee limits
-  // Get the existing source transaction body without calling updateSourceTransactionBody() which would duplicate custom fee limits
+  // Get the existing source transaction body without calling updateSourceTransactionBody() which
+  // would duplicate custom fee limits.
   proto::TransactionBody txBody;
   switch (getTransactionType())
   {
