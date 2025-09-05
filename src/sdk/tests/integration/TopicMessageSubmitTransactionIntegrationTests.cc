@@ -7,6 +7,9 @@
 #include "BaseIntegrationTest.h"
 #include "CustomFeeLimit.h"
 #include "ED25519PrivateKey.h"
+#include "ScheduleCreateTransaction.h"
+#include "ScheduleInfo.h"
+#include "ScheduleInfoQuery.h"
 #include "TokenAssociateTransaction.h"
 #include "TokenCreateTransaction.h"
 #include "TopicCreateTransaction.h"
@@ -817,4 +820,327 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicDoes
   EXPECT_NO_THROW(accountBalance = AccountBalanceQuery().setAccountId(accountId).execute(getTestClient()));
 
   EXPECT_EQ(accountBalance.mTokens[tokenId], accountTokenBalance - 1); // -1 as 1 was sent to the operator account
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanChargeHbarsWithLimitSchedule)
+{
+  // Given
+  int64_t hbar = 100000000; // 1 HBAR equivalent
+
+  CustomFixedFee customFixedFee;
+  ASSERT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(hbar / 2).setFeeCollectorAccountId(
+                    getTestClient().getOperatorAccountId().value()));
+
+  // Create a revenue generating topic with Hbar custom fee
+  TopicId topicId;
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  // Create payer with 1 Hbar
+  std::shared_ptr<PrivateKey> payerKey;
+  ASSERT_NO_THROW(payerKey = ED25519PrivateKey::generatePrivateKey());
+
+  Hbar initialBalance = Hbar(1LL);
+
+  AccountId payerId;
+  ASSERT_NO_THROW(payerId = AccountCreateTransaction()
+                              .setKeyWithoutAlias(payerKey->getPublicKey())
+                              .setInitialBalance(initialBalance)
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mAccountId.value());
+
+  // Submit a message to the revenue generating topic as a scheduled transaction
+  CustomFeeLimit customFeeLimit;
+  ASSERT_NO_THROW(customFeeLimit = CustomFeeLimit().setPayerId(payerId).addCustomFee(CustomFixedFee().setAmount(hbar)));
+
+  setTestClientOperator(payerId, payerKey);
+  
+  TransactionResponse scheduleResponse;
+  EXPECT_NO_THROW(scheduleResponse = TopicMessageSubmitTransaction()
+                                       .setMessage("message")
+                                       .setTopicId(topicId)
+                                       .addCustomFeeLimit(customFeeLimit)
+                                       .schedule()
+                                       .execute(getTestClient()));
+
+  ScheduleId scheduleId;
+  ASSERT_NO_THROW(scheduleId = scheduleResponse.getReceipt(getTestClient()).mScheduleId.value());
+
+  // Reset to operator to verify results
+  setDefaultTestClientOperator();
+
+  // Verify the custom fee was charged
+  AccountInfo payerInfo;
+  EXPECT_NO_THROW(payerInfo = AccountInfoQuery().setAccountId(payerId).execute(getTestClient()));
+
+  EXPECT_LT(payerInfo.mBalance.toTinybars(), hbar / 2);
+
+  // Clean up - delete the topic
+  ASSERT_NO_THROW(const TransactionReceipt txReceipt =
+                    TopicDeleteTransaction().setTopicId(topicId).execute(getTestClient()).getReceipt(getTestClient()));
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCannotChargeHbarsWithLowerLimitSchedule)
+{
+  // Given
+  int64_t hbar = 100000000; // 1 HBAR equivalent
+
+  CustomFixedFee customFixedFee;
+  ASSERT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(hbar / 2).setFeeCollectorAccountId(
+                    getTestClient().getOperatorAccountId().value()));
+
+  // Create a revenue generating topic with Hbar custom fee
+  TopicId topicId;
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  // Create payer with 1 Hbar
+  std::shared_ptr<PrivateKey> payerKey;
+  ASSERT_NO_THROW(payerKey = ED25519PrivateKey::generatePrivateKey());
+
+  Hbar initialBalance = Hbar(1LL);
+
+  AccountId payerId;
+  ASSERT_NO_THROW(payerId = AccountCreateTransaction()
+                              .setKeyWithoutAlias(payerKey->getPublicKey())
+                              .setInitialBalance(initialBalance)
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mAccountId.value());
+
+  // Set custom fee limit with lower amount than the custom fee
+  CustomFeeLimit customFeeLimit;
+  ASSERT_NO_THROW(customFeeLimit.setPayerId(payerId));
+  
+  CustomFixedFee customFee;
+  ASSERT_NO_THROW(customFee.setAmount(static_cast<uint64_t>((hbar / 2) - 1)));
+  ASSERT_NO_THROW(customFeeLimit.addCustomFee(customFee));
+
+  // Submit a message to the revenue generating topic with custom fee limit - should fail when executed
+  setTestClientOperator(payerId, payerKey);
+  
+  TransactionResponse scheduleResponse;
+  EXPECT_NO_THROW(scheduleResponse = TopicMessageSubmitTransaction()
+                                       .setMessage("message")
+                                       .setTopicId(topicId)
+                                       .addCustomFeeLimit(customFeeLimit)
+                                       .schedule()
+                                       .execute(getTestClient()));
+
+  ScheduleId scheduleId;
+  ASSERT_NO_THROW(scheduleId = scheduleResponse.getReceipt(getTestClient()).mScheduleId.value());
+
+  // Reset to operator to verify results
+  setDefaultTestClientOperator();
+
+  // Verify the custom fee was not charged (balance should be > hbar/2)
+  AccountInfo payerInfo;
+  EXPECT_NO_THROW(payerInfo = AccountInfoQuery().setAccountId(payerId).execute(getTestClient()));
+
+  EXPECT_GT(payerInfo.mBalance.toTinybars(), hbar / 2);
+
+  // Clean up - delete the topic
+  ASSERT_NO_THROW(const TransactionReceipt txReceipt =
+                    TopicDeleteTransaction().setTopicId(topicId).execute(getTestClient()).getReceipt(getTestClient()));
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCannotExecuteWithInvalidCustomFeeLimitSchedule)
+{
+  // Create a token first
+  TokenId tokenId;
+  ASSERT_NO_THROW(tokenId = TokenCreateTransaction()
+                              .setTokenName("ffff")
+                              .setTokenSymbol("F")
+                              .setInitialSupply(10)
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setTreasuryAccountId(AccountId(2ULL))
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTokenId.value());
+
+  CustomFixedFee customFixedFee;
+  ASSERT_NO_THROW(customFixedFee =
+                    CustomFixedFee().setAmount(2).setDenominatingTokenId(tokenId).setFeeCollectorAccountId(
+                      getTestClient().getOperatorAccountId().value()));
+
+  // Create a revenue generating topic with token custom fee
+  TopicId topicId;
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  // Create payer with unlimited token associations
+  std::shared_ptr<PrivateKey> payerKey;
+  ASSERT_NO_THROW(payerKey = ED25519PrivateKey::generatePrivateKey());
+
+  Hbar initialBalance = Hbar(1LL);
+
+  AccountId payerId;
+  ASSERT_NO_THROW(payerId = AccountCreateTransaction()
+                              .setKeyWithoutAlias(payerKey->getPublicKey())
+                              .setMaxAutomaticTokenAssociations(-1)
+                              .setInitialBalance(initialBalance)
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mAccountId.value());
+
+  // Send tokens to payer
+  EXPECT_NO_THROW(TransferTransaction()
+                    .addTokenTransfer(tokenId, getTestClient().getOperatorAccountId().value(), -2LL)
+                    .addTokenTransfer(tokenId, payerId, 2LL)
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  // Test 1: Set custom fee limit with invalid token ID
+  CustomFeeLimit customFeeLimit;
+  ASSERT_NO_THROW(customFeeLimit.setPayerId(payerId));
+  
+  CustomFixedFee customFee;
+  ASSERT_NO_THROW(customFee.setAmount(2).setDenominatingTokenId(TokenId(0, 0, 0)));
+  ASSERT_NO_THROW(customFeeLimit.addCustomFee(customFee));
+
+  setTestClientOperator(payerId, payerKey);
+  
+  TransactionResponse scheduleResponse;
+  EXPECT_NO_THROW(scheduleResponse = TopicMessageSubmitTransaction()
+                                       .setMessage("message")
+                                       .setTopicId(topicId)
+                                       .addCustomFeeLimit(customFeeLimit)
+                                       .schedule()
+                                       .execute(getTestClient()));
+
+  ScheduleId scheduleId;
+  ASSERT_NO_THROW(scheduleId = scheduleResponse.getReceipt(getTestClient()).mScheduleId.value());
+
+  setDefaultTestClientOperator();
+
+  // Verify the custom fee was not charged
+  AccountInfo payerInfo;
+  EXPECT_NO_THROW(payerInfo = AccountInfoQuery().setAccountId(payerId).execute(getTestClient()));
+
+  int64_t hbar = 100000000;
+  EXPECT_GT(payerInfo.mBalance.toTinybars(), hbar / 2);
+
+  // Test 2: Set custom fee limit with duplicate denomination token ID
+  CustomFeeLimit customFeeLimit2;
+  ASSERT_NO_THROW(customFeeLimit2.setPayerId(payerId));
+  
+  CustomFixedFee customFee1;
+  ASSERT_NO_THROW(customFee1.setAmount(1).setDenominatingTokenId(tokenId));
+  ASSERT_NO_THROW(customFeeLimit2.addCustomFee(customFee1));
+  
+  CustomFixedFee customFee2;
+  ASSERT_NO_THROW(customFee2.setAmount(2).setDenominatingTokenId(tokenId));
+  ASSERT_NO_THROW(customFeeLimit2.addCustomFee(customFee2));
+
+  setTestClientOperator(payerId, payerKey);
+
+  // This should fail with DUPLICATE_DENOMINATION_IN_MAX_CUSTOM_FEE_LIST during scheduling
+  EXPECT_THROW(TopicMessageSubmitTransaction()
+                 .setMessage("message")
+                 .setTopicId(topicId)
+                 .addCustomFeeLimit(customFeeLimit2)
+                 .schedule()
+                 .execute(getTestClient())
+                 .getReceipt(getTestClient()),
+               ReceiptStatusException);
+
+  setDefaultTestClientOperator();
+
+  // Clean up - delete the topic
+  ASSERT_NO_THROW(const TransactionReceipt txReceipt =
+                    TopicDeleteTransaction().setTopicId(topicId).execute(getTestClient()).getReceipt(getTestClient()));
+}
+
+//-----
+TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicGetScheduledTransactionCustomFeeLimits)
+{
+  // Given
+  int64_t hbar = 100000000; // 1 HBAR equivalent
+
+  CustomFixedFee customFixedFee;
+  ASSERT_NO_THROW(customFixedFee = CustomFixedFee().setAmount(hbar / 2).setFeeCollectorAccountId(
+                    getTestClient().getOperatorAccountId().value()));
+
+  // Create a revenue generating topic with Hbar custom fee
+  TopicId topicId;
+  ASSERT_NO_THROW(topicId = TopicCreateTransaction()
+                              .setAdminKey(getTestClient().getOperatorPublicKey())
+                              .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                              .addCustomFixedFee({ customFixedFee })
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mTopicId.value());
+
+  // Create payer with 1 Hbar
+  std::shared_ptr<PrivateKey> payerKey;
+  ASSERT_NO_THROW(payerKey = ED25519PrivateKey::generatePrivateKey());
+
+  Hbar initialBalance = Hbar(1LL);
+
+  AccountId payerId;
+  ASSERT_NO_THROW(payerId = AccountCreateTransaction()
+                              .setKeyWithoutAlias(payerKey->getPublicKey())
+                              .setInitialBalance(initialBalance)
+                              .execute(getTestClient())
+                              .getReceipt(getTestClient())
+                              .mAccountId.value());
+
+  // Create custom fee limit
+  CustomFeeLimit customFeeLimit;
+  ASSERT_NO_THROW(customFeeLimit.setPayerId(payerId));
+  
+  CustomFixedFee customFee;
+  ASSERT_NO_THROW(customFee.setAmount(static_cast<uint64_t>(hbar)));
+  ASSERT_NO_THROW(customFeeLimit.addCustomFee(customFee));
+
+  // Submit a message to the revenue generating topic with custom fee limit
+  setTestClientOperator(payerId, payerKey);
+  
+  TransactionResponse scheduleResponse;
+  EXPECT_NO_THROW(scheduleResponse = TopicMessageSubmitTransaction()
+                                       .setMessage("message")
+                                       .setTopicId(topicId)
+                                       .addCustomFeeLimit(customFeeLimit)
+                                       .schedule()
+                                       .execute(getTestClient()));
+
+  ScheduleId scheduleId;
+  ASSERT_NO_THROW(scheduleId = scheduleResponse.getReceipt(getTestClient()).mScheduleId.value());
+
+  setDefaultTestClientOperator();
+
+  // Get schedule info and verify custom fee limits are preserved
+  ScheduleInfo scheduleInfo;
+  EXPECT_NO_THROW(scheduleInfo = ScheduleInfoQuery().setScheduleId(scheduleId).execute(getTestClient()));
+
+  const auto& scheduledTx = scheduleInfo.mScheduledTransaction;
+  const auto* topicMessageTx = scheduledTx.getTransaction<TopicMessageSubmitTransaction>();
+  ASSERT_NE(topicMessageTx, nullptr);
+
+  const auto& retrievedCustomFeeLimits = topicMessageTx->getCustomFeeLimits();
+  EXPECT_EQ(retrievedCustomFeeLimits.size(), 1);
+  EXPECT_EQ(retrievedCustomFeeLimits[0].toString(), customFeeLimit.toString());
+
+  // Clean up - delete the topic
+  ASSERT_NO_THROW(const TransactionReceipt txReceipt =
+                    TopicDeleteTransaction().setTopicId(topicId).execute(getTestClient()).getReceipt(getTestClient()));
 }

@@ -56,7 +56,7 @@ TEST_F(ContractNonceInfoIntegrationTests, ContractADeploysContractBInConstructor
   TransactionResponse response;
   ASSERT_NO_THROW(response = ContractCreateTransaction()
                                .setAdminKey(operatorKey->getPublicKey())
-                               .setGas(100000ULL)
+                               .setGas(1000000ULL)
                                .setBytecodeFileId(fileId)
                                .setMemo(memo)
                                .execute(getTestClient()));
