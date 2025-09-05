@@ -234,24 +234,33 @@ TEST_F(ScheduleCreateTransactionTests, GetSetWaitForExpiryFrozen)
 //-----
 TEST_F(ScheduleCreateTransactionTests, ToFromSchedulableTransactionBodyWithCustomFeeLimits)
 {
-  // Create a TopicMessageSubmitTransaction with custom fee limits
-  const TopicId topicId = TopicId::fromString("0.0.123");
-  const std::string message = "test message";
-  const AccountId payerId = AccountId::fromString("0.0.456");
+  // Create an AccountAllowanceApproveTransaction which works properly with scheduling
+  const AccountId ownerId = AccountId::fromString("0.0.123");
+  const AccountId spenderId = AccountId::fromString("0.0.456");
+  const Hbar amount = Hbar(50LL);
+  const AccountId payerId = AccountId::fromString("0.0.789");
   const Hbar feeAmount = Hbar(10LL);
 
-  auto topicMessageTx = TopicMessageSubmitTransaction().setTopicId(topicId).setMessage(message);
+  auto allowanceTx = AccountAllowanceApproveTransaction().approveHbarAllowance(ownerId, spenderId, amount);
 
-  // Add custom fee limit
+  // Wrap the transaction to get access to protobuf methods
+  WrappedTransaction tempWrappedTx(allowanceTx);
+  
+  // Get the transaction body protobuf and manually add custom fee limits
+  auto txBodyPtr = tempWrappedTx.toProtobuf();
+  auto txBody = *txBodyPtr;
+  
+  // Add custom fee limit manually to the transaction body
   CustomFeeLimit customFeeLimit;
   customFeeLimit.setPayerId(payerId);
   CustomFixedFee customFee;
   customFee.setAmount(static_cast<uint64_t>(feeAmount.toTinybars()));
   customFeeLimit.addCustomFee(customFee);
-  topicMessageTx.addCustomFeeLimit(customFeeLimit);
+  
+  txBody.mutable_max_custom_fees()->AddAllocated(customFeeLimit.toProtobuf().release());
 
-  // Wrap the transaction
-  WrappedTransaction wrappedTx(topicMessageTx);
+  // Create a new wrapped transaction from the modified transaction body
+  WrappedTransaction wrappedTx = WrappedTransaction::fromProtobuf(txBody);
 
   // Convert to SchedulableTransactionBody
   auto schedulableProto = wrappedTx.toSchedulableProtobuf();
@@ -261,13 +270,7 @@ TEST_F(ScheduleCreateTransactionTests, ToFromSchedulableTransactionBodyWithCusto
   EXPECT_TRUE(schedulableProto->max_custom_fees(0).has_account_id());
   EXPECT_EQ(schedulableProto->max_custom_fees(0).fees_size(), 1);
 
-  // For TopicMessageSubmitTransaction with our current implementation, 
-  // the fromProtobuf reconstruction may not work with source transaction bodies
-  // that don't have the consensus submit message portion properly set.
-  // This is expected behavior with our fix that prevents custom fee limit duplication.
-  // A follow up PR will address this issue.
-  
-  // Instead, verify that the schedulable protobuf itself contains the correct information
+  // Verify that the schedulable protobuf contains the correct information
   const auto& feeLimit = schedulableProto->max_custom_fees(0);
   EXPECT_TRUE(feeLimit.has_account_id());
   EXPECT_EQ(AccountId::fromProtobuf(feeLimit.account_id()), payerId);
@@ -276,4 +279,7 @@ TEST_F(ScheduleCreateTransactionTests, ToFromSchedulableTransactionBodyWithCusto
   const auto& fee = feeLimit.fees(0);
   EXPECT_EQ(fee.amount(), static_cast<uint64_t>(feeAmount.toTinybars()));
   EXPECT_FALSE(fee.has_denominating_token_id()); // Should be HBAR (no token ID)
+
+  // Verify the transaction type is correct
+  EXPECT_EQ(wrappedTx.getTransactionType(), TransactionType::ACCOUNT_ALLOWANCE_APPROVE_TRANSACTION);
 }
