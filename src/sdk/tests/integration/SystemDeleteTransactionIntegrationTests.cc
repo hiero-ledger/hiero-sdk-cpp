@@ -69,7 +69,7 @@ TEST_F(SystemDeleteTransactionIntegrationTests, DeleteContract)
   ASSERT_NO_THROW(contractId =
                     ContractCreateTransaction()
                       .setAdminKey(operatorKey)
-                      .setGas(100000ULL)
+                      .setGas(1000000ULL)
                       .setConstructorParameters(ContractFunctionParameters().addString("Hello from Hiero.").toBytes())
                       .setBytecodeFileId(fileId)
                       .execute(getTestClient())
