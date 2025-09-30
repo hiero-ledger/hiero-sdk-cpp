@@ -192,6 +192,24 @@ AccountCreateTransaction& AccountCreateTransaction::setAlias(const EvmAddress& a
 }
 
 //-----
+AccountCreateTransaction& AccountCreateTransaction::addHook(const HookCreationDetails& hook)
+{
+  requireNotFrozen();
+
+  mHookCreationDetails.push_back(hook);
+  return *this;
+}
+
+//-----
+AccountCreateTransaction& AccountCreateTransaction::setHooks(const std::vector<HookCreationDetails>& hooks)
+{
+  requireNotFrozen();
+
+  mHookCreationDetails = hooks;
+  return *this;
+}
+
+//-----
 grpc::Status AccountCreateTransaction::submitRequest(const proto::Transaction& request,
                                                      const std::shared_ptr<internal::Node>& node,
                                                      const std::chrono::system_clock::time_point& deadline,
@@ -259,6 +277,11 @@ void AccountCreateTransaction::initFromSourceTransactionBody()
   {
     mAlias = EvmAddress::fromBytes(internal::Utilities::stringToByteVector(body.alias()));
   }
+
+  for (int i = 0; i < body.hook_creation_details_size(); ++i)
+  {
+    mHookCreationDetails.push_back(HookCreationDetails::fromProtobuf(body.hook_creation_details(i)));
+  }
 }
 
 //-----
@@ -292,6 +315,11 @@ proto::CryptoCreateTransactionBody* AccountCreateTransaction::build() const
   if (mAlias.has_value())
   {
     body->set_alias(internal::Utilities::byteVectorToString(mAlias->toBytes()));
+  }
+
+  for (const HookCreationDetails& hook : mHookCreationDetails)
+  {
+    *body->add_hook_creation_details() = *hook.toProtobuf();
   }
 
   return body.release();
