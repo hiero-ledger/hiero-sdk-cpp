@@ -27,7 +27,8 @@ public:
    * @param proto The LambdaStorageUpdate protobuf object from which to create a LambdaStorageUpdate object.
    * @return The constructed HookId object.
    */
-  [[nodiscard]] static LambdaStorageUpdate fromProtobuf(const com::hedera::hapi::node::hooks::LambdaStorageUpdate& proto);
+  [[nodiscard]] static LambdaStorageUpdate fromProtobuf(
+    const com::hedera::hapi::node::hooks::LambdaStorageUpdate& proto);
 
   /**
    * Construct a LambdaStorageUpdate protobuf object from this HookId object.

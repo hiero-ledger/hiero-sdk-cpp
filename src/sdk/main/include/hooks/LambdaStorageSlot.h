@@ -29,7 +29,8 @@ public:
   /**
    * Construct a LambdaStorageSlot protobuf object from this LambdaStorageSlot object.
    *
-   * @return A pointer to the created LambdaStorageSlot protobuf object filled with this LambdaStorageSlot object's data.
+   * @return A pointer to the created LambdaStorageSlot protobuf object filled with this LambdaStorageSlot object's
+   *         data.
    */
   [[nodiscard]] std::unique_ptr<com::hedera::hapi::node::hooks::LambdaStorageSlot> toProtobuf() const;
 

@@ -2,9 +2,9 @@
 #ifndef HIERO_SDK_CPP_HOOK_CREATION_DETAILS_H_
 #define HIERO_SDK_CPP_HOOK_CREATION_DETAILS_H_
 
+#include "Key.h"
 #include "hooks/HookExtensionPoint.h"
 #include "hooks/LambdaEvmHook.h"
-#include "Key.h"
 
 #include <cstdint>
 #include <memory>
@@ -29,7 +29,8 @@ public:
    * @param proto The HookCreationDetails protobuf object from which to create a HookCreationDetails object.
    * @return The constructed HookCreationDetails object.
    */
-  [[nodiscard]] static HookCreationDetails fromProtobuf(const com::hedera::hapi::node::hooks::HookCreationDetails& proto);
+  [[nodiscard]] static HookCreationDetails fromProtobuf(
+    const com::hedera::hapi::node::hooks::HookCreationDetails& proto);
 
   /**
    * Construct a HookCreationDetails protobuf object from this HookCreationDetails object.

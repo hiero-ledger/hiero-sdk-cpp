@@ -15,7 +15,8 @@ const std::unordered_map<com::hedera::hapi::node::hooks::HookExtensionPoint, Hoo
 //-----
 const std::unordered_map<HookExtensionPoint, com::hedera::hapi::node::hooks::HookExtensionPoint>
   gHookExtensionPointToProtobufHookExtensionPoint = {
-    {HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK,
+    {
+     HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK,
      com::hedera::hapi::node::hooks::HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK,
      }
 };

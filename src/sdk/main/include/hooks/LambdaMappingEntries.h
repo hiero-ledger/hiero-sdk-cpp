@@ -33,7 +33,8 @@ public:
    * @param proto The LambdaMappingEntries protobuf object from which to create a LambdaMappingEntries object.
    * @return The constructed LambdaMappingEntries object.
    */
-  [[nodiscard]] static LambdaMappingEntries fromProtobuf(const com::hedera::hapi::node::hooks::LambdaMappingEntries& proto);
+  [[nodiscard]] static LambdaMappingEntries fromProtobuf(
+    const com::hedera::hapi::node::hooks::LambdaMappingEntries& proto);
 
   /**
    * Construct a LambdaMappingEntries protobuf object from this LambdaMappingEntries object.

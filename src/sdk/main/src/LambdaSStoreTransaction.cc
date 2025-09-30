@@ -39,7 +39,8 @@ LambdaSStoreTransaction& LambdaSStoreTransaction::addStorageUpdate(const LambdaS
 }
 
 //-----
-LambdaSStoreTransaction& LambdaSStoreTransaction::setStorageUpdates(const std::vector<LambdaStorageUpdate>& storageUpdates)
+LambdaSStoreTransaction& LambdaSStoreTransaction::setStorageUpdates(
+  const std::vector<LambdaStorageUpdate>& storageUpdates)
 {
   requireNotFrozen();
   mStorageUpdates = storageUpdates;

@@ -2,9 +2,9 @@
 #ifndef HIERO_SDK_CPP_LAMBDA_S_STORE_TRANSACTION_H_
 #define HIERO_SDK_CPP_LAMBDA_S_STORE_TRANSACTION_H_
 
+#include "Transaction.h"
 #include "hooks/HookId.h"
 #include "hooks/LambdaStorageUpdate.h"
-#include "Transaction.h"
 
 #include <cstdint>
 #include <vector>
@@ -50,7 +50,8 @@ public:
    * @param transactions The map of TransactionIds to node account IDs and their respective Transaction protobuf
    *                     objects.
    */
-  explicit LambdaSStoreTransaction(const std::map<TransactionId, std::map<AccountId, proto::Transaction>>& transactions);
+  explicit LambdaSStoreTransaction(
+    const std::map<TransactionId, std::map<AccountId, proto::Transaction>>& transactions);
 
   /**
    * Set the ID of the lambda whose storage is to be updated.
@@ -144,8 +145,8 @@ private:
   /**
    * Build a LambdaSStoreTransactionBody protobuf object from this LambdaSStoreTransaction object.
    *
-   * @return A pointer to a LambdaSStoreTransactionBody protobuf object filled with this LambdaSStoreTransaction object's
-   *         data.
+   * @return A pointer to a LambdaSStoreTransactionBody protobuf object filled with this LambdaSStoreTransaction
+   *         object's data.
    */
   [[nodiscard]] com::hedera::hapi::node::hooks::LambdaSStoreTransactionBody* build() const;
 
