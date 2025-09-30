@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "hooks/HookEntityId.h"
+#include "Client.h"
 
 #include <services/basic_types.pb.h>
 
@@ -29,6 +30,15 @@ std::unique_ptr<proto::HookEntityId> HookEntityId::toProtobuf() const
   }
 
   return proto;
+}
+
+//-----
+void HookEntityId::validateChecksums(const Client& client) const
+{
+  if (mAccountId.has_value())
+  {
+    mAccountId->validateChecksum(client);
+  }
 }
 
 //-----

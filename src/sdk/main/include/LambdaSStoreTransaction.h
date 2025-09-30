@@ -99,7 +99,7 @@ public:
    *
    * @return The list of storage updates for the hook.
    */
-  [[nodiscard]] inline std::vector<LambdaStorageUpdate> getStorageUpdates() const  {    return mStorageUpdates;  }
+  [[nodiscard]] inline std::vector<LambdaStorageUpdate> getStorageUpdates() const { return mStorageUpdates; }
 
 private:
   friend class WrappedTransaction;
@@ -119,6 +119,14 @@ private:
                                            const std::shared_ptr<internal::Node>& node,
                                            const std::chrono::system_clock::time_point& deadline,
                                            proto::TransactionResponse* response) const override;
+
+  /**
+   * Derived from Transaction. Verify that all the checksums in this LambdaSStoreTransaction are valid.
+   *
+   * @param client The Client that should be used to validate the checksums.
+   * @throws BadEntityException This LambdaSStoreTransaction's checksums are not valid.
+   */
+  void validateChecksums(const Client& client) const override;
 
   /**
    * Derived from Transaction. Build and add the LambdaSStoreTransaction protobuf representation to the Transaction

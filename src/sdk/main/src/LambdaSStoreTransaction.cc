@@ -64,6 +64,12 @@ grpc::Status LambdaSStoreTransaction::submitRequest(const proto::Transaction& re
 }
 
 //-----
+void LambdaSStoreTransaction::validateChecksums(const Client& client) const
+{
+  mHookId.getEntityId().validateChecksums(client);
+}
+
+//-----
 void LambdaSStoreTransaction::addToBody(proto::TransactionBody& body) const
 {
   body.set_allocated_lambda_sstore(build());

@@ -14,6 +14,11 @@ class HookEntityId;
 
 namespace Hiero
 {
+class Client;
+}
+
+namespace Hiero
+{
 /**
  * The entity that owns a hook.
  */
@@ -34,6 +39,14 @@ public:
    * @return A pointer to the created HookEntityId protobuf object filled with this HookEntityId object's data.
    */
   [[nodiscard]] std::unique_ptr<proto::HookEntityId> toProtobuf() const;
+
+  /**
+   * Verify that the checksum of the owning entity is valid.
+   *
+   * @param client The Client that should be used to validate the checksums.
+   * @throws BadEntityException This HookEntityId's checksums are not valid.
+   */
+  void validateChecksums(const Client& client) const;
 
   /**
    * Set the ID of the owning entity as an account. This will reset other entity ID values.
