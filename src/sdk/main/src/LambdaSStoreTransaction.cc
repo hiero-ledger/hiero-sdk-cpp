@@ -86,9 +86,9 @@ void LambdaSStoreTransaction::initFromSourceTransactionBody()
     mHookId = HookId::fromProtobuf(body.hook_id());
   }
 
-  for (const LambdaStorageUpdate& update : mStorageUpdates)
+  for (int i = 0; i < body.storage_updates_size(); ++i)
   {
-    mStorageUpdates.push_back(LambdaStorageUpdate::fromProtobuf(update));
+    mStorageUpdates.push_back(LambdaStorageUpdate::fromProtobuf(body.storage_updates(i)));
   }
 }
 
@@ -96,22 +96,12 @@ void LambdaSStoreTransaction::initFromSourceTransactionBody()
 com::hedera::hapi::node::hooks::LambdaSStoreTransactionBody* LambdaSStoreTransaction::build() const
 {
   auto body = std::make_unique<com::hedera::hapi::node::hooks::LambdaSStoreTransactionBody>();
+  body->set_allocated_hook_id(mHookId.toProtobuf().release());
 
-  body->
-
-  if (mFileId.has_value())
+  for (const LambdaStorageUpdate& update : mStorageUpdates)
   {
-    body->set_allocated_update_file(mFileId->toProtobuf().release());
+    *body->add_storage_updates() = *update.toProtobuf();
   }
-
-  body->set_file_hash(internal::Utilities::byteVectorToString(mFileHash));
-
-  if (mStartTime.has_value())
-  {
-    body->set_allocated_start_time(internal::TimestampConverter::toProtobuf(mStartTime.value()));
-  }
-
-  body->set_freeze_type(gFreezeTypeToProtobufFreezeType.at(mFreezeType));
 
   return body.release();
 }

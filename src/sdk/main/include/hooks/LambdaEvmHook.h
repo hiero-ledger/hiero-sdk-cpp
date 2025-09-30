@@ -7,6 +7,11 @@
 
 #include <vector>
 
+namespace com::hedera::hapi::node::hooks
+{
+class LambdaEvmHook;
+}
+
 namespace Hiero
 {
 /**
@@ -15,6 +20,21 @@ namespace Hiero
 class LambdaEvmHook : public EvmHookSpec
 {
 public:
+  /**
+   * Construct a LambdaEvmHook object from a LambdaEvmHook protobuf object.
+   *
+   * @param proto The LambdaEvmHook protobuf object from which to create a LambdaEvmHook object.
+   * @return The constructed LambdaEvmHook object.
+   */
+  [[nodiscard]] static LambdaEvmHook fromProtobuf(const com::hedera::hapi::node::hooks::LambdaEvmHook& proto);
+
+  /**
+   * Construct a LambdaEvmHook protobuf object from this LambdaEvmHook object.
+   *
+   * @return A pointer to the created LambdaEvmHook protobuf object filled with this LambdaEvmHook object's data.
+   */
+  [[nodiscard]] std::unique_ptr<com::hedera::hapi::node::hooks::LambdaEvmHook> toProtobuf() const;
+
   /**
    * Add a storage update to this hook.
    *

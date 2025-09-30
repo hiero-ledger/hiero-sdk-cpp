@@ -34,7 +34,7 @@ std::unique_ptr<com::hedera::hapi::node::hooks::HookCreationDetails> HookCreatio
 
   if (mLambdaEvmHook.has_value())
   {
-    proto->set_allocated_lambda_evm_hook(mLambdaEvmHook.toProtobuf().release());
+    proto->set_allocated_lambda_evm_hook(mLambdaEvmHook->toProtobuf().release());
   }
 
   if (mAdminKey)

@@ -35,20 +35,20 @@ public:
   [[nodiscard]] std::unique_ptr<com::hedera::hapi::node::hooks::LambdaMappingEntry> toProtobuf() const;
 
   /**
-   * Set the Solidity mapping slot.
-   *
-   * @param mappingSlot The Solidity mapping slot.
-   * @return A reference to this LambdaMappingEntry object with the newly-set mapping slot.
-   */
-  LambdaMappingEntry& setMappingSlot(const std::vector<std::byte>& mappingSlot);
-
-  /**
-   * Set the key for the mapping entry.
+   * Set the key for the mapping entry. Resets the preimage if set.
    *
    * @param key The key for the mapping entry.
    * @return A reference to this LambdaMappingEntry object with the newly-set mapping entry key.
    */
   LambdaMappingEntry& setKey(const std::vector<std::byte>& key);
+
+  /**
+   * Set the preimage. Resets the key if set.
+   *
+   * @param preimage The preimage..
+   * @return A reference to this LambdaMappingEntry object with the newly-set preimage.
+   */
+  LambdaMappingEntry& setPreimage(const std::vector<std::byte>& preimage);
 
   /**
    * Set the value for the mapping entry.
@@ -59,18 +59,18 @@ public:
   LambdaMappingEntry& setValue(const std::vector<std::byte>& value);
 
   /**
-   * Get the Solidity mapping slot.
-   *
-   * @return The Solidity mapping slot.
-   */
-  [[nodiscard]] inline std::vector<std::byte> getMappingSlot() const { return mMappingSlot; }
-
-  /**
    * Get the Solidity mapping entry key.
    *
    * @return The Solidity mapping entry key.
    */
-  [[nodiscard]] inline std::vector<std::byte> getKey() const { return mKey; }
+  [[nodiscard]] inline std::optional<std::vector<std::byte>> getKey() const { return mKey; }
+
+  /**
+   * Get the preimage.
+   *
+   * @return The preimage.
+   */
+  [[nodiscard]] inline std::optional<std::vector<std::byte>> getPreimage() const { return mPreimage; }
 
   /**
    * Get the Solidity mapping entry value.
@@ -81,14 +81,15 @@ public:
 
 private:
   /**
-   * The slot corresponding to the Solidity mapping.
+   * The explicit bytes of the mapping entry. Must use a minimal byte representation; may not exceed 32 bytes in length.
    */
-  std::vector<std::byte> mMappingSlot;
+  std::optional<std::vector<std::byte>> mKey;
 
   /**
-   * The 32-byte key of the mapping entry.
+   * The bytes that are the preimage of the Keccak256 hash that forms the mapping key. May be longer or shorter than 32
+   * bytes and may have leading zeros, since Solidity supports variable-length keys in mappings.
    */
-  std::vector<std::byte> mKey;
+  std::optional<std::vector<std::byte>> mPreimage;
 
   /**
    * The 32-byte value of the mapping entry (leave empty to delete).

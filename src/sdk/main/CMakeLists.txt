@@ -195,6 +195,7 @@ add_library(${PROJECT_NAME} STATIC
         src/hooks/HookEntityId.cc
         src/hooks/HookExtensionPoint.cc
         src/hooks/HookId.cc
+        src/hooks/LambdaEvmHook.cc
         src/hooks/LambdaMappingEntries.cc
         src/hooks/LambdaMappingEntry.cc
         src/hooks/LambdaStorageSlot.cc
