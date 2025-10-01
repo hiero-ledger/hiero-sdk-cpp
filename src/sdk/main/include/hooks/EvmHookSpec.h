@@ -27,14 +27,14 @@ public:
    * @return The constructed EvmHookSpec object.
    */
   [[nodiscard]] static EvmHookSpec fromProtobuf(const com::hedera::hapi::node::hooks::EvmHookSpec& proto);
-  
+
   /**
    * Construct a EvmHookSpec protobuf object from this EvmHookSpec object.
    *
    * @return A pointer to the created EvmHookSpec protobuf object filled with this EvmHookSpec object's data.
    */
   [[nodiscard]] std::unique_ptr<com::hedera::hapi::node::hooks::EvmHookSpec> toProtobuf() const;
-  
+
   /**
    * Set the contract that contains the hook EVM bytecode. Resets other bytecode sources.
    *
