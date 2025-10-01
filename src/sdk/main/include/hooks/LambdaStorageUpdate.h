@@ -5,6 +5,7 @@
 #include "hooks/LambdaMappingEntries.h"
 #include "hooks/LambdaStorageSlot.h"
 
+#include <memory>
 #include <optional>
 
 namespace com::hedera::hapi::node::hooks

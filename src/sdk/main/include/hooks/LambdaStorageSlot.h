@@ -3,6 +3,7 @@
 #define HIERO_SDK_CPP_LAMBDA_STORAGE_SLOT_H_
 
 #include <cstddef>
+#include <memory>
 #include <vector>
 
 namespace com::hedera::hapi::node::hooks

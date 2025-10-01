@@ -5,6 +5,7 @@
 #include "hooks/LambdaMappingEntry.h"
 
 #include <cstddef>
+#include <memory>
 #include <vector>
 
 namespace com::hedera::hapi::node::hooks

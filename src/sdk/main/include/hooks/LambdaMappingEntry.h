@@ -3,6 +3,8 @@
 #define HIERO_SDK_CPP_LAMBDA_MAPPING_ENTRY_H_
 
 #include <cstddef>
+#include <memory>
+#include <optional>
 #include <vector>
 
 namespace com::hedera::hapi::node::hooks
