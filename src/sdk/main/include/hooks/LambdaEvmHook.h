@@ -2,8 +2,8 @@
 #ifndef HIERO_SDK_CPP_LAMBDA_EVM_HOOK_H_
 #define HIERO_SDK_CPP_LAMBDA_EVM_HOOK_H_
 
-#include "hooks/LambdaStorageUpdate.h"
 #include "hooks/EvmHookSpec.h"
+#include "hooks/LambdaStorageUpdate.h"
 
 #include <vector>
 
@@ -69,7 +69,7 @@ private:
   /**
    * The initial storage updates for the lambda, if any.
    */
-   std::vector<LambdaStorageUpdate> mStorageUpdates;
+  std::vector<LambdaStorageUpdate> mStorageUpdates;
 };
 
 } // namespace Hiero

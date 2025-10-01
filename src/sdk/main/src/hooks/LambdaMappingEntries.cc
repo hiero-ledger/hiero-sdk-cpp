@@ -8,8 +8,8 @@
 namespace Hiero
 {
 //-----
-LambdaMappingEntries LambdaMappingEntries::fromProtobuf(const com::hedera::hapi::node::hooks::LambdaMappingEntries&
-                                                          proto)
+LambdaMappingEntries LambdaMappingEntries::fromProtobuf(
+  const com::hedera::hapi::node::hooks::LambdaMappingEntries& proto)
 {
   LambdaMappingEntries lambdaMappingEntries;
   lambdaMappingEntries.mMappingSlot = internal::Utilities::stringToByteVector(proto.mapping_slot());
