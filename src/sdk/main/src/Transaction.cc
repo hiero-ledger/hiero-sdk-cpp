@@ -151,16 +151,18 @@ struct Transaction<SdkRequestType>::TransactionImpl
    */
   std::shared_ptr<Key> mBatchKey = nullptr;
   /**
- * 
- * This flag is used to determine whether a Transaction's TransactionId
- * should be regenerated if the Transaction expires. 
- * 
- * - If `mTransactionIdManualSet` is true, the TransactionId was set manually by the user,
- *   and it **must not be regenerated**, regardless of the client-wide or transaction-specific
- *   regeneration policies.
- * - If `mTransactionIdManualSet` is false (default), the TransactionId may be regenerated
- *   based on the transaction's own `mTransactionIdRegenerationPolicy` or the client's policy.
- */
+  /**
+   * This flag is used to determine whether a Transaction's TransactionId
+   * should be regenerated if the Transaction expires.
+   *
+   * Rules:
+   * 1. If `mTransactionIdManualSet` is `true`, the TransactionId was set manually by the user,
+   *    and it **must not be regenerated**, regardless of client-wide or transaction-specific
+   *    regeneration policies.
+   * 2. If `mTransactionIdManualSet` is `false` (default), the TransactionId **may be regenerated**
+   *    based on the transaction's own `mTransactionIdRegenerationPolicy` or the client's policy.
+   */
+
   bool mTransactionIdManualSet = false;
 };
 
