@@ -150,7 +150,7 @@ struct Transaction<SdkRequestType>::TransactionImpl
    * The public key of the trusted batch assembler.
    */
   std::shared_ptr<Key> mBatchKey = nullptr;
-  
+
   /**
    * This flag is used to determine whether a Transaction's TransactionId
    * should be regenerated if the Transaction expires.
@@ -668,7 +668,7 @@ SdkRequestType& Transaction<SdkRequestType>::setTransactionId(const TransactionI
 {
   requireNotFrozen();
   mImpl->mTransactionId = id;
-  mImpl->mTransactionIdManualSet = true; 
+  mImpl->mTransactionIdManualSet = true;
   return static_cast<SdkRequestType&>(*this);
 }
 
