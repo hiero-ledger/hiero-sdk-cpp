@@ -146,6 +146,42 @@ AccountUpdateTransaction& AccountUpdateTransaction::setDeclineStakingReward(bool
 }
 
 //-----
+AccountUpdateTransaction& AccountUpdateTransaction::deleteHook(int64_t hookId)
+{
+  requireNotFrozen();
+
+  mHooksToDelete.push_back(hookId);
+  return *this;
+}
+
+//-----
+AccountUpdateTransaction& AccountUpdateTransaction::deleteHooks(const std::vector<int64_t>& hooks)
+{
+  requireNotFrozen();
+
+  mHooksToDelete = hooks;
+  return *this;
+}
+
+//-----
+AccountUpdateTransaction& AccountUpdateTransaction::addHook(const HookCreationDetails& hook)
+{
+  requireNotFrozen();
+
+  mHookCreationDetails.push_back(hook);
+  return *this;
+}
+
+//-----
+AccountUpdateTransaction& AccountUpdateTransaction::setHooks(const std::vector<HookCreationDetails>& hooks)
+{
+  requireNotFrozen();
+
+  mHookCreationDetails = hooks;
+  return *this;
+}
+
+//-----
 grpc::Status AccountUpdateTransaction::submitRequest(const proto::Transaction& request,
                                                      const std::shared_ptr<internal::Node>& node,
                                                      const std::chrono::system_clock::time_point& deadline,
@@ -232,6 +268,16 @@ void AccountUpdateTransaction::initFromSourceTransactionBody()
   {
     mDeclineStakingReward = body.decline_reward().value();
   }
+
+  for (int i = 0; i < body.hook_ids_to_delete_size(); ++i)
+  {
+    mHooksToDelete.push_back(body.hook_ids_to_delete(i));
+  }
+
+  for (int i = 0; i < body.hook_creation_details_size(); ++i)
+  {
+    mHookCreationDetails.push_back(HookCreationDetails::fromProtobuf(body.hook_creation_details(i)));
+  }
 }
 
 //-----
@@ -295,6 +341,16 @@ proto::CryptoUpdateTransactionBody* AccountUpdateTransaction::build() const
     auto value = std::make_unique<google::protobuf::BoolValue>();
     value->set_value(mDeclineStakingReward.value());
     body->set_allocated_decline_reward(value.release());
+  }
+
+  for (const int64_t& hook : mHooksToDelete)
+  {
+    body->add_hook_ids_to_delete(hook);
+  }
+
+  for (const HookCreationDetails& hook : mHookCreationDetails)
+  {
+    *body->add_hook_creation_details() = *hook.toProtobuf();
   }
 
   return body.release();

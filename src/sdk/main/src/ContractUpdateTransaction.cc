@@ -115,6 +115,42 @@ ContractUpdateTransaction& ContractUpdateTransaction::setDeclineStakingReward(bo
 }
 
 //-----
+ContractUpdateTransaction& ContractUpdateTransaction::deleteHook(int64_t hookId)
+{
+  requireNotFrozen();
+
+  mHooksToDelete.push_back(hookId);
+  return *this;
+}
+
+//-----
+ContractUpdateTransaction& ContractUpdateTransaction::deleteHooks(const std::vector<int64_t>& hooks)
+{
+  requireNotFrozen();
+
+  mHooksToDelete = hooks;
+  return *this;
+}
+
+//-----
+ContractUpdateTransaction& ContractUpdateTransaction::addHook(const HookCreationDetails& hook)
+{
+  requireNotFrozen();
+
+  mHookCreationDetails.push_back(hook);
+  return *this;
+}
+
+//-----
+ContractUpdateTransaction& ContractUpdateTransaction::setHooks(const std::vector<HookCreationDetails>& hooks)
+{
+  requireNotFrozen();
+
+  mHookCreationDetails = hooks;
+  return *this;
+}
+
+//-----
 grpc::Status ContractUpdateTransaction::submitRequest(const proto::Transaction& request,
                                                       const std::shared_ptr<internal::Node>& node,
                                                       const std::chrono::system_clock::time_point& deadline,
@@ -207,6 +243,16 @@ void ContractUpdateTransaction::initFromSourceTransactionBody()
   {
     mDeclineStakingReward = body.decline_reward().value();
   }
+
+  for (int i = 0; body.hook_ids_to_delete_size(); ++i)
+  {
+    mHooksToDelete.push_back(body.hook_ids_to_delete(i));
+  }
+
+  for (int i = 0; body.hook_creation_details_size(); ++i)
+  {
+    mHookCreationDetails.push_back(HookCreationDetails::fromProtobuf(body.hook_creation_details(i)));
+  }
 }
 
 //-----
@@ -265,6 +311,16 @@ proto::ContractUpdateTransactionBody* ContractUpdateTransaction::build() const
     auto value = std::make_unique<google::protobuf::BoolValue>();
     value->set_value(mDeclineStakingReward.value());
     body->set_allocated_decline_reward(value.release());
+  }
+
+  for (const int64_t& hook : mHooksToDelete)
+  {
+    body->add_hook_ids_to_delete(hook);
+  }
+
+  for (const HookCreationDetails& hook : mHookCreationDetails)
+  {
+    *body->add_hook_creation_details() = *hook.toProtobuf();
   }
 
   return body.release();

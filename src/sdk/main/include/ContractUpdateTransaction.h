@@ -6,6 +6,7 @@
 #include "ContractId.h"
 #include "Key.h"
 #include "Transaction.h"
+#include "hooks/HookCreationDetails.h"
 
 #include <chrono>
 #include <memory>
@@ -152,6 +153,38 @@ public:
   ContractUpdateTransaction& setDeclineStakingReward(bool declineReward);
 
   /**
+   * Delete a hook from the contract.
+   *
+   * @param hookId The ID of the hook to delete.
+   * @return A reference to this ContractUpdateTransaction object with the newly-added hook to delete.
+   */
+  ContractUpdateTransaction& deleteHook(int64_t hookId);
+
+  /**
+   * Deletes hooks from the contract.
+   *
+   * @param hooks The IDs of the hooks to delete.
+   * @return A reference to this ContractUpdateTransaction object with the newly-set list of hooks to delete.
+   */
+  ContractUpdateTransaction& deleteHooks(const std::vector<int64_t>& hooks);
+
+  /**
+   * Add a hook to be created for the contract.
+   *
+   * @param hook The details of the hook to create.
+   * @return A reference to this ContractUpdateTransaction object with the newly-added hook creation details.
+   */
+  ContractUpdateTransaction& addHook(const HookCreationDetails& hook);
+
+  /**
+   * Set the list of hooks to be created for the contract.
+   *
+   * @param hooks The details of the hooks to create.
+   * @return A reference to this ContractUpdateTransaction object with the newly-set list of hook creation details.
+   */
+  ContractUpdateTransaction& setHooks(const std::vector<HookCreationDetails>& hooks);
+
+  /**
    * Get the ID of the contract to update.
    *
    * @return The ID of the contract to update.
@@ -237,6 +270,20 @@ public:
    *         uninitialized if a new staking rewards reception policy has not yet been set.
    */
   [[nodiscard]] inline std::optional<bool> getDeclineStakingReward() const { return mDeclineStakingReward; }
+
+  /**
+   * Get the IDs of the hooks to delete from the contract.
+   *
+   * @return The IDs of the hooks to delete from the contract.
+   */
+  [[nodiscard]] inline std::vector<int64_t> getHooksToDelete() const { return mHooksToDelete; }
+
+  /**
+   * Get the hook creation details of the hooks to create for the contract.
+   *
+   * @return The hook creation details of the hooks to create for the contract.
+   */
+  [[nodiscard]] inline std::vector<HookCreationDetails> getHooksToCreate() const { return mHookCreationDetails; }
 
 private:
   friend class WrappedTransaction;
@@ -335,6 +382,16 @@ private:
    * If \c TRUE, the contract will now decline receiving staking rewards.
    */
   std::optional<bool> mDeclineStakingReward;
+
+  /**
+   * The IDs of the hooks to delete from the contract.
+   */
+  std::vector<int64_t> mHooksToDelete;
+
+  /**
+   * The new hooks to create for the contract.
+   */
+  std::vector<HookCreationDetails> mHookCreationDetails;
 };
 
 } // namespace Hiero
