@@ -46,6 +46,8 @@ add_executable(${TEST_PROJECT_NAME}
         EthereumTransactionDataEip1559UnitTests.cc
         EthereumTransactionDataLegacyUnitTests.cc
         EvmAddressUnitTests.cc
+        EvmHookCallUnitTests.cc
+        EvmHookSpecUnitTests.cc
         ExchangeRateUnitTests.cc
         FeeAssessmentMethodUnitTests.cc
         FileAppendTransactionUnitTests.cc
@@ -61,9 +63,18 @@ add_executable(${TEST_PROJECT_NAME}
         NodeDeleteTransactionUnitTests.cc
         NodeUpdateTransactionUnitTests.cc
         HbarAllowanceUnitTests.cc
-        HbarUnitTests.cc
         HbarTransferUnitTests.cc
+        HbarUnitTests.cc
+        HookCallUnitTests.cc
+        HookCreationDetailsUnitTests.cc
+        HookEntityIdUnitTests.cc
+        HookIdUnitTests.cc
         KeyListUnitTests.cc
+        LambdaEvmHookUnitTests.cc
+        LambdaMappingEntriesUnitTests.cc
+        LambdaMappingEntryUnitTests.cc
+        LambdaStorageSlotUnitTests.cc
+        LambdaStorageUpdateUnitTests.cc
         LedgerIdUnitTests.cc
         MirrorNodeContractQueryUnitTests.cc
         NetworkUnitTests.cc

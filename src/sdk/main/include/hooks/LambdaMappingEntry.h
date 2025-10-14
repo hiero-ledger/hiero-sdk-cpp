@@ -47,7 +47,7 @@ public:
   /**
    * Set the preimage. Resets the key if set.
    *
-   * @param preimage The preimage..
+   * @param preimage The preimage for the mapping entry.
    * @return A reference to this LambdaMappingEntry object with the newly-set preimage.
    */
   LambdaMappingEntry& setPreimage(const std::vector<std::byte>& preimage);

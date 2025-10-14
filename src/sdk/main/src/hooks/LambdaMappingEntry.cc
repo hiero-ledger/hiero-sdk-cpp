@@ -48,6 +48,7 @@ std::unique_ptr<com::hedera::hapi::node::hooks::LambdaMappingEntry> LambdaMappin
 LambdaMappingEntry& LambdaMappingEntry::setKey(const std::vector<std::byte>& key)
 {
   mKey = key;
+  mPreimage.reset();
   return *this;
 }
 
@@ -55,6 +56,7 @@ LambdaMappingEntry& LambdaMappingEntry::setKey(const std::vector<std::byte>& key
 LambdaMappingEntry& LambdaMappingEntry::setPreimage(const std::vector<std::byte>& preimage)
 {
   mPreimage = preimage;
+  mKey.reset();
   return *this;
 }
 
