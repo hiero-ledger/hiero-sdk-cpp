@@ -274,7 +274,14 @@ private:
    * The node identified MUST NOT be deleted.
    * This value is REQUIRED.
    */
-  uint64_t mNodeId;
+  uint64_t mNodeId = 0;
+
+  /**
+   * Flag to track whether nodeId has been explicitly set.
+   * This is necessary because protobuf uint64 defaults to 0, which cannot distinguish
+   * between an explicit 0 and an unset value.
+   */
+  bool mNodeIdSet = false;
 
   /**
    * A Node account identifier.
