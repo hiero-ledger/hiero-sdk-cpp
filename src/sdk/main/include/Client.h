@@ -471,6 +471,7 @@ public:
    *
    * @param timeout The desired timeout for requests submitted by this Client.
    * @return A reference to this Client object with the newly-set request timeout.
+   * @throws std::invalid_argument If the timeout is less than the current gRPC deadline.
    */
   Client& setRequestTimeout(const std::chrono::system_clock::duration& timeout);
 
@@ -552,6 +553,7 @@ public:
    * @param deadline The desired maximum amount of time this requests submitted by this Client should spend trying to
    *                 execute.
    * @return A reference to this Client with the newly-set gRPC deadline.
+   * @throws std::invalid_argument If the deadline is greater than the current request timeout.
    */
   Client& setGrpcDeadline(const std::chrono::system_clock::duration& deadline);
 
