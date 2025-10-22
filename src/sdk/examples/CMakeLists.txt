@@ -37,6 +37,7 @@ set(GET_ACCOUNT_INFO_EXAMPLE_NAME ${PROJECT_NAME}-get-account-info-example)
 set(GET_ADDRESS_BOOK_EXAMPLE_NAME ${PROJECT_NAME}-get-address-book-example)
 set(GET_EXCHANGE_RATES_EXAMPLE_NAME ${PROJECT_NAME}-get-exchange-rates-example)
 set(GET_FILE_CONTENTS_EXAMPLE_NAME ${PROJECT_NAME}-get-file-contents-example)
+set(GRPC_DEADLINE_EXAMPLE_NAME ${PROJECT_NAME}-grpc-deadline-example)
 set(INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME
         ${PROJECT_NAME}-initialize-client-with-mirror-node-address-book-example)
 set(LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME ${PROJECT_NAME}-long-term-scheduled-transaction-example)
@@ -99,6 +100,7 @@ add_executable(${GET_ACCOUNT_INFO_EXAMPLE_NAME} GetAccountInfoExample.cc)
 add_executable(${GET_ADDRESS_BOOK_EXAMPLE_NAME} GetAddressBookExample.cc)
 add_executable(${GET_EXCHANGE_RATES_EXAMPLE_NAME} GetExchangeRatesExample.cc)
 add_executable(${GET_FILE_CONTENTS_EXAMPLE_NAME} GetFileContentsExample.cc)
+add_executable(${GRPC_DEADLINE_EXAMPLE_NAME} GrpcDeadlineExample.cc)
 add_executable(${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME} InitializeClientWithMirrorNodeAddressBookExample.cc)
 add_executable(${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME} LongTermScheduledTransactionExample.cc)
 add_executable(${MIRROR_NODE_CONTRACT_QUERY_EXAMPLE} MirrorNodeContractQueryExample.cc)
@@ -182,6 +184,7 @@ target_link_libraries(${GET_ACCOUNT_INFO_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GET_ADDRESS_BOOK_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GET_EXCHANGE_RATES_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GET_FILE_CONTENTS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${GRPC_DEADLINE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${MIRROR_NODE_CONTRACT_QUERY_EXAMPLE} PUBLIC ${PROJECT_NAME})
@@ -245,6 +248,7 @@ install(TARGETS
         ${GET_ADDRESS_BOOK_EXAMPLE_NAME}
         ${GET_EXCHANGE_RATES_EXAMPLE_NAME}
         ${GET_FILE_CONTENTS_EXAMPLE_NAME}
+        ${GRPC_DEADLINE_EXAMPLE_NAME}
         ${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME}
         ${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME}
         ${MIRROR_NODE_CONTRACT_QUERY_EXAMPLE}
