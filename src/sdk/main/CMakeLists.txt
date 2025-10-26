@@ -190,6 +190,8 @@ add_library(${PROJECT_NAME} STATIC
 
         src/hooks/EvmHookCall.cc
         src/hooks/EvmHookSpec.cc
+        src/hooks/FungibleHookCall.cc
+        src/hooks/FungibleHookType.cc
         src/hooks/HookCall.cc
         src/hooks/HookCreationDetails.cc
         src/hooks/HookEntityId.cc
@@ -200,6 +202,8 @@ add_library(${PROJECT_NAME} STATIC
         src/hooks/LambdaMappingEntry.cc
         src/hooks/LambdaStorageSlot.cc
         src/hooks/LambdaStorageUpdate.cc
+        src/hooks/NftHookCall.cc
+        src/hooks/NftHookType.cc
 
         src/impl/ASN1ECKey.cc
         src/impl/ASN1ECPrivateKey.cc

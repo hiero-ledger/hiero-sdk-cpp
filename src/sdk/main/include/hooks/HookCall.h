@@ -3,7 +3,6 @@
 #define HIERO_SDK_CPP_HOOK_CALL_H_
 
 #include "hooks/EvmHookCall.h"
-#include "hooks/HookId.h"
 
 #include <cstdint>
 #include <optional>
@@ -28,27 +27,11 @@ class HookCall
 {
 public:
   /**
-   * Construct a HookCall object from a HookCall protobuf object.
-   *
-   * @param proto The HookCall protobuf object from which to create a HookCall object.
-   * @return The constructed HookCall object.
-   */
-  [[nodiscard]] static HookCall fromProtobuf(const proto::HookCall& proto);
-
-  /**
    * Construct a HookCall protobuf object from this HookCall object.
    *
    * @return A pointer to the created HookCall protobuf object filled with this HookCall object's data.
    */
   [[nodiscard]] std::unique_ptr<proto::HookCall> toProtobuf() const;
-
-  /**
-   * Set the full ID of the hook to call. Resets the hook ID if already set.
-   *
-   * @param hookId The full ID of the hook to call.
-   * @return A reference to this EvmHookCall object with the newly-added hook ID.
-   */
-  HookCall& setFullHookId(const HookId& hookId);
 
   /**
    * Set the ID of the hook to call. Resets the full hook ID if already set.
@@ -67,18 +50,11 @@ public:
   HookCall& setEvmHookCall(const EvmHookCall& evmHookCall);
 
   /**
-   * Get the full ID of the hook.
-   *
-   * @return The full ID of the hook.
-   */
-  [[nodiscard]] inline std::optional<HookId> getFullHookId() const { return mFullHookId; }
-
-  /**
    * Get the ID of the hook.
    *
    * @return The ID of the hook.
    */
-  [[nodiscard]] inline std::optional<int64_t> getHookId() const { return mHookId; }
+  [[nodiscard]] inline int64_t getHookId() const { return mHookId; }
 
   /**
    * Get the hook EVM call specification.
@@ -87,16 +63,20 @@ public:
    */
   [[nodiscard]] inline std::optional<EvmHookCall> getEvmHookCall() const { return mEvmHookCall; }
 
-private:
+protected:
   /**
-   * The ID of the hook to call with the owning entity.
+   * Grab the values from a HookCall protobuf object and apply them to this HookCall object.
+   *
+   * @param proto The HookCall protobuf object from which to create a HookCall object.
+   * @return The constructed HookCall object.
    */
-  std::optional<HookId> mFullHookId;
+  void applyFromProtobuf(const proto::HookCall& proto);
 
+private:
   /**
    * The ID of the hook to call.
    */
-  std::optional<int64_t> mHookId;
+  int64_t mHookId = 0LL;
 
   /**
    * The specification of how to call an EVM hook.

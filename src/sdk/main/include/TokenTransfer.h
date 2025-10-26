@@ -4,6 +4,7 @@
 
 #include "AccountId.h"
 #include "TokenId.h"
+#include "hooks/FungibleHookCall.h"
 
 #include <cstddef>
 #include <memory>
@@ -41,6 +42,17 @@ public:
    * @param isApproved \c TRUE if this transfer is approved, otherwise \c FALSE.
    */
   TokenTransfer(TokenId tokenId, AccountId accountId, int64_t amount, bool isApproved);
+
+  /**
+   * Construct with a token ID, account ID, amount, approval, and hook call.
+   *
+   * @param tokenId    The ID of the token involved with this TokenTransfer.
+   * @param accountId  The ID of the account to/from which the token is being transferred.
+   * @param amount     The amount of the token being transferred.
+   * @param isApproved \c TRUE if this transfer is approved, otherwise \c FALSE.
+   * @param hookCall   A hook call associated with this token transfer.
+   */
+  TokenTransfer(TokenId tokenId, AccountId accountId, int64_t amount, bool isApproved, const FungibleHookCall& hookCall);
 
   /**
    * Construct with a token ID, account ID, amount, expected decimals of the token, and approval.
@@ -135,6 +147,11 @@ public:
    * If \c TRUE then the transfer is expected to be an approved allowance.
    */
   bool mIsApproval = false;
+
+  /**
+   * A hook call associated with this token transfer.
+   */
+  FungibleHookCall mHookCall;
 };
 
 } // namespace Hiero

@@ -6,41 +6,13 @@
 namespace Hiero
 {
 //-----
-HookCall HookCall::fromProtobuf(const proto::HookCall& proto)
-{
-  HookCall hookCall;
-
-  if (proto.has_full_hook_id())
-  {
-    hookCall.mFullHookId = HookId::fromProtobuf(proto.full_hook_id());
-  }
-
-  if (proto.has_hook_id())
-  {
-    hookCall.mHookId = proto.hook_id();
-  }
-
-  if (proto.has_evm_hook_call())
-  {
-    hookCall.mEvmHookCall = EvmHookCall::fromProtobuf(proto.evm_hook_call());
-  }
-
-  return hookCall;
-}
-
-//-----
 std::unique_ptr<proto::HookCall> HookCall::toProtobuf() const
 {
   auto proto = std::make_unique<proto::HookCall>();
 
-  if (mFullHookId.has_value())
+  if (mHookId != 0LL)
   {
-    proto->set_allocated_full_hook_id(mFullHookId->toProtobuf().release());
-  }
-
-  if (mHookId.has_value())
-  {
-    proto->set_hook_id(mHookId.value());
+    proto->set_hook_id(mHookId);
   }
 
   if (mEvmHookCall.has_value())
@@ -52,18 +24,9 @@ std::unique_ptr<proto::HookCall> HookCall::toProtobuf() const
 }
 
 //-----
-HookCall& HookCall::setFullHookId(const HookId& hookId)
-{
-  mFullHookId = hookId;
-  mHookId.reset();
-  return *this;
-}
-
-//-----
 HookCall& HookCall::setHookId(int64_t hookId)
 {
   mHookId = hookId;
-  mFullHookId.reset();
   return *this;
 }
 
@@ -72,6 +35,20 @@ HookCall& HookCall::setEvmHookCall(const EvmHookCall& evmHookCall)
 {
   mEvmHookCall = evmHookCall;
   return *this;
+}
+
+//-----
+void HookCall::applyFromProtobuf(const proto::HookCall& proto)
+{
+  if (proto.has_hook_id())
+  {
+    mHookId = proto.hook_id();
+  }
+
+  if (proto.has_evm_hook_call())
+  {
+    mEvmHookCall = EvmHookCall::fromProtobuf(proto.evm_hook_call());
+  }
 }
 
 } // namespace Hiero

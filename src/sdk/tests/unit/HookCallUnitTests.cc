@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
+#include "AccountId.h"
 #include "hooks/HookCall.h"
+#include "hooks/HookEntityId.h"
+#include "hooks/HookId.h"
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
@@ -39,35 +42,6 @@ private:
 };
 
 //-----
-TEST_F(HookCallUnitTests, GetSetFullHookId)
-{
-  // Given
-  HookCall hookCall;
-
-  // When
-  EXPECT_NO_THROW(hookCall.setFullHookId(getTestFullHookId()));
-
-  // Then
-  EXPECT_TRUE(hookCall.getFullHookId()->getEntityId().getAccountId().has_value());
-  EXPECT_EQ(hookCall.getFullHookId()->getEntityId().getAccountId().value(), getTestAccountId());
-  EXPECT_EQ(hookCall.getFullHookId()->getHookId(), getTestHookId());
-}
-
-//-----
-TEST_F(HookCallUnitTests, GetSetFullHookIdResetsHookId)
-{
-  // Given
-  HookCall hookCall;
-
-  // When
-  EXPECT_NO_THROW(hookCall.setHookId(getTestHookId()));
-  EXPECT_NO_THROW(hookCall.setFullHookId(getTestFullHookId()));
-
-  // Then
-  EXPECT_FALSE(hookCall.getHookId().has_value());
-}
-
-//-----
 TEST_F(HookCallUnitTests, GetSetHookId)
 {
   // Given
@@ -78,20 +52,6 @@ TEST_F(HookCallUnitTests, GetSetHookId)
 
   // Then
   EXPECT_EQ(hookCall.getHookId(), getTestHookId());
-}
-
-//-----
-TEST_F(HookCallUnitTests, GetSetHookIdResetsFullHookId)
-{
-  // Given
-  HookCall hookCall;
-
-  // When
-  EXPECT_NO_THROW(hookCall.setFullHookId(getTestFullHookId()));
-  EXPECT_NO_THROW(hookCall.setHookId(getTestHookId()));
-
-  // Then
-  EXPECT_FALSE(hookCall.getFullHookId().has_value());
 }
 
 //-----
@@ -110,65 +70,21 @@ TEST_F(HookCallUnitTests, GetSetEvmHookCall)
 }
 
 //-----
-TEST_F(HookCallUnitTests, FromProtobuf)
-{
-  // Given
-  proto::HookCall protoHookCallFullHookId;
-  proto::HookCall protoHookCallHookId;
-
-  protoHookCallFullHookId.set_allocated_full_hook_id(getTestFullHookId().toProtobuf().release());
-  protoHookCallFullHookId.set_allocated_evm_hook_call(getTestEvmHookCall().toProtobuf().release());
-
-  protoHookCallHookId.set_hook_id(getTestHookId());
-
-  // When
-  const HookCall hookCallFullHookId = HookCall::fromProtobuf(protoHookCallFullHookId);
-  const HookCall hookCallHookId = HookCall::fromProtobuf(protoHookCallHookId);
-
-  // Then
-  EXPECT_TRUE(hookCallFullHookId.getFullHookId()->getEntityId().getAccountId().has_value());
-  EXPECT_EQ(hookCallFullHookId.getFullHookId()->getEntityId().getAccountId().value(), getTestAccountId());
-  EXPECT_EQ(hookCallFullHookId.getFullHookId()->getHookId(), getTestHookId());
-
-  EXPECT_TRUE(hookCallFullHookId.getEvmHookCall().has_value());
-  EXPECT_EQ(hookCallFullHookId.getEvmHookCall()->getData(), getTestCallData());
-  EXPECT_EQ(hookCallFullHookId.getEvmHookCall()->getGasLimit(), getTestGasLimit());
-
-  EXPECT_EQ(hookCallHookId.getHookId(), getTestHookId());
-}
-
-//-----
 TEST_F(HookCallUnitTests, ToProtobuf)
 {
   // Given
-  HookCall hookCallFullHookId;
-  HookCall hookCallHookId;
+  HookCall hookCall;
 
-  hookCallFullHookId.setFullHookId(getTestFullHookId());
-  hookCallFullHookId.setEvmHookCall(getTestEvmHookCall());
-
-  hookCallHookId.setHookId(getTestHookId());
+  hookCall.setEvmHookCall(getTestEvmHookCall());
+  hookCall.setHookId(getTestHookId());
 
   // When
-  const std::unique_ptr<proto::HookCall> protoHookCallFullHookId = hookCallFullHookId.toProtobuf();
-  const std::unique_ptr<proto::HookCall> protoHookCallHookId = hookCallHookId.toProtobuf();
+  const std::unique_ptr<proto::HookCall> protoHookCall = hookCall.toProtobuf();
 
   // Then
-  EXPECT_TRUE(protoHookCallFullHookId->has_full_hook_id());
-  EXPECT_TRUE(protoHookCallFullHookId->full_hook_id().has_entity_id());
-  EXPECT_TRUE(protoHookCallFullHookId->full_hook_id().entity_id().has_account_id());
-  EXPECT_EQ(protoHookCallFullHookId->full_hook_id().entity_id().account_id().shardnum(), getTestAccountId().mShardNum);
-  EXPECT_EQ(protoHookCallFullHookId->full_hook_id().entity_id().account_id().realmnum(), getTestAccountId().mRealmNum);
-  EXPECT_EQ(protoHookCallFullHookId->full_hook_id().entity_id().account_id().accountnum(),
-            getTestAccountId().mAccountNum);
-  EXPECT_EQ(protoHookCallFullHookId->full_hook_id().hook_id(), getTestHookId());
-  EXPECT_TRUE(protoHookCallFullHookId->has_evm_hook_call());
-  EXPECT_EQ(protoHookCallFullHookId->evm_hook_call().data(),
-            internal::Utilities::byteVectorToString(getTestCallData()));
-  EXPECT_EQ(protoHookCallFullHookId->evm_hook_call().gas_limit(), getTestGasLimit());
-
-  EXPECT_TRUE(protoHookCallHookId->has_hook_id());
-  EXPECT_FALSE(protoHookCallHookId->has_full_hook_id());
-  EXPECT_FALSE(protoHookCallHookId->has_evm_hook_call());
-  EXPECT_EQ(protoHookCallHookId->hook_id(), getTestHookId());
+  EXPECT_TRUE(protoHookCall->has_hook_id());
+  EXPECT_FALSE(protoHookCall->has_full_hook_id());
+  EXPECT_EQ(protoHookCall->hook_id(), getTestHookId());
+  EXPECT_EQ(protoHookCall->evm_hook_call().data(), internal::Utilities::byteVectorToString(getTestCallData()));
+  EXPECT_EQ(protoHookCall->evm_hook_call().gas_limit(), getTestGasLimit());
 }

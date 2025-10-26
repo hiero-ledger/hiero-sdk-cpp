@@ -49,6 +49,8 @@ add_executable(${TEST_PROJECT_NAME}
         EvmHookCallUnitTests.cc
         EvmHookSpecUnitTests.cc
         ExchangeRateUnitTests.cc
+        FungibleHookCallUnitTests.cc
+        FungibleHookTypeUnitTests.cc
         FeeAssessmentMethodUnitTests.cc
         FileAppendTransactionUnitTests.cc
         FileContentsQueryUnitTests.cc
@@ -63,6 +65,7 @@ add_executable(${TEST_PROJECT_NAME}
         NodeDeleteTransactionUnitTests.cc
         NodeUpdateTransactionUnitTests.cc
         HbarAllowanceUnitTests.cc
+        HbarTransferHookUnitTests.cc
         HbarTransferUnitTests.cc
         HbarUnitTests.cc
         HookCallUnitTests.cc
@@ -79,6 +82,8 @@ add_executable(${TEST_PROJECT_NAME}
         MirrorNodeContractQueryUnitTests.cc
         NetworkUnitTests.cc
         NetworkVersionInfoUnitTests.cc
+        NftHookCallUnitTests.cc
+        NftHookTypeUnitTests.cc
         NftIdUnitTests.cc
         NodeAddressUnitTests.cc
         PendingAirdropIdUnitTests.cc
@@ -114,11 +119,13 @@ add_executable(${TEST_PROJECT_NAME}
         TokenMintTransactionUnitTests.cc
         TokenNftAllowanceUnitTests.cc
         TokenNftInfoQueryUnitTests.cc
+        TokenNftTransferHookUnitTests.cc
         TokenNftTransferUnitTests.cc
         TokenPauseTransactionUnitTests.cc
         TokenRejectTransactionUnitTests.cc
         TokenRevokeKycTransactionUnitTests.cc
         TokenSupplyTypeUnitTests.cc
+        TokenTransferHookUnitTests.cc
         TokenTransferUnitTests.cc
         TokenTypeUnitTests.cc
         TokenUnfreezeTransactionUnitTests.cc

@@ -29,7 +29,7 @@ TransferTransaction& TransferTransaction::addHbarTransfer(const AccountId& accou
 {
   requireNotFrozen();
 
-  doHbarTransfer(accountId, amount, false);
+  doHbarTransfer(HbarTransfer(accountId, amount, false));
   return *this;
 }
 
@@ -58,7 +58,7 @@ TransferTransaction& TransferTransaction::addNftTransfer(const NftId& nftId,
 {
   requireNotFrozen();
 
-  doNftTransfer(nftId, senderAccountId, receiverAccountId, false);
+  doNftTransfer(TokenNftTransfer(nftId, senderAccountId, receiverAccountId, false));
   return *this;
 }
 
@@ -79,7 +79,7 @@ TransferTransaction& TransferTransaction::addApprovedHbarTransfer(const AccountI
 {
   requireNotFrozen();
 
-  doHbarTransfer(accountId, amount, true);
+  doHbarTransfer(HbarTransfer(accountId, amount, true));
   return *this;
 }
 
@@ -101,7 +101,7 @@ TransferTransaction& TransferTransaction::addApprovedNftTransfer(const NftId& nf
 {
   requireNotFrozen();
 
-  doNftTransfer(nftId, senderAccountId, receiverAccountId, true);
+  doNftTransfer(TokenNftTransfer(nftId, senderAccountId, receiverAccountId, true));
   return *this;
 }
 
@@ -114,6 +114,42 @@ TransferTransaction& TransferTransaction::addApprovedTokenTransferWithDecimals(c
   requireNotFrozen();
 
   doTokenTransfer(TokenTransfer(tokenId, accountId, amount, decimals, true));
+  return *this;
+}
+
+//-----
+TransferTransaction& TransferTransaction::addHbarTransferWithHook(const AccountId& accountId,
+                                                                  const Hbar& amount,
+                                                                  const FungibleHookCall& hookCall)
+{
+  requireNotFrozen();
+
+  doHbarTransfer(HbarTransfer(accountId, amount, false, hookCall));
+  return *this;
+}
+
+//-----
+TransferTransaction& TransferTransaction::addTokenTransferWithHook(const TokenId& tokenId,
+                                                                   const AccountId& accountId,
+                                                                   const int64_t& amount,
+                                                                   const FungibleHookCall& hookCall)
+{
+  requireNotFrozen();
+
+  doTokenTransfer(TokenTransfer(tokenId, accountId, amount, false, hookCall));
+  return *this;
+}
+
+//-----
+TransferTransaction& TransferTransaction::addNftTransferWithHook(const NftId& nftId,
+                                                                 const AccountId& senderAccountId,
+                                                                 const AccountId& receiverAccountId,
+                                                                 const NftHookCall& senderHookCall,
+                                                                 const NftHookCall& receiverHookCall)
+{
+  requireNotFrozen();
+
+  doNftTransfer(TokenNftTransfer(nftId, senderAccountId, receiverAccountId, false, senderHookCall, receiverHookCall));
   return *this;
 }
 
@@ -303,14 +339,15 @@ proto::CryptoTransferTransactionBody* TransferTransaction::build() const
 }
 
 //----
-void TransferTransaction::doHbarTransfer(const AccountId& accountId, const Hbar& amount, bool approved)
+void TransferTransaction::doHbarTransfer(const HbarTransfer& transfer)
 {
   // If a transfer has already been added for an account, just update the amount if the approval status is the same
   for (auto transferIter = mHbarTransfers.begin(); transferIter != mHbarTransfers.end(); ++transferIter)
   {
-    if (transferIter->mAccountId == accountId && transferIter->mIsApproved == approved)
+    if (transferIter->mAccountId == transfer.mAccountId && transferIter->mIsApproved == transfer.mIsApproved)
     {
-      if (const auto newValue = Hbar(transferIter->mAmount.toTinybars() + amount.toTinybars(), HbarUnit::TINYBAR());
+      if (const auto newValue =
+            Hbar(transferIter->mAmount.toTinybars() + transfer.mAmount.toTinybars(), HbarUnit::TINYBAR());
           newValue.toTinybars() == 0LL)
       {
         mHbarTransfers.erase(transferIter);
@@ -324,7 +361,7 @@ void TransferTransaction::doHbarTransfer(const AccountId& accountId, const Hbar&
     }
   }
 
-  mHbarTransfers.emplace_back(accountId, amount, approved);
+  mHbarTransfers.push_back(transfer);
 }
 
 //-----
@@ -356,22 +393,21 @@ void TransferTransaction::doTokenTransfer(const TokenTransfer& transfer)
 }
 
 //-----
-void TransferTransaction::doNftTransfer(const NftId& nftId,
-                                        const AccountId& sender,
-                                        const AccountId& receiver,
-                                        bool approved)
+void TransferTransaction::doNftTransfer(const TokenNftTransfer& transfer)
 {
   for (auto transferIter = mNftTransfers.begin(); transferIter != mNftTransfers.end(); ++transferIter)
   {
-    if (transferIter->mNftId.mSerialNum == nftId.mSerialNum && transferIter->mSenderAccountId == receiver &&
-        transferIter->mReceiverAccountId == sender && transferIter->mIsApproval == approved)
+    if (transferIter->mNftId.mSerialNum == transfer.mNftId.mSerialNum &&
+        transferIter->mSenderAccountId == transfer.mReceiverAccountId &&
+        transferIter->mReceiverAccountId == transfer.mSenderAccountId &&
+        transferIter->mIsApproval == transfer.mIsApproval)
     {
       mNftTransfers.erase(transferIter);
       return;
     }
   }
 
-  mNftTransfers.emplace_back(nftId, sender, receiver, approved);
+  mNftTransfers.push_back(transfer);
 }
 
 } // namespace Hiero
