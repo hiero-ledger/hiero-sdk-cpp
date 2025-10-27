@@ -52,7 +52,11 @@ public:
    * @param isApproved \c TRUE if this transfer is approved, otherwise \c FALSE.
    * @param hookCall   A hook call associated with this token transfer.
    */
-  TokenTransfer(TokenId tokenId, AccountId accountId, int64_t amount, bool isApproved, const FungibleHookCall& hookCall);
+  TokenTransfer(TokenId tokenId,
+                AccountId accountId,
+                int64_t amount,
+                bool isApproved,
+                const FungibleHookCall& hookCall);
 
   /**
    * Construct with a token ID, account ID, amount, expected decimals of the token, and approval.
