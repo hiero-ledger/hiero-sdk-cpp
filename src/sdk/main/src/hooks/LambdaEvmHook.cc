@@ -10,6 +10,11 @@ LambdaEvmHook LambdaEvmHook::fromProtobuf(const com::hedera::hapi::node::hooks::
 {
   LambdaEvmHook lambdaEvmHook;
 
+  if (proto.has_spec())
+  {
+    lambdaEvmHook.mEvmHookSpec = EvmHookSpec::fromProtobuf(proto.spec());
+  }
+
   for (int i = 0; i < proto.storage_updates_size(); ++i)
   {
     lambdaEvmHook.mStorageUpdates.push_back(LambdaStorageUpdate::fromProtobuf(proto.storage_updates(i)));
@@ -23,12 +28,21 @@ std::unique_ptr<com::hedera::hapi::node::hooks::LambdaEvmHook> LambdaEvmHook::to
 {
   auto proto = std::make_unique<com::hedera::hapi::node::hooks::LambdaEvmHook>();
 
+  proto->set_allocated_spec(mEvmHookSpec.toProtobuf().release());
+
   for (const LambdaStorageUpdate& update : mStorageUpdates)
   {
     *proto->add_storage_updates() = *update.toProtobuf();
   }
 
   return proto;
+}
+
+//-----
+LambdaEvmHook& LambdaEvmHook::setEvmHookSpec(const EvmHookSpec& spec)
+{
+  mEvmHookSpec = spec;
+  return *this;
 }
 
 //-----

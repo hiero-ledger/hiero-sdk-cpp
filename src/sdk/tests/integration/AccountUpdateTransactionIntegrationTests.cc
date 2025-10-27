@@ -27,6 +27,8 @@ class AccountUpdateTransactionIntegrationTests : public BaseIntegrationTest
 protected:
   void SetUp() override
   {
+    BaseIntegrationTest::SetUp();
+
     mContractId =
       ContractCreateTransaction()
         .setBytecode(internal::HexConverter::hexToBytes("6080604052348015600e575f5ffd5b506103da8061001c5f395ff3fe608060"
@@ -334,7 +336,9 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CanAddHookToAccount)
                                 .mAccountId.value());
 
   LambdaEvmHook lambdaEvmHook;
-  lambdaEvmHook.setContractId(getTestContractId());
+  EvmHookSpec evmHookSpec;
+  evmHookSpec.setContractId(getTestContractId());
+  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
@@ -344,7 +348,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CanAddHookToAccount)
   // When / Then
   EXPECT_NO_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                          .setAccountId(accountId)
-                                                         .addHook(hookCreationDetails)
+                                                         .addHookToCreate(hookCreationDetails)
                                                          .freezeWith(&getTestClient())
                                                          .sign(privateKey)
                                                          .execute(getTestClient())
@@ -372,7 +376,9 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotUpdateWithMultipleOfSameH
                                 .mAccountId.value());
 
   LambdaEvmHook lambdaEvmHook;
-  lambdaEvmHook.setContractId(getTestContractId());
+  EvmHookSpec evmHookSpec;
+  evmHookSpec.setContractId(getTestContractId());
+  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
@@ -382,13 +388,13 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotUpdateWithMultipleOfSameH
   // When / Then
   EXPECT_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                       .setAccountId(accountId)
-                                                      .addHook(hookCreationDetails)
-                                                      .addHook(hookCreationDetails)
+                                                      .addHookToCreate(hookCreationDetails)
+                                                      .addHookToCreate(hookCreationDetails)
                                                       .freezeWith(&getTestClient())
                                                       .sign(privateKey)
                                                       .execute(getTestClient())
                                                       .getReceipt(getTestClient()),
-               ReceiptStatusException); // HOOK_ID_REPEATED_IN_CREATION_DETAILS
+               PrecheckStatusException); // HOOK_ID_REPEATED_IN_CREATION_DETAILS
 
   // Clean up
   ASSERT_NO_THROW(AccountDeleteTransaction()
@@ -412,7 +418,9 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotUpdateWithHookAlreadyInUs
                                 .mAccountId.value());
 
   LambdaEvmHook lambdaEvmHook;
-  lambdaEvmHook.setContractId(getTestContractId());
+  EvmHookSpec evmHookSpec;
+  evmHookSpec.setContractId(getTestContractId());
+  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
@@ -421,7 +429,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotUpdateWithHookAlreadyInUs
 
   ASSERT_NO_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                          .setAccountId(accountId)
-                                                         .addHook(hookCreationDetails)
+                                                         .addHookToCreate(hookCreationDetails)
                                                          .freezeWith(&getTestClient())
                                                          .sign(privateKey)
                                                          .execute(getTestClient())
@@ -430,7 +438,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotUpdateWithHookAlreadyInUs
   // When / Then
   EXPECT_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                       .setAccountId(accountId)
-                                                      .addHook(hookCreationDetails)
+                                                      .addHookToCreate(hookCreationDetails)
                                                       .freezeWith(&getTestClient())
                                                       .sign(privateKey)
                                                       .execute(getTestClient())
@@ -459,7 +467,9 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CanAddHookToAccountWithStorageU
                                 .mAccountId.value());
 
   LambdaEvmHook lambdaEvmHook;
-  lambdaEvmHook.setContractId(getTestContractId());
+  EvmHookSpec evmHookSpec;
+  evmHookSpec.setContractId(getTestContractId());
+  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
 
   LambdaStorageSlot lambdaStorageSlot;
   lambdaStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
@@ -478,7 +488,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CanAddHookToAccountWithStorageU
   // When / Then
   EXPECT_NO_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                          .setAccountId(accountId)
-                                                         .addHook(hookCreationDetails)
+                                                         .addHookToCreate(hookCreationDetails)
                                                          .freezeWith(&getTestClient())
                                                          .sign(privateKey)
                                                          .execute(getTestClient())
@@ -506,7 +516,9 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CanDeleteHook)
                                 .mAccountId.value());
 
   LambdaEvmHook lambdaEvmHook;
-  lambdaEvmHook.setContractId(getTestContractId());
+  EvmHookSpec evmHookSpec;
+  evmHookSpec.setContractId(getTestContractId());
+  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
 
   const int64_t hookId = 1LL;
   HookCreationDetails hookCreationDetails;
@@ -516,7 +528,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CanDeleteHook)
 
   ASSERT_NO_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                          .setAccountId(accountId)
-                                                         .addHook(hookCreationDetails)
+                                                         .addHookToCreate(hookCreationDetails)
                                                          .freezeWith(&getTestClient())
                                                          .sign(privateKey)
                                                          .execute(getTestClient())
@@ -525,7 +537,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CanDeleteHook)
   // When / Then
   EXPECT_NO_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                          .setAccountId(accountId)
-                                                         .deleteHook(hookId)
+                                                         .addHookToDelete(hookId)
                                                          .freezeWith(&getTestClient())
                                                          .sign(privateKey)
                                                          .execute(getTestClient())
@@ -553,7 +565,9 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotDeleteNonExistentHook)
                                 .mAccountId.value());
 
   LambdaEvmHook lambdaEvmHook;
-  lambdaEvmHook.setContractId(getTestContractId());
+  EvmHookSpec evmHookSpec;
+  evmHookSpec.setContractId(getTestContractId());
+  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
@@ -562,7 +576,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotDeleteNonExistentHook)
 
   ASSERT_NO_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                          .setAccountId(accountId)
-                                                         .addHook(hookCreationDetails)
+                                                         .addHookToCreate(hookCreationDetails)
                                                          .freezeWith(&getTestClient())
                                                          .sign(privateKey)
                                                          .execute(getTestClient())
@@ -571,7 +585,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotDeleteNonExistentHook)
   // When / Then
   EXPECT_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                       .setAccountId(accountId)
-                                                      .deleteHook(999LL)
+                                                      .addHookToDelete(999LL)
                                                       .freezeWith(&getTestClient())
                                                       .sign(privateKey)
                                                       .execute(getTestClient())
@@ -600,7 +614,9 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotAddAndDeleteSameHook)
                                 .mAccountId.value());
 
   LambdaEvmHook lambdaEvmHook;
-  lambdaEvmHook.setContractId(getTestContractId());
+  EvmHookSpec evmHookSpec;
+  evmHookSpec.setContractId(getTestContractId());
+  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
 
   const int64_t hookId = 1LL;
   HookCreationDetails hookCreationDetails;
@@ -611,8 +627,8 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotAddAndDeleteSameHook)
   // When / Then
   EXPECT_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                       .setAccountId(accountId)
-                                                      .addHook(hookCreationDetails)
-                                                      .deleteHook(hookId)
+                                                      .addHookToCreate(hookCreationDetails)
+                                                      .addHookToDelete(hookId)
                                                       .freezeWith(&getTestClient())
                                                       .sign(privateKey)
                                                       .execute(getTestClient())

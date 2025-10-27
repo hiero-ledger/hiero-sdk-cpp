@@ -32,6 +32,7 @@ add_executable(${TEST_PROJECT_NAME}
         FreezeTransactionIntegrationTests.cc
         HttpClientIntegrationTests.cc
         JSONIntegrationTests.cc
+        LambdaSStoreTransactionIntegrationTests.cc
         MirrorNodeContractQueryIntegrationTests.cc
         MirrorNodeGatewayIntegrationTests.cc
         NetworkVersionInfoQueryIntegrationTests.cc
@@ -79,6 +80,7 @@ add_executable(${TEST_PROJECT_NAME}
         TransactionReceiptQueryIntegrationTests.cc
         TransactionRecordIntegrationTests.cc
         TransactionRecordQueryIntegrationTests.cc
+        TransferTransactionHooksIntegrationTests.cc
         TransferTransactionIntegrationTests.cc)
 
 target_link_libraries(${TEST_PROJECT_NAME} PRIVATE gtest_main gtest ${PROJECT_NAME})

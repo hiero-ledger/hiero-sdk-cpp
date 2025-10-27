@@ -31,6 +31,8 @@ class AccountCreateTransactionIntegrationTests : public BaseIntegrationTest
 protected:
   void SetUp() override
   {
+    BaseIntegrationTest::SetUp();
+
     mContractId =
       ContractCreateTransaction()
         .setBytecode(internal::HexConverter::hexToBytes("6080604052348015600e575f5ffd5b506103da8061001c5f395ff3fe608060"
@@ -705,7 +707,9 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithLambdaHook
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
 
   LambdaEvmHook lambdaEvmHook;
-  lambdaEvmHook.setContractId(getTestContractId());
+  EvmHookSpec evmHookSpec;
+  evmHookSpec.setContractId(getTestContractId());
+  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
@@ -734,7 +738,9 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithLambdaHook
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
 
   LambdaEvmHook lambdaEvmHook;
-  lambdaEvmHook.setContractId(getTestContractId());
+  EvmHookSpec evmHookSpec;
+  evmHookSpec.setContractId(getTestContractId());
+  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
 
   LambdaStorageSlot lambdaStorageSlot;
   lambdaStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
@@ -793,7 +799,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithLambdaHook
                  .addHook(hookCreationDetails)
                  .execute(getTestClient())
                  .getReceipt(getTestClient()),
-               PrecheckStatusException); // INVALID_MAX_AUTO_ASSOCIATIONS
+               ReceiptStatusException); // INVALID_HOOK_CREATION_SPEC
 }
 
 //-----
@@ -803,7 +809,9 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithSameLambda
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
 
   LambdaEvmHook lambdaEvmHook;
-  lambdaEvmHook.setContractId(getTestContractId());
+  EvmHookSpec evmHookSpec;
+  evmHookSpec.setContractId(getTestContractId());
+  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);

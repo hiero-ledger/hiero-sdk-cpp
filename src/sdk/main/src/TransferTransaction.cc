@@ -304,14 +304,14 @@ proto::CryptoTransferTransactionBody* TransferTransaction::build() const
       list->set_allocated_token(transfer.mTokenId.toProtobuf().release());
     }
 
-    proto::AccountAmount* amount = list->add_transfers();
-    amount->set_allocated_accountid(transfer.mAccountId.toProtobuf().release());
-    amount->set_amount(transfer.mAmount);
-    amount->set_is_approval(transfer.mIsApproval);
+    *list->add_transfers() = *transfer.toProtobuf();
 
     // Shouldn't ever overwrite a different value here because it is checked when the transfer is added to this
     // TransferTransaction.
-    list->mutable_expected_decimals()->set_value(transfer.mExpectedDecimals);
+    if (transfer.mExpectedDecimals != 0U)
+    {
+      list->mutable_expected_decimals()->set_value(transfer.mExpectedDecimals);
+    }
   }
 
   for (const TokenNftTransfer& transfer : mNftTransfers)

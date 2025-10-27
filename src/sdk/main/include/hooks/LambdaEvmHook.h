@@ -17,7 +17,7 @@ namespace Hiero
 /**
  * Class to hold the definition of a lambda EVM hook.
  */
-class LambdaEvmHook : public EvmHookSpec
+class LambdaEvmHook
 {
 public:
   /**
@@ -34,6 +34,14 @@ public:
    * @return A pointer to the created LambdaEvmHook protobuf object filled with this LambdaEvmHook object's data.
    */
   [[nodiscard]] std::unique_ptr<com::hedera::hapi::node::hooks::LambdaEvmHook> toProtobuf() const;
+
+  /**
+   * Set the EVM hook spec.
+   *
+   * @param spec The EVM hook spec to set.
+   * @return A reference to this LambdaEvmHook with the newly-set EVM hook spec.
+   */
+  LambdaEvmHook& setEvmHookSpec(const EvmHookSpec& spec);
 
   /**
    * Add a storage update to this hook.
@@ -59,6 +67,13 @@ public:
   LambdaEvmHook& clearStorageUpdates();
 
   /**
+   * Get the EVM hook spec for this hook.
+   *
+   * @return The EVM hook spec for this hook.
+   */
+  [[nodiscard]] inline EvmHookSpec getEvmHookSpec() const { return mEvmHookSpec; }
+
+  /**
    * Get the storage updates for this hook.
    *
    * @return The storage updates for this hook.
@@ -66,6 +81,11 @@ public:
   [[nodiscard]] inline std::vector<LambdaStorageUpdate> getStorageUpdates() const { return mStorageUpdates; }
 
 private:
+  /**
+   * The specification for the hook.
+   */
+  EvmHookSpec mEvmHookSpec;
+
   /**
    * The initial storage updates for the lambda, if any.
    */

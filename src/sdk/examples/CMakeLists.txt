@@ -11,6 +11,7 @@ set(ACCOUNT_ALLOWANCE_EXAMPLE_NAME ${PROJECT_NAME}-account-allowance-example)
 set(ACCOUNT_ALLOWANCE_SERIALIZED_EXAMPLE_NAME ${PROJECT_NAME}-account-allowance-serialized-example)
 set(ACCOUNT_CREATE_WITH_HTS_EXAMPLE_NAME ${PROJECT_NAME}-account-create-with-hts-example)
 set(ACCOUNT_CREATION_WAYS_EXAMPLE_NAME ${PROJECT_NAME}-account-creation-ways-example)
+set(ACCOUNT_HOOKS_EXAMPLE_NAME ${PROJECT_NAME}-account-hooks-example)
 set(AUTO_CREATE_ACCOUNT_TRANSFER_TRANSACTION_EXAMPLE_NAME ${PROJECT_NAME}-auto-create-account-transfer-transaction-example)
 set(BATCH_TRANSACTION_EXAMPLE_NAME ${PROJECT_NAME}-batch-transaction-example)
 set(CONSENSUS_PUB_SUB_EXAMPLE_NAME ${PROJECT_NAME}-consensus-pub-sub-example)
@@ -23,6 +24,7 @@ set(CREATE_ACCOUNT_THRESHOLD_KEY_EXAMPLE_NAME ${PROJECT_NAME}-create-account-thr
 set(CREATE_SIMPLE_CONTRACT_EXAMPLE_NAME ${PROJECT_NAME}-create-simple-contract-example)
 set(CREATE_STATEFUL_CONTRACT_EXAMPLE_NAME ${PROJECT_NAME}-create-stateful-contract-example)
 set(CREATE_TOPIC_EXAMPLE_NAME ${PROJECT_NAME}-create-topic-example)
+set(CONTRACT_HOOKS_EXAMPLE_NAME ${PROJECT_NAME}-contract-hooks-example)
 set(CONTRACT_NONCES_EXAMPLE_NAME ${PROJECT_NAME}-contract-nonces-example)
 set(CUSTOM_FEES_EXAMPLE_NAME ${PROJECT_NAME}-custom-fees-example)
 set(DELETE_ACCOUNT_EXAMPLE_NAME ${PROJECT_NAME}-delete-account-example)
@@ -39,6 +41,7 @@ set(GET_EXCHANGE_RATES_EXAMPLE_NAME ${PROJECT_NAME}-get-exchange-rates-example)
 set(GET_FILE_CONTENTS_EXAMPLE_NAME ${PROJECT_NAME}-get-file-contents-example)
 set(INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME
         ${PROJECT_NAME}-initialize-client-with-mirror-node-address-book-example)
+set(LAMBDA_SSTORE_EXAMPLE_NAME ${PROJECT_NAME}-lambda-sstore-example)
 set(LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME ${PROJECT_NAME}-long-term-scheduled-transaction-example)
 set(MIRROR_NODE_CONTRACT_QUERY_EXAMPLE ${PROJECT_NAME}-mirror-node-contract-query-example)
 set(MULTI_APP_TRANSFER_EXAMPLE_NAME ${PROJECT_NAME}-multi-app-transfer-example)
@@ -60,6 +63,7 @@ set(TOKEN_AIRDROP_EXAMPLE_NAME ${PROJECT_NAME}-token-airdrop-example)
 set(TOKEN_CREATE_FREEZE_DELETE_EXAMPLE_NAME ${PROJECT_NAME}-token-create-freeze-delete-example)
 set(TOKEN_METADATA_EXAMPLE_NAME ${PROJECT_NAME}-token-metadata-example)
 set(TOPIC_WITH_ADMIN_KEY_EXAMPLE_NAME ${PROJECT_NAME}-topic-with-admin-key-example)
+set(TRANSFER_TRANSACTION_HOOKS_EXAMPLE_NAME ${PROJECT_NAME}-transfer-transaction-hooks-example)
 set(TRANSFER_CRYPTO_EXAMPLE_NAME ${PROJECT_NAME}-transfer-crypto-example)
 set(TRANSFER_TOKENS_EXAMPLE_NAME ${PROJECT_NAME}-transfer-tokens-example)
 set(TRANSFER_USING_EVM_ADDRESS_EXAMPLE_NAME ${PROJECT_NAME}-transfer-using-evm-address-example)
@@ -73,6 +77,7 @@ add_executable(${ACCOUNT_ALLOWANCE_EXAMPLE_NAME} AccountAllowanceExample.cc)
 add_executable(${ACCOUNT_ALLOWANCE_SERIALIZED_EXAMPLE_NAME} AccountAllowanceSerializedExample.cc)
 add_executable(${ACCOUNT_CREATE_WITH_HTS_EXAMPLE_NAME} AccountCreateWithHtsExample.cc)
 add_executable(${ACCOUNT_CREATION_WAYS_EXAMPLE_NAME} AccountCreationWaysExample.cc)
+add_executable(${ACCOUNT_HOOKS_EXAMPLE_NAME} AccountHooksExample.cc)
 add_executable(${AUTO_CREATE_ACCOUNT_TRANSFER_TRANSACTION_EXAMPLE_NAME} AutoCreateAccountTransferTransactionExample.cc)
 add_executable(${BATCH_TRANSACTION_EXAMPLE_NAME} BatchTransactionExample.cc)
 add_executable(${CONSENSUS_PUB_SUB_EXAMPLE_NAME} ConsensusPubSubExample.cc)
@@ -85,6 +90,7 @@ add_executable(${CREATE_ACCOUNT_THRESHOLD_KEY_EXAMPLE_NAME} CreateAccountThresho
 add_executable(${CREATE_SIMPLE_CONTRACT_EXAMPLE_NAME} CreateSimpleContractExample.cc)
 add_executable(${CREATE_STATEFUL_CONTRACT_EXAMPLE_NAME} CreateStatefulContractExample.cc)
 add_executable(${CREATE_TOPIC_EXAMPLE_NAME} CreateTopicExample.cc)
+add_executable(${CONTRACT_HOOKS_EXAMPLE_NAME} ContractHooksExample.cc)
 add_executable(${CONTRACT_NONCES_EXAMPLE_NAME} ContractNoncesExample.cc)
 add_executable(${CUSTOM_FEES_EXAMPLE_NAME} CustomFeesExample.cc)
 add_executable(${DELETE_ACCOUNT_EXAMPLE_NAME} DeleteAccountExample.cc)
@@ -100,6 +106,7 @@ add_executable(${GET_ADDRESS_BOOK_EXAMPLE_NAME} GetAddressBookExample.cc)
 add_executable(${GET_EXCHANGE_RATES_EXAMPLE_NAME} GetExchangeRatesExample.cc)
 add_executable(${GET_FILE_CONTENTS_EXAMPLE_NAME} GetFileContentsExample.cc)
 add_executable(${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME} InitializeClientWithMirrorNodeAddressBookExample.cc)
+add_executable(${LAMBDA_SSTORE_EXAMPLE_NAME} LambdaSStoreExample.cc)
 add_executable(${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME} LongTermScheduledTransactionExample.cc)
 add_executable(${MIRROR_NODE_CONTRACT_QUERY_EXAMPLE} MirrorNodeContractQueryExample.cc)
 add_executable(${MULTI_APP_TRANSFER_EXAMPLE_NAME} MultiAppTransferExample.cc)
@@ -121,6 +128,7 @@ add_executable(${TOKEN_AIRDROP_EXAMPLE_NAME} TokenAirdropExample.cc)
 add_executable(${TOKEN_CREATE_FREEZE_DELETE_EXAMPLE_NAME} TokenCreateFreezeDeleteExample.cc)
 add_executable(${TOKEN_METADATA_EXAMPLE_NAME} TokenMetadataExample.cc)
 add_executable(${TOPIC_WITH_ADMIN_KEY_EXAMPLE_NAME} TopicWithAdminKeyExample.cc)
+add_executable(${TRANSFER_TRANSACTION_HOOKS_EXAMPLE_NAME} TransferTransactionHooksExample.cc)
 add_executable(${TRANSFER_CRYPTO_EXAMPLE_NAME} TransferCryptoExample.cc)
 add_executable(${TRANSFER_TOKENS_EXAMPLE_NAME} TransferTokensExample.cc)
 add_executable(${TRANSFER_USING_EVM_ADDRESS_EXAMPLE_NAME} TransferUsingEvmAddressExample.cc)
@@ -156,6 +164,7 @@ target_link_libraries(${ACCOUNT_ALLOWANCE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${ACCOUNT_ALLOWANCE_SERIALIZED_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${ACCOUNT_CREATE_WITH_HTS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${ACCOUNT_CREATION_WAYS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${ACCOUNT_HOOKS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${AUTO_CREATE_ACCOUNT_TRANSFER_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${BATCH_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${CONSENSUS_PUB_SUB_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
@@ -168,6 +177,7 @@ target_link_libraries(${CREATE_ACCOUNT_THRESHOLD_KEY_EXAMPLE_NAME} PUBLIC ${PROJ
 target_link_libraries(${CREATE_SIMPLE_CONTRACT_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${CREATE_STATEFUL_CONTRACT_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${CREATE_TOPIC_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${CONTRACT_HOOKS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${CONTRACT_NONCES_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${CUSTOM_FEES_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${DELETE_ACCOUNT_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
@@ -183,6 +193,7 @@ target_link_libraries(${GET_ADDRESS_BOOK_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GET_EXCHANGE_RATES_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GET_FILE_CONTENTS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${LAMBDA_SSTORE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${MIRROR_NODE_CONTRACT_QUERY_EXAMPLE} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${MULTI_APP_TRANSFER_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
@@ -204,6 +215,7 @@ target_link_libraries(${TOKEN_AIRDROP_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${TOKEN_CREATE_FREEZE_DELETE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${TOKEN_METADATA_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${TOPIC_WITH_ADMIN_KEY_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${TRANSFER_TRANSACTION_HOOKS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${TRANSFER_CRYPTO_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${TRANSFER_TOKENS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${TRANSFER_USING_EVM_ADDRESS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
@@ -219,6 +231,7 @@ install(TARGETS
         ${ACCOUNT_ALLOWANCE_EXAMPLE_NAME}
         ${ACCOUNT_CREATE_WITH_HTS_EXAMPLE_NAME}
         ${ACCOUNT_CREATION_WAYS_EXAMPLE_NAME}
+        ${ACCOUNT_HOOKS_EXAMPLE_NAME}
         ${AUTO_CREATE_ACCOUNT_TRANSFER_TRANSACTION_EXAMPLE_NAME}
         ${BATCH_TRANSACTION_EXAMPLE_NAME}
         ${CONSENSUS_PUB_SUB_EXAMPLE_NAME}
@@ -231,6 +244,7 @@ install(TARGETS
         ${CREATE_SIMPLE_CONTRACT_EXAMPLE_NAME}
         ${CREATE_STATEFUL_CONTRACT_EXAMPLE_NAME}
         ${CREATE_TOPIC_EXAMPLE_NAME}
+        ${CONTRACT_HOOKS_EXAMPLE_NAME}
         ${CONTRACT_NONCES_EXAMPLE_NAME}
         ${CUSTOM_FEES_EXAMPLE_NAME}
         ${DELETE_ACCOUNT_EXAMPLE_NAME}
@@ -246,6 +260,7 @@ install(TARGETS
         ${GET_EXCHANGE_RATES_EXAMPLE_NAME}
         ${GET_FILE_CONTENTS_EXAMPLE_NAME}
         ${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME}
+        ${LAMBDA_SSTORE_EXAMPLE_NAME}
         ${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME}
         ${MIRROR_NODE_CONTRACT_QUERY_EXAMPLE}
         ${MULTI_APP_TRANSFER_EXAMPLE_NAME}
@@ -265,6 +280,7 @@ install(TARGETS
         ${STAKING_WITH_UPDATE_EXAMPLE_NAME}
         ${TOKEN_AIRDROP_EXAMPLE_NAME}
         ${TOPIC_WITH_ADMIN_KEY_EXAMPLE_NAME}
+        ${TRANSFER_TRANSACTION_HOOKS_EXAMPLE_NAME}
         ${TRANSFER_CRYPTO_EXAMPLE_NAME}
         ${TRANSFER_TOKENS_EXAMPLE_NAME}
         ${TRANSFER_USING_EVM_ADDRESS_EXAMPLE_NAME}
