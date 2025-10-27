@@ -26,10 +26,8 @@ protected:
   [[nodiscard]] inline const HookEntityId& getTestHookEntityId() const { return mHookEntityId; }
   [[nodiscard]] inline const HookId& getTestHookIdObject() const { return mHookId; }
   [[nodiscard]] inline FungibleHookType getTestHookType() const { return mHookType; }
-  [[nodiscard]] inline const std::vector<std::byte>& getTestCallData1() const { return mCallData1; }
-  [[nodiscard]] inline const std::vector<std::byte>& getTestCallData2() const { return mCallData2; }
-  [[nodiscard]] inline uint64_t getTestGasLimit1() const { return mGasLimit1; }
-  [[nodiscard]] inline uint64_t getTestGasLimit2() const { return mGasLimit2; }
+  [[nodiscard]] inline const std::vector<std::byte>& getTestCallData() const { return mCallData; }
+  [[nodiscard]] inline uint64_t getTestGasLimit() const { return mGasLimit; }
   [[nodiscard]] inline int64_t getTestZeroHookId() const { return mZeroHookId; }
 
 private:
@@ -37,10 +35,8 @@ private:
   const int64_t mHookIdValue = 4LL;
   const int64_t mZeroHookId = 0LL;
   const FungibleHookType mHookType = FungibleHookType::PRE_TX_ALLOWANCE_HOOK;
-  const std::vector<std::byte> mCallData1 = { std::byte(0x12), std::byte(0x34) };
-  const std::vector<std::byte> mCallData2 = { std::byte(0x56), std::byte(0x78) };
-  const uint64_t mGasLimit1 = 1000ULL;
-  const uint64_t mGasLimit2 = 2000ULL;
+  const std::vector<std::byte> mCallData = { std::byte(0x12), std::byte(0x34) };
+  const uint64_t mGasLimit = 1000ULL;
 
   HookEntityId mHookEntityId;
   HookId mHookId;
@@ -90,16 +86,16 @@ TEST_F(FungibleHookCallUnitTests, SetGetEvmHookCall)
   // Given
   FungibleHookCall hookCall;
   EvmHookCall evmHookCall;
-  evmHookCall.setData(getTestCallData1());
-  evmHookCall.setGasLimit(getTestGasLimit1());
+  evmHookCall.setData(getTestCallData());
+  evmHookCall.setGasLimit(getTestGasLimit());
 
   // When
   hookCall.setEvmHookCall(evmHookCall);
 
   // Then
   EXPECT_TRUE(hookCall.getEvmHookCall().has_value());
-  EXPECT_EQ(hookCall.getEvmHookCall()->getData().size(), getTestCallData1().size());
-  EXPECT_EQ(hookCall.getEvmHookCall()->getGasLimit(), getTestGasLimit1());
+  EXPECT_EQ(hookCall.getEvmHookCall()->getData().size(), getTestCallData().size());
+  EXPECT_EQ(hookCall.getEvmHookCall()->getGasLimit(), getTestGasLimit());
 }
 
 //-----
@@ -171,8 +167,8 @@ TEST_F(FungibleHookCallUnitTests, ToProtobufWithEvmHookCall)
 {
   // Given
   EvmHookCall evmHookCall;
-  evmHookCall.setData(getTestCallData2());
-  evmHookCall.setGasLimit(getTestGasLimit2());
+  evmHookCall.setData(getTestCallData());
+  evmHookCall.setGasLimit(getTestGasLimit());
 
   FungibleHookCall hookCall;
   hookCall.setHookType(FungibleHookType::PRE_TX_ALLOWANCE_HOOK);
@@ -185,6 +181,6 @@ TEST_F(FungibleHookCallUnitTests, ToProtobufWithEvmHookCall)
   // Then
   EXPECT_EQ(protoHookCall->hook_id(), getTestHookId());
   EXPECT_TRUE(protoHookCall->has_evm_hook_call());
-  EXPECT_EQ(protoHookCall->evm_hook_call().data().size(), getTestCallData2().size());
-  EXPECT_EQ(protoHookCall->evm_hook_call().gas_limit(), getTestGasLimit2());
+  EXPECT_EQ(protoHookCall->evm_hook_call().data().size(), getTestCallData().size());
+  EXPECT_EQ(protoHookCall->evm_hook_call().gas_limit(), getTestGasLimit());
 }

@@ -49,8 +49,6 @@ add_executable(${TEST_PROJECT_NAME}
         EvmHookCallUnitTests.cc
         EvmHookSpecUnitTests.cc
         ExchangeRateUnitTests.cc
-        FungibleHookCallUnitTests.cc
-        FungibleHookTypeUnitTests.cc
         FeeAssessmentMethodUnitTests.cc
         FileAppendTransactionUnitTests.cc
         FileContentsQueryUnitTests.cc
@@ -61,11 +59,8 @@ add_executable(${TEST_PROJECT_NAME}
         FileInfoUnitTests.cc
         FileUpdateTransactionUnitTests.cc
         FreezeTransactionUnitTests.cc
-        NodeCreateTransactionUnitTests.cc
-        NodeDeleteTransactionUnitTests.cc
-        NodeUpdateTransactionUnitTests.cc
+        FungibleHookCallUnitTests.cc
         HbarAllowanceUnitTests.cc
-        HbarTransferHookUnitTests.cc
         HbarTransferUnitTests.cc
         HbarUnitTests.cc
         HookCallUnitTests.cc
@@ -86,6 +81,9 @@ add_executable(${TEST_PROJECT_NAME}
         NftHookTypeUnitTests.cc
         NftIdUnitTests.cc
         NodeAddressUnitTests.cc
+        NodeCreateTransactionUnitTests.cc
+        NodeDeleteTransactionUnitTests.cc
+        NodeUpdateTransactionUnitTests.cc
         PendingAirdropIdUnitTests.cc
         PendingAirdropRecordUnitTests.cc
         PrngTransactionUnitTests.cc
