@@ -173,28 +173,12 @@ public:
   AccountUpdateTransaction& setDeclineStakingReward(bool declineReward);
 
   /**
-   * Delete a hook from the account.
-   *
-   * @param hookId The ID of the hook to delete.
-   * @return A reference to this AccountUpdateTransaction object with the newly-added hook to delete.
-   */
-  AccountUpdateTransaction& deleteHook(int64_t hookId);
-
-  /**
-   * Deletes hooks from the account.
-   *
-   * @param hooks The IDs of the hooks to delete.
-   * @return A reference to this AccountUpdateTransaction object with the newly-set list of hooks to delete.
-   */
-  AccountUpdateTransaction& deleteHooks(const std::vector<int64_t>& hooks);
-
-  /**
    * Add a hook to be created for the account.
    *
    * @param hook The details of the hook to create.
    * @return A reference to this AccountUpdateTransaction object with the newly-added hook creation details.
    */
-  AccountUpdateTransaction& addHook(const HookCreationDetails& hook);
+  AccountUpdateTransaction& addHookToCreate(const HookCreationDetails& hook);
 
   /**
    * Set the list of hooks to be created for the account.
@@ -202,7 +186,23 @@ public:
    * @param hooks The details of the hooks to create.
    * @return A reference to this AccountUpdateTransaction object with the newly-set list of hook creation details.
    */
-  AccountUpdateTransaction& setHooks(const std::vector<HookCreationDetails>& hooks);
+  AccountUpdateTransaction& setHooksToCreate(const std::vector<HookCreationDetails>& hooks);
+
+  /**
+   * Delete a hook from the account.
+   *
+   * @param hookId The ID of the hook to delete.
+   * @return A reference to this AccountUpdateTransaction object with the newly-added hook to delete.
+   */
+  AccountUpdateTransaction& addHookToDelete(int64_t hookId);
+
+  /**
+   * Deletes hooks from the account.
+   *
+   * @param hooks The IDs of the hooks to delete.
+   * @return A reference to this AccountUpdateTransaction object with the newly-set list of hooks to delete.
+   */
+  AccountUpdateTransaction& setHooksToDelete(const std::vector<int64_t>& hooks);
 
   /**
    * Get the ID of the account to update.

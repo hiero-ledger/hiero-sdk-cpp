@@ -146,25 +146,7 @@ AccountUpdateTransaction& AccountUpdateTransaction::setDeclineStakingReward(bool
 }
 
 //-----
-AccountUpdateTransaction& AccountUpdateTransaction::deleteHook(int64_t hookId)
-{
-  requireNotFrozen();
-
-  mHooksToDelete.push_back(hookId);
-  return *this;
-}
-
-//-----
-AccountUpdateTransaction& AccountUpdateTransaction::deleteHooks(const std::vector<int64_t>& hooks)
-{
-  requireNotFrozen();
-
-  mHooksToDelete = hooks;
-  return *this;
-}
-
-//-----
-AccountUpdateTransaction& AccountUpdateTransaction::addHook(const HookCreationDetails& hook)
+AccountUpdateTransaction& AccountUpdateTransaction::addHookToCreate(const HookCreationDetails& hook)
 {
   requireNotFrozen();
 
@@ -173,11 +155,29 @@ AccountUpdateTransaction& AccountUpdateTransaction::addHook(const HookCreationDe
 }
 
 //-----
-AccountUpdateTransaction& AccountUpdateTransaction::setHooks(const std::vector<HookCreationDetails>& hooks)
+AccountUpdateTransaction& AccountUpdateTransaction::setHooksToCreate(const std::vector<HookCreationDetails>& hooks)
 {
   requireNotFrozen();
 
   mHookCreationDetails = hooks;
+  return *this;
+}
+
+//-----
+AccountUpdateTransaction& AccountUpdateTransaction::addHookToDelete(int64_t hookId)
+{
+  requireNotFrozen();
+
+  mHooksToDelete.push_back(hookId);
+  return *this;
+}
+
+//-----
+AccountUpdateTransaction& AccountUpdateTransaction::setHooksToDelete(const std::vector<int64_t>& hooks)
+{
+  requireNotFrozen();
+
+  mHooksToDelete = hooks;
   return *this;
 }
 

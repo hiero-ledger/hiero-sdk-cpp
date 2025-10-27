@@ -115,25 +115,7 @@ ContractUpdateTransaction& ContractUpdateTransaction::setDeclineStakingReward(bo
 }
 
 //-----
-ContractUpdateTransaction& ContractUpdateTransaction::deleteHook(int64_t hookId)
-{
-  requireNotFrozen();
-
-  mHooksToDelete.push_back(hookId);
-  return *this;
-}
-
-//-----
-ContractUpdateTransaction& ContractUpdateTransaction::deleteHooks(const std::vector<int64_t>& hooks)
-{
-  requireNotFrozen();
-
-  mHooksToDelete = hooks;
-  return *this;
-}
-
-//-----
-ContractUpdateTransaction& ContractUpdateTransaction::addHook(const HookCreationDetails& hook)
+ContractUpdateTransaction& ContractUpdateTransaction::addHookToCreate(const HookCreationDetails& hook)
 {
   requireNotFrozen();
 
@@ -142,11 +124,29 @@ ContractUpdateTransaction& ContractUpdateTransaction::addHook(const HookCreation
 }
 
 //-----
-ContractUpdateTransaction& ContractUpdateTransaction::setHooks(const std::vector<HookCreationDetails>& hooks)
+ContractUpdateTransaction& ContractUpdateTransaction::setHooksToCreate(const std::vector<HookCreationDetails>& hooks)
 {
   requireNotFrozen();
 
   mHookCreationDetails = hooks;
+  return *this;
+}
+
+//-----
+ContractUpdateTransaction& ContractUpdateTransaction::addHookToDelete(int64_t hookId)
+{
+  requireNotFrozen();
+
+  mHooksToDelete.push_back(hookId);
+  return *this;
+}
+
+//-----
+ContractUpdateTransaction& ContractUpdateTransaction::setHooksToDelete(const std::vector<int64_t>& hooks)
+{
+  requireNotFrozen();
+
+  mHooksToDelete = hooks;
   return *this;
 }
 
