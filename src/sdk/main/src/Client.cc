@@ -812,12 +812,11 @@ Client& Client::setRequestTimeout(const std::chrono::system_clock::duration& tim
 
   if (timeout < currentGrpcDeadline)
   {
-    throw std::invalid_argument(
-      "Request timeout (" +
-      std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(timeout).count()) +
-      " ms) must be greater than or equal to gRPC deadline (" +
-      std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(currentGrpcDeadline).count()) +
-      " ms)");
+    throw std::invalid_argument("Request timeout (" +
+                                std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(timeout).count()) +
+                                " ms) must be greater than or equal to gRPC deadline (" +
+                                std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(currentGrpcDeadline).count()) +
+                                " ms)");
   }
 
   mImpl->mRequestTimeout = timeout;
@@ -896,12 +895,11 @@ Client& Client::setGrpcDeadline(const std::chrono::system_clock::duration& deadl
   // Validate that grpcDeadline <= requestTimeout
   if (deadline > mImpl->mRequestTimeout)
   {
-    throw std::invalid_argument(
-      "gRPC deadline (" +
-      std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(deadline).count()) +
-      " ms) must be less than or equal to request timeout (" +
-      std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(mImpl->mRequestTimeout).count()) +
-      " ms)");
+    throw std::invalid_argument("gRPC deadline (" +
+                                std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(deadline).count()) +
+                                " ms) must be less than or equal to request timeout (" +
+                                std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(mImpl->mRequestTimeout).count()) +
+                                " ms)");
   }
 
   mImpl->mGrpcDeadline = deadline;
