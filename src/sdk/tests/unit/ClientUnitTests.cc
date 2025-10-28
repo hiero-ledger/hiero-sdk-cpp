@@ -146,3 +146,94 @@ TEST_F(ClientUnitTests, SetValidMaxBackoff)
   EXPECT_NO_THROW(client.setMaxBackoff(DEFAULT_MIN_BACKOFF));
   EXPECT_NO_THROW(client.setMaxBackoff(DEFAULT_MAX_BACKOFF));
 }
+
+//-----
+TEST_F(ClientUnitTests, SetValidGrpcDeadline)
+{
+  // Given
+  Client client;
+
+  // When / Then
+  EXPECT_NO_THROW(client.setGrpcDeadline(std::chrono::seconds(5)));
+  EXPECT_EQ(client.getGrpcDeadline().value(), std::chrono::seconds(5));
+  EXPECT_NO_THROW(client.setGrpcDeadline(std::chrono::seconds(30)));
+  EXPECT_EQ(client.getGrpcDeadline().value(), std::chrono::seconds(30));
+}
+
+//-----
+TEST_F(ClientUnitTests, SetInvalidGrpcDeadline)
+{
+  // Given
+  Client client;
+  client.setRequestTimeout(std::chrono::seconds(30));
+
+  // When / Then - gRPC deadline cannot be greater than request timeout
+  EXPECT_THROW(client.setGrpcDeadline(std::chrono::seconds(60)), std::invalid_argument);
+}
+
+//-----
+TEST_F(ClientUnitTests, SetValidRequestTimeout)
+{
+  // Given
+  Client client;
+  client.setGrpcDeadline(std::chrono::seconds(10));
+
+  // When / Then
+  EXPECT_NO_THROW(client.setRequestTimeout(std::chrono::seconds(30)));
+  EXPECT_EQ(client.getRequestTimeout(), std::chrono::seconds(30));
+  EXPECT_NO_THROW(client.setRequestTimeout(std::chrono::minutes(2)));
+  EXPECT_EQ(client.getRequestTimeout(), std::chrono::minutes(2));
+}
+
+//-----
+TEST_F(ClientUnitTests, SetInvalidRequestTimeout)
+{
+  // Given
+  Client client;
+  client.setGrpcDeadline(std::chrono::seconds(30));
+
+  // When / Then - request timeout cannot be less than gRPC deadline
+  EXPECT_THROW(client.setRequestTimeout(std::chrono::seconds(10)), std::invalid_argument);
+}
+
+//-----
+TEST_F(ClientUnitTests, SetGrpcDeadlineAndRequestTimeoutInCorrectOrder)
+{
+  // Given
+  Client client;
+
+  // When / Then - setting grpcDeadline first, then requestTimeout (should succeed)
+  EXPECT_NO_THROW(client.setGrpcDeadline(std::chrono::seconds(10)));
+  EXPECT_NO_THROW(client.setRequestTimeout(std::chrono::seconds(30)));
+
+  // When / Then - setting requestTimeout first, then grpcDeadline (should succeed)
+  Client client2;
+  EXPECT_NO_THROW(client2.setRequestTimeout(std::chrono::seconds(30)));
+  EXPECT_NO_THROW(client2.setGrpcDeadline(std::chrono::seconds(10)));
+}
+
+//-----
+TEST_F(ClientUnitTests, SetGrpcDeadlineEqualToRequestTimeout)
+{
+  // Given
+  Client client;
+
+  // When / Then - grpcDeadline can equal requestTimeout
+  EXPECT_NO_THROW(client.setRequestTimeout(std::chrono::seconds(30)));
+  EXPECT_NO_THROW(client.setGrpcDeadline(std::chrono::seconds(30)));
+}
+
+//-----
+TEST_F(ClientUnitTests, DefaultValuesRespectConstraint)
+{
+  // Given
+  Client client;
+
+  // When / Then - defaults should already satisfy requestTimeout >= grpcDeadline
+  EXPECT_EQ(client.getRequestTimeout(), DEFAULT_REQUEST_TIMEOUT); // 2 minutes
+  EXPECT_FALSE(client.getGrpcDeadline().has_value()); // Not set, uses DEFAULT_GRPC_DEADLINE (10s) internally
+
+  // Setting them explicitly with defaults should work
+  EXPECT_NO_THROW(client.setGrpcDeadline(DEFAULT_GRPC_DEADLINE));
+  EXPECT_NO_THROW(client.setRequestTimeout(DEFAULT_REQUEST_TIMEOUT));
+}
