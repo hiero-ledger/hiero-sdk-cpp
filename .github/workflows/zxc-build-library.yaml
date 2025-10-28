@@ -183,7 +183,8 @@ jobs:
         uses: hiero-ledger/hiero-solo-action@6a1a77601cf3e69661fb6880530a4edf656b40d5 # v0.14.0
         with:
           installMirrorNode: true
-          hieroVersion: v0.65.0
+          hieroVersion: v0.67.1
+          mirrorNodeVersion: v0.139.0
           
 
       - name: Start CTest suite (Debug)

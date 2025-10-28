@@ -99,6 +99,7 @@ add_library(${PROJECT_NAME} STATIC
         src/IPv4Address.cc
         src/Key.cc
         src/KeyList.cc
+        src/LambdaSStoreTransaction.cc
         src/LedgerId.cc
         src/Logger.cc
         src/Mnemonic.cc
@@ -186,6 +187,23 @@ add_library(${PROJECT_NAME} STATIC
         src/TransactionResponse.cc
         src/TransferTransaction.cc
         src/WrappedTransaction.cc
+
+        src/hooks/EvmHookCall.cc
+        src/hooks/EvmHookSpec.cc
+        src/hooks/FungibleHookCall.cc
+        src/hooks/FungibleHookType.cc
+        src/hooks/HookCall.cc
+        src/hooks/HookCreationDetails.cc
+        src/hooks/HookEntityId.cc
+        src/hooks/HookExtensionPoint.cc
+        src/hooks/HookId.cc
+        src/hooks/LambdaEvmHook.cc
+        src/hooks/LambdaMappingEntries.cc
+        src/hooks/LambdaMappingEntry.cc
+        src/hooks/LambdaStorageSlot.cc
+        src/hooks/LambdaStorageUpdate.cc
+        src/hooks/NftHookCall.cc
+        src/hooks/NftHookType.cc
 
         src/impl/ASN1ECKey.cc
         src/impl/ASN1ECPrivateKey.cc

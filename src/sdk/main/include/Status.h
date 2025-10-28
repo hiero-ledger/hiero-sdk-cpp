@@ -1855,7 +1855,135 @@ enum class Status
   /**
    * An NFT transfers list referenced a token type other than NON_FUNGIBLE_UNIQUE.
    */
-  NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE
+  NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE,
+
+  /**
+   * A HAPI client cannot set the SignedTransaction#use_serialized_tx_message_hash_algorithm field.
+   */
+  INVALID_SERIALIZED_TX_MESSAGE_HASH_ALGORITHM,
+
+  /**
+   * An EVM hook execution was throttled due to high network gas utilization.
+   */
+  EVM_HOOK_GAS_THROTTLED,
+
+  /**
+   * A user tried to create a hook with an id already in use.
+   */
+  HOOK_ID_IN_USE,
+
+  /**
+   * A transaction tried to execute a hook that did not match the specified
+   * type or was malformed in some other way.
+   */
+  BAD_HOOK_REQUEST,
+
+  /**
+   * A CryptoTransfer relying on a ACCOUNT_ALLOWANCE hook was rejected.
+   */
+  REJECTED_BY_ACCOUNT_ALLOWANCE_HOOK,
+
+  /**
+   * A hook id was not found.
+   */
+  HOOK_NOT_FOUND,
+
+  /**
+   * A lambda mapping slot, storage key, or storage value exceeded 32 bytes.
+   */
+  LAMBDA_STORAGE_UPDATE_BYTES_TOO_LONG,
+
+  /**
+   * A lambda mapping slot, storage key, or storage value failed to use the
+   * minimal representation (i.e., no leading zeros).
+   */
+  LAMBDA_STORAGE_UPDATE_BYTES_MUST_USE_MINIMAL_REPRESENTATION,
+
+  /**
+   * A hook id was invalid.
+   */
+  INVALID_HOOK_ID,
+
+  /**
+   * A lambda storage update had no contents.
+   */
+  EMPTY_LAMBDA_STORAGE_UPDATE,
+
+  /**
+   * A user repeated the same hook id in a creation details list.
+   */
+  HOOK_ID_REPEATED_IN_CREATION_DETAILS,
+
+  /**
+   * Hooks are not not enabled on the target Hiero network.
+   */
+  HOOKS_NOT_ENABLED,
+
+  /**
+   * The target hook is not a lambda.
+   */
+  HOOK_IS_NOT_A_LAMBDA,
+
+  /**
+   * A hook was deleted.
+   */
+  HOOK_DELETED,
+
+  /**
+   * The LambdaSStore tried to update too many storage slots in a single transaction.
+   */
+  TOO_MANY_LAMBDA_STORAGE_UPDATES,
+
+  /**
+   * A lambda mapping slot, storage key, or storage value failed to use the
+   * minimal representation (i.e., no leading zeros).
+   */
+  HOOK_CREATION_BYTES_MUST_USE_MINIMAL_REPRESENTATION,
+
+  /**
+   * A lambda mapping slot, storage key, or storage value exceeded 32 bytes.
+   */
+  HOOK_CREATION_BYTES_TOO_LONG,
+
+  /**
+   * A hook creation spec was not found.
+   */
+  INVALID_HOOK_CREATION_SPEC,
+
+  /**
+   * A hook extension point was empty.
+   */
+  HOOK_EXTENSION_EMPTY,
+
+  /**
+   * A hook admin key was invalid.
+   */
+  INVALID_HOOK_ADMIN_KEY,
+
+  /**
+   * The hook deletion requires the hook to have zero storage slots.
+   */
+  HOOK_DELETION_REQUIRES_ZERO_STORAGE_SLOTS,
+
+  /**
+   * Cannot set both a hook call and an approval on the same AccountAmount or NftTransfer message.
+   */
+  CANNOT_SET_HOOKS_AND_APPROVAL,
+
+  /**
+   * The attempted operation is invalid until all the target entity's hooks have been deleted.
+   */
+  TRANSACTION_REQUIRES_ZERO_HOOKS,
+
+  /**
+   * The HookCall set in the transaction is invalid
+   */
+  INVALID_HOOK_CALL,
+
+  /**
+   *  Hooks are not supported to be used in TokenAirdrop transactions
+   */
+  HOOKS_ARE_NOT_SUPPORTED_IN_AIRDROPS
 };
 
 /**
