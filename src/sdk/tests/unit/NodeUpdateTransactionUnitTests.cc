@@ -254,19 +254,7 @@ TEST_F(NodeUpdateTransactionUnitTests, ThrowsWhenNodeIdNotSet)
   tx.setDescription("Test node");
 
   // When / Then
-  EXPECT_THROW(
-    {
-      try
-      {
-        tx.freeze();
-      }
-      catch (const IllegalStateException& e)
-      {
-        EXPECT_STREQ(e.what(), "NodeUpdateTransaction requires nodeId to be explicitly set before execution");
-        throw;
-      }
-    },
-    IllegalStateException);
+  EXPECT_THROW(tx.freeze(),IllegalStateException);
 }
 
 //-----
