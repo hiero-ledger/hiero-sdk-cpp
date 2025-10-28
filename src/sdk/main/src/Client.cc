@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
+#include "Client.h"
 #include "AccountBalance.h"
 #include "AccountBalanceQuery.h"
 #include "AccountId.h"
 #include "AddressBookQuery.h"
-#include "Client.h"
 #include "Defaults.h"
 #include "FileId.h"
 #include "Hbar.h"
