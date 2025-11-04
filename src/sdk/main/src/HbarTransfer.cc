@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "HbarTransfer.h"
+#include "hooks/FungibleHookType.h"
 #include "impl/Utilities.h"
 
 #include <nlohmann/json.hpp>
@@ -17,6 +18,15 @@ HbarTransfer::HbarTransfer(AccountId accountId, const Hbar& amount, bool approva
 }
 
 //-----
+HbarTransfer::HbarTransfer(AccountId accountId, const Hbar& amount, bool approval, const FungibleHookCall& hookCall)
+  : mAccountId(std::move(accountId))
+  , mAmount(amount)
+  , mIsApproved(approval)
+  , mHookCall(hookCall)
+{
+}
+
+//-----
 HbarTransfer HbarTransfer::fromProtobuf(const proto::AccountAmount& proto)
 {
   HbarTransfer transfer;
@@ -28,6 +38,18 @@ HbarTransfer HbarTransfer::fromProtobuf(const proto::AccountAmount& proto)
 
   transfer.mAmount = Hbar(proto.amount(), HbarUnit::TINYBAR());
   transfer.mIsApproved = proto.is_approval();
+
+  if (proto.has_pre_tx_allowance_hook())
+  {
+    transfer.mHookCall =
+      FungibleHookCall::fromProtobuf(proto.pre_tx_allowance_hook(), FungibleHookType::PRE_TX_ALLOWANCE_HOOK);
+  }
+
+  if (proto.has_pre_post_tx_allowance_hook())
+  {
+    transfer.mHookCall =
+      FungibleHookCall::fromProtobuf(proto.pre_post_tx_allowance_hook(), FungibleHookType::PRE_POST_TX_ALLOWANCE_HOOK);
+  }
 
   return transfer;
 }
@@ -47,6 +69,17 @@ std::unique_ptr<proto::AccountAmount> HbarTransfer::toProtobuf() const
   proto->set_allocated_accountid(mAccountId.toProtobuf().release());
   proto->set_amount(mAmount.toTinybars());
   proto->set_is_approval(mIsApproved);
+
+  if (mHookCall.getHookType() == FungibleHookType::PRE_TX_ALLOWANCE_HOOK)
+  {
+    proto->set_allocated_pre_tx_allowance_hook(mHookCall.toProtobuf().release());
+  }
+
+  else if (mHookCall.getHookType() == FungibleHookType::PRE_POST_TX_ALLOWANCE_HOOK)
+  {
+    proto->set_allocated_pre_post_tx_allowance_hook(mHookCall.toProtobuf().release());
+  }
+
   return proto;
 }
 
@@ -63,6 +96,7 @@ std::string HbarTransfer::toString() const
   json["mAccountId"] = mAccountId.toString();
   json["mAmount"] = mAmount.toString();
   json["mIsApproved"] = mIsApproved;
+  json["mHookType"] = gFungibleHookTypeToString.at(mHookCall.getHookType());
   return json.dump();
 }
 
