@@ -292,7 +292,11 @@ protected:
     /**
      * The call was successful but an operation did not complete.
      */
-    RETRY
+    RETRY,
+    /**
+     * The node account is invalid; retry with another node and update address book.
+     */
+    RETRY_WITH_ANOTHER_NODE
   };
 
   /**

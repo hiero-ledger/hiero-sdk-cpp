@@ -232,6 +232,23 @@ SdkResponseType Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, 
         nodeResponses.clear();
         [[fallthrough]];
       }
+      case ExecutionStatus::RETRY_WITH_ANOTHER_NODE:
+      {
+        mLogger.trace("Received INVALID_NODE_ACCOUNT; updating addressbook and marking node as unhealthy, nodeAccountId: " +
+                      node->getAccountId().toString() + " during attempt #" + std::to_string(attempt));
+
+        // Mark this node as unhealthy
+        node->increaseBackoff();
+
+        // Update address book synchronously before continuing with other nodes
+        // This ensures we have the latest valid nodes before retrying
+        // Using const_cast here because we need to call a non-const method on the client
+        // This is safe because we're only updating internal state that's protected by mutex
+        const_cast<Client&>(client).updateAddressBook();
+
+        // Continue with other nodes (now with updated address book)
+        continue;
+      }
       // Response isn't ready yet from the network
       case ExecutionStatus::RETRY:
       {
@@ -437,6 +454,8 @@ Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, SdkResponseType>
     case Status::PLATFORM_NOT_ACTIVE:
     case Status::BUSY:
       return ExecutionStatus::SERVER_ERROR;
+    case Status::INVALID_NODE_ACCOUNT:
+      return ExecutionStatus::RETRY_WITH_ANOTHER_NODE;
     case Status::OK:
       return ExecutionStatus::SUCCESS;
       // Let derived class handle this status, assume request error

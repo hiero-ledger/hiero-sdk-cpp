@@ -680,6 +680,26 @@ Client& Client::setNetworkFromAddressBook(const NodeAddressBook& addressBook)
 }
 
 //-----
+void Client::updateAddressBook()
+{
+  try
+  {
+    std::unique_lock lock(mImpl->mMutex);
+    mImpl->mLogger.trace("Updating address book after INVALID_NODE_ACCOUNT response");
+
+    // Get the address book and set the network based on the address book
+    const NodeAddressBook addressBook = AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(*this);
+    setNetworkFromAddressBookInternal(addressBook);
+
+    mImpl->mLogger.trace("Address book successfully updated");
+  }
+  catch (const std::exception& exception)
+  {
+    mImpl->mLogger.warn(std::string("Failed to update address book: ") + exception.what());
+  }
+}
+
+//-----
 Client& Client::setNetwork(const std::unordered_map<std::string, AccountId>& networkMap)
 {
   std::unique_lock lock(mImpl->mMutex);
