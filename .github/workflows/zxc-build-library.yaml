@@ -140,7 +140,7 @@ jobs:
         run: mkdir -p "${{ github.workspace }}/b/vcpkg_cache"
 
       - name: Install CMake & Ninja
-        uses: step-security/get-cmake@f0d0b7261adb2543af992e49d475ced3a2407687 # v4.1.1
+        uses: step-security/get-cmake@84feda99b925eb830227d4cd02c07991a323306f # v4.1.2
         with:
           useCloudCache: true
 
