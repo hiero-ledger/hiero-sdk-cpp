@@ -35,6 +35,9 @@ protected:
     return internal::HexConverter::hexToBytes(mFileHash);
   }
 
+  // Node ID to update in tests
+  const uint64_t nodeIDToUpdate = 1;
+
 private:
   const uint64_t mNodeId = 2;
   const AccountId mAccountId = AccountId::fromString("0.0.4");
@@ -133,7 +136,6 @@ TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountIdToTheSameAcc
   std::shared_ptr<PrivateKey> originalOperatorKey = ED25519PrivateKey::fromString(operatorKeyStr);
   client.setOperator(AccountId(2ULL), originalOperatorKey);
 
-  const uint64_t nodeIDToUpdate = 2;
   const AccountId originalNodeAccountId = AccountId::fromString("0.0.4");
 
   // When
@@ -177,8 +179,6 @@ TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdMissingAdminSig
 
   client.setOperator(operatorAccountId, newOperatorKey);
 
-  const uint64_t nodeIDToUpdate = 2;
-
   // When - Try to update without admin signature
   TransactionResponse updateResponse = NodeUpdateTransaction()
                                          .setNodeId(nodeIDToUpdate)
@@ -218,8 +218,6 @@ TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdMissingAccountS
   TransactionReceipt createReceipt = createResponse.setValidateStatus(true).getReceipt(client);
   AccountId nodeAccountId = createReceipt.mAccountId.value();
 
-  const uint64_t nodeIDToUpdate = 2;
-
   // When - Try to update without new account signature
   TransactionResponse updateResponse = NodeUpdateTransaction()
                                          .setNodeId(nodeIDToUpdate)
@@ -247,8 +245,6 @@ TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdToNonExistentAc
     "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137";
   std::shared_ptr<PrivateKey> originalOperatorKey = ED25519PrivateKey::fromString(operatorKeyStr);
   client.setOperator(AccountId(2ULL), originalOperatorKey);
-
-  const uint64_t nodeIDToUpdate = 2;
 
   // When - Try to update to non-existent account
   TransactionResponse updateResponse = NodeUpdateTransaction()
@@ -294,8 +290,6 @@ TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountIdToDeletedAcc
   TransactionResponse deleteResponse = deleteTransaction.sign(newAccountKey).execute(client);
   deleteResponse.setValidateStatus(true).getReceipt(client);
 
-  const uint64_t nodeIDToUpdate = 2;
-
   // When - Try to update to deleted account
   NodeUpdateTransaction updateTransaction = NodeUpdateTransaction()
                                               .setNodeId(nodeIDToUpdate)
@@ -332,8 +326,6 @@ TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdNoBalance)
                                          .execute(client);
   TransactionReceipt createReceipt = createResponse.setValidateStatus(true).getReceipt(client);
   AccountId newAccount = createReceipt.mAccountId.value();
-
-  const uint64_t nodeIDToUpdate = 2;
 
   // When - Try to update to account with zero balance
   NodeUpdateTransaction updateTransaction = NodeUpdateTransaction()
@@ -374,8 +366,6 @@ TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountUpdateAddressb
                                          .execute(client);
   TransactionReceipt createReceipt = createResponse.setValidateStatus(true).getReceipt(client);
   AccountId newNodeAccountID = createReceipt.mAccountId.value();
-
-  const uint64_t nodeIDToUpdate = 2;
 
   // Update node account id
   NodeUpdateTransaction updateTransaction = NodeUpdateTransaction()
@@ -442,8 +432,6 @@ TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountWithoutMirrorN
                                          .execute(client);
   TransactionReceipt createReceipt = createResponse.setValidateStatus(true).getReceipt(client);
   AccountId newNodeAccountID = createReceipt.mAccountId.value();
-
-  const uint64_t nodeIDToUpdate = 2;
 
   // Update node account id
   NodeUpdateTransaction updateTransaction = NodeUpdateTransaction()
