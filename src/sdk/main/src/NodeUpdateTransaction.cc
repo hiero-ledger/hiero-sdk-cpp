@@ -222,7 +222,10 @@ aproto::NodeUpdateTransactionBody* NodeUpdateTransaction::build() const
     body->mutable_service_endpoint()->AddAllocated(e.toProtobuf().release());
   }
 
-  body->mutable_gossip_ca_certificate()->set_value(internal::Utilities::byteVectorToString(mGossipCaCertificate));
+  if (!mGossipCaCertificate.empty())
+  {
+    body->mutable_gossip_ca_certificate()->set_value(internal::Utilities::byteVectorToString(mGossipCaCertificate));
+  }
 
   if (mGrpcCertificateHash.has_value())
   {
