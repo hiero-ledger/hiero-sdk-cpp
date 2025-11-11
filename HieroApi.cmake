@@ -61,6 +61,7 @@ file(INSTALL ${PROJECT_SOURCE_DIR}/proto/service-external-proto/sdk/ DESTINATION
 
 file(INSTALL ${hproto_SOURCE_DIR}/hapi/hedera-protobuf-java-api/src/main/proto/platform/ DESTINATION ${PROTO_SRC}/platform)
 file(INSTALL ${hproto_SOURCE_DIR}/hapi/hedera-protobuf-java-api/src/main/proto/services/ DESTINATION ${PROTO_SRC}/services)
+file(INSTALL ${hproto_SOURCE_DIR}/hapi/hedera-protobuf-java-api/src/main/proto/block/ DESTINATION ${PROTO_SRC}/block)
 
 add_subdirectory(proto)
 

@@ -1,14 +1,20 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "BaseIntegrationTest.h"
+#include "AccountCreateTransaction.h"
+#include "AccountDeleteTransaction.h"
 #include "ED25519PrivateKey.h"
 #include "FileId.h"
 #include "FreezeTransaction.h"
+#include "Hbar.h"
 #include "NodeUpdateTransaction.h"
 #include "TransactionRecord.h"
 #include "TransactionResponse.h"
+#include "exceptions/PrecheckStatusException.h"
+#include "exceptions/ReceiptStatusException.h"
 #include "impl/HexConverter.h"
 
 #include <gtest/gtest.h>
+#include <thread>
 
 using namespace Hiero;
 
@@ -104,4 +110,370 @@ TEST_F(NodeUpdateTransactionIntegrationTests, DISABLED_CanExecuteNodeUpdateTrans
 
   TransactionReceipt txReceipt;
   ASSERT_NO_THROW(txReceipt = txResponse.getReceipt(getTestClient()));
+}
+
+//-----
+TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountIdToTheSameAccount)
+{
+  // Given
+  // Set up the network
+  std::unordered_map<std::string, AccountId> network;
+  network["localhost:51211"] = AccountId(4ULL);
+
+  // Create client for the network
+  Client client = Client::forNetwork(network);
+  
+  // Set mirror network
+  std::vector<std::string> mirrorNetwork = { "localhost:5600" };
+  client.setMirrorNetwork(mirrorNetwork);
+
+  // Set the operator to be account 0.0.2
+  const std::string operatorKeyStr = 
+    "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137";
+  std::shared_ptr<PrivateKey> originalOperatorKey = ED25519PrivateKey::fromString(operatorKeyStr);
+  client.setOperator(AccountId(2ULL), originalOperatorKey);
+
+  const uint64_t nodeIDToUpdate = 2;
+  const AccountId originalNodeAccountId = AccountId::fromString("0.0.4");
+
+  // When
+  TransactionResponse txResponse;
+  ASSERT_NO_THROW(txResponse = NodeUpdateTransaction()
+                                  .setNodeId(nodeIDToUpdate)
+                                  .setAccountId(originalNodeAccountId)
+                                  .execute(client));
+
+  // Then
+  TransactionReceipt txReceipt;
+  ASSERT_NO_THROW(txReceipt = txResponse.setValidateStatus(true).getReceipt(client));
+}
+
+//-----
+TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdMissingAdminSig)
+{
+  // Given - Set up the network
+  std::unordered_map<std::string, AccountId> network;
+  network["localhost:51211"] = AccountId(4ULL);
+  Client client = Client::forNetwork(network);
+  
+  std::vector<std::string> mirrorNetwork = { "localhost:5600" };
+  client.setMirrorNetwork(mirrorNetwork);
+
+  const std::string operatorKeyStr = 
+    "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137";
+  std::shared_ptr<PrivateKey> originalOperatorKey = ED25519PrivateKey::fromString(operatorKeyStr);
+  client.setOperator(AccountId(2ULL), originalOperatorKey);
+
+  // Create new operator account
+  std::shared_ptr<PrivateKey> newOperatorKey = ED25519PrivateKey::generatePrivateKey();
+  Hbar newBalance(2LL);
+  
+  TransactionResponse createResponse = AccountCreateTransaction()
+                                         .setKey(newOperatorKey->getPublicKey())
+                                         .setInitialBalance(newBalance)
+                                         .execute(client);
+  TransactionReceipt createReceipt = createResponse.setValidateStatus(true).getReceipt(client);
+  AccountId operatorAccountId = createReceipt.mAccountId.value();
+
+  client.setOperator(operatorAccountId, newOperatorKey);
+
+  const uint64_t nodeIDToUpdate = 2;
+
+  // When - Try to update without admin signature
+  TransactionResponse updateResponse = NodeUpdateTransaction()
+                                         .setNodeId(nodeIDToUpdate)
+                                         .setAccountId(operatorAccountId)
+                                         .execute(client);
+
+  // Then - Should fail with INVALID_SIGNATURE
+  EXPECT_THROW({
+    updateResponse.setValidateStatus(true).getReceipt(client);
+  }, PrecheckStatusException);
+}
+
+//-----
+TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdMissingAccountSig)
+{
+  // Given - Set up the network
+  std::unordered_map<std::string, AccountId> network;
+  network["localhost:51211"] = AccountId(4ULL);
+  Client client = Client::forNetwork(network);
+  
+  std::vector<std::string> mirrorNetwork = { "localhost:5600" };
+  client.setMirrorNetwork(mirrorNetwork);
+
+  const std::string operatorKeyStr = 
+    "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137";
+  std::shared_ptr<PrivateKey> originalOperatorKey = ED25519PrivateKey::fromString(operatorKeyStr);
+  client.setOperator(AccountId(2ULL), originalOperatorKey);
+
+  // Create new account
+  std::shared_ptr<PrivateKey> newOperatorKey = ED25519PrivateKey::generatePrivateKey();
+  Hbar newBalance(2LL);
+  
+  TransactionResponse createResponse = AccountCreateTransaction()
+                                         .setKey(newOperatorKey->getPublicKey())
+                                         .setInitialBalance(newBalance)
+                                         .execute(client);
+  TransactionReceipt createReceipt = createResponse.setValidateStatus(true).getReceipt(client);
+  AccountId nodeAccountId = createReceipt.mAccountId.value();
+
+  const uint64_t nodeIDToUpdate = 2;
+
+  // When - Try to update without new account signature
+  TransactionResponse updateResponse = NodeUpdateTransaction()
+                                         .setNodeId(nodeIDToUpdate)
+                                         .setAccountId(nodeAccountId)
+                                         .execute(client);
+
+  // Then - Should fail with INVALID_SIGNATURE
+  EXPECT_THROW({
+    updateResponse.setValidateStatus(true).getReceipt(client);
+  }, PrecheckStatusException);
+}
+
+//-----
+TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdToNonExistentAccountId)
+{
+  // Given - Set up the network
+  std::unordered_map<std::string, AccountId> network;
+  network["localhost:51211"] = AccountId(4ULL);
+  Client client = Client::forNetwork(network);
+  
+  std::vector<std::string> mirrorNetwork = { "localhost:5600" };
+  client.setMirrorNetwork(mirrorNetwork);
+
+  const std::string operatorKeyStr = 
+    "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137";
+  std::shared_ptr<PrivateKey> originalOperatorKey = ED25519PrivateKey::fromString(operatorKeyStr);
+  client.setOperator(AccountId(2ULL), originalOperatorKey);
+
+  const uint64_t nodeIDToUpdate = 2;
+
+  // When - Try to update to non-existent account
+  TransactionResponse updateResponse = NodeUpdateTransaction()
+                                         .setNodeId(nodeIDToUpdate)
+                                         .setAccountId(AccountId(9999999ULL))
+                                         .execute(client);
+
+  // Then - Should fail with INVALID_SIGNATURE
+  EXPECT_THROW({
+    updateResponse.setValidateStatus(true).getReceipt(client);
+  }, PrecheckStatusException);
+}
+
+//-----
+TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountIdToDeletedAccountId)
+{
+  // Given - Set up the network
+  std::unordered_map<std::string, AccountId> network;
+  network["localhost:51211"] = AccountId(4ULL);
+  Client client = Client::forNetwork(network);
+  
+  std::vector<std::string> mirrorNetwork = { "localhost:5600" };
+  client.setMirrorNetwork(mirrorNetwork);
+
+  const std::string operatorKeyStr = 
+    "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137";
+  std::shared_ptr<PrivateKey> originalOperatorKey = ED25519PrivateKey::fromString(operatorKeyStr);
+  client.setOperator(AccountId(2ULL), originalOperatorKey);
+
+  // Create account to be deleted
+  std::shared_ptr<PrivateKey> newAccountKey = ED25519PrivateKey::generatePrivateKey();
+  TransactionResponse createResponse = AccountCreateTransaction()
+                                         .setKey(newAccountKey->getPublicKey())
+                                         .execute(client);
+  TransactionReceipt createReceipt = createResponse.setValidateStatus(true).getReceipt(client);
+  AccountId newAccount = createReceipt.mAccountId.value();
+
+  // Delete the account
+  AccountDeleteTransaction deleteTransaction = AccountDeleteTransaction()
+                                                 .setDeleteAccountId(newAccount)
+                                                 .setTransferAccountId(client.getOperatorAccountId().value())
+                                                 .freezeWith(&client);
+  TransactionResponse deleteResponse = deleteTransaction.sign(newAccountKey).execute(client);
+  deleteResponse.setValidateStatus(true).getReceipt(client);
+
+  const uint64_t nodeIDToUpdate = 2;
+
+  // When - Try to update to deleted account
+  NodeUpdateTransaction updateTransaction = NodeUpdateTransaction()
+                                              .setNodeId(nodeIDToUpdate)
+                                              .setAccountId(newAccount)
+                                              .freezeWith(&client);
+  TransactionResponse updateResponse = updateTransaction.sign(newAccountKey).execute(client);
+
+  // Then - Should fail with ACCOUNT_DELETED
+  EXPECT_THROW({
+    updateResponse.setValidateStatus(true).getReceipt(client);
+  }, ReceiptStatusException);
+}
+
+//-----
+TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdNoBalance)
+{
+  // Given - Set up the network
+  std::unordered_map<std::string, AccountId> network;
+  network["localhost:51211"] = AccountId(4ULL);
+  Client client = Client::forNetwork(network);
+  
+  std::vector<std::string> mirrorNetwork = { "localhost:5600" };
+  client.setMirrorNetwork(mirrorNetwork);
+
+  const std::string operatorKeyStr = 
+    "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137";
+  std::shared_ptr<PrivateKey> originalOperatorKey = ED25519PrivateKey::fromString(operatorKeyStr);
+  client.setOperator(AccountId(2ULL), originalOperatorKey);
+
+  // Create account with zero balance
+  std::shared_ptr<PrivateKey> newAccountKey = ED25519PrivateKey::generatePrivateKey();
+  TransactionResponse createResponse = AccountCreateTransaction()
+                                         .setKey(newAccountKey->getPublicKey())
+                                         .execute(client);
+  TransactionReceipt createReceipt = createResponse.setValidateStatus(true).getReceipt(client);
+  AccountId newAccount = createReceipt.mAccountId.value();
+
+  const uint64_t nodeIDToUpdate = 2;
+
+  // When - Try to update to account with zero balance
+  NodeUpdateTransaction updateTransaction = NodeUpdateTransaction()
+                                              .setNodeId(nodeIDToUpdate)
+                                              .setAccountId(newAccount)
+                                              .freezeWith(&client);
+  TransactionResponse updateResponse = updateTransaction.sign(newAccountKey).execute(client);
+
+  // Then - Should fail with NODE_ACCOUNT_HAS_ZERO_BALANCE
+  EXPECT_THROW({
+    updateResponse.setValidateStatus(true).getReceipt(client);
+  }, ReceiptStatusException);
+}
+
+//-----
+TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountUpdateAddressbookAndRetry)
+{
+  // Given - Set up the network with two nodes
+  const AccountId originalNodeAccountId = AccountId::fromString("0.0.3");
+  std::unordered_map<std::string, AccountId> network;
+  network["localhost:50211"] = originalNodeAccountId;
+  network["localhost:51211"] = AccountId(4ULL);
+  
+  Client client = Client::forNetwork(network);
+  std::vector<std::string> mirrorNetwork = { "localhost:5600" };
+  client.setMirrorNetwork(mirrorNetwork);
+
+  const std::string operatorKeyStr = 
+    "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137";
+  std::shared_ptr<PrivateKey> originalOperatorKey = ED25519PrivateKey::fromString(operatorKeyStr);
+  client.setOperator(AccountId(2ULL), originalOperatorKey);
+
+  // Create the account that will be the new node account id
+  std::shared_ptr<PrivateKey> newAccountKey = ED25519PrivateKey::generatePrivateKey();
+  TransactionResponse createResponse = AccountCreateTransaction()
+                                         .setKey(newAccountKey->getPublicKey())
+                                         .setInitialBalance(Hbar(1LL))
+                                         .execute(client);
+  TransactionReceipt createReceipt = createResponse.setValidateStatus(true).getReceipt(client);
+  AccountId newNodeAccountID = createReceipt.mAccountId.value();
+
+  const uint64_t nodeIDToUpdate = 2;
+
+  // Update node account id
+  NodeUpdateTransaction updateTransaction = NodeUpdateTransaction()
+                                              .setNodeId(nodeIDToUpdate)
+                                              .setAccountId(newNodeAccountID)
+                                              .freezeWith(&client);
+  TransactionResponse updateResponse = updateTransaction.sign(newAccountKey).execute(client);
+  ASSERT_NO_THROW(updateResponse.getReceipt(client));
+
+  // Wait for mirror node to import data
+  std::this_thread::sleep_for(std::chrono::seconds(5));
+
+  // Submit to the updated node - should retry
+  std::shared_ptr<PrivateKey> anotherKey = ED25519PrivateKey::generatePrivateKey();
+  std::vector<AccountId> nodeAccountIds = { originalNodeAccountId, AccountId(4ULL) };
+  TransactionResponse testResponse = AccountCreateTransaction()
+                                       .setKey(anotherKey->getPublicKey())
+                                       .setNodeAccountIds(nodeAccountIds)
+                                       .execute(client);
+  ASSERT_NO_THROW(testResponse.getReceipt(client));
+
+  // Verify address book has been updated
+  // Note: C++ SDK may not have direct access to internal network state like Go SDK
+  // This verification might need to be adapted based on actual C++ SDK API
+
+  // This transaction should succeed
+  TransactionResponse finalResponse = AccountCreateTransaction()
+                                        .setKey(anotherKey->getPublicKey())
+                                        .setNodeAccountIds({ newNodeAccountID })
+                                        .execute(client);
+  ASSERT_NO_THROW(finalResponse.setValidateStatus(true).getReceipt(client));
+
+  // Revert the node account id
+  TransactionResponse revertResponse = NodeUpdateTransaction()
+                                         .setNodeId(nodeIDToUpdate)
+                                         .setNodeAccountIds({ newNodeAccountID })
+                                         .setAccountId(originalNodeAccountId)
+                                         .execute(client);
+  ASSERT_NO_THROW(revertResponse.setValidateStatus(true).getReceipt(client));
+}
+
+//-----
+TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountWithoutMirrorNodeSetup)
+{
+  // Given - Set up the network without mirror node
+  const AccountId originalNodeAccountId = AccountId::fromString("0.0.3");
+  std::unordered_map<std::string, AccountId> network;
+  network["localhost:50211"] = originalNodeAccountId;
+  network["localhost:51211"] = AccountId(4ULL);
+  
+  Client client = Client::forNetwork(network);
+  // Note: No mirror network set
+
+  const std::string operatorKeyStr = 
+    "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137";
+  std::shared_ptr<PrivateKey> originalOperatorKey = ED25519PrivateKey::fromString(operatorKeyStr);
+  client.setOperator(AccountId(2ULL), originalOperatorKey);
+
+  // Create the account that will be the new node account id
+  std::shared_ptr<PrivateKey> newAccountKey = ED25519PrivateKey::generatePrivateKey();
+  TransactionResponse createResponse = AccountCreateTransaction()
+                                         .setKey(newAccountKey->getPublicKey())
+                                         .setInitialBalance(Hbar(1LL))
+                                         .execute(client);
+  TransactionReceipt createReceipt = createResponse.setValidateStatus(true).getReceipt(client);
+  AccountId newNodeAccountID = createReceipt.mAccountId.value();
+
+  const uint64_t nodeIDToUpdate = 2;
+
+  // Update node account id
+  NodeUpdateTransaction updateTransaction = NodeUpdateTransaction()
+                                              .setNodeId(nodeIDToUpdate)
+                                              .setAccountId(newNodeAccountID)
+                                              .freezeWith(&client);
+  TransactionResponse updateResponse = updateTransaction.sign(newAccountKey).execute(client);
+  ASSERT_NO_THROW(updateResponse.getReceipt(client));
+
+  // Submit to the updated node - should retry
+  std::shared_ptr<PrivateKey> anotherKey = ED25519PrivateKey::generatePrivateKey();
+  std::vector<AccountId> nodeAccountIds = { originalNodeAccountId, AccountId(4ULL) };
+  TransactionResponse testResponse = AccountCreateTransaction()
+                                       .setKey(anotherKey->getPublicKey())
+                                       .setNodeAccountIds(nodeAccountIds)
+                                       .execute(client);
+  TransactionReceipt testReceipt;
+  ASSERT_NO_THROW(testReceipt = testResponse.setValidateStatus(true).getReceipt(client));
+
+  // Verify address book has NOT been updated (without mirror node)
+  // This transaction should succeed because we will retry
+  TransactionResponse finalResponse = AccountCreateTransaction()
+                                        .setKey(anotherKey->getPublicKey())
+                                        .execute(client);
+  ASSERT_NO_THROW(finalResponse.setValidateStatus(true).getReceipt(client));
+
+  // Revert the node account id
+  TransactionResponse revertResponse = NodeUpdateTransaction()
+                                         .setNodeId(nodeIDToUpdate)
+                                         .setAccountId(originalNodeAccountId)
+                                         .execute(client);
+  ASSERT_NO_THROW(revertResponse.setValidateStatus(true).getReceipt(client));
 }

@@ -889,6 +889,7 @@ src/proto/*.proto
 /proto/event
 /proto/sdk
 /proto/platform
+/proto/block
 
 ### Ignore Generated Package Files
 package
