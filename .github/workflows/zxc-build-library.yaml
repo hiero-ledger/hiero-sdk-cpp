@@ -180,10 +180,10 @@ jobs:
 
       - name: Prepare Hiero Solo
         id: solo
-        uses: hiero-ledger/hiero-solo-action@6a1a77601cf3e69661fb6880530a4edf656b40d5 # v0.14.0
+        uses: hiero-ledger/hiero-solo-action@9471711c98a56179def6123e1040ab6c2e668881 # v0.14.0
         with:
           installMirrorNode: true
-          hieroVersion: v0.65.0
+          hieroVersion: v0.68.1-rc.1
           
 
       - name: Start CTest suite (Debug)
