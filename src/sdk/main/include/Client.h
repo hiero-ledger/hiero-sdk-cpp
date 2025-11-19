@@ -358,6 +358,14 @@ public:
   Client& setNetworkFromAddressBook(const NodeAddressBook& addressBook);
 
   /**
+   * Update the address book from the network immediately.
+   * This method is typically called when a node returns INVALID_NODE_ACCOUNT.
+   * The update is done synchronously to ensure the network has the latest nodes
+   * before retrying with another node.
+   */
+  void updateAddressBook();
+
+  /**
    * Set the consensus network with which this Client should communicate.
    *
    * @param network The map IPs and ports to the account IDs of the consensus nodes with which this Client should
