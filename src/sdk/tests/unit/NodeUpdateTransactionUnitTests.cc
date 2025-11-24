@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
+#include "AccountId.h"
 #include "ED25519PrivateKey.h"
 #include "NodeUpdateTransaction.h"
+#include "TransactionId.h"
+#include "exceptions/IllegalStateException.h"
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
@@ -226,3 +229,60 @@ TEST_F(NodeUpdateTransactionUnitTests, DeleteGrpcWebProxyEndpoint)
   // Then
   ASSERT_FALSE(transaction.getGrpcWebProxyEndpoint().has_value());
 }
+
+//-----
+TEST_F(NodeUpdateTransactionUnitTests, SetAndGetNodeId)
+{
+  // Given
+  uint64_t nodeId = 5;
+
+  // When
+  transaction.setNodeId(nodeId);
+
+  // Then
+  ASSERT_EQ(transaction.getNodeId(), nodeId);
+}
+
+//-----
+TEST_F(NodeUpdateTransactionUnitTests, ThrowsWhenNodeIdNotSet)
+{
+  // Given
+  NodeUpdateTransaction tx;
+  tx.setTransactionId(TransactionId::generate(AccountId(2)));
+  tx.setNodeAccountIds({ AccountId(3) });
+  tx.setAccountId(AccountId(100));
+  tx.setDescription("Test node");
+
+  // When / Then
+  EXPECT_THROW(tx.freeze(),IllegalStateException);
+}
+
+//-----
+TEST_F(NodeUpdateTransactionUnitTests, SucceedsWhenNodeIdIsSet)
+{
+  // Given
+  NodeUpdateTransaction tx;
+  tx.setTransactionId(TransactionId::generate(AccountId(2)));
+  tx.setNodeAccountIds({ AccountId(3) });
+  tx.setNodeId(5);
+  tx.setAccountId(AccountId(100));
+
+  // When / Then - should not throw
+  EXPECT_NO_THROW(tx.freeze());
+}
+
+//-----
+TEST_F(NodeUpdateTransactionUnitTests, NodeIdSetToZeroIsValid)
+{
+  // Given - nodeId can legitimately be 0 if explicitly set
+  NodeUpdateTransaction tx;
+  tx.setTransactionId(TransactionId::generate(AccountId(2)));
+  tx.setNodeAccountIds({ AccountId(3) });
+  tx.setNodeId(0);
+  tx.setAccountId(AccountId(100));
+
+  // When / Then - should not throw even with nodeId = 0
+  EXPECT_NO_THROW(tx.freeze());
+  EXPECT_EQ(tx.getNodeId(), 0);
+}
+

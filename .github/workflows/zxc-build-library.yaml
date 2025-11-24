@@ -49,15 +49,15 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
 
       - name: Run Clang-Format
-        uses: jidicula/clang-format-action@4726374d1aa3c6aecf132e5197e498979588ebc8 # v4.15.0
+        uses: jidicula/clang-format-action@6cd220de46c89139a0365edae93eee8eb30ca8fe # v4.16.0
         with:
           clang-format-version: "17"
           check-path: ${{ matrix.check-path }}
@@ -76,7 +76,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
 
@@ -122,12 +122,12 @@ jobs:
           echo "exec=${CG_EXEC}" >> "${GITHUB_OUTPUT}"
 
       - name: Checkout Code
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           submodules: true
 
       - name: Use Node.js 22
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version: 22
 
@@ -140,12 +140,12 @@ jobs:
         run: mkdir -p "${{ github.workspace }}/b/vcpkg_cache"
 
       - name: Install CMake & Ninja
-        uses: lukka/get-cmake@2ecc21724e5215b0e567bc399a2602d2ecb48541 # v4.02
+        uses: step-security/get-cmake@84feda99b925eb830227d4cd02c07991a323306f # v4.1.2
         with:
           useCloudCache: true
 
       - name: Setup VCPkg
-        uses: lukka/run-vcpkg@5e0cab206a5ea620130caf672fce3e4a6b5666a1 # v11.5
+        uses: step-security/run-vcpkg@48490398616947b0df92dc1b24aab5339a66f9f0 # v11.5.2
         with:
           binaryCachePath: ${{ github.workspace }}/b/vcpkg_cache
 
@@ -180,11 +180,10 @@ jobs:
 
       - name: Prepare Hiero Solo
         id: solo
-        uses: hiero-ledger/hiero-solo-action@be37932d21b1a1deaaca6ce8d7fc28a7251cfb56 # v0.13.0
+        uses: hiero-ledger/hiero-solo-action@6a1a77601cf3e69661fb6880530a4edf656b40d5 # v0.14.0
         with:
           installMirrorNode: true
           hieroVersion: v0.65.0
-          mirrorNodeVersion: v0.136.1
           
 
       - name: Start CTest suite (Debug)
@@ -200,7 +199,7 @@ jobs:
 
       - name: Attach Artifact
         if: github.event.pull_request.merged == true
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
@@ -216,12 +215,12 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0
 
@@ -231,7 +230,7 @@ jobs:
           msbuild-architecture: x64
 
       - name: Setup-perl
-        uses: shogo82148/actions-setup-perl@5796a908661aa68fc0a5b8f55c6791af2376d72e # v1.35.0
+        uses: shogo82148/actions-setup-perl@f9f0bf89e0d19ddbabb2f40d43db2e944bce7d2f # v1.36.0
         with:
           perl-version: "5.32"
           distribution: strawberry
@@ -262,7 +261,7 @@ jobs:
           Add-Content -Path $env:GITHUB_OUTPUT -Value "short=$short"
 
       - name: Attach Artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
@@ -277,12 +276,12 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0
 
@@ -305,7 +304,7 @@ jobs:
         run: echo "short=$(echo -n "${{ github.sha }}" | cut -c1-8)" >> $GITHUB_OUTPUT
 
       - name: Attach Artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/

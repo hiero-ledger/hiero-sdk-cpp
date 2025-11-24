@@ -28,12 +28,12 @@ namespace Hiero
 //-----
 struct Client::ClientImpl
 {
-  // Pointer to the network object that contains all processing for sending/receiving information to/from a Hiero
-  // network.
+  // Pointer to the network object that contains all processing for
+  // sending/receiving information to/from a Hiero network.
   std::shared_ptr<internal::Network> mNetwork = nullptr;
 
-  // Pointer to the MirrorNetwork object that contains the mirror nodes for sending/receiving information to/from a
-  // Hiero mirror node.
+  // Pointer to the MirrorNetwork object that contains the mirror nodes for
+  // sending/receiving information to/from a Hiero mirror node.
   std::shared_ptr<internal::MirrorNetwork> mMirrorNetwork = nullptr;
 
   // The Logger used by this Client.
@@ -48,7 +48,8 @@ struct Client::ClientImpl
   // Pointer to the private key this Client should use to sign transactions.
   std::shared_ptr<PrivateKey> mOperatorPrivateKey = nullptr;
 
-  // Pointer to the public key associated with the private key that this Client should use to sign transactions.
+  // Pointer to the public key associated with the private key that this Client
+  // should use to sign transactions.
   std::shared_ptr<PublicKey> mOperatorPublicKey = nullptr;
 
   // The signing function this Client should use to sign transactions.
@@ -60,27 +61,33 @@ struct Client::ClientImpl
   // The maximum payment this Client is willing to make for queries.
   std::optional<Hbar> mMaxQueryPayment;
 
-  // The transaction ID regeneration policy to utilize when transactions submitted by this Client receive a
-  // TRANSACTION_EXPIRED response from the network.
+  // The transaction ID regeneration policy to utilize when transactions
+  // submitted by this Client receive a TRANSACTION_EXPIRED response from the
+  // network.
   std::optional<bool> mTransactionIdRegenerationPolicy;
 
-  // The maximum length of time this Client should wait to get a response after sending a request to the network.
+  // The maximum length of time this Client should wait to get a response after
+  // sending a request to the network.
   std::chrono::system_clock::duration mRequestTimeout = DEFAULT_REQUEST_TIMEOUT;
 
-  // The maximum number of attempts a request sent by this Client will attempt to send a request. A manually-set
-  // maximum number of attempts in the request will override this.
+  // The maximum number of attempts a request sent by this Client will attempt
+  // to send a request. A manually-set maximum number of attempts in the request
+  // will override this.
   std::optional<unsigned int> mMaxAttempts;
 
-  // The minimum length of time a request sent to a Node by this Client will wait before attempting to send a request
-  // again after a failure to the same Node. A manually-set minimum backoff in the request will override this.
+  // The minimum length of time a request sent to a Node by this Client will
+  // wait before attempting to send a request again after a failure to the same
+  // Node. A manually-set minimum backoff in the request will override this.
   std::optional<std::chrono::system_clock::duration> mMinBackoff;
 
-  // The maximum length of time a request sent to a Node by this Client will wait before attempting to send a request
-  // again after a failure to the same Node. A manually-set maximum backoff in the request will override this.
+  // The maximum length of time a request sent to a Node by this Client will
+  // wait before attempting to send a request again after a failure to the same
+  // Node. A manually-set maximum backoff in the request will override this.
   std::optional<std::chrono::system_clock::duration> mMaxBackoff;
 
-  // The maximum amount of time this Client should spend trying to execute a request before giving up on that request
-  // attempt. A manually-set gRPC deadline in the request will override this.
+  // The maximum amount of time this Client should spend trying to execute a
+  // request before giving up on that request attempt. A manually-set gRPC
+  // deadline in the request will override this.
   std::optional<std::chrono::system_clock::duration> mGrpcDeadline;
 
   // The period of time to wait between network updates.
@@ -89,15 +96,17 @@ struct Client::ClientImpl
   // Should this Client automatically validate entity checksums?
   bool mAutoValidateChecksums = false;
 
-  // Has this Client made its initial network update? This is utilized in case the user updates the network update
-  // period before the initial update is made, as it prevents the update period from being overwritten.
+  // Has this Client made its initial network update? This is utilized in case
+  // the user updates the network update period before the initial update is
+  // made, as it prevents the update period from being overwritten.
   bool mMadeInitialNetworkUpdate = false;
 
-  // Is this Client trying to cancel its network update? Used to signal to the network update thread that it should
-  // shut down.
+  // Is this Client trying to cancel its network update? Used to signal to the
+  // network update thread that it should shut down.
   bool mCancelUpdate = false;
 
-  // The time at which this Client started waiting to update. This is needed in case Clients get moved.
+  // The time at which this Client started waiting to update. This is needed in
+  // case Clients get moved.
   std::chrono::system_clock::time_point mStartNetworkUpdateWaitTime;
 
   // The mutex for updating this Client.
@@ -290,7 +299,8 @@ Client Client::fromConfig(const nlohmann::json& json)
       throw std::invalid_argument("Invalid argument for operator");
     }
 
-    // If an operator is configured, an AccountId and PrivateKey must also be configured.
+    // If an operator is configured, an AccountId and PrivateKey must also be
+    // configured.
     if (!jsonOperator.contains("accountId") || !jsonOperator.contains("privateKey"))
     {
       throw std::invalid_argument("An operator must have an accountId and privateKey");
@@ -337,7 +347,8 @@ Client Client::fromConfig(const nlohmann::json& json)
       client.setMirrorNetwork(mirrorNetwork);
     }
 
-    // If the mirror network tag specifies a name, get the mirror network for that name.
+    // If the mirror network tag specifies a name, get the mirror network for
+    // that name.
     else if (jsonMirrorNetwork.is_string())
     {
       try
@@ -724,7 +735,8 @@ Client& Client::setNetworkUpdatePeriod(const std::chrono::system_clock::duration
   // Update the network update period.
   mImpl->mNetworkUpdatePeriod = update;
 
-  // If this was called before the initial network update was made, the initial update should be skipped.
+  // If this was called before the initial network update was made, the initial
+  // update should be skipped.
   mImpl->mMadeInitialNetworkUpdate = true;
 
   // Start the thread with the new network update period.
@@ -805,6 +817,19 @@ bool Client::isVerifyCertificates() const
 Client& Client::setRequestTimeout(const std::chrono::system_clock::duration& timeout)
 {
   std::unique_lock lock(mImpl->mMutex);
+
+  // Validate that requestTimeout >= grpcDeadline
+  const std::chrono::system_clock::duration currentGrpcDeadline =
+    mImpl->mGrpcDeadline.has_value() ? mImpl->mGrpcDeadline.value() : DEFAULT_GRPC_DEADLINE;
+
+  if (timeout < currentGrpcDeadline)
+  {
+    throw std::invalid_argument(
+      "Request timeout (" + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(timeout).count()) +
+      " ms) must be greater than or equal to gRPC deadline (" +
+      std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(currentGrpcDeadline).count()) + " ms)");
+  }
+
   mImpl->mRequestTimeout = timeout;
   return *this;
 }
@@ -877,6 +902,16 @@ std::optional<std::chrono::system_clock::duration> Client::getMaxBackoff() const
 Client& Client::setGrpcDeadline(const std::chrono::system_clock::duration& deadline)
 {
   std::unique_lock lock(mImpl->mMutex);
+
+  // Validate that grpcDeadline <= requestTimeout
+  if (deadline > mImpl->mRequestTimeout)
+  {
+    throw std::invalid_argument(
+      "gRPC deadline (" + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(deadline).count()) +
+      " ms) must be less than or equal to request timeout (" +
+      std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(mImpl->mRequestTimeout).count()) + " ms)");
+  }
+
   mImpl->mGrpcDeadline = deadline;
   return *this;
 }
@@ -1050,7 +1085,8 @@ void Client::startNetworkUpdateThread(const std::chrono::system_clock::duration&
 {
   mImpl->mStartNetworkUpdateWaitTime = std::chrono::system_clock::now();
   mImpl->mNetworkUpdatePeriod = period;
-  // mImpl->mNetworkUpdateThread = std::make_unique<std::thread>(&Client::scheduleNetworkUpdate, this);
+  // mImpl->mNetworkUpdateThread =
+  // std::make_unique<std::thread>(&Client::scheduleNetworkUpdate, this);
 }
 
 //-----
@@ -1108,7 +1144,8 @@ void Client::cancelScheduledNetworkUpdate()
     mImpl->mNetworkUpdateThread->join();
   }
 
-  // The thread is finished executing, so it's safe to reset the network update thread.
+  // The thread is finished executing, so it's safe to reset the network update
+  // thread.
   mImpl->mNetworkUpdateThread = nullptr;
 
   // The update thread is closed at this point, reset mCancelUpdate.
@@ -1121,9 +1158,11 @@ void Client::moveClient(Client&& other)
   // Cancel this Client's network update if one exists.
   cancelScheduledNetworkUpdate();
 
-  // If there's a network update thread running in the moved-from Client, it can't be simply moved. Since it still holds
-  // a reference to the moved-from Client, the thread must be stopped and restarted in this Client with the remaining
-  // time so that the Client reference can be updated to this Client and no longer be pointing to a moved-from Client.
+  // If there's a network update thread running in the moved-from Client, it
+  // can't be simply moved. Since it still holds a reference to the moved-from
+  // Client, the thread must be stopped and restarted in this Client with the
+  // remaining time so that the Client reference can be updated to this Client
+  // and no longer be pointing to a moved-from Client.
   if (other.mImpl->mNetworkUpdateThread)
   {
     // Cancel the update.

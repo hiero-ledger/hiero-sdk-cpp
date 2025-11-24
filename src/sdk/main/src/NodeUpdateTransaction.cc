@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "NodeUpdateTransaction.h"
 #include "TransactionId.h"
+#include "exceptions/IllegalStateException.h"
 #include "impl/Node.h"
 #include "impl/Utilities.h"
 
@@ -31,6 +32,7 @@ NodeUpdateTransaction& NodeUpdateTransaction::setNodeId(uint64_t nodeId)
 {
   requireNotFrozen();
   mNodeId = nodeId;
+  mNodeIdSet = true;
   return *this;
 }
 
@@ -148,6 +150,7 @@ void NodeUpdateTransaction::initFromSourceTransactionBody()
   const aproto::NodeUpdateTransactionBody& body = transactionBody.nodeupdate();
 
   mNodeId = body.node_id();
+  mNodeIdSet = true;
   mAccountId = AccountId::fromProtobuf(body.account_id());
 
   if (body.has_description())
@@ -191,6 +194,12 @@ void NodeUpdateTransaction::initFromSourceTransactionBody()
 //-----
 aproto::NodeUpdateTransactionBody* NodeUpdateTransaction::build() const
 {
+  // Validate that nodeId has been explicitly set
+  if (!mNodeIdSet)
+  {
+    throw IllegalStateException("NodeUpdateTransaction requires nodeId to be explicitly set before execution");
+  }
+
   auto body = std::make_unique<aproto::NodeUpdateTransactionBody>();
 
   body->set_node_id(mNodeId);
