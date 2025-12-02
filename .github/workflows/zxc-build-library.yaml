@@ -188,11 +188,11 @@ jobs:
           
 
       - name: Start CTest suite (Debug)
-        run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug --output-on-failure
+        run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug -E NodeUpdateTransactionIntegrationTests --output-on-failure
 
       - name: Start CTest suite (Release)
         if: github.event.pull_request.merged == true
-        run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-release --output-on-failure
+        run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-release -E NodeUpdateTransactionIntegrationTests --output-on-failure
 
       - name: Compute Short SHA
         id: sha
@@ -205,6 +205,86 @@ jobs:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
           if-no-files-found: warn
+
+  node-update-tests:
+    name: Node Update Tests
+    needs: ['lint']
+    runs-on: hiero-client-sdk-linux-medium
+
+    env:
+      HIERO_NETWORK: localhost
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout Code
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          submodules: true
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: 22
+
+      - name: Install Linux Prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libc6-dbg libgtest-dev build-essential
+
+      - name: Ensure Binary Cache Path Exists
+        run: mkdir -p "${{ github.workspace }}/b/vcpkg_cache"
+
+      - name: Install CMake & Ninja
+        uses: step-security/get-cmake@84feda99b925eb830227d4cd02c07991a323306f # v4.1.2
+        with:
+          useCloudCache: true
+
+      - name: Setup VCPkg
+        uses: step-security/run-vcpkg@48490398616947b0df92dc1b24aab5339a66f9f0 # v11.5.2
+        with:
+          binaryCachePath: ${{ github.workspace }}/b/vcpkg_cache
+
+      - name: Convert VCPkg to Full Clone
+        working-directory: vcpkg
+        run: git fetch --unshallow --prune
+
+      - name: CMake Build (Debug)
+        env:
+          VCPKG_BINARY_SOURCES: clear
+        run: |
+          echo "::group::Configure Project"
+          cmake --preset linux-x64-debug -DBUILD_TESTS=ON
+          echo "::endgroup::"
+
+          echo "::group::Build Project"
+          cmake --build -j 4 --preset linux-x64-debug
+          echo "::endgroup::"
+
+      - name: Prepare Hiero Solo for Node Update Tests
+        id: solo-node-update
+        uses: hiero-ledger/hiero-solo-action@fbca3e7a99ce9aa8a250563a81187abe115e0dad # v0.16.0
+        with:
+          hieroVersion: v0.68.0-rc.1
+          installMirrorNode: true
+          mirrorNodeVersion: v0.142.0
+          dualMode: true
+
+      - name: Create env file for Node Update Tests
+        run: |
+          touch .env
+          echo TEST_OPERATOR_KEY="${{ steps.solo-node-update.outputs.privateKey }}" >> .env
+          echo TEST_OPERATOR_ID="${{ steps.solo-node-update.outputs.accountId }}" >> .env
+          echo TEST_NETWORK_NAME="localhost" >> .env
+          echo TEST_RUN_NONFREE="1" >> .env
+          cat .env
+
+      - name: Run Node Update Integration Tests
+        run: |
+          ctest -C Debug --test-dir build/linux-x64-debug -R NodeUpdateTransactionIntegrationTests --output-on-failure
 
   build-windows:
     name: Build (Windows)
