@@ -208,7 +208,6 @@ jobs:
 
   node-update-tests:
     name: Node Update Tests
-    needs: ['lint']
     runs-on: hiero-client-sdk-linux-medium
 
     env:
