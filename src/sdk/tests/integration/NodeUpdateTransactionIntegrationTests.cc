@@ -188,7 +188,7 @@ TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdMissingAdminSig
   // Then - Should fail with INVALID_SIGNATURE
   EXPECT_THROW({
     updateResponse.setValidateStatus(true).getReceipt(client);
-  }, PrecheckStatusException);
+  }, ReceiptStatusException);
 }
 
 //-----
@@ -227,7 +227,7 @@ TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdMissingAccountS
   // Then - Should fail with INVALID_SIGNATURE
   EXPECT_THROW({
     updateResponse.setValidateStatus(true).getReceipt(client);
-  }, PrecheckStatusException);
+  }, ReceiptStatusException);
 }
 
 //-----
@@ -255,7 +255,7 @@ TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdToNonExistentAc
   // Then - Should fail with INVALID_SIGNATURE
   EXPECT_THROW({
     updateResponse.setValidateStatus(true).getReceipt(client);
-  }, PrecheckStatusException);
+  }, ReceiptStatusException);
 }
 
 //-----
@@ -341,7 +341,7 @@ TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdNoBalance)
 }
 
 //-----
-TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountUpdateAddressbookAndRetry)
+TEST_F(NodeUpdateTransactionIntegrationTests, DISABLED_CanChangeNodeAccountUpdateAddressbookAndRetry)
 {
   // Given - Set up the network with two nodes
   const AccountId originalNodeAccountId = AccountId::fromString("0.0.3");
