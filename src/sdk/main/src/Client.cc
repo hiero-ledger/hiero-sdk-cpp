@@ -691,6 +691,7 @@ void Client::updateAddressBook()
     // as execute() will call other Client methods that also need the mutex
     const NodeAddressBook addressBook = AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(*this);
 
+    std::cout << "Node addresses in AB: " << std::endl;
     for (const auto& nodeAddress : addressBook.getNodeAddresses())
     {
       std::cout << "Node address: " << nodeAddress.toString() << std::endl;

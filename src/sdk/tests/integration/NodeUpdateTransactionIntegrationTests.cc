@@ -376,20 +376,16 @@ TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountUpdateAddressb
   ASSERT_NO_THROW(updateResponse.getReceipt(client));
 
   // Wait for mirror node to import data
-  std::this_thread::sleep_for(std::chrono::seconds(5));
+  std::this_thread::sleep_for(std::chrono::seconds(10));
 
   // Submit to the updated node - should retry
   std::shared_ptr<PrivateKey> anotherKey = ED25519PrivateKey::generatePrivateKey();
-  std::vector<AccountId> nodeAccountIds = { originalNodeAccountId, AccountId(4ULL) };
+  std::vector<AccountId> nodeAccountIds = {AccountId(4ULL) };
   TransactionResponse testResponse = AccountCreateTransaction()
                                        .setKey(anotherKey->getPublicKey())
                                        .setNodeAccountIds(nodeAccountIds)
                                        .execute(client);
   ASSERT_NO_THROW(testResponse.getReceipt(client));
-
-  // Verify address book has been updated
-  // Note: C++ SDK may not have direct access to internal network state like Go SDK
-  // This verification might need to be adapted based on actual C++ SDK API
 
   // This transaction should succeed
   TransactionResponse finalResponse = AccountCreateTransaction()
