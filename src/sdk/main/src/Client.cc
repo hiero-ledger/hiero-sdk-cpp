@@ -1103,11 +1103,24 @@ std::shared_ptr<internal::MirrorNetwork> Client::getClientMirrorNetwork() const
 //-----
 void Client::setNetworkFromAddressBookInternal(const NodeAddressBook& addressBook)
 {
-  mImpl->mNetwork->setNetwork(internal::Network::getNetworkFromAddressBook(
+  std::cout << "setNetworkFromAddressBookInternal: Getting network from address book..." << std::endl;
+  
+  auto networkMap = internal::Network::getNetworkFromAddressBook(
     addressBook,
     mImpl->mNetwork->isTransportSecurity() == internal::TLSBehavior::REQUIRE
       ? internal::BaseNodeAddress::PORT_NODE_TLS
-      : internal::BaseNodeAddress::PORT_NODE_PLAIN));
+      : internal::BaseNodeAddress::PORT_NODE_PLAIN);
+  
+  std::cout << "setNetworkFromAddressBookInternal: Got " << networkMap.size() << " entries, setting network..." << std::endl;
+  
+  for (const auto& [address, accountId] : networkMap)
+  {
+    std::cout << "  Network entry: " << address << " -> " << accountId.toString() << std::endl;
+  }
+  
+  mImpl->mNetwork->setNetwork(networkMap);
+  
+  std::cout << "setNetworkFromAddressBookInternal: Done!" << std::endl;
 }
 
 //-----
