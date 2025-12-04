@@ -685,6 +685,7 @@ void Client::updateAddressBook()
   try
   {
     mImpl->mLogger.trace("Updating address book after INVALID_NODE_ACCOUNT response");
+    std::cout << "Updating address book after INVALID_NODE_ACCOUNT response" << std::endl;
 
     // Get the address book - do NOT hold the mutex during query execution
     // as execute() will call other Client methods that also need the mutex

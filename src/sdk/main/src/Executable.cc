@@ -234,6 +234,7 @@ SdkResponseType Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, 
       }
       case ExecutionStatus::RETRY_WITH_ANOTHER_NODE:
       {
+        std::cout << "Received INVALID_NODE_ACCOUNT; updating addressbook and marking node as unhealthy, nodeAccountId: " << node->getAccountId().toString() << " during attempt #" << attempt << std::endl;
         mLogger.trace("Received INVALID_NODE_ACCOUNT; updating addressbook and marking node as unhealthy, nodeAccountId: " +
                       node->getAccountId().toString() + " during attempt #" + std::to_string(attempt));
 
