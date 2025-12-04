@@ -684,11 +684,14 @@ void Client::updateAddressBook()
 {
   try
   {
-    std::unique_lock lock(mImpl->mMutex);
     mImpl->mLogger.trace("Updating address book after INVALID_NODE_ACCOUNT response");
 
-    // Get the address book and set the network based on the address book
+    // Get the address book - do NOT hold the mutex during query execution
+    // as execute() will call other Client methods that also need the mutex
     const NodeAddressBook addressBook = AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(*this);
+
+    // Only acquire the mutex for the actual update
+    std::unique_lock lock(mImpl->mMutex);
     setNetworkFromAddressBookInternal(addressBook);
 
     mImpl->mLogger.trace("Address book successfully updated");

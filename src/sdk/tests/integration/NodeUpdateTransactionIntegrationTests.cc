@@ -341,7 +341,7 @@ TEST_F(NodeUpdateTransactionIntegrationTests, ChangeNodeAccountIdNoBalance)
 }
 
 //-----
-TEST_F(NodeUpdateTransactionIntegrationTests, DISABLED_CanChangeNodeAccountUpdateAddressbookAndRetry)
+TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountUpdateAddressbookAndRetry)
 {
   // Given - Set up the network with two nodes
   const AccountId originalNodeAccountId = AccountId::fromString("0.0.3");
