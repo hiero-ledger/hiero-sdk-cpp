@@ -151,6 +151,20 @@ struct Transaction<SdkRequestType>::TransactionImpl
    * The public key of the trusted batch assembler.
    */
   std::shared_ptr<Key> mBatchKey = nullptr;
+
+  /**
+   * This flag is used to determine whether a Transaction's TransactionId
+   * should be regenerated if the Transaction expires.
+   *
+   * Rules:
+   * 1. If `mTransactionIdManualSet` is `true`, the TransactionId was set manually by the user,
+   *    and it **must not be regenerated**, regardless of client-wide or transaction-specific
+   *    regeneration policies.
+   * 2. If `mTransactionIdManualSet` is `false` (default), the TransactionId **may be regenerated**
+   *    based on the transaction's own `mTransactionIdRegenerationPolicy` or the client's policy.
+   */
+
+  bool mTransactionIdManualSet = false;
 };
 
 //-----
@@ -657,6 +671,7 @@ SdkRequestType& Transaction<SdkRequestType>::setTransactionId(const TransactionI
 {
   requireNotFrozen();
   mImpl->mTransactionId = id;
+  mImpl->mTransactionIdManualSet = true;
   return static_cast<SdkRequestType&>(*this);
 }
 
@@ -1248,9 +1263,13 @@ typename Executable<SdkRequestType, proto::Transaction, proto::TransactionRespon
   }
 
   bool shouldRegenerate = DEFAULT_REGENERATE_TRANSACTION_ID;
+  if (mImpl->mTransactionIdManualSet)
+  {
+    shouldRegenerate = false;
+  }
 
   // Follow this Transaction's policy if it has been explicitly set.
-  if (mImpl->mTransactionIdRegenerationPolicy.has_value())
+  else if (mImpl->mTransactionIdRegenerationPolicy.has_value())
   {
     shouldRegenerate = mImpl->mTransactionIdRegenerationPolicy.value();
   }

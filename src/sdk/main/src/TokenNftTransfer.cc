@@ -54,7 +54,8 @@ TokenNftTransfer TokenNftTransfer::fromProtobuf(const proto::NftTransfer& proto,
 
   if (proto.has_pre_tx_receiver_allowance_hook())
   {
-    transfer.mReceiverHookCall = NftHookCall::fromProtobuf(proto.pre_tx_receiver_allowance_hook(), NftHookType::PRE_HOOK);
+    transfer.mReceiverHookCall =
+      NftHookCall::fromProtobuf(proto.pre_tx_receiver_allowance_hook(), NftHookType::PRE_HOOK);
   }
   else if (proto.has_pre_post_tx_receiver_allowance_hook())
   {
