@@ -364,10 +364,45 @@ TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountUpdateAddressb
                                 .getReceipt(client));
   std::cout << "Node updated!" << std::endl;
 
-  // Wait for mirror node to import data AND for consensus nodes to synchronize
+  // Poll the address book until we see the updated account ID, or timeout after 2 minutes
   std::cout << "Waiting for mirror node to update..." << std::endl;
-  std::this_thread::sleep_for(std::chrono::seconds(5));
-  std::cout << "Mirror node should be good!" << std::endl;
+  const auto startTime = std::chrono::steady_clock::now();
+  const auto timeout = std::chrono::seconds(120);
+  bool addressBookUpdated = false;
+
+  while (std::chrono::steady_clock::now() - startTime < timeout)
+  {
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+
+    try
+    {
+      NodeAddressBook currentAddressBook = AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(client);
+      for (const auto& address : currentAddressBook.getNodeAddresses())
+      {
+        if (address.getNodeId() == nodeIDToUpdate && address.getAccountId() == newNodeAccountId)
+        {
+          std::cout << "Mirror node updated! Node " << nodeIDToUpdate << " now has AccountId "
+                    << newNodeAccountId.toString() << std::endl;
+          addressBookUpdated = true;
+          break;
+        }
+      }
+
+      if (addressBookUpdated)
+      {
+        break;
+      }
+    }
+    catch (...)
+    {
+      // Ignore query errors and keep polling
+    }
+  }
+
+  if (!addressBookUpdated)
+  {
+    std::cout << "WARNING: Mirror node did not update within timeout period" << std::endl;
+  }
 
   // Submit a transaction targeting ONLY node 0.0.4 (which is now invalid)
   // This should trigger INVALID_NODE_ACCOUNT, update the address book to learn that node2 is now different
@@ -399,10 +434,45 @@ TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountUpdateAddressb
                                 .getReceipt(client));
   std::cout << "Node account ID reset!" << std::endl;
 
-  // Wait for mirror node to import data AND for consensus nodes to synchronize
-  std::cout << "Waiting for mirror node to update..." << std::endl;
-  std::this_thread::sleep_for(std::chrono::seconds(5));
-  std::cout << "Mirror node should be good!" << std::endl;
+  // Poll the address book until we see the reverted account ID, or timeout after 2 minutes
+  std::cout << "Waiting for mirror node to update after revert..." << std::endl;
+  const auto revertStartTime = std::chrono::steady_clock::now();
+  const auto revertTimeout = std::chrono::seconds(120);
+  bool revertAddressBookUpdated = false;
+
+  while (std::chrono::steady_clock::now() - revertStartTime < revertTimeout)
+  {
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+
+    try
+    {
+      NodeAddressBook currentAddressBook = AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(client);
+      for (const auto& address : currentAddressBook.getNodeAddresses())
+      {
+        if (address.getNodeId() == nodeIDToUpdate && address.getAccountId() == node2OriginalAccountId)
+        {
+          std::cout << "Mirror node updated after revert! Node " << nodeIDToUpdate << " back to AccountId "
+                    << node2OriginalAccountId.toString() << std::endl;
+          revertAddressBookUpdated = true;
+          break;
+        }
+      }
+
+      if (revertAddressBookUpdated)
+      {
+        break;
+      }
+    }
+    catch (...)
+    {
+      // Ignore query errors and keep polling
+    }
+  }
+
+  if (!revertAddressBookUpdated)
+  {
+    std::cout << "WARNING: Mirror node did not update after revert within timeout period" << std::endl;
+  }
 }
 
 //-----
@@ -468,8 +538,44 @@ TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountWithoutMirrorN
                                 .getReceipt(client));
   std::cout << "Node account ID reset!" << std::endl;
 
-  // Wait for mirror node to import data AND for consensus nodes to synchronize
-  std::cout << "Waiting for mirror node to update..." << std::endl;
-  std::this_thread::sleep_for(std::chrono::seconds(5));
-  std::cout << "Mirror node should be good!" << std::endl;
+  // Poll the address book until we see the reverted account ID, or timeout after 2 minutes
+  std::cout << "Waiting for mirror node to update after revert..." << std::endl;
+  client.setMirrorNetwork({ "127.0.0.1:5600" });
+  const auto revertStartTime2 = std::chrono::steady_clock::now();
+  const auto revertTimeout2 = std::chrono::seconds(120);
+  bool revertAddressBookUpdated2 = false;
+
+  while (std::chrono::steady_clock::now() - revertStartTime2 < revertTimeout2)
+  {
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+
+    try
+    {
+      NodeAddressBook currentAddressBook = AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(client);
+      for (const auto& address : currentAddressBook.getNodeAddresses())
+      {
+        if (address.getNodeId() == nodeIDToUpdate && address.getAccountId() == node2OriginalAccountId)
+        {
+          std::cout << "Mirror node updated after revert! Node " << nodeIDToUpdate << " back to AccountId "
+                    << node2OriginalAccountId.toString() << std::endl;
+          revertAddressBookUpdated2 = true;
+          break;
+        }
+      }
+
+      if (revertAddressBookUpdated2)
+      {
+        break;
+      }
+    }
+    catch (...)
+    {
+      // Ignore query errors and keep polling
+    }
+  }
+
+  if (!revertAddressBookUpdated2)
+  {
+    std::cout << "WARNING: Mirror node did not update after revert within timeout period" << std::endl;
+  }
 }
