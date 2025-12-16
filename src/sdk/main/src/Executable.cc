@@ -123,7 +123,7 @@ SdkResponseType Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, 
   onExecute(client);
 
   // Get the nodes associated with this Executable's node account IDs.
-  const std::vector<std::shared_ptr<internal::Node>> nodes = getNodesFromNodeAccountIds(client);
+  std::vector<std::shared_ptr<internal::Node>> nodes = getNodesFromNodeAccountIds(client);
 
   // The time to timeout.
   const std::chrono::system_clock::time_point timeoutTime = std::chrono::system_clock::now() + timeout;
@@ -131,8 +131,67 @@ SdkResponseType Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, 
   // Keep track of the responses from each node.
   std::unordered_map<std::shared_ptr<internal::Node>, Status> nodeResponses;
 
+  // Flag to track if we need to update the address book, and count how many times we've updated
+  bool needsAddressBookUpdate = false;
+  unsigned int addressBookUpdateCount = 0;
+  constexpr unsigned int MAX_ADDRESS_BOOK_UPDATES = 1; // Only update once per transaction
+
   for (unsigned int attempt = 0U;; ++attempt)
   {
+    // If we flagged that we need an address book update, do it now before this attempt
+    // This uses updateNodeAccountIds which doesn't close connections, so it's safe
+    // But only do it once to avoid infinite loops if the addresses don't match
+    if (needsAddressBookUpdate && addressBookUpdateCount < MAX_ADDRESS_BOOK_UPDATES)
+    {
+      std::cout << "DEBUG: needsAddressBookUpdate=true at attempt " << attempt << std::endl;
+
+      // Only update address book if a mirror network is configured
+      if (!client.getMirrorNetwork().empty())
+      {
+        std::cout << "DEBUG: Mirror network exists, updating address book" << std::endl;
+        const_cast<Client&>(client).updateAddressBook();
+
+        std::cout << "DEBUG: Refetching nodes for mNodeAccountIds: ";
+        for (const auto& id : mNodeAccountIds)
+        {
+          std::cout << id.toString() << " ";
+        }
+        std::cout << std::endl;
+
+        // Refetch nodes after updating address book
+        // The node account IDs may have been updated, so we need to get fresh Node objects
+        try
+        {
+          nodes = getNodesFromNodeAccountIds(client);
+        }
+        catch (const IllegalStateException&)
+        {
+          // If we can't find any nodes for the requested AccountIds after updating the address book,
+          // it means those AccountIds are no longer valid in the network.
+          // Throw PrecheckStatusException with INVALID_NODE_ACCOUNT status.
+          std::cout << "DEBUG: No nodes found for requested AccountIds after address book update - throwing "
+                       "PrecheckStatusException"
+                    << std::endl;
+          throw PrecheckStatusException(Status::INVALID_NODE_ACCOUNT, getTransactionIdInternal());
+        }
+
+        std::cout << "DEBUG: After refetch, nodes.size=" << nodes.size() << std::endl;
+        for (size_t i = 0; i < nodes.size(); ++i)
+        {
+          std::cout << "  Node[" << i << "]: AccountId=" << nodes[i]->getAccountId().toString() << " at "
+                    << nodes[i]->getAddress().toString() << std::endl;
+        }
+
+        nodeResponses.clear();
+      }
+      else
+      {
+        std::cout << "DEBUG: No mirror network, skipping address book update" << std::endl;
+      }
+
+      needsAddressBookUpdate = false;
+      addressBookUpdateCount++;
+    }
     // Get the timeout for the current attempt.
     std::chrono::system_clock::time_point attemptTimeout = std::chrono::system_clock::now() + mCurrentGrpcDeadline;
     if (attemptTimeout > timeoutTime)
@@ -234,20 +293,32 @@ SdkResponseType Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, 
       }
       case ExecutionStatus::RETRY_WITH_ANOTHER_NODE:
       {
-        std::cout << "Received INVALID_NODE_ACCOUNT; updating addressbook and marking node as unhealthy, nodeAccountId: " << node->getAccountId().toString() << " during attempt #" << attempt << std::endl;
-        mLogger.trace("Received INVALID_NODE_ACCOUNT; updating addressbook and marking node as unhealthy, nodeAccountId: " +
+        std::cout << "DEBUG: INVALID_NODE_ACCOUNT from node " << node->getAccountId().toString() << " at "
+                  << node->getAddress().toString() << " during attempt #" << attempt << std::endl;
+        std::cout << "DEBUG: nodes.size=" << nodes.size() << ", nodeResponses.size=" << nodeResponses.size()
+                  << std::endl;
+
+        mLogger.trace("Received INVALID_NODE_ACCOUNT; marking node as unhealthy and scheduling address book update, "
+                      "nodeAccountId: " +
                       node->getAccountId().toString() + " during attempt #" + std::to_string(attempt));
 
         // Mark this node as unhealthy
         node->increaseBackoff();
 
-        // Update address book synchronously before continuing with other nodes
-        // This ensures we have the latest valid nodes before retrying
-        // Using const_cast here because we need to call a non-const method on the client
-        // This is safe because we're only updating internal state that's protected by mutex
-        const_cast<Client&>(client).updateAddressBook();
+        // Check if we've tried all available unique nodes and they all returned INVALID_NODE_ACCOUNT
+        // If we've already updated the address book, there's no point in retrying - throw immediately
+        if (nodeResponses.size() >= nodes.size() && addressBookUpdateCount >= MAX_ADDRESS_BOOK_UPDATES)
+        {
+          std::cout << "DEBUG: All " << nodes.size() << " unique node(s) returned INVALID_NODE_ACCOUNT and address "
+                    << "book already updated - throwing PrecheckStatusException" << std::endl;
+          throw PrecheckStatusException(Status::INVALID_NODE_ACCOUNT, getTransactionIdInternal());
+        }
 
-        // Continue with other nodes (now with updated address book)
+        // Flag that we need to update the address book before the next attempt
+        // This will update node account IDs without closing connections
+        needsAddressBookUpdate = true;
+
+        // Continue with other nodes
         continue;
       }
       // Response isn't ready yet from the network
@@ -492,40 +563,41 @@ std::vector<std::shared_ptr<internal::Node>>
 Executable<SdkRequestType, ProtoRequestType, ProtoResponseType, SdkResponseType>::getNodesFromNodeAccountIds(
   const Client& client) const
 {
-  std::vector<std::shared_ptr<internal::Node>> nodes;
+  std::cout << "DEBUG getNodesFromNodeAccountIds: Looking for " << mNodeAccountIds.size()
+            << " AccountIds, maxAttempts=" << mCurrentMaxAttempts << std::endl;
 
-  // If there are multiple nodes, this Executable should simply try a different node.
+  // First, collect all available nodes from all the requested AccountIds
+  std::vector<std::shared_ptr<internal::Node>> availableNodes;
+
   for (const AccountId& accountId : mNodeAccountIds)
   {
+    std::cout << "  DEBUG: Looking up AccountId " << accountId.toString() << std::endl;
     const std::vector<std::shared_ptr<internal::Node>> nodeProxies =
       client.getClientNetwork()->getNodeProxies(accountId);
 
-    // Verify the node account ID mapped to a valid Node.
-    if (nodeProxies.empty())
-    {
-      continue;
-    }
+    std::cout << "    DEBUG: Found " << nodeProxies.size() << " proxies" << std::endl;
 
-    // If there is a single node account id add all it's corresponding proxies
-    if (mNodeAccountIds.size() == 1)
+    // Add all proxies for this AccountId to the available nodes list
+    if (!nodeProxies.empty())
     {
-      nodes.insert(nodes.end(), nodeProxies.begin(), nodeProxies.end());
-      break;
+      // Pick one random proxy from this AccountId's proxies
+      availableNodes.push_back(
+        nodeProxies.at(internal::Utilities::getRandomNumber(0U, static_cast<unsigned int>(nodeProxies.size()) - 1U)));
     }
-
-    // Pick a random proxy from the proxy list to add to the node list.
-    nodes.push_back(
-      nodeProxies.at(internal::Utilities::getRandomNumber(0U, static_cast<unsigned int>(nodeProxies.size()) - 1U)));
   }
 
-  if (nodes.empty())
+  if (availableNodes.empty())
   {
     throw IllegalStateException(
       "Attempting to fetch node proxies for which are not included in the Client's network. Please review your Client "
       "configuration or the set node account id.");
   }
 
-  return nodes;
+  std::cout << "DEBUG getNodesFromNodeAccountIds: Returning " << availableNodes.size() << " unique nodes" << std::endl;
+
+  // Return the available nodes without duplicating them
+  // The retry logic in getNodeIndexForExecute will cycle through them using attempt % nodes.size()
+  return availableNodes;
 }
 
 //-----

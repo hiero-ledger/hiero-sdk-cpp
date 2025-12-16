@@ -69,6 +69,17 @@ public:
     unsigned int port);
 
   /**
+   * Update node account IDs from an address book without closing connections.
+   * This is used when nodes' account IDs change (e.g., during node update transactions).
+   * Nodes are matched by their IP address, and their AccountIds are updated in place.
+   *
+   * @param addressBook The address book containing the updated node account IDs.
+   * @param port The port to use when matching nodes.
+   * @return A reference to this Network object with updated node account IDs.
+   */
+  Network& updateNodeAccountIds(const NodeAddressBook& addressBook, unsigned int port);
+
+  /**
    * Derived from BaseNetwork. Set the ledger ID of this Network.
    *
    * @param ledgerId The ledger ID to set.
@@ -118,12 +129,13 @@ public:
   [[nodiscard]] unsigned int getNumberOfNodesForRequest() const;
 
   /**
-   * Get a list of node account IDs on which to execute. This will pick 1/3 of the available nodes sorted by health and
+   * Get a list of node account IDs on which to execute. This will return up to maxAttempts nodes sorted by health and
    * expected delay from the network.
    *
+   * @param maxAttempts The maximum number of attempts that will be made for this execution.
    * @return A list of AccountIds that are running nodes on which should be executed.
    */
-  [[nodiscard]] std::vector<AccountId> getNodeAccountIdsForExecute();
+  [[nodiscard]] std::vector<AccountId> getNodeAccountIdsForExecute(unsigned int maxAttempts);
 
   /**
    * Get a map of this Network, mapping the Node addresses to their AccountIds.

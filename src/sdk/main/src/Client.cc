@@ -685,17 +685,10 @@ void Client::updateAddressBook()
   try
   {
     mImpl->mLogger.trace("Updating address book after INVALID_NODE_ACCOUNT response");
-    std::cout << "Updating address book after INVALID_NODE_ACCOUNT response" << std::endl;
 
     // Get the address book - do NOT hold the mutex during query execution
     // as execute() will call other Client methods that also need the mutex
     const NodeAddressBook addressBook = AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(*this);
-
-    std::cout << "Node addresses in AB: " << std::endl;
-    for (const auto& nodeAddress : addressBook.getNodeAddresses())
-    {
-      std::cout << "Node address: " << nodeAddress.toString() << std::endl;
-    }
 
     // Only acquire the mutex for the actual update
     std::unique_lock lock(mImpl->mMutex);
@@ -706,6 +699,7 @@ void Client::updateAddressBook()
   catch (const std::exception& exception)
   {
     mImpl->mLogger.warn(std::string("Failed to update address book: ") + exception.what());
+    throw;
   }
 }
 
@@ -1103,24 +1097,26 @@ std::shared_ptr<internal::MirrorNetwork> Client::getClientMirrorNetwork() const
 //-----
 void Client::setNetworkFromAddressBookInternal(const NodeAddressBook& addressBook)
 {
-  std::cout << "setNetworkFromAddressBookInternal: Getting network from address book..." << std::endl;
+  // First try the port based on TLS setting
+  unsigned int preferredPort = mImpl->mNetwork->isTransportSecurity() == internal::TLSBehavior::REQUIRE
+                                 ? internal::BaseNodeAddress::PORT_NODE_TLS
+                                 : internal::BaseNodeAddress::PORT_NODE_PLAIN;
+
+  // Try to update node account IDs without closing connections
+  mImpl->mNetwork->updateNodeAccountIds(addressBook, preferredPort);
+
+  // If that didn't find any matches, try the other port
+  // (This handles the case where the TLS setting doesn't match the actual ports)
+  auto networkMap = internal::Network::getNetworkFromAddressBook(addressBook, preferredPort);
   
-  auto networkMap = internal::Network::getNetworkFromAddressBook(
-    addressBook,
-    mImpl->mNetwork->isTransportSecurity() == internal::TLSBehavior::REQUIRE
-      ? internal::BaseNodeAddress::PORT_NODE_TLS
-      : internal::BaseNodeAddress::PORT_NODE_PLAIN);
-  
-  std::cout << "setNetworkFromAddressBookInternal: Got " << networkMap.size() << " entries, setting network..." << std::endl;
-  
-  for (const auto& [address, accountId] : networkMap)
+  if (networkMap.empty())
   {
-    std::cout << "  Network entry: " << address << " -> " << accountId.toString() << std::endl;
+    unsigned int alternatePort = (preferredPort == internal::BaseNodeAddress::PORT_NODE_TLS)
+                                   ? internal::BaseNodeAddress::PORT_NODE_PLAIN
+                                   : internal::BaseNodeAddress::PORT_NODE_TLS;
+
+    mImpl->mNetwork->updateNodeAccountIds(addressBook, alternatePort);
   }
-  
-  mImpl->mNetwork->setNetwork(networkMap);
-  
-  std::cout << "setNetworkFromAddressBookInternal: Done!" << std::endl;
 }
 
 //-----

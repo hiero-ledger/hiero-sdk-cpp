@@ -127,6 +127,19 @@ public:
   };
 
   /**
+   * Update the AccountId of this Node.
+   * This is used when a node's account ID changes (e.g., during a node update transaction)
+   * without needing to close and recreate the connection.
+   *
+   * @param accountId The new AccountId for this Node.
+   */
+  inline void setAccountId(const AccountId& accountId)
+  {
+    std::unique_lock lock(*getLock());
+    mAccountId = accountId;
+  };
+
+  /**
    * Get the node certificate hash of this Node.
    *
    * @return The node certificate hash of this Node.

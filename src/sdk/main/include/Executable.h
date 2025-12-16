@@ -273,6 +273,13 @@ protected:
   Executable& operator=(Executable&&) noexcept = default;
 
   /**
+   * Get the maximum number of attempts that have been explicitly set for this Executable.
+   *
+   * @return The maximum number of attempts, or std::nullopt if not set.
+   */
+  [[nodiscard]] inline std::optional<uint32_t> getMaxAttemptsSet() const { return mMaxAttempts; }
+
+  /**
    * Enumeration describing the status of a submitted Executable.
    */
   enum class ExecutionStatus
