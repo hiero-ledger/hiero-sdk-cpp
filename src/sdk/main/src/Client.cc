@@ -1108,7 +1108,7 @@ void Client::setNetworkFromAddressBookInternal(const NodeAddressBook& addressBoo
   // If that didn't find any matches, try the other port
   // (This handles the case where the TLS setting doesn't match the actual ports)
   auto networkMap = internal::Network::getNetworkFromAddressBook(addressBook, preferredPort);
-  
+
   if (networkMap.empty())
   {
     unsigned int alternatePort = (preferredPort == internal::BaseNodeAddress::PORT_NODE_TLS)
