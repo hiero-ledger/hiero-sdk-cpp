@@ -187,12 +187,12 @@ jobs:
           hieroVersion: v0.68.4
           dualMode: true
 
-      # - name: Start CTest suite (Debug)
-      #   run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug -E NodeUpdateTransactionIntegrationTests --output-on-failure
+      - name: Start CTest suite (Debug)
+        run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug -E NodeUpdateTransactionIntegrationTests --output-on-failure
 
-      # - name: Start CTest suite (Release)
-      #   if: github.event.pull_request.merged == true
-      #   run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-release -E NodeUpdateTransactionIntegrationTests --output-on-failure
+      - name: Start CTest suite (Release)
+        if: github.event.pull_request.merged == true
+        run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-release -E NodeUpdateTransactionIntegrationTests --output-on-failure
 
       - name: Run Node Update Integration Tests (Debug)
         run: ${{ steps.cgroup.outputs.exec }} ctest -C Debug --test-dir build/${{ matrix.preset }}-debug -R NodeUpdateTransactionIntegrationTests --output-on-failure
