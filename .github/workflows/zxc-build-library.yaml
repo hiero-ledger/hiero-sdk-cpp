@@ -183,9 +183,9 @@ jobs:
         uses: hiero-ledger/hiero-solo-action@fbca3e7a99ce9aa8a250563a81187abe115e0dad # v0.16.0
         with:
           installMirrorNode: true
+          mirrorNodeVersion: v0.142.0
           hieroVersion: v0.68.4
           dualMode: true
-          
 
       # - name: Start CTest suite (Debug)
       #   run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug -E NodeUpdateTransactionIntegrationTests --output-on-failure
