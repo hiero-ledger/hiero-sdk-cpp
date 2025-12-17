@@ -31,6 +31,7 @@
 #include "FileInfoQuery.h"
 #include "FileUpdateTransaction.h"
 #include "FreezeTransaction.h"
+#include "LambdaSStoreTransaction.h"
 #include "NetworkVersionInfo.h"
 #include "NetworkVersionInfoQuery.h"
 #include "NodeCreateTransaction.h"
@@ -602,6 +603,7 @@ template class Executable<FileDeleteTransaction, proto::Transaction, proto::Tran
 template class Executable<FileInfoQuery, proto::Query, proto::Response, FileInfo>;
 template class Executable<FileUpdateTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 template class Executable<FreezeTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
+template class Executable<LambdaSStoreTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 template class Executable<NetworkVersionInfoQuery, proto::Query, proto::Response, NetworkVersionInfo>;
 template class Executable<NodeCreateTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 template class Executable<NodeDeleteTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
