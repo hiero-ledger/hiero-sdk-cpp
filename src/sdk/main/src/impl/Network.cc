@@ -91,9 +91,6 @@ Network& Network::updateNodeAccountIds(const NodeAddressBook& addressBook, unsig
 
   try
   {
-    std::cout << "DEBUG updateNodeAccountIds: port=" << port << ", addressBook has "
-              << addressBook.getNodeAddresses().size() << " nodes" << std::endl;
-
     // Build a map of full addresses (with port) to new AccountIds from the address book
     std::unordered_map<std::string, AccountId> addressToAccountId;
 
@@ -105,28 +102,19 @@ Network& Network::updateNodeAccountIds(const NodeAddressBook& addressBook, unsig
         {
           // Map the endpoint for local development (e.g., Kubernetes service names to localhost)
           const std::string mappedEndpoint = mapEndpointForLocalDevelopment(endpoint.toString());
-
-          std::cout << "  DEBUG: Mapping " << mappedEndpoint << " -> " << nodeAddress.getAccountId().toString()
-                    << std::endl;
           addressToAccountId[mappedEndpoint] = nodeAddress.getAccountId();
         }
       }
     }
 
-    std::cout << "DEBUG: Built map with " << addressToAccountId.size() << " entries" << std::endl;
-
     // Build a new network map with updated AccountIds
     std::unordered_map<AccountId, std::unordered_set<std::shared_ptr<Node>>> newNetworkMap;
 
     // Update each node's AccountId and add it to the new network map
-    std::cout << "DEBUG: Processing " << getNodes().size() << " existing nodes" << std::endl;
     for (const auto& node : getNodes())
     {
       const std::string nodeAddress = node->getAddress().toString();
       const AccountId currentAccountId = node->getAccountId();
-
-      std::cout << "  DEBUG: Node at " << nodeAddress << " currently has AccountId " << currentAccountId.toString()
-                << std::endl;
 
       // Check if this node's full address is in the address book
       auto it = addressToAccountId.find(nodeAddress);
@@ -136,14 +124,8 @@ Network& Network::updateNodeAccountIds(const NodeAddressBook& addressBook, unsig
 
         if (!(currentAccountId == newAccountId))
         {
-          std::cout << "    DEBUG: Updating AccountId from " << currentAccountId.toString() << " to "
-                    << newAccountId.toString() << std::endl;
           // Update the node's AccountId in place
           node->setAccountId(newAccountId);
-        }
-        else
-        {
-          std::cout << "    DEBUG: AccountId unchanged" << std::endl;
         }
 
         // Add to new network map with updated AccountId
@@ -151,13 +133,10 @@ Network& Network::updateNodeAccountIds(const NodeAddressBook& addressBook, unsig
       }
       else
       {
-        std::cout << "    DEBUG: Not found in address book, keeping current AccountId" << std::endl;
         // Node not in address book, keep it with current AccountId
         newNetworkMap[currentAccountId].insert(node);
       }
     }
-
-    std::cout << "DEBUG: New network map has " << newNetworkMap.size() << " entries" << std::endl;
 
     // Replace the internal network map
     setNetworkInternal(newNetworkMap);
@@ -286,10 +265,6 @@ Network::Network(const std::unordered_map<std::string, AccountId>& network)
   for (const auto& [address, accountId] : network)
   {
     const std::string mappedAddress = mapEndpointForLocalDevelopment(address);
-    if (mappedAddress != address)
-    {
-      std::cout << "DEBUG Network::Network(): Mapped " << address << " -> " << mappedAddress << std::endl;
-    }
     mappedNetwork[mappedAddress] = accountId;
   }
 
