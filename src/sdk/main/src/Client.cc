@@ -680,6 +680,30 @@ Client& Client::setNetworkFromAddressBook(const NodeAddressBook& addressBook)
 }
 
 //-----
+void Client::updateAddressBook()
+{
+  try
+  {
+    mImpl->mLogger.trace("Updating address book after INVALID_NODE_ACCOUNT response");
+
+    // Get the address book - do NOT hold the mutex during query execution
+    // as execute() will call other Client methods that also need the mutex
+    const NodeAddressBook addressBook = AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(*this);
+
+    // Only acquire the mutex for the actual update
+    std::unique_lock lock(mImpl->mMutex);
+    setNetworkFromAddressBookInternal(addressBook);
+
+    mImpl->mLogger.trace("Address book successfully updated");
+  }
+  catch (const std::exception& exception)
+  {
+    mImpl->mLogger.warn(std::string("Failed to update address book: ") + exception.what());
+    throw;
+  }
+}
+
+//-----
 Client& Client::setNetwork(const std::unordered_map<std::string, AccountId>& networkMap)
 {
   std::unique_lock lock(mImpl->mMutex);
@@ -1073,11 +1097,26 @@ std::shared_ptr<internal::MirrorNetwork> Client::getClientMirrorNetwork() const
 //-----
 void Client::setNetworkFromAddressBookInternal(const NodeAddressBook& addressBook)
 {
-  mImpl->mNetwork->setNetwork(internal::Network::getNetworkFromAddressBook(
-    addressBook,
-    mImpl->mNetwork->isTransportSecurity() == internal::TLSBehavior::REQUIRE
-      ? internal::BaseNodeAddress::PORT_NODE_TLS
-      : internal::BaseNodeAddress::PORT_NODE_PLAIN));
+  // First try the port based on TLS setting
+  unsigned int preferredPort = mImpl->mNetwork->isTransportSecurity() == internal::TLSBehavior::REQUIRE
+                                 ? internal::BaseNodeAddress::PORT_NODE_TLS
+                                 : internal::BaseNodeAddress::PORT_NODE_PLAIN;
+
+  // Try to update node account IDs without closing connections
+  mImpl->mNetwork->updateNodeAccountIds(addressBook, preferredPort);
+
+  // If that didn't find any matches, try the other port
+  // (This handles the case where the TLS setting doesn't match the actual ports)
+  auto networkMap = internal::Network::getNetworkFromAddressBook(addressBook, preferredPort);
+
+  if (networkMap.empty())
+  {
+    unsigned int alternatePort = (preferredPort == internal::BaseNodeAddress::PORT_NODE_TLS)
+                                   ? internal::BaseNodeAddress::PORT_NODE_PLAIN
+                                   : internal::BaseNodeAddress::PORT_NODE_TLS;
+
+    mImpl->mNetwork->updateNodeAccountIds(addressBook, alternatePort);
+  }
 }
 
 //-----

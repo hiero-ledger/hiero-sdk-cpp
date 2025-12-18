@@ -13,6 +13,32 @@
 
 namespace Hiero::internal
 {
+namespace
+{
+/**
+ * Map Kubernetes service DNS names to correct ports for local development port-forwarding.
+ * This handles scenarios where network-node2 is port-forwarded to 51211 while network-node1 stays at 50211.
+ * The DNS names resolve to 127.0.0.1 via /etc/hosts entries.
+ *
+ * @param endpoint The endpoint address to potentially map
+ * @return The mapped endpoint with corrected port if local development, otherwise the original endpoint unchanged
+ *
+ * @note This function ONLY maps specific local development Kubernetes service DNS names.
+ *       All other addresses (testnet, mainnet, previewnet, custom networks) pass through unchanged.
+ */
+std::string mapEndpointForLocalDevelopment(const std::string& endpoint)
+{
+  // Map network-node2 from port 50211 to 51211 for local port-forwarding
+  if (endpoint.find("network-node2-svc.solo.svc.cluster.local:50211") != std::string::npos)
+  {
+    return "network-node2-svc.solo.svc.cluster.local:51211";
+  }
+
+  // All other addresses (including network-node1) pass through unchanged
+  return endpoint;
+}
+} // anonymous namespace
+
 //-----
 Network Network::forMainnet()
 {
@@ -48,12 +74,84 @@ std::unordered_map<std::string, AccountId> Network::getNetworkFromAddressBook(co
     {
       if (endpoint.getPort() == port)
       {
-        network[endpoint.toString()] = nodeAddress.getAccountId();
+        // Map the endpoint for local development (e.g., Kubernetes service names to localhost)
+        const std::string mappedEndpoint = mapEndpointForLocalDevelopment(endpoint.toString());
+        network[mappedEndpoint] = nodeAddress.getAccountId();
       }
     }
   }
 
   return network;
+}
+
+//-----
+Network& Network::updateNodeAccountIds(const NodeAddressBook& addressBook, unsigned int port)
+{
+  std::unique_lock lock(*getLock());
+
+  try
+  {
+    // Build a map of full addresses (with port) to new AccountIds from the address book
+    std::unordered_map<std::string, AccountId> addressToAccountId;
+
+    for (const auto& nodeAddress : addressBook.getNodeAddresses())
+    {
+      for (const auto& endpoint : nodeAddress.getEndpoints())
+      {
+        if (endpoint.getPort() == port)
+        {
+          // Map the endpoint for local development (e.g., Kubernetes service names to localhost)
+          const std::string mappedEndpoint = mapEndpointForLocalDevelopment(endpoint.toString());
+          addressToAccountId[mappedEndpoint] = nodeAddress.getAccountId();
+        }
+      }
+    }
+
+    // Build a new network map with updated AccountIds
+    std::unordered_map<AccountId, std::unordered_set<std::shared_ptr<Node>>> newNetworkMap;
+
+    // Update each node's AccountId and add it to the new network map
+    for (const auto& node : getNodes())
+    {
+      const std::string nodeAddress = node->getAddress().toString();
+      const AccountId currentAccountId = node->getAccountId();
+
+      // Check if this node's full address is in the address book
+      auto it = addressToAccountId.find(nodeAddress);
+      if (it != addressToAccountId.end())
+      {
+        const AccountId& newAccountId = it->second;
+
+        if (!(currentAccountId == newAccountId))
+        {
+          // Update the node's AccountId in place
+          node->setAccountId(newAccountId);
+        }
+
+        // Add to new network map with updated AccountId
+        newNetworkMap[newAccountId].insert(node);
+      }
+      else
+      {
+        // Node not in address book, keep it with current AccountId
+        newNetworkMap[currentAccountId].insert(node);
+      }
+    }
+
+    // Replace the internal network map
+    setNetworkInternal(newNetworkMap);
+  }
+  catch (const std::exception& e)
+  {
+    // Log and rethrow with a clearer message
+    throw std::runtime_error(std::string("Error updating node account IDs: ") + e.what());
+  }
+  catch (...)
+  {
+    throw std::runtime_error("Unknown error updating node account IDs");
+  }
+
+  return *this;
 }
 
 //-----
@@ -129,14 +227,13 @@ Network& Network::setTransportSecurity(TLSBehavior tls)
 }
 
 //-----
-std::vector<AccountId> Network::getNodeAccountIdsForExecute()
+std::vector<AccountId> Network::getNodeAccountIdsForExecute(unsigned int maxAttempts)
 {
   std::unique_lock lock(*getLock());
 
-  // Get either the 1/3 most healthy nodes, or the number of most healthy nodes specified by mMaxNodesPerRequest.
-  const std::vector<std::shared_ptr<Node>> nodes = getNumberOfMostHealthyNodes(
-    mMaxNodesPerRequest > 0U ? std::min(mMaxNodesPerRequest, static_cast<unsigned int>(getNodes().size()))
-                             : static_cast<unsigned int>(std::ceil(static_cast<double>(getNodes().size()) / 3.0)));
+  // Get up to maxAttempts number of most healthy nodes
+  const std::vector<std::shared_ptr<Node>> nodes =
+    getNumberOfMostHealthyNodes(std::min(maxAttempts, static_cast<unsigned int>(getNodes().size())));
 
   std::vector<AccountId> accountIds;
   accountIds.reserve(nodes.size());
@@ -163,7 +260,15 @@ std::unordered_map<std::string, AccountId> Network::getNetwork() const
 //-----
 Network::Network(const std::unordered_map<std::string, AccountId>& network)
 {
-  setNetwork(network);
+  // Map the network addresses for local development before setting the network
+  std::unordered_map<std::string, AccountId> mappedNetwork;
+  for (const auto& [address, accountId] : network)
+  {
+    const std::string mappedAddress = mapEndpointForLocalDevelopment(address);
+    mappedNetwork[mappedAddress] = accountId;
+  }
+
+  setNetwork(mappedNetwork);
 }
 
 //-----

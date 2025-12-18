@@ -580,10 +580,20 @@ SdkRequestType& Transaction<SdkRequestType>::freezeWith(const Client* client)
       throw UninitializedException("Client has not been initialized with a valid network.");
     }
 
-    // Have the Client's network generate the node account IDs to which to send
-    // this Transaction.
+    // Determine maxAttempts using the same fallback hierarchy as setExecutionParameters():
+    // 1. Transaction's explicitly set maxAttempts
+    // 2. Client's explicitly set maxAttempts
+    // 3. DEFAULT_MAX_ATTEMPTS constant
+    const std::optional<uint32_t> executableMaxAttempts =
+      Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::
+        getMaxAttemptsSet();
+    const unsigned int maxAttempts = executableMaxAttempts.has_value()      ? executableMaxAttempts.value()
+                                     : client->getMaxAttempts().has_value() ? client->getMaxAttempts().value()
+                                                                            : DEFAULT_MAX_ATTEMPTS;
+
+    // Request up to maxAttempts most healthy nodes from the network for this Transaction
     Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::setNodeAccountIds(
-      client->getClientNetwork()->getNodeAccountIdsForExecute());
+      client->getClientNetwork()->getNodeAccountIdsForExecute(maxAttempts));
   }
 
   // Regenerate the final SignedTransaction protobuf objects.

@@ -385,7 +385,8 @@ const std::unordered_map<proto::ResponseCodeEnum, Status> gProtobufResponseCodeT
    Status::AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN                                                                                          },
   { proto::ResponseCodeEnum::GRPC_WEB_PROXY_NOT_SUPPORTED,                                   Status::GRPC_WEB_PROXY_NOT_SUPPORTED           },
   { proto::ResponseCodeEnum::NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE,             
-   Status::NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE                                                                                     }
+   Status::NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE                                                                                     },
+  { proto::ResponseCodeEnum::NODE_ACCOUNT_HAS_ZERO_BALANCE,                                   Status::NODE_ACCOUNT_HAS_ZERO_BALANCE         },
 };
 
 //-----
@@ -764,10 +765,11 @@ const std::unordered_map<Status, proto::ResponseCodeEnum> gStatusToProtobufRespo
   { Status::CREATING_SYSTEM_ENTITIES,                                       proto::ResponseCodeEnum::CREATING_SYSTEM_ENTITIES               },
   { Status::THROTTLE_GROUP_LCM_OVERFLOW,                                    proto::ResponseCodeEnum::THROTTLE_GROUP_LCM_OVERFLOW            },
   { Status::AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN,                  
-   proto::ResponseCodeEnum::AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN                                                                         },
+   proto::ResponseCodeEnum::AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN                                                                   },
   { Status::GRPC_WEB_PROXY_NOT_SUPPORTED,                                   proto::ResponseCodeEnum::GRPC_WEB_PROXY_NOT_SUPPORTED           },
   { Status::NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE,             
-   proto::ResponseCodeEnum::NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE                                                                                     }
+   proto::ResponseCodeEnum::NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE                                                              },
+  { Status::NODE_ACCOUNT_HAS_ZERO_BALANCE,                                   proto::ResponseCodeEnum::NODE_ACCOUNT_HAS_ZERO_BALANCE   },
 };
 
 //-----
@@ -1125,7 +1127,8 @@ const std::unordered_map<Status, std::string> gStatusToString = {
    "AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN"                                                                                    },
   { Status::GRPC_WEB_PROXY_NOT_SUPPORTED,                                   "GRPC_WEB_PROXY_NOT_SUPPORTED"                      },
   { Status::NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE,             
-   "NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE"                                                                               }
+   "NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE"                                                                               },
+  { Status::NODE_ACCOUNT_HAS_ZERO_BALANCE,                                   "NODE_ACCOUNT_HAS_ZERO_BALANCE"                    },
 };
 
 } // namespace Hiero

@@ -24,7 +24,7 @@ TEST_F(NetworkUnitTests, ConstructForMainnet)
   std::vector<AccountId> nodeAccountIds;
 
   EXPECT_NO_THROW(networkMap = mainnetNetwork.getNetwork());
-  EXPECT_NO_THROW(nodeAccountIds = mainnetNetwork.getNodeAccountIdsForExecute());
+  EXPECT_NO_THROW(nodeAccountIds = mainnetNetwork.getNodeAccountIdsForExecute(DEFAULT_MAX_ATTEMPTS));
 
   EXPECT_GT(networkMap.size(), 0);
   EXPECT_GT(nodeAccountIds.size(), 0);
@@ -43,7 +43,7 @@ TEST_F(NetworkUnitTests, ConstructForTestnet)
   std::vector<AccountId> nodeAccountIds;
 
   EXPECT_NO_THROW(networkMap = testnetNetwork.getNetwork());
-  EXPECT_NO_THROW(nodeAccountIds = testnetNetwork.getNodeAccountIdsForExecute());
+  EXPECT_NO_THROW(nodeAccountIds = testnetNetwork.getNodeAccountIdsForExecute(DEFAULT_MAX_ATTEMPTS));
 
   EXPECT_GT(networkMap.size(), 0);
   EXPECT_GT(nodeAccountIds.size(), 0);
@@ -62,7 +62,7 @@ TEST_F(NetworkUnitTests, ConstructForPreviewnet)
   std::vector<AccountId> nodeAccountIds;
 
   EXPECT_NO_THROW(networkMap = previewnetNetwork.getNetwork());
-  EXPECT_NO_THROW(nodeAccountIds = previewnetNetwork.getNodeAccountIdsForExecute());
+  EXPECT_NO_THROW(nodeAccountIds = previewnetNetwork.getNodeAccountIdsForExecute(DEFAULT_MAX_ATTEMPTS));
 
   EXPECT_GT(networkMap.size(), 0);
   EXPECT_GT(nodeAccountIds.size(), 0);
@@ -87,7 +87,7 @@ TEST_F(NetworkUnitTests, ConstructCustomNetwork)
   std::vector<AccountId> nodeAccountIds;
 
   EXPECT_NO_THROW(networkMap = customNetwork.getNetwork());
-  EXPECT_NO_THROW(nodeAccountIds = customNetwork.getNodeAccountIdsForExecute());
+  EXPECT_NO_THROW(nodeAccountIds = customNetwork.getNodeAccountIdsForExecute(DEFAULT_MAX_ATTEMPTS));
 
   EXPECT_GT(networkMap.size(), 0);
   EXPECT_GT(nodeAccountIds.size(), 0);

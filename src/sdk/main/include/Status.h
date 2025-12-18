@@ -1855,7 +1855,12 @@ enum class Status
   /**
    * An NFT transfers list referenced a token type other than NON_FUNGIBLE_UNIQUE.
    */
-  NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE
+  NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE,
+
+  /**
+   * The node account has a zero balance.
+   */
+  NODE_ACCOUNT_HAS_ZERO_BALANCE,
 };
 
 /**
