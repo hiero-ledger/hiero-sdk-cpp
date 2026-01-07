@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
  *This example demonstrates Hiero's alias-based automatic account creation.
-
+ *
  *An alias is an AccountId derived from a public key. 
  *It can be used in transactions before the account exists on-ledger.
-
+ *
  *Essential steps:
  *- Load an operator account to sign and pay for transactions.
  *- Generate a key pair locally.
  *- Derive an alias AccountId from the public key.
  *- Transfer HBAR to the alias, which creates the account on-ledger.
-
+ *
  *Optional steps (for illustration purposes):
  *- Query the account balance.
  *- Query account info to obtain the permanent numeric AccountId.
-
+ *
  *No explicit CreateAccount transaction is used. 
  *Funding the alias both creates and initializes the account, which can then be referenced by
  *either its alias (public key) or numeric AccountId.
