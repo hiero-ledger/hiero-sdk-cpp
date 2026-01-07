@@ -17,7 +17,7 @@ Beginner Issues assume contributors:
 
 - Can build the SDK locally
 - Understand the basic repository structure
-- Are comfortable reading existing C++ code and familiar with concepts such as async/await
+- Are comfortable reading existing C++ code and familiar with concepts such as `std::async`, `std::future`, and `std::promise`
 - Have completed (or could complete) a Good First Issue
 
 Beginner Issues do **not** assume:
@@ -112,13 +112,12 @@ changes.
 
 ---
 
-## Support & Mentorship
+## Support
 
 Beginner Issues are supported through:
 
 - Community discussion (issues and PR comments)
 - Maintainer guidance when clarification is needed
-- Mentorship available on request
 
 Support is intended to:
 

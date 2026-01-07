@@ -53,7 +53,8 @@ requirements defined in [Good First Issue Guidelines](./guidelines-good-first-is
 
 - Every issue **must** have exactly **one difficulty label**
 - The **candidate** label is optional and temporary
-- When in doubt, **label lower**
+- Use `Good First Issue Candidate` label for expected `Good First Issues' only
+- Label an issue with one level of difficulty higher if in doubt. For example, an intermediate issue that is will likely take more than a few days to complete, could be more safely categorized as `advanced`.
 - Exploratory, investigative, or underspecified issues must **not** be labeled:
   - Good First Issue
   - Beginner
