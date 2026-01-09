@@ -1,5 +1,29 @@
 # Good First Issue Guidelines — Hiero C++ SDK
 
+## How to Use This Document
+
+This guide is here to support maintainers and issue creators who use the **Good First Issue** label.
+
+It offers shared language, examples, and guidance to help:
+
+**Issue creators:**
+- Feel confident when proposing a Good First Issue  
+- Understand what makes a task a good starting point  
+- Decide when another issue category might be a better fit  
+
+**Maintainers:**
+- Apply the Good First Issue label consistently  
+- Keep issue difficulty labels clear and helpful  
+
+This isn’t a rulebook, and it’s not meant to limit what kinds of contributions are welcome.  
+All contributions — big or small — are valuable to the Hiero project.
+
+The Good First Issue label simply highlights tasks that are especially friendly for first-time contributors.
+
+---
+
+## Purpose
+
 Good First Issues (GFIs) are designed to offer a **welcoming, confidence-building first contribution** for new community members.
 
 They help contributors:
@@ -8,14 +32,9 @@ They help contributors:
 - Navigate the repository  
 - Open their first pull request  
 
-The goal is to make the *process* approachable — so new developers can start and succeed with confidence.
+The goal is to make the process approachable, so new developers can start and succeed with confidence.
 
----
-
-## Purpose
-
-For many contributors, this is their first time working in the Hiero SDK codebase.
-
+For many contributors, this is their first time working in the Hiero SDK codebase.  
 Good First Issues help make that experience smoother by offering:
 
 - Clear, well-scoped tasks  
@@ -26,7 +45,7 @@ The focus is on learning the workflow — not on researching, guessing, or filli
 
 ---
 
-## Assumptions
+## What to Expect
 
 Good First Issues are meant to be accessible to contributors who:
 
@@ -37,7 +56,7 @@ Good First Issues are meant to be accessible to contributors who:
 
 Ideally, everything needed to complete the task is included directly in the issue description.
 
-If a task requires a lot of investigation, discovery, or interpretation, it may be a better fit for a different issue label.
+If a task involves a lot of investigation, discovery, or interpretation, it may simply be a better fit for a different issue label — and that’s okay.
 
 ---
 
@@ -45,10 +64,10 @@ If a task requires a lot of investigation, discovery, or interpretation, it may 
 
 A Good First Issue works best when it is:
 
-- ✅ Clearly defined  
-- ✅ **Fully scripted with step-by-step implementation**  
-- ✅ Small in scope (often a single file)  
-- ✅ Easy to review  
+- Clearly defined  
+- **Fully scripted with step-by-step implementation**  
+- Small in scope (often a single file)  
+- Easy to review  
 
 The solution path should feel clear and direct, so contributors can focus on learning the contribution process rather than figuring out what to do.
 
@@ -69,7 +88,7 @@ Most of the time should be spent getting comfortable with the workflow — not s
 
 ---
 
-## Good First Issue Examples
+## Common Good First Issue Examples
 
 These are great fits for Good First Issues when the solution is clearly described:
 
@@ -162,11 +181,11 @@ Sometimes a task feels “easy” because:
 
 For new contributors, even small gaps in context can make an issue feel much harder than expected.
 
-If an issue requires a lot of background knowledge, research, or design decisions, consider labeling it as:
+If an issue would benefit from a bit more detail or clarity, labeling it as:
 
 **Good First Issue — Candidate**
 
-This helps keep the Good First Issue label friendly, clear, and truly beginner-focused.
+can help make sure it’s truly ready for first-time contributors.
 
 ---
 
