@@ -1,88 +1,152 @@
 # Advanced Issue Guidelines — Hiero C++ SDK
 
+## How to Use This Document
+
+This guide is here to support maintainers and issue creators who use the **Advanced** label.
+
+It offers shared language and examples to help:
+
+**Issue creators:**
+- Describe larger, more complex tasks clearly  
+- Set expectations around scope, impact, and collaboration  
+- Provide the right level of context for experienced contributors  
+
+**Maintainers:**
+- Apply the Advanced label consistently  
+- Keep issue difficulty labels clear and helpful  
+
+This isn’t a rulebook, and it’s not meant to limit what kinds of contributions are welcome.  
+All contributions — from small fixes to major improvements — are valuable to the Hiero project.
+
+The Advanced label simply highlights work that involves deeper design, broader impact, and long-term ownership.
+
+---
+
+## Purpose
+
 Advanced Issues represent **high-impact, high-responsibility work**.
 
-They are intended for contributors with deep SDK knowledge who can design, evaluate trade-offs, and own long-term consequences.
+They’re a great fit for contributors who:
+
+- Have deep familiarity with the SDK  
+- Enjoy designing solutions and evaluating trade-offs  
+- Are comfortable thinking about long-term impact  
+
+These issues often involve shaping how the SDK evolves over time.
 
 ---
 
-## Assumptions
+## What to Expect
 
-Advanced Issues assume contributors:
+Advanced Issues are designed for contributors who:
 
-- Have deep SDK and domain expertise
-- Understand performance, concurrency, and ABI concerns
-- Can propose and defend designs
-- Are comfortable with breaking-change discussions
+- Have strong SDK and domain knowledge  
+- Understand performance, concurrency, and ABI considerations  
+- Feel comfortable proposing and discussing designs  
+- Are open to conversations about breaking changes and long-term direction  
 
----
-
-## Characteristics
-
-Advanced Issues:
-
-- Are design-heavy
-- Often affect multiple parts of the SDK
-- Have long-term maintenance impact
-- Require discussion and iteration
+These issues usually involve more discussion, iteration, and collaboration than earlier issue levels.
 
 ---
 
-## Allowed Work
+## How Advanced Issues Usually Feel
 
-### ✅ Allowed
-- Major architectural refactors
-- New subsystems or abstractions
-- Significant performance rework
-- API changes with migration plans
-- Protocol-level or cross-SDK alignment work
+Advanced Issues often:
 
----
+- Are design-heavy  
+- Affect multiple parts of the SDK  
+- Have long-term maintenance impact  
+- Involve discussion, iteration, and review  
 
-## Time & Scope
-
-- ⏱ Estimated time: **3+ days**
-- 📄 Scope: **Multi-module or repository-wide**
-
-Advanced Issues are expected to evolve through discussion and may require
-multiple review cycles.
+They’re a great fit for contributors who enjoy tackling complex problems and shaping the future of the project.
 
 ---
 
-## Example: Well-Formed Advanced Issue
-**Title:** Implement HIP-1261 fee estimate query support in the C++ SDK
+## Common Types of Advanced Work
 
-**Description:**  
-The Hiero C++ SDK does not currently support fee estimate queries as defined in
-HIP-1261. This limits the ability for developers to programmatically estimate
-transaction fees prior to execution.
+Here are some examples of tasks that often fit well at this level:
 
-This issue involves **designing and implementing full SDK support** for
-HIP-1261, including public APIs, internal handling, tests, and examples.
+- Major architectural refactors  
+- New subsystems or abstractions  
+- Significant performance improvements  
+- API changes with migration plans  
+- Protocol-level or cross-SDK alignment work  
 
-The implementation must align with the HIP specification and remain consistent
-with patterns used across other SDKs.
+These efforts usually involve broader coordination and long-term thinking.
 
-Reference design document:  
+---
+
+## Typical Scope & Time
+
+Advanced Issues are usually:
+
+- ⏱ **Estimated time:** 3+ days  
+- 📄 **Scope:** Multiple modules or repository-wide  
+- 🧠 **Challenge level:** Design, iteration, and long-term ownership  
+
+These issues often evolve through discussion and may require multiple review cycles.
+
+---
+
+## Example: A Well-Formed Advanced Issue
+
+### Implement HIP-1261 fee estimate query support in the C++ SDK
+
+The Hiero C++ SDK doesn’t currently support fee estimate queries as defined in  
+HIP-1261. This makes it harder for developers to programmatically estimate
+transaction fees before execution.
+
+This issue focuses on **designing and implementing full SDK support** for HIP-1261, including:
+
+- Public APIs  
+- Internal request/response handling  
+- Tests and examples  
+
+The implementation should align with the HIP specification and stay consistent with patterns used across other SDKs.
+
+**Reference design document:**  
 https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/proposals/hips/hip-1261.md
 
+### Suggested Steps
+
+1. Review HIP-1261 to understand the intended behavior and constraints  
+2. Design the C++ SDK API surface for fee estimate queries  
+3. Implement the feature across the SDK, including:
+   - Public-facing query or transaction classes  
+   - Internal request/response handling  
+   - Validation and error handling  
+4. Add unit and integration tests  
+5. Provide at least one usage example  
+
 ---
 
-## What to Do
+## Support & Collaboration
 
-1. Review HIP-1261 in full and understand the intended behavior and constraints.
-2. Design the C++ SDK API surface needed to expose fee estimate queries.
-3. Implement the feature across the SDK, including:
-   - Public-facing query or transaction classes
-   - Internal request/response handling
-   - Validation and error handling
-4. Add unit and integration tests covering expected behavior.
-5. Provide at least one example demonstrating correct usage.
+Advanced Issues are supported through:
 
+- Design discussions in issues and PRs  
+- Maintainer and community feedback  
+- Iterative review cycles  
+
+Support focuses on:
+
+- Exploring design options  
+- Evaluating trade-offs  
+- Ensuring long-term maintainability  
+
+The goal is to build strong, well-considered solutions together.
+
+---
 
 ## Maintainer Guidance
 
-Label an issue as **Advanced** if it:
-- Requires system-level thinking
-- Has long-term impact
-- Needs experienced review and iteration
+An issue is often a good fit for the **Advanced** label when it:
+
+- Involves system-level thinking  
+- Has long-term impact on the SDK  
+- Benefits from experienced review and iteration  
+
+---
+
+Advanced Issues are about shaping the future of the project —  
+through thoughtful design, collaboration, and long-term vision.
