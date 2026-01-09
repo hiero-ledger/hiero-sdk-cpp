@@ -1,128 +1,177 @@
 # Intermediate Issue Guidelines — Hiero C++ SDK
 
-Intermediate Issues are for contributors who can **own a solution end-to-end**.
+## How to Use This Document
 
-They require investigation, reasoning, and choosing between **multiple valid
-implementation approaches**, while still operating within clearly defined goals.
+This guide is here to support maintainers and issue creators who use the **Intermediate** label.
 
-Intermediate Issues are where contributors begin to **own technical decisions**,
-not just execute instructions.
+It offers shared language, examples, and guidance to help:
 
----
+**Issue creators:**
+- Understand what kinds of tasks usually fit this level  
+- Describe goals clearly while leaving room for implementation choices  
+- Set contributors up for success with the right amount of context  
 
-## Assumptions
+**Maintainers:**
+- Apply the Intermediate label consistently  
+- Keep issue difficulty labels clear and helpful  
 
-Intermediate Issues assume contributors:
+This isn’t a rulebook, and it’s not meant to limit what kinds of contributions are welcome.  
+All contributions — simple or complex — are valuable to the Hiero project.
 
-- Have intermediate C++ knowledge
-- Understand the Hiero SDK architecture at a high level
-- Can navigate and modify multiple related modules
-- Can justify implementation choices in a pull request
-- Are comfortable asking targeted questions and responding to review feedback
-
-Intermediate Issues do **not** assume:
-
-- System or architectural redesign authority
-- Deep protocol or ABI expertise
-- Unbounded exploratory work
+The Intermediate label highlights tasks that encourage deeper problem-solving and technical ownership.
 
 ---
 
-## Characteristics
+## Purpose
 
-Intermediate Issues:
+Intermediate Issues are a great fit for contributors who are ready to **own a solution end-to-end**.
 
-- Are **not fully scripted**
-- Require investigation and understanding of existing behavior
-- May span multiple related components or files
-- Allow contributor judgment in how goals are achieved
-- Require maintainer review of approach, not just correctness
-- Are expected to have multiple reasonable solutions
+These issues often involve:
 
-> **Rule of thumb**  
-> If a contributor must investigate existing behavior, evaluate trade-offs,
-> and choose an implementation approach, it is an Intermediate Issue.
+- Investigating existing behavior  
+- Reasoning about trade-offs  
+- Choosing between multiple valid implementation approaches  
+
+At this level, contributors begin to take ownership of technical decisions — not just follow step-by-step instructions.
 
 ---
 
-## Allowed Work
+## What to Expect
 
-### ✅ Allowed
+Intermediate Issues are designed for contributors who:
 
-- Implementing new SDK features with clearly defined goals
-- Refactoring existing code for maintainability or clarity
-- Localized performance improvements with stated intent
-- Adding new transaction or query types using existing patterns
-- Improving async or concurrency behavior with maintainer guidance
+- Have solid C++ experience  
+- Understand the Hiero SDK architecture at a high level  
+- Can navigate and update multiple related modules  
+- Feel comfortable explaining their implementation choices in a pull request  
+- Are open to feedback and discussion during review  
 
-### ❌ Not Allowed
-
-- Large-scale or cross-SDK redesigns
-- Introducing entirely new subsystems or frameworks
-- Open-ended exploratory work without defined goals
+They don’t require authority over system-wide design or deep protocol expertise — just thoughtful problem-solving within clearly defined goals.
 
 ---
 
-## Time & Scope
+## How Intermediate Issues Usually Feel
+
+Intermediate Issues often:
+
+- Aren’t fully scripted  
+- Involve investigation and understanding of existing behavior  
+- Span multiple related files or components  
+- Leave room for contributor judgment  
+- Encourage discussion about approach, not just correctness  
+- Have more than one reasonable solution  
+
+**Helpful rule of thumb:**  
+If the task involves exploring the codebase, weighing trade-offs, and choosing an approach, it’s probably a good fit for an Intermediate Issue.
+
+---
+
+## Common Types of Intermediate Work
+
+Here are some examples of tasks that often work well at this level:
+
+### Good Fits
+- Implementing new SDK features with clearly defined goals  
+- Refactoring code for maintainability or clarity  
+- Localized performance improvements with a stated intent  
+- Adding new transaction or query types using existing patterns  
+- Improving async or concurrency behavior with guidance  
+
+### Less Ideal Fits
+Some tasks are better suited for broader or more exploratory efforts, such as:
+
+- Large-scale or cross-SDK redesigns  
+- Introducing entirely new subsystems or frameworks  
+- Open-ended work without defined goals  
+
+These contributions are still valuable — they just fit better under different labels.
+
+---
+
+## Typical Scope & Time
+
+Intermediate Issues are usually:
 
 - ⏱ **Estimated time:** 1–3 days  
 - 📄 **Scope:** Multiple related files or modules  
-- 🧠 **Cognitive load:** Investigation, trade-offs, and implementation ownership  
+- 🧠 **Challenge level:** Investigation, trade-offs, and solution ownership  
 
-If an issue is expected to span large portions of the SDK, introduce new
-architectural patterns, or require extended design discussion, it is **not**
-an Intermediate Issue.
+If an issue seems likely to grow into a large redesign or extended design discussion, it may be a better fit for a different category.
 
 ---
 
-## Example: Well-Formed Intermediate Issue
+## Example: A Well-Formed Intermediate Issue
 
 ### Consolidate `std::string_view` usage in selected SDK APIs
 
-Some transaction setter methods in the Hiero C++ SDK accept
-`const std::string&` even though they only **read** the value and immediately
-copy it. In these cases, `std::string_view` is a lighter and more consistent
-choice.
+Some transaction setter methods in the Hiero C++ SDK accept  
+`const std::string&` even though they only **read** the value and immediately copy it.
 
-This issue focuses on **updating a small, specific set of setters** to improve
-API consistency and reduce unnecessary string copies.
+In these cases, `std::string_view` can be a lighter and more consistent choice.
 
-1. Start with the following transaction classes:
-   - `FileUpdateTransaction`
-   - `AccountUpdateTransaction`
+This issue focuses on **updating a small, specific set of setters** to improve API consistency and reduce unnecessary string copies.
 
-2. In these classes, look for setter methods that:
-   - Accept `const std::string&`
-   - Do **not** store the string by reference
-   - Copy the value into an internal field
+**Suggested approach:**
 
-3. Update those setter method signatures to accept:
-   - `std::string_view` instead of `const std::string&`
+1. Start with these transaction classes:
+   - `FileUpdateTransaction`  
+   - `AccountUpdateTransaction`  
 
-4. Update the corresponding `.cpp` implementations as needed.
+2. Look for setter methods that:
+   - Accept `const std::string&`  
+   - Don’t store the string by reference  
+   - Copy the value into an internal field  
 
-5. Ensure all existing behavior remains unchanged.
+3. Update those setters to accept:
+   - `std::string_view` instead  
+
+4. Adjust the corresponding `.cpp` implementations as needed.
+
+5. Make sure all existing behavior remains unchanged.
 
 ---
 
 ## Why This Is an Intermediate Issue
 
-This task requires:
-- Investigating existing code patterns across multiple files
-- Reasoning about string ownership and lifetime
-- Evaluating trade-offs between safety and API consistency
-- Choosing an implementation approach and justifying it in review
+This task involves:
 
-It does **not** require architectural redesign or protocol-level changes.
+- Exploring existing patterns across multiple files  
+- Reasoning about string ownership and lifetime  
+- Weighing API consistency and safety  
+- Choosing an implementation approach and explaining it in review  
+
+It doesn’t require architectural redesign or protocol-level changes — just thoughtful, well-scoped technical decisions.
+
+---
+
+## Support & Collaboration
+
+Intermediate Issues are supported through:
+
+- Community discussion in issues and PRs  
+- Maintainer feedback during review  
+
+Support is focused on:
+
+- Clarifying goals  
+- Discussing trade-offs  
+- Reviewing implementation choices  
+
+The aim is to help contributors grow their confidence and technical ownership.
 
 ---
 
 ## Maintainer Guidance
 
-Label an issue as **Intermediate** if it:
+An issue is often a good fit for the **Intermediate** label when it:
 
-- Requires investigation and trade-off analysis
-- Has multiple reasonable implementation approaches
-- Involves ownership of design decisions within defined goals
-- Remains reviewable in a single pull request
-- Does not introduce new subsystems or architectural patterns
+- Encourages investigation and reasoning  
+- Has multiple reasonable implementation paths  
+- Involves ownership of design decisions within defined goals  
+- Can be reviewed in a single pull request  
+- Doesn’t introduce new subsystems or major architectural changes  
+
+---
+
+Intermediate Issues are about taking the next step —  
+building confidence through deeper problem-solving, with support along the way.
