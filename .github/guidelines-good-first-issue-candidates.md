@@ -1,130 +1,89 @@
-# Good First Issue — Candidate Guidelines  
+# Good First Issue — Candidate  
 **Hiero C++ SDK (`hiero-sdk-cpp`)**
 
-This document defines the purpose and correct usage of the  
-**`good first issue: candidate`** label for the Hiero C++ SDK.
+The **`good first issue: candidate`** label is a simple way to mark issues that *might* be a great starting point for new contributors, but could benefit from a little more clarity or polish first.
 
-The candidate label exists to **protect the integrity of Good First Issues** by
-ensuring issues are fully prepared **before** being advertised to new contributors.
+This means the `good first issue: candidate` label helps first-time contributors have the smoothest possible experience.
 
 ---
 
-## Purpose
+## Why This Label Exists
 
-The **`good first issue: candidate`** label represents a **temporary holding state**.
+Some issues look small and approachable, but may still need:
 
-It indicates that an issue:
+- Clearer instructions  
+- More specific file paths  
+- Better-defined acceptance criteria  
+- A more obvious “next step”  
 
-- Appears small and low risk
-- Might qualify as a Good First Issue
-- **Does not yet meet all Good First Issue requirements**
-
-The label gives maintainers space to refine the issue **without exposing it prematurely**.
-
-> The candidate label is **not** a weaker Good First Issue.  
-> It is a **quality-control gate**.
+The candidate label gives maintainers space to add those details before promoting the issue as a full **Good First Issue**.
 
 ---
 
-## Relationship to Good First Issues
+## How It Helps Contributors
 
-This document **does not redefine** what a Good First Issue is.
+When an issue becomes a Good First Issue, the goal is for contributors to feel:
 
-All standards are defined in:
+- Confident about what to do  
+- Comfortable jumping in  
+- Supported by clear, step-by-step guidance  
 
-[Good First Issue Guidelines](./guidelines-good-first-issues.md)
-
-A candidate issue must be promoted to **Good First Issue** only after it fully satisfies
-**every** requirement in that document.
-
----
-
-## When to Use `good first issue: candidate`
-
-Apply the candidate label when:
-
-- The issue *seems* appropriate for new contributors
-- But one or more required GFI elements are missing or unclear
-
-### Common Reasons
-
-- Exact file paths are missing
-- Exact code changes are not fully specified
-- Acceptance criteria are vague or incomplete
-- It is unclear whether the issue is truly mechanical
-- Maintainers are unsure whether judgment is required
-
-If there is **any doubt**, use the candidate label.
+The candidate stage is just a way to make sure the issue is ready to offer that kind of experience.
 
 ---
 
-## What Candidate Issues MAY Include
+## When the Candidate Label Is Useful
 
-Candidate issues may temporarily include:
+The label can be helpful when:
 
-- TODOs for maintainers to clarify
-- Incomplete acceptance criteria
-- Notes like “we should probably…”
-- Ambiguity around exact implementation steps
+- The task seems beginner-friendly  
+- But some details are still missing  
+- Or the implementation steps aren’t fully clear yet  
 
-These **must be resolved before promotion**.
-
----
-
-## What the Candidate Label Is NOT
-
-The candidate label **must not** be used for issues that will **never** qualify
-as a Good First Issue.
-
-Do **not** apply the candidate label if the issue:
-
-- Requires deciding *what* behavior should be
-- Requires designing APIs or logic
-- Requires investigation or debugging
-- Involves performance work
-- Touches architecture or cross-cutting concerns
-- Would still require interpretation even if refined
-
-If an issue cannot become fully mechanical, it should be labeled:
-**Beginner**, **Intermediate**, or **Advanced** instead.
+It’s a friendly “this is almost ready” marker.
 
 ---
 
-## Promotion Criteria (Candidate → Good First Issue)
+## What Candidate Issues Might Look Like
 
-A candidate issue may be promoted **only when all of the following are true**:
+At this stage, an issue might include things like:
 
-- [ ] Exact files to modify are listed
-- [ ] Exact code or text changes are specified
-- [ ] No interpretation or design decisions are required
-- [ ] Scope is limited to a single file or tight location
-- [ ] Acceptance criteria are objective and testable
-- [ ] A new contributor could complete it without SDK context
-
-If **any** box is unchecked, the issue stays a candidate.
+- Notes for maintainers to clarify later  
+- Rough acceptance criteria  
+- “We should probably…” ideas  
+- Partial instructions  
 
 ---
 
-## Promotion Process
+## A Note on Good First Issue Fit
 
-1. Review the issue against `guidelines_good_first_issues.md`
-2. Add missing details, steps, or acceptance criteria
-3. Confirm the issue is purely mechanical
-4. Remove the `good first issue: candidate` label
-5. Apply the **Good First Issue** label
+Github markets `Good First Issues` to new, open-source developers.
 
----
+This means tasks like:
+- Exploration  
+- Design choices  
+- Debugging  
+- Or deeper system knowledge  
 
-## Maintainer Rule
-
-> The candidate label exists to **protect contributor trust**.
-
-It is always better to delay a Good First Issue  
-than to publish one that turns out to be misleading.
+Those are still valuable contributions — they’re just better suited labelled as `beginner` or `intermediate` or `advanced`.
 
 ---
 
-## Final Rule
+## Moving from Candidate → Good First Issue
 
-> If answering contributor questions would require explaining  
-> *what to change*, the issue is **not ready** to be a Good First Issue.
+When an issue feels:
+
+- Clear  
+- Well-scoped  
+- Easy to follow  
+- And friendly for first-time contributors  
+
+It can be promoted to a **Good First Issue**.
+
+There’s no rush — taking the time to make an issue welcoming is part of what makes the community stronger.
+
+---
+
+## The Big Picture
+
+The `Good First Issue Candidate` label helps make the C++ SDK friendly for *everyone* — especially new contributors.
