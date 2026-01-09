@@ -1,143 +1,166 @@
 # Beginner Issue Guidelines — Hiero C++ SDK
 
-Beginner Issues are the **next step after
-[Good First Issues](./guidelines-good-first-issues.md)**.
+## How to Use This Document
 
-They are intended for contributors who are comfortable with the basic
-contribution workflow and are ready to **read existing code and make small,
-safe decisions**.
+This guide is here to support maintainers and issue creators who use the **Beginner** label.
 
-Beginner Issues remain low risk and localized, but are **not fully scripted**.
+It offers shared language, examples, and guidance to help:
 
----
+**Issue creators:**
+- Feel confident when proposing a Beginner Issue  
+- Understand what kinds of tasks usually fit this label  
+- Decide when another issue category might be a better fit  
 
-## Assumptions
+**Maintainers:**
+- Apply the Beginner label consistently  
+- Keep issue difficulty labels clear and helpful  
 
-Beginner Issues assume contributors:
+This isn’t a rulebook, and it’s not meant to limit what kinds of contributions are welcome.  
+All contributions — simple or complex — are valuable to the Hiero project.
 
-- Can build the SDK locally
-- Understand the basic repository structure
-- Are comfortable reading existing C++ code and familiar with concepts such as `std::async`, `std::future`, and `std::promise`
-- Have completed (or could complete) a Good First Issue
-
-Beginner Issues do **not** assume:
-
-- Deep SDK architecture knowledge
-- API or system design experience
-- Performance, concurrency, or ABI expertise
+The Beginner label simply highlights tasks that are a great next step after a Good First Issue.
 
 ---
 
-## Characteristics
+## Purpose
 
-Beginner Issues:
+Beginner Issues are a natural next step after  
+[Good First Issues](./guidelines-good-first-issues.md).
 
-- Require **some interpretation**, unlike fully scripted
-  [Good First Issues](./guidelines-good-first-issues.md)
-- Require reading existing code to understand local context
-- Allow **small, safe decisions** by the contributor
-- Are broader than GFIs, but still well-scoped and localized
-- Are low to moderate risk
+They’re designed for contributors who feel comfortable with the basic contribution workflow and are ready to:
 
-> **Rule of thumb**  
-> If a contributor must decide *how* to make a change, but not *what the system
-> should be*, it is a Beginner Issue.
+- Read existing code  
+- Understand local context  
+- Make small, safe improvements  
+
+These issues stay low risk and well-scoped, while offering a bit more independence than fully scripted Good First Issues.
 
 ---
 
-## Allowed Work
+## What to Expect
 
-### ✅ Allowed
+Beginner Issues are designed for contributors who:
 
-- Small bug fixes with clear reproduction steps
-- Adding or adjusting specified unit tests that have similar examples
-- Improving error messages or documentation wording
-- Small feature additions with clearly defined behavior
-- Cleaning up localized inconsistencies in a small area of the codebase
+- Can build the SDK locally  
+- Understand the basic repository structure  
+- Are comfortable reading C++ code  
+- Have completed (or could complete) a Good First Issue  
 
-### ❌ Not Allowed
-
-- API redesigns or breaking changes
-- Cross-cutting or multi-system refactors
-- Performance optimization or tuning
-- Architectural or design-heavy changes
+They don’t require deep knowledge of the SDK’s architecture, system design, or performance internals — just curiosity and a willingness to learn.
 
 ---
 
-## Time & Scope
+## How Beginner Issues Usually Feel
+
+Beginner Issues often:
+
+- Involve reading existing code for context  
+- Leave room for small, thoughtful decisions  
+- Focus on a specific area of the codebase  
+- Stay low to moderate in risk  
+
+**Helpful rule of thumb:**  
+If the task involves deciding *how* to make a change (but not redefining what the system does), it’s probably a good fit for a Beginner Issue.
+
+---
+
+## Common Types of Beginner Work
+
+Here are some examples of changes that often work well as Beginner Issues:
+
+### Good Fits
+- Small bug fixes with clear reproduction steps  
+- Adding or adjusting unit tests based on existing examples  
+- Improving error messages or documentation wording  
+- Small feature tweaks with clearly described behavior  
+- Cleaning up minor inconsistencies in a localized area  
+
+### Less Ideal Fits
+Some tasks are better suited for more experienced contributors, such as:
+
+- API redesigns or breaking changes  
+- Large refactors across multiple systems  
+- Performance tuning  
+- Architecture or design-heavy work  
+
+These contributions are still valuable — they just fit better under different issue labels.
+
+---
+
+## Typical Scope & Time
+
+Beginner Issues are usually:
 
 - ⏱ **Estimated time:** 4–8 hours  
 - 📄 **Scope:** 1–3 related files  
-- 🧠 **Challenge:** Local reasoning and small judgment calls  
+- 🧠 **Challenge level:** Local reasoning and small judgment calls  
 
-If an issue is expected to require investigation across multiple subsystems
-or significantly longer than a day, it is **not** a Beginner Issue.
+If an issue seems likely to involve exploring many parts of the codebase or take significantly longer, it may be a better fit for a different category.
 
 ---
 
-## Example: Well-Formed Beginner Issue
+## Example: A Well-Formed Beginner Issue
 
 **Title:** Improve documentation clarity for `FileUpdateTransaction` setters
 
 **Description:**  
-The documentation for several setter methods in
-`FileUpdateTransaction.h` is slightly inconsistent with other transaction
-headers.
+Some of the documentation for setter methods in  
+`FileUpdateTransaction.h` could be clearer and more consistent with other transaction headers.
 
-Review the documentation for:
-- `setContents`
-- `setKeys`
-- `setFileMemo`
+Take a look at:
+- `setContents`  
+- `setKeys`  
+- `setFileMemo`  
 
-Update comments for clarity and consistency without changing method
-signatures or behavior.
+Update the comments for clarity and consistency, without changing method behavior or signatures.
 
 **Scope**
 - `src/sdk/main/include/FileUpdateTransaction.h`
 
 **Acceptance Criteria**
-- Documentation matches the style used in similar transaction headers
-- No functional or API changes are made
-- No new includes or dependencies are introduced
+- Comments match the style used in similar transaction headers  
+- No functional or API changes  
+- No new includes or dependencies  
 
 ### Why this is a Beginner Issue
 
-This issue requires:
-- Reading existing code and related transaction headers
-- Making small judgment calls about documentation consistency
-- Preserving existing behavior and API surface
+This task involves:
 
-It does **not** require architectural knowledge, API design, or cross-module
-changes.
+- Reading existing code and similar headers for reference  
+- Making small, thoughtful documentation improvements  
+- Preserving existing behavior  
+
+It doesn’t require architectural knowledge or cross-module changes.
 
 ---
 
-## Support
+## Support & Collaboration
 
 Beginner Issues are supported through:
 
-- Community discussion (issues and PR comments)
-- Maintainer guidance when clarification is needed
+- Community discussion in issues and PRs  
+- Maintainer guidance when clarification is helpful  
 
-Support is intended to:
+Support is focused on:
 
-- Clarify intent
-- Confirm understanding of existing behavior
-- Review proposed changes
+- Clarifying intent  
+- Confirming understanding of existing behavior  
+- Reviewing proposed changes  
 
-Support does **not** include:
-
-- Designing solutions
-- Making decisions on behalf of the contributor
-- Defining scope that is not already stated
+The goal is to help contributors grow confidence while staying aligned with the project.
 
 ---
 
 ## Maintainer Guidance
 
-Label an issue as **Beginner** if it:
+An issue is often a good fit for the **Beginner** label when it:
 
-- Builds naturally on Good First Issues
-- Requires reading existing code to understand context
-- Allows small, low-risk decisions
-- Has clear intent and well-defined boundaries
+- Builds naturally on Good First Issues  
+- Encourages reading existing code for context  
+- Allows small, low-risk decisions  
+- Has clear intent and well-defined boundaries  
+
+---
+
+Beginner Issues are all about helping contributors take the next step —  
+with just a little more independence, and plenty of support along the way.
