@@ -190,4 +190,4 @@ can help make sure it’s truly ready for first-time contributors.
 ---
 
 Good First Issues are about creating a smooth, supportive entry point into the project.  
-All contributions are welcome — this label simply highlights the best place to start. 💙
+All contributions are welcome — this label simply highlights the best place to start.
