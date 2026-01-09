@@ -1,80 +1,134 @@
 # Issue Difficulty Overview — Hiero C++ SDK
 
-This document summarizes the **issue difficulty and readiness labeling system**
-used in the Hiero C++ SDK.
+## How to Use This Document
 
-The system is designed to:
-- Protect contributor trust
-- Provide clear entry points by skill level
-- Establish a safe progression path from first PR to advanced ownership
+This page gives a simple overview of how issue labels are used in the  
+Hiero C++ SDK repository.
+
+It’s here to help:
+
+**Contributors:**
+- Find issues that match their experience level  
+- Understand what to expect from different types of tasks  
+- Grow their skills over time  
+
+**Maintainers:**
+- Apply labels consistently  
+- Set clear expectations for issue scope and readiness  
+- Make the contribution experience smoother for everyone  
+
+This isn’t a rulebook, and it’s not about limiting who can contribute.  
+It’s about helping people find the right starting point and build confidence along the way.
 
 ---
 
-## Difficulty & Readiness Levels
+## Why We Use Issue Labels
 
-Issues in this repository fall into **one readiness label** and **one difficulty label**.
+The labeling system is designed to:
+
+- Help contributors choose tasks that feel comfortable and achievable  
+- Make expectations around scope and decision-making clearer  
+- Support a natural progression from first PR to deeper ownership  
+- Create a positive, trust-building contribution experience  
+
+Everyone is welcome to contribute — labels simply help guide the journey.
+
+---
+
+## Readiness & Difficulty Labels
+
+Each issue typically has:
+
+- **One difficulty label** (Good First Issue, Beginner, Intermediate, or Advanced)  
+- An optional **readiness label** (Good First Issue: Candidate)  
+
+Together, these give contributors a sense of both:
+- How complex the task is  
+- How ready it is for first-time contributors  
+
+---
 
 ### Readiness Label (Optional, Temporary)
 
-| Label | Purpose |
-|------|--------|
-| **Good First Issue: Candidate** | Holding state for issues that *might* become Good First Issues but are not yet fully specified |
+| Label | What It Means |
+|------|----------------|
+| **Good First Issue: Candidate** | This issue might become a Good First Issue, but could use a little more clarity or polish first |
 
-> The candidate label is **temporary** and must be resolved before contributor self-assignment.
+The candidate label is a friendly “almost ready” marker, giving maintainers time to refine the issue before promoting it.
 
 ---
 
 ### Difficulty Progression
 
-| Level | Purpose | Decision-Making |
+| Level | Focus | What to Expect |
 |------|--------|----------------|
-| **Good First Issue** | Learn the workflow | None |
-| **Beginner** | Learn the codebase | Small, safe |
-| **Intermediate** | Own solutions | Moderate |
-| **Advanced** | Design systems | High |
+| **Good First Issue** | Getting started | Clear, step-by-step tasks |
+| **Beginner** | Building confidence | Small, guided improvements |
+| **Intermediate** | Growing ownership | Flexible, multi-file changes |
+| **Advanced** | Shaping the system | Design-focused, high-impact work |
+
+Each level reflects a gradual increase in:
+
+- Independence  
+- Context  
+- Technical ownership  
 
 ---
 
-## How Labels Work Together
+## How the Labels Work Together
 
-- **`good first issue: candidate`**  
-  → Indicates *potential*, not readiness  
-- **`good first issue`**  
-  → Fully specified, mechanical, safe for first-time contributors  
+- **Good First Issue: Candidate**  
+  → Signals potential, not final readiness  
+
+- **Good First Issue**  
+  → Fully guided, step-by-step, and friendly for first-time contributors  
+
 - **Beginner / Intermediate / Advanced**  
-  → Indicate increasing levels of investigation, judgment, and ownership
+  → Indicate increasing levels of exploration, judgment, and ownership  
 
-An issue **must not** be labeled **Good First Issue** until it satisfies all
-requirements defined in [Good First Issue Guidelines](./guidelines-good-first-issues.md)
-
----
-
-## Labeling Rules
-
-- Every issue **must** have exactly **one difficulty label**
-- The **candidate** label is optional and temporary
-- Use `Good First Issue Candidate` label for expected `Good First Issues' only
-- Label an issue with one level of difficulty higher if in doubt. For example, an intermediate issue that is will likely take more than a few days to complete, could be more safely categorized as `advanced`.
-- Exploratory, investigative, or underspecified issues must **not** be labeled:
-  - Good First Issue
-  - Beginner
-
-If an issue is not yet ready for new contributors, use **candidate** or a higher difficulty.
+The goal is to make it easy for contributors to find issues that match their comfort level and grow from there.
 
 ---
 
-## Promotion Rule
+## Choosing the Right Label
 
-> The **candidate** label exists to protect the Good First Issue bar.
+In general:
 
-Issues may only be promoted from **candidate → Good First Issue**
-after becoming fully mechanical, fully specified, and judgment-free.
+- Each issue has **one main difficulty label**  
+- The candidate label is optional and temporary  
+- If a task feels like it needs more clarity, it can stay in the candidate stage  
+- If an issue feels more complex than expected, it’s okay to choose a higher difficulty level  
+
+Exploratory or open-ended issues usually work best with **Intermediate** or **Advanced** labels, where discussion and design are part of the process.
 
 ---
 
-## Final Rule
+## From Candidate to Good First Issue
 
-> Difficulty and readiness labels exist to **protect contributors**
-> and help them build skills safely and confidently.
+The candidate label exists to help maintainers prepare issues for new contributors.
 
-**Accuracy matters more than volume.**
+Once an issue feels:
+
+- Clear  
+- Well-scoped  
+- Easy to follow  
+- And friendly for first-time contributors  
+
+It can be promoted to a **Good First Issue**.
+
+Taking a little extra time here helps create a smoother, more welcoming experience.
+
+---
+
+## The Big Picture
+
+Issue labels exist to:
+
+- Support contributors  
+- Set clear expectations  
+- Encourage steady skill growth  
+- Build confidence over time  
+
+**Accuracy matters more than volume**, because a great first experience is worth more than a long list of confusing issues.
+
+Everyone is welcome — these labels just help people find the best place to begin.
