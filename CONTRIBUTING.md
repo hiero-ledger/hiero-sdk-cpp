@@ -15,12 +15,11 @@ code contributions.
 
 ## Code Contributions
 
-1. Get Assigned to an [Open C++ SDK Issue](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20state%3Aopen%20no%3Aassignee)
-2. Solve the issue and create a pull request following [Issue Workflow Guide](training/workflow.md)
+1. Get assigned to an [Open C++ SDK Issue](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20state%3Aopen%20no%3Aassignee)
+2. Solve the issue and create a pull request following the [Issue Workflow Guide](training/workflow.md)
 
 Note:
-- The SDK is released under the [Apache 2.0 License][license]. 
-Any code you submit will be released under this license.
+- The SDK is released under the [Apache 2.0 License][license]. Any code you submit will be released under this license.
 
 ## Feature Requests
 
@@ -30,7 +29,7 @@ changes and ask to get assigned.
 1. Visit [C++ SDK Issue](https://github.com/hiero-ledger/hiero-sdk-cpp/issues)
 2. Verify the Feature Request is not already proposed.
 2. Click 'New Issue' and click the Feature Request template.
-**Ensure** the [New Features][label-new-featureg] or [Feature Enhancements][label-feature-enhancement] label is attached.
+**Ensure** the [New Feature][label-new-feature] or [Feature Enhancements][label-feature-enhancement] label is attached.
 
 ### Submitting a Feature Request
 

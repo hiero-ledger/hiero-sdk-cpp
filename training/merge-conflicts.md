@@ -1,6 +1,6 @@
 ## Handling Conflicts
 
-Merge conflicts are caused by working on out-dated versions of the codebase, or another developer merging a change involving similar parts of the codebase to you.
+Merge conflicts are caused by working on outdated versions of the codebase, or another developer merging a change involving similar parts of the codebase to you.
 
 > ⚠️ **Avoid Merge Conflicts** by syncing your branch regularly [Sync Guide](rebasing.md)
 ## Table of Contents
@@ -131,13 +131,16 @@ git push --force-with-lease
 git checkout -b mybranch-backup
 ```
 
-### Common issues
-Message: “No changes – did you forget to use git add?”
-→ This means you resolved the conflicts but forgot to stage them. Run git add . and try again.
+### Common Issues
 
-Message: “Are you sure you want to continue with conflicts?”
-→ This means some conflicts are still unresolved or you did not save the files properly.
-Double-check your files in VS Code, make sure they are saved, and resolve any remaining conflict markers (<<<<<<<, =======, >>>>>>>).
+#### 1. Message: *“No changes – did you forget to use git add?”*  
+- **What it means:** You resolved the conflicts but forgot to stage the files.  
+- **Solution:** Run `git add .` and try again.
+
+#### 2. Message: *“Are you sure you want to continue with conflicts?”*  
+- **What it means:** Some conflicts are still unresolved or the files were not saved properly.  
+- **Solution:** Double-check your files in VS Code, make sure they are saved, and resolve any remaining conflict markers:  
+
 
 
 ### If you need to stop
@@ -170,9 +173,9 @@ git reset --soft HEAD~i
 Note: The number after HEAD~ refers to how many commits you want to go back.
 
 For example:
-HEAD~1 → go back 1 commit
-HEAD~3 → go back 3 commits
-HEAD~5 → go back 5 commits
+- HEAD~1 → go back 1 commit
+- HEAD~3 → go back 3 commits
+- HEAD~5 → go back 5 commits
 
 ### If you are completely stuck
 Sometimes a rebase can get too messy to fix conflict by conflict. In that case, it’s often easier to start fresh:

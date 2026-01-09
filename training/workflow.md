@@ -51,11 +51,9 @@ Forking creates a personal, editable version of the SDK under your own GitHub ac
 
 ### Steps to Fork
 
-1. Navigate to the C++ Repository to Fork:
+Think this can all be consolidated to
 
-Make sure you are logged in to Github then:
-
-- [C++ repository on GitHub](https://github.com/hiero-ledger/hiero-sdk-cpp)
+1. Navigate to the [C++ Repository](https://github.com/hiero-ledger/hiero-sdk-cpp) to fork. Make sure you are logged in to Github.
 
 2. Create Your Fork
 
@@ -87,7 +85,7 @@ Using GitHub Desktop (recommended):
 
 We recommend starting with Good First Issues.
 
-Claim the issue by commenting: /assign and wait.
+Claim the issue by commenting: /assign and wait for assignment.
 
 Key steps:
 1. Find an available `Good First Issue` that interests you and is not yet assigned.
@@ -95,7 +93,7 @@ Key steps:
 - [See Unassigned Good First Issues at the C++ SDK](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Good%20First%20Issue%22%20no%3Aassignee)
 
 2. Comment replying to the issue with: `/assign`
-3. Wait for assignment.
+3. Wait for assignment by a maintainer.
 
 Once assigned, you are ready to work.
 Congratulations!
@@ -194,30 +192,7 @@ Where relevant:
 
 ### Running Tests
 
-To run all SDK tests (for Release or Debug builds):
-
-```sh
-ctest -C [Release|Debug] --test-dir build/<PRESET>
-```
-
-To run all SDK unit tests and test vectors:
-
-```sh
-ctest -C [Release|Debug] --test-dir build/<PRESET> -R "TestVectors|UnitTests"
-```
-
-To run all SDK integration tests:
-
-```sh
-ctest -C [Release|Debug] --test-dir build/<PRESET> -R "IntegrationTests"
-```
-
-All pull requests automatically run CI checks, including:
-- Build validation using CMake presets
-- Formatting and lint checks
-- Unit, integration, and test vector execution (when applicable)
-- Security and best-practice scans
-
+Run unit and integration tests by following [README - Tests](../README.md)
 
 ## Breaking Changes
 
@@ -314,7 +289,7 @@ Set it to draft or 'ready to review' status and submit!
 4. Wait for Checks
 We have several security and quality checks.
 
-Pleae review them and check they all pass.
+Please review them and check they all pass.
 
 If they are failing and you require help, you can:
 - Contact us on [discord](discord.md)
