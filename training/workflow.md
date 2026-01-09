@@ -51,8 +51,6 @@ Forking creates a personal, editable version of the SDK under your own GitHub ac
 
 ### Steps to Fork
 
-Think this can all be consolidated to
-
 1. Navigate to the [C++ Repository](https://github.com/hiero-ledger/hiero-sdk-cpp) to fork. Make sure you are logged in to Github.
 
 2. Create Your Fork
