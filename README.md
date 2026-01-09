@@ -200,14 +200,15 @@ Make sure to set it to the proper build folder of the binaries after building th
 Whether you’re fixing bugs, enhancing features, or improving documentation, your contributions are important — let’s build something great together!
 
 For instructions on how to contribute to this repo, please
-review the [Contributing Guide for C++](CONTRIBUTING.md).
+review the [Contributing Guide for C++](CONTRIBUTING.md) and [Training Guides](training)
 
-More instructions for contribution can be found in the
-[Global Contributing Guide](https://github.com/hiero-ledger/.github/blob/main/CONTRIBUTING.md).
-
-## Help/Community
-
-- Join our [community discussions](https://discord.lfdecentralizedtrust.org/) on discord.
+## Additional Help
+- [Discord](training/discord.md)
+- [Blog Post Guide](training/blogs.md)
+- [Resolving Merge Conflicts Guide](training/merge-conflicts.md)
+- [Signing Guide](training/signing.md)
+- [Rebasing Guide](training/rebasing.md)
+- [Workflow Guide](training/workflow.md)
 
 ## About Users and Maintainers
 
