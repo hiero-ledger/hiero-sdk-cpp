@@ -1,112 +1,174 @@
 # Good First Issue Guidelines — Hiero C++ SDK
 
-Good First Issues (GFIs) exist to provide a **safe, confidence-building first pull request** for new contributors.
+Good First Issues (GFIs) are designed to offer a **welcoming, confidence-building first contribution** for new community members.
 
-They are designed to teach contributors how to:
-- Get Started
-- Navigate the repository
-- Open a successful pull request
+They help contributors:
 
-They are **not** designed to test problem-solving or architectural understanding.
+- Get set up  
+- Navigate the repository  
+- Open their first pull request  
+
+The goal is to make the *process* approachable — so new developers can start and succeed with confidence.
+
+---
+
+## Purpose
+
+For many contributors, this is their first time working in the Hiero SDK codebase.
+
+Good First Issues help make that experience smoother by offering:
+
+- Clear, well-scoped tasks  
+- **Step-by-step implementation instructions**  
+- Predictable, easy-to-verify outcomes  
+
+The focus is on learning the workflow — not on researching, guessing, or filling in missing pieces.
 
 ---
 
 ## Assumptions
 
-A Good First Issue must assume the contributor has:
+Good First Issues are meant to be accessible to contributors who:
 
-- Basic C++ knowledge
-- Basic Git/GitHub familiarity
-- **No prior Hiero or SDK knowledge**
-- **No understanding of SDK architecture**
-- **No context beyond what the issue explicitly provides**
+- Have basic C++ knowledge  
+- Are familiar with Git/GitHub  
+- Are new to Hiero and the SDK  
+- Don’t yet understand the project’s architecture  
 
----
+Ideally, everything needed to complete the task is included directly in the issue description.
 
-## GFI Requirements
-
-A Good First Issue will **generally** be:
-
-- ✅ Fully scripted (exact changes specified)
-- ✅ Mechanical (minimal judgment or decisions)
-- ✅ Narrow in scope (usually one file)
-- ✅ Solvable without architectural understanding
-
-> **Rule of thumb**  
-> If the contributor must decide *what* to change or *how* it should work, it is **not** a Good First Issue.
+If a task requires a lot of investigation, discovery, or interpretation, it may be a better fit for a different issue label.
 
 ---
 
-## Allowed Work
+## What Makes a Good First Issue
 
-### ✅ Allowed
-- Fixing typos in comments, docs, or error messages
-- Renaming variables, methods, or files when exact names are specified
-- Small test fixes with explicit expected behavior
-- Formatting fixes enforced by tooling
-- Updating documentation links with exact URLs provided
-- Improving error messaging
+A Good First Issue works best when it is:
 
-### ❌ Not Allowed
-- Designing APIs
-- Investigating bugs
-- Refactoring for clarity or style
-- Performance changes
+- ✅ Clearly defined  
+- ✅ **Fully scripted with step-by-step implementation**  
+- ✅ Small in scope (often a single file)  
+- ✅ Easy to review  
+
+The solution path should feel clear and direct, so contributors can focus on learning the contribution process rather than figuring out what to do.
+
+**Helpful rule of thumb:**  
+If the issue invites discussion about *what* should change or *how* something should work, it may be better suited for another issue category.
 
 ---
 
-## Time & Scope
+## Typical Scope & Time
 
-- ⏱ Estimated time: **1–4 hours** (most is setting up)
-- 📄 Scope: **Single file or tightly scoped location**
+Good First Issues are intentionally small and focused:
+
+- ⏱ **Estimated time:** ~1–4 hours (setup included)  
+- 📄 **Scope:** One file or a clearly defined area  
+- 🧠 **Type:** Straightforward, mechanical changes  
+
+Most of the time should be spent getting comfortable with the workflow — not solving complex technical problems.
 
 ---
-## Example: Well-Formed Good First Issue
+
+## Good First Issue Examples
+
+These are great fits for Good First Issues when the solution is clearly described:
+
+### Content & Comment Fixes
+- Spelling or grammar corrections  
+- Fixing typos in comments or docs  
+- Replacing text with a provided version  
+
+### Simple Code Changes
+- Renaming variables or methods when exact names are given  
+- Updating error messages  
+- Formatting changes enforced by tooling  
+
+### Tests & Configuration
+- Small test fixes with expected behavior specified  
+- Updating configuration values when the new value is provided  
+
+In all cases, the exact change should be easy to understand and follow.
+
+---
+
+## Less Ideal for Good First Issues
+
+Some tasks are better suited for contributors who already have more context about the codebase, such as:
+
+- Designing APIs  
+- Investigating bugs  
+- Refactoring for style or clarity  
+- Performance improvements  
+- Architectural changes  
+
+These contributions are still valuable — they just fit better under a different issue label.
+
+---
+
+## Writing a Good First Issue
+
+A strong Good First Issue includes:
+
+- A clear description of the task  
+- Exact files and locations to edit  
+- **Step-by-step instructions for the change**  
+- Simple acceptance criteria  
+
+The goal is to make the path from “open the issue” to “open a PR” feel smooth and stress-free.
+
+### Example
 
 **Title:** Fix typo in README (“mantainer” → “maintainer”)
 
 **Description:**  
 In `.README.md` at line 96, there is a spelling mistake.
 
-Current text:
-> `mantainer guide`
+Current text:  
+`mantainer guide`
 
-Should read:
-> `maintainer guide`
+Should be:  
+`maintainer guide`
 
-This issue is to resolve the spelling mistake.
-This change is a **direct text replacement only**. No other edits or tests are required.
+This is a direct text replacement only.
 
 **Files to Change**
 - `.README.md`
 
 **Acceptance Criteria**
-- [ ] The text `mantainer guide` is replaced with `maintainer guide`
-- [ ] No other files or lines are modified
+- [ ] The text is corrected  
+- [ ] No other changes are made  
 
 ---
 
 ## Support & Mentorship
 
-Good First Issues are supported by maintainers and the
-**Good First Issue support team**.
+Maintainers and the **Good First Issue support team** are here to help with:
 
-Support is intended to help contributors:
-- Navigate the repository
-- Understand the contribution workflow
-- Confirm that changes meet the stated acceptance criteria
+- Navigating the repository  
+- Understanding the contribution process  
+- Verifying acceptance criteria  
 
-Support **does not** include:
-- Designing solutions
-- Deciding what should be changed
-- Filling in missing requirements or ambiguity
-
-A Good First Issue must be solvable **using only the information in the issue description**.
+Support is focused on making the contribution experience smooth and welcoming.
 
 ---
 
-## Maintainer Rule
+## Maintainer Guidance
 
-> A mislabeled Good First Issue harms contributor experience.
+Sometimes a task feels “easy” because:
 
-If in doubt, label as **[Good First Issue Candidate](guidelines-good-first-issue-candidates.md)`** instead.
+- You already know the codebase  
+- You understand the architecture  
+- You’ve worked on similar problems before  
+
+For new contributors, even small gaps in context can make an issue feel much harder than expected.
+
+If an issue requires a lot of background knowledge, research, or design decisions, consider labeling it as:
+
+**Good First Issue — Candidate**
+
+This helps keep the Good First Issue label friendly, clear, and truly beginner-focused.
+
+---
+
+Good First Issues are about creating a smooth, supportive entry point into the project.  
+All contributions are welcome — this label simply highlights the best place to start. 💙
