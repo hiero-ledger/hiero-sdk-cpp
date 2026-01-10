@@ -11,9 +11,9 @@ body:
         ---
         ## **Thanks for contributing!** 😊
 
-        We truly appreciate your time and effort. If this is your first open-source contribution, welcome!
+        We truly appreciate your time and effort.
 
-        This template is designed to help you create a **Beginner-friendly issue**:
+        This template is designed to help you create a **Beginner-friendly issue** —
         a moderately easy, well-scoped task that helps contributors build confidence
         and deepen their understanding of the **Hiero C++ SDK** codebase.
 
@@ -32,7 +32,7 @@ body:
 
         Beginner Issues often involve reading existing C++ code, understanding how
         different parts of the SDK fit together, and making small, thoughtful updates
-        that follow existing patterns.
+        that follow established patterns.
 
         The goal is to support skill growth while keeping the experience approachable,
         well-scoped, and enjoyable.
@@ -54,7 +54,6 @@ body:
         > - Making small, thoughtful updates that follow established patterns  
         >
         > You’ll usually see Beginner Issues focused on things like:
-        >
         > - Small, well-scoped improvements to existing tests  
         > - Narrow updates to `src` functionality (e.g. refining helpers or improving readability)  
         > - Documentation or comment clarity  
@@ -62,9 +61,6 @@ body:
         >
         > Other types of contributions — such as brand-new features, broader system changes,
         > or deeper technical work — are just as valuable and may use different labels.
-        >
-        > 📖 Learn more here:  
-        > `docs/maintainers/beginner_issue_guidelines.md`
 
   - type: textarea
     id: issue
@@ -107,7 +103,7 @@ body:
       description: |
         Describe the approach for addressing this issue in a clear and focused way.
 
-        Try to explain what will be changed and what the end result should look like,
+        Explain what will be changed and what the end result should look like,
         keeping the scope straightforward and easy to follow.
       value: |
         Edit here. An example is provided below.
@@ -120,20 +116,21 @@ body:
         <!-- Example (hidden in submission) -->
         ## 💡 Proposed Solution — Example (C++)
 
-        Improve the string representation of `AccountId` by refining the existing
-        `toString()` method (or related helper methods) to clearly show the shard,
-        realm, and account number.
+        Update the existing `toString()` method in `AccountId` to produce a more
+        descriptive and readable string representation that clearly shows the
+        shard, realm, and account number.
 
         The change should:
         - Preserve existing behavior
         - Avoid public API changes
-        - Be consistent with patterns used by other ID classes
+        - Follow formatting patterns used by other ID classes
 
         Example output:
 
         ```
         AccountId{shard=0, realm=0, num=1234}
         ```
+
   - type: textarea
     id: implementation
     attributes:
@@ -159,10 +156,10 @@ body:
 
         - [ ] Locate the `AccountId` class in the `src/` directory
         - [ ] Review the existing `toString()` implementation
-        - [ ] Identify how other ID classes format their string output
-        - [ ] Update the implementation to:
-        > - Clearly display `shard`, `realm`, and `num`
-        > - Use a consistent, readable format
+        - [ ] Review how other ID classes format their string output
+        - [ ] Update `toString()` to:
+              - Clearly display `shard`, `realm`, and `num`
+              - Use a consistent, readable format
         - [ ] Update or extend existing unit tests to validate the new output
         - [ ] Build the SDK and ensure all tests pass
 
@@ -185,21 +182,23 @@ body:
     id: contribution_steps
     attributes:
       label: 📋 Step-by-Step Contribution Guide
-      description: Contribution workflow for new contributors
+      description: Contribution workflow for contributors
       value: |
-        To help your first contribution go as smoothly as possible, we recommend following these steps:
+        To help keep contributions consistent and easy to review, we recommend following these steps:
 
         - [ ] Comment `/assign` to request the issue
         - [ ] Wait for assignment
         - [ ] Fork the repository and create a branch
+        - [ ] Set up the project using the instructions in `README.md`
         - [ ] Make the requested changes
         - [ ] Sign each commit using `-s -S`
         - [ ] Push your branch and open a pull request
 
-        Read [Workflow Guide](docs/training/workflow.md) for step-by-step workflow guidance.
+        Read [Workflow Guide](docs/training/workflow.md) for step-by-step workflow guidance.  
         Read [README.md](README.md) for setup instructions.
 
-        ❗ Pull requests **cannot be merged** without `S` and `s` signed commits. Read [Signing Guide](docs/training/signing.md).
+        ❗ Pull requests **cannot be merged** without `S` and `s` signed commits.  
+        See the [Signing Guide](docs/training/signing.md).
     validations:
       required: true
 
@@ -216,4 +215,3 @@ body:
 
         Whether you need help finding the right file, understanding existing code,
         or confirming your approach — we’re happy to help.
-        

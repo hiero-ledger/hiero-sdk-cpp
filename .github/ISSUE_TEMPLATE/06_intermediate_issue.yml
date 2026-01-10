@@ -80,20 +80,20 @@ body:
   - type: markdown
     attributes:
       value: |
-       <!-- Example (hidden in submission) -->
+        <!-- Example (hidden in submission) -->
         ## 🐞 Problem – Example (C++)
-        
+
         Several query classes in the SDK expose similar configuration methods,
         but `TransactionReceiptQuery` is missing validation that is present
         in other query implementations.
-        
+
         For example, other query classes validate that a transaction ID has
         been set before executing the query, but `TransactionReceiptQuery`
         does not currently perform this check.
-        
+
         This can lead to unclear runtime errors when the query is executed
         without a transaction ID.
-        
+
         Relevant files:
         - `src/sdk/main/include/hiero/query/TransactionReceiptQuery.h`
         - `src/sdk/main/src/query/TransactionReceiptQuery.cc`
@@ -105,10 +105,11 @@ body:
       description: |
         Describe what a good solution would look like.
 
-        You don’t need to provide a full implementation plan, but it helps to explain:
+        While contributors can make reasonable implementation choices, this section
+        should clearly explain the desired behavior and constraints, including:
         - What should change  
         - What should stay the same  
-        - Any important constraints or goals  
+        - Any important constraints, conventions, or goals  
       value: |
         Describe the expected outcome here.
     validations:
@@ -119,13 +120,16 @@ body:
       value: |
         <!-- Example (hidden in submission) -->
         ## 💡 Expected Outcome – Example (C++)
-        
+
         Ensure that `TransactionReceiptQuery` validates that a transaction ID
         has been set before execution.
-        
+
         The change should:
-        - Match the validation behavior used in similar query classes
-        - Produce a clear and actionable error message
+        - Match the validation behavior used in similar query classes  
+          (for example, `TransactionRecordQuery`)
+        - Produce a **clear and actionable error message**, meaning:
+          - The error explains *what is missing*
+          - The error helps the user understand *how to fix it*
         - Avoid changing the public API
         - Not affect successful execution paths
 
@@ -135,6 +139,8 @@ body:
       label: 🧠 Implementation Notes
       description: |
         Share helpful technical context to guide implementation.
+
+        This section is optional but recommended for Intermediate issues.
 
         For example:
         - Which files or modules are likely involved  
@@ -149,16 +155,16 @@ body:
   - type: markdown
     attributes:
       value: |
-       <!-- Example (hidden in submission) -->
+        <!-- Example (hidden in submission) -->
         ## 🧠 Implementation Notes – Example (C++)
-        
+
         Suggested approach:
-        
+
         - Review other query classes that require a transaction ID
           (for example, `TransactionRecordQuery`)
         - Identify where validation is performed before execution
         - Add a similar validation step to `TransactionReceiptQuery`
-        - Ensure the error message is consistent with existing patterns
+        - Ensure the error message format matches existing patterns
         - Add or update a unit test to cover the missing-transaction-ID case
 
   - type: textarea
@@ -188,14 +194,16 @@ body:
         - [ ] Comment `/assign` to request the issue
         - [ ] Wait for assignment
         - [ ] Fork the repository and create a branch
+        - [ ] Set up the project using the instructions in `README.md`
         - [ ] Make the requested changes
         - [ ] Sign each commit using `-s -S`
         - [ ] Push your branch and open a pull request
 
-        Read [Workflow Guide](docs/training/workflow.md) for step-by-step workflow guidance.
+        Read [Workflow Guide](docs/training/workflow.md) for step-by-step workflow guidance.  
         Read [README.md](README.md) for setup instructions.
 
-        ❗ Pull requests **cannot be merged** without `S` and `s` signed commits. Read [Signing Guide](docs/training/signing.md).
+        ❗ Pull requests **cannot be merged** without `S` and `s` signed commits.  
+        See the [Signing Guide](docs/training/signing.md).
     validations:
       required: true
 
