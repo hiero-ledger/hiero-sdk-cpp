@@ -16,7 +16,7 @@ code contributions.
 ## Code Contributions
 
 1. Get assigned to an [Open C++ SDK Issue](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20state%3Aopen%20no%3Aassignee)
-2. Solve the issue and create a pull request following the [Issue Workflow Guide](training/workflow.md)
+2. Solve the issue and create a pull request following the [Issue Workflow Guide](docs/training/workflow.md)
 
 Note:
 - The SDK is released under the [Apache 2.0 License][license]. Any code you submit will be released under this license.
@@ -128,11 +128,11 @@ Here should be listed all of the Pull Requests (PRs) which are part of the relea
 
 ## Blog Posts
 
-We welcome blog posts about the C++ SDK
+We welcome blog posts about the C++ SDK 
 
 For example:
 - Documenting New Releases and Functionality
 - Documenting Contributor Activity
 - Documenting Development Use-cases
 
-[Guide on How to Create Blog Posts](training/blogs.md)
+[Guide on How to Create Blog Posts](docs/training/blogs.md)
