@@ -203,12 +203,12 @@ For instructions on how to contribute to this repo, please
 review the [Contributing Guide for C++](CONTRIBUTING.md) and [Training Guides](training)
 
 ## Additional Help
-- [Discord](training/discord.md)
-- [Blog Post Guide](training/blogs.md)
-- [Resolving Merge Conflicts Guide](training/merge-conflicts.md)
-- [Signing Guide](training/signing.md)
-- [Rebasing Guide](training/rebasing.md)
-- [Workflow Guide](training/workflow.md)
+- [Discord](docs/training/discord.md)
+- [Blog Post Guide](docs/training/blogs.md)
+- [Resolving Merge Conflicts Guide](docs/training/merge-conflicts.md)
+- [Signing Guide](docs/training/signing.md)
+- [Rebasing Guide](docs/training/rebasing.md)
+- [Workflow Guide](docs/training/workflow.md)
 
 ## About Users and Maintainers
 
