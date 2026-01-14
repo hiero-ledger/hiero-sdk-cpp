@@ -30,6 +30,7 @@ add_executable(${TEST_PROJECT_NAME}
         FileInfoQueryIntegrationTests.cc
         FileUpdateTransactionIntegrationTests.cc
         FreezeTransactionIntegrationTests.cc
+        HIP1300IntegrationTests.cc
         HttpClientIntegrationTests.cc
         JSONIntegrationTests.cc
         MirrorNodeContractQueryIntegrationTests.cc
