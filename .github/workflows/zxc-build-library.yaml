@@ -127,7 +127,7 @@ jobs:
           submodules: true
 
       - name: Use Node.js 22
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: 22
 
@@ -140,7 +140,7 @@ jobs:
         run: mkdir -p "${{ github.workspace }}/b/vcpkg_cache"
 
       - name: Install CMake & Ninja
-        uses: step-security/get-cmake@84feda99b925eb830227d4cd02c07991a323306f # v4.1.2
+        uses: step-security/get-cmake@5968f9433f9674d353d478aec2649ee3e6f40867 # v4.2.1
         with:
           useCloudCache: true
 
