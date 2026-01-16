@@ -1,32 +1,41 @@
 # Hiero C++ SDK
 
 ![](https://img.shields.io/badge/c++-17-blue)
-![](https://img.shields.io/badge/cmake-3.24-blue)
+![](https://img.shields.io/badge/cmake-3.15+-blue)
 [![](https://github.com/hiero-ledger/hiero-sdk-cpp/actions/workflows/flow-pull-request-checks.yaml/badge.svg)](https://github.com/hiero-ledger/hiero-sdk-cpp/actions/workflows/flow-pull-request-checks.yaml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-sdk-cpp/badge)](https://scorecard.dev/viewer/?uri=github.com/hiero-ledger/hiero-sdk-cpp)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/10697/badge)](https://bestpractices.coreinfrastructure.org/projects/10697)
 [![License](https://img.shields.io/badge/license-apache2-blue.svg)](LICENSE)
 
-The C++ SDK for interacting with a Hiero network.
+The C++ SDK for interacting with a [Hiero](https://hiero.org) network.
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Build](#build)
+- [Testing](#testing)
+- [Examples](#examples)
+- [Contributing](#contributing)
+- [Support](#support)
+- [License](#license)
 
 ## Prerequisites
 
-For MacOS and Linux users:
+### macOS and Linux
 
-- ninja
-  - MacOS: `brew install ninja`
-  - Linux: `apt-get install ninja`
-- pkg-config
-  - MacOS: `brew install pkg-config`
+- **ninja**
+  - macOS: `brew install ninja`
+  - Linux: `apt-get install ninja-build`
+- **pkg-config**
+  - macOS: `brew install pkg-config`
   - Linux: `apt-get install pkg-config`
-- cmake
-  - MacOS: `brew install cmake`
+- **cmake** (3.15 or higher)
+  - macOS: `brew install cmake`
   - Linux: `apt-get install cmake`
 
-📣 **Note**: Ensure you install all three `ninja`, `pkg-config`, and `cmake` to avoid errors in subsequent steps. The
-installations might take a few minutes.
+> **Note**: Ensure you install all three dependencies (`ninja`, `pkg-config`, and `cmake`) to avoid errors in subsequent steps. The installations might take a few minutes.
 
-For Windows users:
+### Windows
 
 - Visual Studio 2019/2022 Community/Pro with Universal Windows Platform Development Tools
 - [Perl](http://strawberryperl.com/) (`perl.exe` must be added to `%PATH%`)
@@ -34,107 +43,97 @@ For Windows users:
 
 ## Build
 
-This project features CMake Presets which simplify the setup of vcpkg based dependencies. The below commands are
-typically all that is required.
+This project uses CMake Presets which simplify the setup of vcpkg-based dependencies.
 
-1. Clone the project
+### Quick Start
+
+1. Clone the repository
 
 ```sh
 git clone https://github.com/hiero-ledger/hiero-sdk-cpp.git
-```
-
-2. CD to the project directory
-
-```sh
 cd hiero-sdk-cpp
 ```
 
-3. You can configure and build the project for various platforms using CMake presets. Additionally, optional components like TCK and Tests can be included in the build using flags.
+2. Initialize the vcpkg submodule
 
 ```sh
-# Ensure the VCPkg Submodule is initialized
 git submodule update --init
+```
 
-# Windows (x64) Build
-cmake --preset windows-x64-release -DBUILD_TCK=ON -DBUILD_TESTS=ON
+3. Configure and build for your platform
+
+```sh
+# Windows (x64)
+cmake --preset windows-x64-release
 cmake --build --preset windows-x64-release
 
-# Linux (x64) Build
-cmake --preset linux-x64-release -DBUILD_TCK=ON -DBUILD_TESTS=ON
+# Linux (x64)
+cmake --preset linux-x64-release
 cmake --build --preset linux-x64-release
 
-# MacOS (Intel x64) Build
-cmake --preset macos-x64-release -DBUILD_TCK=ON -DBUILD_TESTS=ON
+# macOS (Intel x64)
+cmake --preset macos-x64-release
 cmake --build --preset macos-x64-release
 
-# MacOS (Aarch64) Build
-cmake --preset macos-arm64-release -DBUILD_TCK=ON -DBUILD_TESTS=ON
+# macOS (Apple Silicon arm64)
+cmake --preset macos-arm64-release
 cmake --build --preset macos-arm64-release
 ```
 
-Optional Build Flags
-The project supports the following optional flags to include or exclude specific components:
+### Build Options
 
-`BUILD_TCK`
+The following optional flags can be added during configuration:
 
-```
-Description: Controls whether the TCK tests are included in the build.
-Default: OFF
-Enable: Add -DBUILD_TCK=ON during configuration.
-```
+| Flag | Default | Description |
+|------|---------|-------------|
+| `BUILD_TESTS` | `OFF` | Include the test suite in the build |
+| `BUILD_TCK` | `OFF` | Include TCK tests in the build |
+| `BUILD_EXAMPLES` | `OFF` | Include example programs in the build |
 
-`BUILD_TESTS`
+Example with all options enabled:
 
-```
-Description: Controls whether the test suite is included in the build.
-Default: OFF
-Enable: Add -DBUILD_TESTS=ON during configuration.
-```
-
-`BUILD_EXAMPLES`
-
-```
-Description: Controls whether the user examples are included in the build.
-Default: OFF
-Enable: Add -DBUILD_EXAMPLES=ON during configuration.
+```sh
+cmake --preset linux-x64-release -DBUILD_TESTS=ON -DBUILD_TCK=ON -DBUILD_EXAMPLES=ON
+cmake --build --preset linux-x64-release
 ```
 
 ## Testing
 
-To run all SDK tests (for Release or Debug builds):
+### Running Tests
+
+To run all SDK tests:
 
 ```sh
-ctest -C [Release|Debug] --test-dir build/<PRESET>
+ctest -C Release --test-dir build/<PRESET>
 ```
 
-To run all SDK unit tests and test vectors:
+To run only unit tests and test vectors:
 
 ```sh
-ctest -C [Release|Debug] --test-dir build/<PRESET> -R "TestVectors|UnitTests"
-```
-
-To run all SDK integration tests:
-
-```sh
-ctest -C [Release|Debug] --test-dir build/<PRESET> -R "IntegrationTests"
+ctest -C Release --test-dir build/<PRESET> -R "TestVectors|UnitTests"
 ```
 
 To run a specific test:
 
 ```sh
-ctest -C [Release|Debug] --test-dir build/<PRESET> -R <NAME OF TEST>
+ctest -C Release --test-dir build/<PRESET> -R <TEST_NAME>
 ```
 
-### Running Integration Tests
+Replace `Release` with `Debug` if you built in debug mode.
 
-To run the integration tests it's necessary to have a
-running [Hedera Local Node](https://github.com/hashgraph/hedera-local-node) (The project will be transfered to Hiero in near future). If the local node is already running, check
-the configuration JSON file for the network settings. Ensure the values for `network` tag contains a valid `AccountId`
-and a valid `IP address` for an operational node.
+### Integration Tests
 
-Example config file:
+Integration tests require a running Hiero network. You can use [Solo](https://solo.hiero.org) to spin up a local development network.
 
-```JSON
+#### Setting Up Solo
+
+Solo is a CLI tool for running a local Hiero network for development and testing. For setup instructions, see the [Solo documentation](https://solo.hiero.org) or the [hiero-local-node repository](https://github.com/hiero-ledger/hiero-local-node).
+
+#### Configuration
+
+Once your local network is running, verify the configuration in `config/local_node.json` matches your network settings:
+
+```json
 {
   "network": {
     "0.0.3": "127.0.0.1:50211"
@@ -149,70 +148,80 @@ Example config file:
 }
 ```
 
-(Source: [config/local_node.json](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/config/local_node.json))
+To run integration tests:
+
+```sh
+ctest -C Release --test-dir build/<PRESET> -R "IntegrationTests"
+```
 
 ## Examples
 
-Examples must be run from the root directory in order to correctly access the address book and configuration files
-located in the `addressbook/` and `config/` directories. Make sure your `.env` file is populated with:
+Examples demonstrate various SDK features and must be run from the project root directory.
 
-- `OPERATOR_ID`: The ID of the operator account.
-- `OPERATOR_KEY`: The DER-encoded hex private key of the operator account.
-- `HIERO_NETWORK`: The Hiero network name. Must be one of `mainnet`, `testnet`, or `previewnet`.
-- `PASSPHRASE`: Optional variable used by `hiero-sdk-cpp-generate-private-key-from-mnemonic-example` to generate a
-  private key from a mnemonic with a passphrase.
+### Environment Setup
 
-The command to run an example looks like:
+Create a `.env` file in the project root with the following variables:
 
-```shell
-build/<PRESET>/sdk/examples/[Release|Debug]/<EXAMPLE_NAME>
+| Variable | Description |
+|----------|-------------|
+| `OPERATOR_ID` | The ID of the operator account (e.g., `0.0.1234`) |
+| `OPERATOR_KEY` | The DER-encoded hex private key of the operator account |
+| `HIERO_NETWORK` | Network name: `mainnet`, `testnet`, or `previewnet` |
+| `PASSPHRASE` | (Optional) Passphrase for mnemonic-based key generation |
+
+### Running Examples
+
+```sh
+build/<PRESET>/sdk/examples/Release/<EXAMPLE_NAME>
 ```
 
-- `<PRESET>`: the preset that was used to build in Step 3 under [Build](#build).
-- `[Release|Debug]`: `Release` if you built in `Release` mode, otherwise `Debug`.
-- `<EXAMPLE_NAME>`: The name of the example you are trying to run.
+- `<PRESET>`: The CMake preset used during build (e.g., `linux-x64-release`)
+- `<EXAMPLE_NAME>`: Name of the example to run
 
-If you're trying to run an example from the release artifacts, you must first `cd` into the architecture folder of the
-OS on which you are trying to run the example. For example, if you are running an `x86_64` architecture on `Linux`:
+### Running from Release Artifacts
 
-```shell
-cd [Release|Debug]/Linux/x86_64
-```
+If running examples from release artifacts, first navigate to the appropriate architecture folder:
 
-From there, you can run:
-
-```shell
+```sh
+cd Release/Linux/x86_64
 examples/<EXAMPLE_NAME>
 ```
 
-**NOTE:** Make sure you copy your `.env` file with your environment variables into this folder as well.
+> **Note**: Copy your `.env` file into the examples directory.
 
-Additionally, the examples can be run using the `run_examples` scripts(`.sh` for macOS, Linux/ `.bat` for Windows systems) from the project root directory. In the scripts you will find an `EXECUTABLES_DIRECTORY` variable.
+### Batch Execution
 
-```
-EXECUTABLES_DIRECTORY = <build_folder_with_exec_binaries>
-```
+You can run all examples using the provided scripts:
 
-Make sure to set it to the proper build folder of the binaries after building the project.
+- macOS/Linux: `run_examples.sh`
+- Windows: `run_examples.bat`
 
-## Contributing to this Project
+Before running, update the `EXECUTABLES_DIRECTORY` variable in the script to point to your build output folder.
 
-Whether you’re fixing bugs, enhancing features, or improving documentation, your contributions are important — let’s build something great together!
+## Contributing
 
-For instructions on how to contribute to this repo, please
-review the [Contributing Guide for C++](CONTRIBUTING.md) and [Training Guides](training)
+We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
 
-## Additional Help
-- [Discord](docs/training/discord.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [Training Guides](docs/training/)
+
+### Additional Resources
+
+- [Discord Guide](docs/training/discord.md)
 - [Blog Post Guide](docs/training/blogs.md)
-- [Resolving Merge Conflicts Guide](docs/training/merge-conflicts.md)
-- [Signing Guide](docs/training/signing.md)
+- [Resolving Merge Conflicts](docs/training/merge-conflicts.md)
+- [Signing Commits](docs/training/signing.md)
 - [Rebasing Guide](docs/training/rebasing.md)
 - [Workflow Guide](docs/training/workflow.md)
 
-## About Users and Maintainers
+### Maintainers
 
-- Users and Maintainers guidelies are located in **[Hiero-Ledger's roles and groups guidelines](https://github.com/hiero-ledger/governance/blob/main/roles-and-groups.md#maintainers).**
+For information about users and maintainers, see the [Hiero roles and groups guidelines](https://github.com/hiero-ledger/governance/blob/main/roles-and-groups.md#maintainers).
+
+## Support
+
+- [Discord](https://hiero.org/discord)
+- [GitHub Issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues)
 
 ## Code of Conduct
 
