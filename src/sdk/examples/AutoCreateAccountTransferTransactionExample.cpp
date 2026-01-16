@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-/**
+  /**
    * Auto-create a new account using a public-address via a `TransferTransaction`. Reference: [HIP-583 Expand alias
    * support in CryptoCreate & CryptoTransfer Transactions](https://hips.hedera.com/hip/hip-583)
    *
@@ -29,7 +29,7 @@
    * - Create a HAPI transaction and assign the new hollow account as the transaction fee payer.
    * - Sign with the private key that corresponds to the public key on the hollow account.
    * - Get the `AccountInfo` for the account and return the public key on the account to show it is a complete account.
- */
+   */
 #include "AccountId.h"
 #include "Client.h"
 #include "ECDSAsecp256k1PrivateKey.h"
