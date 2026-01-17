@@ -121,14 +121,7 @@ ctest -C Release --test-dir build/<PRESET> -R <TEST_NAME>
 
 Replace `Release` with `Debug` if you built in debug mode.
 
-<<<<<<< HEAD
 ### Integration Tests
-=======
-To run the integration tests it's necessary to have a
-running [Hedera Local Node](https://github.com/hashgraph/hedera-local-node) (The project will be transferred to Hiero in near future). If the local node is already running, check
-the configuration JSON file for the network settings. Ensure the values for `network` tag contains a valid `AccountId`
-and a valid `IP address` for an operational node.
->>>>>>> main
 
 Integration tests require a running Hiero network. You can use [Solo](https://solo.hiero.org) to spin up a local development network.
 
@@ -223,16 +216,12 @@ We welcome contributions! Whether you're fixing bugs, adding features, or improv
 
 ### Maintainers
 
-<<<<<<< HEAD
 For information about users and maintainers, see the [Hiero roles and groups guidelines](https://github.com/hiero-ledger/governance/blob/main/roles-and-groups.md#maintainers).
 
 ## Support
 
 - [Discord](https://hiero.org/discord)
 - [GitHub Issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues)
-=======
-- Users and Maintainers guidelines are located in **[Hiero-Ledger's roles and groups guidelines](https://github.com/hiero-ledger/governance/blob/main/roles-and-groups.md#maintainers).**
->>>>>>> main
 
 ## Code of Conduct
 
