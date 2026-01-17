@@ -7,7 +7,7 @@
  * - Extract the ECDSA public key.
  * - Extract the Ethereum public address.
  * - Use the `TransferTransaction`.
- *    - Populate the `FromAddress` with the sender Hiero account ID.
+ *    - Populate the `FromAddress` with the sender Hiero account ID. 
  *    - Populate the `ToAddress` with Ethereum public address.
  *    - Note: Can transfer from public address to public address in the `TransferTransaction` for complete accounts.
  *            Transfers from hollow accounts will not work because the hollow account does not have a public key
