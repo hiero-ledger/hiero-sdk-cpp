@@ -127,7 +127,7 @@ Integration tests require a running Hiero network. You can use [Solo](https://so
 
 #### Setting Up Solo
 
-Solo is a CLI tool for running a local Hiero network for development and testing. For setup instructions, see the [Solo documentation](https://solo.hiero.org) or the [hiero-local-node repository](https://github.com/hiero-ledger/hiero-local-node).
+Solo is a CLI tool for running a local Hiero network for development and testing. For setup instructions, see the [Solo documentation](https://solo.hiero.org) or the [solo repository](https://github.com/hiero-ledger/solo).
 
 #### Configuration
 
