@@ -37,7 +37,8 @@ The C++ SDK for interacting with a [Hiero](https://hiero.org) network.
 
 ### Windows
 
-- Visual Studio 2019/2022 Community/Pro with Universal Windows Platform Development Tools
+- [Visual Studio 2019/2022 Community/Pro](https://visualstudio.microsoft.com/vs/community/) with the **"Desktop development with C++"** workload installed
+- [CMake](https://cmake.org/download/) (select "Add CMake to the system PATH" during installation)
 - [Perl](http://strawberryperl.com/) (`perl.exe` must be added to `%PATH%`)
 - [NASM](https://www.nasm.us) (`nasm.exe` must be added to `%PATH%`)
 
