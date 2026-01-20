@@ -23,7 +23,7 @@ int main(int argc, char** argv)
   Client client = Client::forTestnet();
   client.setOperator(operatorAccountId, operatorPrivateKey);
 
-  // Generate a ED25519 private, public key pair
+  // Generate an ECDSA secp256k1 private, public key pair
   const std::unique_ptr<PrivateKey> privateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
   const std::shared_ptr<PublicKey> publicKey = privateKey->getPublicKey();
 
