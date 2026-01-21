@@ -13,6 +13,7 @@ class EndpointUnitTests : public ::testing::Test
 {
 };
 
+//-----
 TEST_F(EndpointUnitTests, SetGetAddress)
 {
   // Given
@@ -27,6 +28,7 @@ TEST_F(EndpointUnitTests, SetGetAddress)
   EXPECT_EQ(endpoint.getAddress().toString(), "192.168.0.1");
 }
 
+//-----
 TEST_F(EndpointUnitTests, SetGetPort)
 {
   // Given
@@ -40,6 +42,7 @@ TEST_F(EndpointUnitTests, SetGetPort)
   EXPECT_EQ(endpoint.getPort(), port);
 }
 
+//-----
 TEST_F(EndpointUnitTests, SetGetDomainName)
 {
   // Given
@@ -53,6 +56,7 @@ TEST_F(EndpointUnitTests, SetGetDomainName)
   EXPECT_EQ(endpoint.getDomainName(), domain);
 }
 
+//-----
 TEST_F(EndpointUnitTests, FromProtobufWithIP)
 {
   // Given
@@ -74,6 +78,7 @@ TEST_F(EndpointUnitTests, FromProtobufWithIP)
   EXPECT_EQ(endpoint.getPort(), 50211);
 }
 
+//-----
 TEST_F(EndpointUnitTests, FromProtobufWithDomain)
 {
   // Given
@@ -89,6 +94,7 @@ TEST_F(EndpointUnitTests, FromProtobufWithDomain)
   EXPECT_EQ(endpoint.getPort(), 80);
 }
 
+//-----
 TEST_F(EndpointUnitTests, ToProtobufWithIP)
 {
   // Given
@@ -111,6 +117,7 @@ TEST_F(EndpointUnitTests, ToProtobufWithIP)
   EXPECT_EQ(protoEndpoint->port(), 443);
 }
 
+//-----
 TEST_F(EndpointUnitTests, ToProtobufWithDomain)
 {
   // Given
@@ -126,6 +133,7 @@ TEST_F(EndpointUnitTests, ToProtobufWithDomain)
   EXPECT_EQ(protoEndpoint->port(), 50212);
 }
 
+//-----
 TEST_F(EndpointUnitTests, ToStringWithIP)
 {
   // Given
@@ -141,6 +149,7 @@ TEST_F(EndpointUnitTests, ToStringWithIP)
   EXPECT_EQ(str, "192.168.1.100:8080");
 }
 
+//-----
 TEST_F(EndpointUnitTests, ToStringWithDomain)
 {
   // Given

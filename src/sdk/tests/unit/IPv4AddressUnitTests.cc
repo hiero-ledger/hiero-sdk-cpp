@@ -11,6 +11,7 @@ class IPv4AddressUnitTests : public ::testing::Test
 {
 };
 
+//-----
 TEST_F(IPv4AddressUnitTests, FromBytesSuccess)
 {
   // Given
@@ -23,6 +24,7 @@ TEST_F(IPv4AddressUnitTests, FromBytesSuccess)
   EXPECT_EQ(address.toString(), "192.168.1.1");
 }
 
+//-----
 TEST_F(IPv4AddressUnitTests, FromBytesInvalidSize)
 {
   // Given
@@ -37,6 +39,7 @@ TEST_F(IPv4AddressUnitTests, FromBytesInvalidSize)
   EXPECT_THROW((void)IPv4Address::fromBytes(tooManyBytes), std::invalid_argument);
 }
 
+//-----
 TEST_F(IPv4AddressUnitTests, ToBytes)
 {
   // Given
@@ -50,6 +53,7 @@ TEST_F(IPv4AddressUnitTests, ToBytes)
   EXPECT_EQ(actualBytes, expectedBytes);
 }
 
+//-----
 TEST_F(IPv4AddressUnitTests, ToString)
 {
   // Given
@@ -63,6 +67,7 @@ TEST_F(IPv4AddressUnitTests, ToString)
   EXPECT_EQ(ipString, "127.0.0.1");
 }
 
+//-----
 TEST_F(IPv4AddressUnitTests, IsEmptyWhenDefault)
 {
   // Given
@@ -72,6 +77,7 @@ TEST_F(IPv4AddressUnitTests, IsEmptyWhenDefault)
   EXPECT_TRUE(address.isEmpty());
 }
 
+//-----
 TEST_F(IPv4AddressUnitTests, IsNotEmptyWhenSet)
 {
   // Given
