@@ -41,6 +41,7 @@ add_executable(${TEST_PROJECT_NAME}
         ECDSAsecp256k1PublicKeyUnitTests.cc
         ED25519PrivateKeyUnitTests.cc
         ED25519PublicKeyUnitTests.cc
+        EndpointUnitTests.cc
         EthereumFlowUnitTests.cc
         EthereumTransactionUnitTests.cc
         EthereumTransactionDataEip1559UnitTests.cc
@@ -63,6 +64,7 @@ add_executable(${TEST_PROJECT_NAME}
         HbarAllowanceUnitTests.cc
         HbarUnitTests.cc
         HbarTransferUnitTests.cc
+        IPv4AddressUnitTests.cc
         KeyListUnitTests.cc
         LedgerIdUnitTests.cc
         MirrorNodeContractQueryUnitTests.cc
