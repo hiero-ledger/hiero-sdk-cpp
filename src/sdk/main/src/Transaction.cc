@@ -204,6 +204,17 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
         signedTx.ParseFromArray(tx.signedtransactionbytes().data(),
                                 static_cast<int>(tx.signedtransactionbytes().size()));
 
+        txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
+
+        // Creating a copy of the body to sanitize it for comparison
+        proto::TransactionBody bodyForComparison = txBody;
+
+        // We expect NodeAccountID to differ between entries in a List, so it should be cleared before comparing.
+        bodyForComparison.clear_nodeaccountid();
+
+        // Serializing the sanitized body to check for consistency
+        const std::string currentSanitizedBodyBytes = bodyForComparison.SerializeAsString();
+
         if (i == 0)
         {
           firstBodyBytes = signedTx.bodybytes();
