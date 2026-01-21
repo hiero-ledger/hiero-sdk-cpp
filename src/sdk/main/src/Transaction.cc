@@ -197,11 +197,21 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
     if (proto::TransactionList txList;
         txList.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())) && txList.transaction_list_size() > 0)
     {
+      std::string firstBodyBytes;
       for (int i = 0; i < txList.transaction_list_size(); ++i)
       {
         tx = txList.transaction_list(i);
         signedTx.ParseFromArray(tx.signedtransactionbytes().data(),
                                 static_cast<int>(tx.signedtransactionbytes().size()));
+
+        if (i == 0)
+        {
+          firstBodyBytes = signedTx.bodybytes();
+        }
+        else if (signedTx.bodybytes() != firstBodyBytes)
+        {
+          throw std::invalid_argument("Transaction list contains entries with inconsistent body bytes");
+        }
         txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
 
         transactions[txBody.has_transactionid() ? TransactionId::fromProtobuf(txBody.transactionid())

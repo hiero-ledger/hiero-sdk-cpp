@@ -2820,3 +2820,38 @@ TEST_F(TransactionUnitTests, GetTransactionBodySizeForBigAndSmallData)
   // Then
   ASSERT_GT(transactionBigBodySize, transactionSmallBodySize);
 }
+
+//-----
+TEST_F(TransactionUnitTests, FromBytesThrowsWhenTransactionListHasInconsistentBodyBytes)
+{
+  // Given
+  // Create two bodies with different content
+  proto::TransactionBody txBody1;
+  txBody1.set_memo("Transaction 1");
+  txBody1.set_allocated_cryptotransfer(new proto::CryptoTransferTransactionBody);
+
+  proto::TransactionBody txBody2;
+  txBody2.set_memo("Transaction 2"); // Differs from txBody1
+  txBody2.set_allocated_cryptotransfer(new proto::CryptoTransferTransactionBody);
+
+  // Wrap them in SignedTransaction -> Transaction
+  proto::SignedTransaction signedTx1;
+  signedTx1.set_bodybytes(txBody1.SerializeAsString());
+  proto::Transaction tx1;
+  tx1.set_signedtransactionbytes(signedTx1.SerializeAsString());
+
+  proto::SignedTransaction signedTx2;
+  signedTx2.set_bodybytes(txBody2.SerializeAsString());
+  proto::Transaction tx2;
+  tx2.set_signedtransactionbytes(signedTx2.SerializeAsString());
+
+  // Add both to a TransactionList
+  proto::TransactionList txList;
+  *txList.add_transaction_list() = tx1;
+  *txList.add_transaction_list() = tx2;
+
+  // When / Then
+  EXPECT_THROW(
+    Transaction<TransferTransaction>::fromBytes(internal::Utilities::stringToByteVector(txList.SerializeAsString())),
+    std::invalid_argument);
+}
