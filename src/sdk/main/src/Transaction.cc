@@ -208,10 +208,15 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
 
         std::string thisTxIdBytes = txBody.transactionid().SerializeAsString();
 
+        // Create a sanitized body (removing NodeAccountID) for comparison
         proto::TransactionBody bodyForComparison = txBody;
         bodyForComparison.clear_nodeaccountid();
         const std::string currentSanitizedBodyBytes = bodyForComparison.SerializeAsString();
 
+        // Transactions are grouped by transactionId. Within each group, all entries
+        // should have identical body bytes (after clearing nodeAccountId, which is
+        // expected to vary). This allows chunked transactions (different transactionIds)
+        // while still validating consistency within each chunk's node variations.
         if (i == 0 || thisTxIdBytes != currentGroupTxIdBytes)
         {
           currentGroupTxIdBytes = thisTxIdBytes;
