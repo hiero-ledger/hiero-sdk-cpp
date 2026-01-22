@@ -178,9 +178,9 @@ int main(int argc, char** argv)
 
   auto transactionBytes = transCurrent.toBytes();
 
-  for (const auto& txxx : transactionBytes)
+  for (const auto& transactionByte : transactionBytes)
   {
-    std::cout << std::setw(2) << std::setfill('0') << static_cast<int>(txxx) << " ";
+    std::cout << std::setw(2) << std::setfill('0') << static_cast<int>(transactionByte) << " ";
   }
 
   WrappedTransaction w1 = Transaction<TransferTransaction>::fromBytes(transactionBytes);
@@ -192,9 +192,9 @@ int main(int argc, char** argv)
 
   transCurrent = *w1.getTransaction<TransferTransaction>();
   std::cout << "Current transaction bytes:" << std::endl;
-  for (const auto& txxx : transactionBytes)
+  for (const auto& transactionByte : transactionBytes)
   {
-    std::cout << std::setw(2) << std::setfill('0') << static_cast<int>(txxx) << " ";
+    std::cout << std::setw(2) << std::setfill('0') << static_cast<int>(transactionByte) << " ";
   }
   std::cout << "Example fields after deserializing the transaction: " << std::endl;
   std::cout << transCurrent.getDefaultMaxTransactionFee().toString() << std::endl;
@@ -208,9 +208,9 @@ int main(int argc, char** argv)
   transactionBytes = transCurrent.toBytes();
 
   std::cout << "The updated toByte value after freezing the deserialized transaction: " << std::endl;
-  for (const auto& txxx : transactionBytes)
+  for (const auto& transactionByte : transactionBytes)
   {
-    std::cout << std::setw(2) << std::setfill('0') << static_cast<int>(txxx) << " ";
+    std::cout << std::setw(2) << std::setfill('0') << static_cast<int>(transactionByte) << " ";
   }
 
   std::cout << std::endl;
@@ -238,9 +238,9 @@ int main(int argc, char** argv)
   std::cout << std::endl;
   auto tb = transCurrent.toBytes();
 
-  for (const auto& txxxx : tb)
+  for (const auto& transactionByte : tb)
   {
-    std::cout << std::setw(2) << std::setfill('0') << static_cast<int>(txxxx) << " ";
+    std::cout << std::setw(2) << std::setfill('0') << static_cast<int>(transactionByte) << " ";
   }
   std::cout << std::endl;
   std::cout << std::endl;
