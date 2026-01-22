@@ -2855,3 +2855,41 @@ TEST_F(TransactionUnitTests, FromBytesThrowsWhenTransactionListHasInconsistentBo
     Transaction<TransferTransaction>::fromBytes(internal::Utilities::stringToByteVector(txList.SerializeAsString())),
     std::invalid_argument);
 }
+
+//-----
+TEST_F(TransactionUnitTests, FromBytesSuccessWhenTransactionListHasConsistentBodyBytesButDifferentNodeAccountIds)
+{
+  // Given
+  // Create a base body with common data
+  proto::TransactionBody txBodyPrototype;
+  txBodyPrototype.set_memo("Common Memo");
+  txBodyPrototype.set_allocated_cryptotransfer(new proto::CryptoTransferTransactionBody);
+
+  // Transaction 1: Targeted at Node 0.0.3
+  proto::TransactionBody txBody1 = txBodyPrototype;
+  txBody1.set_allocated_nodeaccountid(AccountId(3).toProtobuf().release());
+
+  proto::SignedTransaction signedTx1;
+  signedTx1.set_bodybytes(txBody1.SerializeAsString());
+  proto::Transaction tx1;
+  tx1.set_signedtransactionbytes(signedTx1.SerializeAsString());
+
+  // Transaction 2: Targeted at Node 0.0.4 (Same content, different Node ID)
+  proto::TransactionBody txBody2 = txBodyPrototype;
+  txBody2.set_allocated_nodeaccountid(AccountId(4).toProtobuf().release());
+
+  proto::SignedTransaction signedTx2;
+  signedTx2.set_bodybytes(txBody2.SerializeAsString());
+  proto::Transaction tx2;
+  tx2.set_signedtransactionbytes(signedTx2.SerializeAsString());
+
+  // Add both to a TransactionList
+  proto::TransactionList txList;
+  *txList.add_transaction_list() = tx1;
+  *txList.add_transaction_list() = tx2;
+
+  // When / Then
+  // This is expected to not throw the error as the sanitised bodies, not the NodeID are identical
+  EXPECT_NO_THROW(
+    Transaction<TransferTransaction>::fromBytes(internal::Utilities::stringToByteVector(txList.SerializeAsString())));
+}

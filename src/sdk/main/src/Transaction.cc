@@ -197,33 +197,33 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
     if (proto::TransactionList txList;
         txList.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())) && txList.transaction_list_size() > 0)
     {
-      std::string firstBodyBytes;
+      std::string currentGroupRefBodyBytes;
+      std::string currentGroupTxIdBytes;
       for (int i = 0; i < txList.transaction_list_size(); ++i)
       {
         tx = txList.transaction_list(i);
         signedTx.ParseFromArray(tx.signedtransactionbytes().data(),
                                 static_cast<int>(tx.signedtransactionbytes().size()));
-
         txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
 
-        // Creating a copy of the body to sanitize it for comparison
+        std::string thisTxIdBytes = txBody.transactionid().SerializeAsString();
+
         proto::TransactionBody bodyForComparison = txBody;
-
-        // We expect NodeAccountID to differ between entries in a List, so it should be cleared before comparing.
         bodyForComparison.clear_nodeaccountid();
-
-        // Serializing the sanitized body to check for consistency
         const std::string currentSanitizedBodyBytes = bodyForComparison.SerializeAsString();
 
-        if (i == 0)
+        if (i == 0 || thisTxIdBytes != currentGroupTxIdBytes)
         {
-          firstBodyBytes = signedTx.bodybytes();
+          currentGroupTxIdBytes = thisTxIdBytes;
+          currentGroupRefBodyBytes = currentSanitizedBodyBytes;
         }
-        else if (signedTx.bodybytes() != firstBodyBytes)
+        else
         {
-          throw std::invalid_argument("Transaction list contains entries with inconsistent body bytes");
+          if (currentSanitizedBodyBytes != currentGroupRefBodyBytes)
+          {
+            throw std::invalid_argument("Transaction list contains entries with inconsistent body bytes");
+          }
         }
-        txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
 
         transactions[txBody.has_transactionid() ? TransactionId::fromProtobuf(txBody.transactionid())
                                                 : DUMMY_TRANSACTION_ID]
