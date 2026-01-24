@@ -197,12 +197,38 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
     if (proto::TransactionList txList;
         txList.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())) && txList.transaction_list_size() > 0)
     {
+      std::string currentGroupRefBodyBytes;
+      std::string currentGroupTxIdBytes;
       for (int i = 0; i < txList.transaction_list_size(); ++i)
       {
         tx = txList.transaction_list(i);
         signedTx.ParseFromArray(tx.signedtransactionbytes().data(),
                                 static_cast<int>(tx.signedtransactionbytes().size()));
         txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
+
+        std::string thisTxIdBytes = txBody.transactionid().SerializeAsString();
+
+        // Create a sanitized body (removing NodeAccountID) for comparison
+        proto::TransactionBody bodyForComparison = txBody;
+        bodyForComparison.clear_nodeaccountid();
+        const std::string currentSanitizedBodyBytes = bodyForComparison.SerializeAsString();
+
+        // Transactions are grouped by transactionId. Within each group, all entries
+        // should have identical body bytes (after clearing nodeAccountId, which is
+        // expected to vary). This allows chunked transactions (different transactionIds)
+        // while still validating consistency within each chunk's node variations.
+        if (i == 0 || thisTxIdBytes != currentGroupTxIdBytes)
+        {
+          currentGroupTxIdBytes = thisTxIdBytes;
+          currentGroupRefBodyBytes = currentSanitizedBodyBytes;
+        }
+        else
+        {
+          if (currentSanitizedBodyBytes != currentGroupRefBodyBytes)
+          {
+            throw std::invalid_argument("Transaction list contains entries with inconsistent body bytes");
+          }
+        }
 
         transactions[txBody.has_transactionid() ? TransactionId::fromProtobuf(txBody.transactionid())
                                                 : DUMMY_TRANSACTION_ID]
