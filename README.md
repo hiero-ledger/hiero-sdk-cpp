@@ -42,7 +42,7 @@ The C++ SDK for interacting with a [Hiero](https://hiero.org) network.
 - [Perl](http://strawberryperl.com/) (`perl.exe` must be added to `%PATH%`)
 - [NASM](https://www.nasm.us) (`nasm.exe` must be added to `%PATH%`)
 
-## Build
+## Build  
 
 This project uses CMake Presets which simplify the setup of vcpkg-based dependencies.
 
@@ -221,7 +221,7 @@ Users and Maintainers guidelines are located in **[Hiero-Ledger's CONTRIBUTING.m
 
 ## Support
 
-- [Discord](https://hiero.org/discord)
+- [Discord](https://discord.gg/hyperledger)
 - [GitHub Issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues)
 
 ## Code of Conduct
