@@ -1,7 +1,5 @@
 {
   "ignorePatterns": [
-    { "pattern": "YOUR_GITHUB_NAME" },
-    { "pattern": "nasm.us" },
     { "pattern": "TransferTokensExample.cpp" }
   ],
   "timeout": "20s",
