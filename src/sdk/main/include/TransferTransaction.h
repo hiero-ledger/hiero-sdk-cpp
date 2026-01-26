@@ -92,7 +92,7 @@ public:
    *
    * @param nftId             The ID of the NFT associated with this transfer.
    * @param senderAccountId   The ID of the account sending the NFT.
-   * @param receiverAccountId The ID of the receiving sending the NFT.
+   * @param receiverAccountId The ID of the account receiving the NFT.
    * @return A reference to this TransferTransaction object with the newly-added NFT transfer.
    * @throws IllegalStateException If this TransferTransaction is frozen.
    */
@@ -144,7 +144,7 @@ public:
    *
    * @param nftId             The ID of the NFT associated with this transfer.
    * @param senderAccountId   The ID of the account sending the NFT.
-   * @param receiverAccountId The ID of the receiving sending the NFT.
+   * @param receiverAccountId The ID of the account receiving the NFT.
    * @return A reference to this TransferTransaction object with the newly-added approved NFT transfer.
    * @throws IllegalStateException If this TransferTransaction is frozen.
    */
