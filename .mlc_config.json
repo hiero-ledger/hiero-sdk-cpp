@@ -1,7 +1,0 @@
-{
-  "ignorePatterns": [
-    { "pattern": "TransferTokensExample.cpp" }
-  ],
-  "timeout": "20s",
-  "retryOn429": true
-}
