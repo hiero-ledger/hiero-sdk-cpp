@@ -190,7 +190,7 @@ Where relevant:
 
 ### Running Tests
 
-Run unit and integration tests by following [README - Tests](../README.md)
+Run unit and integration tests by following [README - Tests](../../README.md)
 
 ## Breaking Changes
 
@@ -300,7 +300,7 @@ Once all tests pass and the issue requirements are met, request a review by clic
 All Pull Requests must be approved by at least one member of the SDK team before it can be merged in. The members only
 have limited bandwidth to review Pull Requests so it's not unusual for a Pull Request to go unreviewed for a few days,
 especially if it's a large or complex one. After a couple of weeks, if you haven't received any feedback regarding your
-Pull Request from the SDK team, feel free to contact us on [Discord](discord) to ask for a review.
+Pull Request from the SDK team, feel free to contact us on [Discord](https://discord.gg/hyperledger) to ask for a review.
 
 That's it! Wait for feedback.
 
