@@ -26,7 +26,7 @@ Each time you want to sync:
   git push origin main
 ```
 
-You can also do this by visiting your repository "https://github.com/YOUR_GITHUB_NAME/hiero-sdk-cpp" and clicking the sync fork button which is a few lines from the top near the right. Then pull these changes locally in Github Desktop.
+You can also do this by visiting your repository `"https://github.com/YOUR_GITHUB_NAME/hiero-sdk-cpp"` and clicking the sync fork button which is a few lines from the top near the right. Then pull these changes locally in Github Desktop.
 
 #### 2. Sync your working branch
 

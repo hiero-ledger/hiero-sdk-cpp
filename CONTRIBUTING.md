@@ -102,7 +102,7 @@ emoji ➡️ followed by a description in plain English for each over-arching ne
 #### Examples
 
 This section should list all of the newly added examples. Each of them should represent a link to the implementation (
-for example: [TransferTokensExample.cc](<(https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/src/sdk/examples/TransferTokensExample.cc)>). It's a good idea also to add prefix with ➡️ before
+for example: [TransferTokensExample.cpp](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/src/sdk/examples/TransferTokensExample.cpp) ). It's a good idea also to add prefix with ➡️ before
 each line.
 
 #### Notes

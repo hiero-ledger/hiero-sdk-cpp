@@ -221,7 +221,7 @@ Users and Maintainers guidelines are located in **[Hiero-Ledger's CONTRIBUTING.m
 
 ## Support
 
-- [Discord](https://hiero.org/discord)
+- [Discord](https://discord.gg/hyperledger)
 - [GitHub Issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues)
 
 ## Code of Conduct
