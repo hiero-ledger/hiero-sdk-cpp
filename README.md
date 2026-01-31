@@ -42,6 +42,14 @@ The C++ SDK for interacting with a [Hiero](https://hiero.org) network.
 - [Perl](http://strawberryperl.com/) (`perl.exe` must be added to `%PATH%`)
 - [NASM](https://www.nasm.us) (`nasm.exe` must be added to `%PATH%`)
 
+#### Run
+```powershell
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+```
+
+> [!NOTE]
+> Please make sure to run the commands in **x64 Native Tools Command Prompt for VS 2022**
+
 ## Build
 
 This project uses CMake Presets which simplify the setup of vcpkg-based dependencies.
