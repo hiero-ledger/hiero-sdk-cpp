@@ -164,28 +164,28 @@ public:
   /**
    * Clear the memo for the topic.
    *
-   * @return A reference to this TokenUpdateTransaction with the newly-cleared memo.
+   * @return A reference to this TopicUpdateTransaction with the newly-cleared memo.
    */
   TopicUpdateTransaction& clearTopicMemo();
 
   /**
    * Clear the admin key for the topic.
    *
-   * @return A reference to this TokenUpdateTransaction with the newly-cleared admin key.
+   * @return A reference to this TopicUpdateTransaction with the newly-cleared admin key.
    */
   TopicUpdateTransaction& clearAdminKey();
 
   /**
    * Clear the submit key for the topic.
    *
-   * @return A reference to this TokenUpdateTransaction with the newly-cleared submit key.
+   * @return A reference to this TopicUpdateTransaction with the newly-cleared submit key.
    */
   TopicUpdateTransaction& clearSubmitKey();
 
   /**
    * Clear the auto-renew account for the topic.
    *
-   * @return A reference to this TokenUpdateTransaction with the newly-cleared auto-renew account ID.
+   * @return A reference to this TopicUpdateTransaction with the newly-cleared auto-renew account ID.
    */
   TopicUpdateTransaction& clearAutoRenewAccountId();
 
