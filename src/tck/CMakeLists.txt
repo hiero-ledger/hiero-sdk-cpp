@@ -15,3 +15,14 @@ target_link_libraries(${TCK_SERVER_NAME} ${PROJECT_NAME})
 target_include_directories(${TCK_SERVER_NAME} PRIVATE include)
 
 install(TARGETS ${TCK_SERVER_NAME} RUNTIME DESTINATION tck)
+
+# Optional TCK Tests build
+option(BUILD_TCK_TESTS "Build the TCK test suite" OFF)
+
+if(BUILD_TCK_TESTS)
+    message(STATUS "Including TCK tests in the build.")
+    add_subdirectory(tests)
+else()
+    message(STATUS "TCK tests are not included in the build.")
+endif()
+
