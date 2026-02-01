@@ -16,7 +16,7 @@ namespace Hiero::internal::Utilities
  * Reinterpret a pointer to a pointer of a different type.
  *
  * @param input The pointer to reinterpret.
- * @param A pointer to the same input, reinterpreted as a different type.
+ * @return A pointer to the same input, reinterpreted as a different type.
  */
 template<typename ReturnType, typename InputType>
 [[nodiscard]] ReturnType* toTypePtr(InputType* input)
@@ -130,7 +130,7 @@ template<typename T>
  * Convert a byte vector to a string.
  *
  * @param bytes The byte vector to convert to a string.
- * @return The string that represent of the byte vector.
+ * @return The string that representation of the byte vector.
  */
 [[nodiscard]] std::string byteVectorToString(const std::vector<std::byte>& bytes);
 
