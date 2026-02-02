@@ -10,7 +10,7 @@ body:
 
         Before submitting:
         1. Try searching the existing issues and discussions to see if your issue has already been reported
-        2. Try asking on [Discord's hiero-general channel](discord.hiero.org)
+        2. Try asking on [Discord's hiero-general channel](https://discord.gg/hyperledger)
         3. If you're reporting a security vulnerability, please disclose responsibly via our [bug bounty program](https://hedera.com/bounty)
   - type: textarea
     id: description
