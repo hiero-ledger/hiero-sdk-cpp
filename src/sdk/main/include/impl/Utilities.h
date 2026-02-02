@@ -130,7 +130,7 @@ template<typename T>
  * Convert a byte vector to a string.
  *
  * @param bytes The byte vector to convert to a string.
- * @return The string that representation of the byte vector.
+ * @return The string representation of the byte vector.
  */
 [[nodiscard]] std::string byteVectorToString(const std::vector<std::byte>& bytes);
 
