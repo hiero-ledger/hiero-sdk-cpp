@@ -132,9 +132,9 @@ public:
   [[nodiscard]] std::vector<std::byte> toBytes() const;
 
   /**
-   * Get the checksum of this ContractId.
+   * Get the checksum of this TopicId.
    *
-   * @return The checksum of this ContractId.
+   * @return The checksum of this TopicId.
    */
   [[nodiscard]] inline std::string getChecksum() const { return mChecksum; }
 
@@ -155,7 +155,7 @@ public:
 
 private:
   /**
-   * The checksum of this TopicIds.
+   * The checksum of this TopicId.
    */
   mutable std::string mChecksum;
 };
