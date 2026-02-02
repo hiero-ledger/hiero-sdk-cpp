@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 #include "TckServer.h"
 #include "json/JsonErrorType.h"
 
@@ -76,10 +77,10 @@ TEST_F(TckServerUnitTests, ValidSingleRequestReturnsResponse)
 
   // When
   json request = {
-    { "jsonrpc", "2.0"                    },
-    { "method",  "echo"                   },
-    { "params",  json::array({ "hello" }) },
-    { "id",      1                        }
+    {"jsonrpc", "2.0"  },
+    { "method", "echo" },
+    { "params", "hello"},
+    { "id",     1      }
   };
   std::string responseStr = handleJsonRequest(request.dump());
 
@@ -98,8 +99,8 @@ TEST_F(TckServerUnitTests, ValidBatchRequestReturnsArray)
 
   // When
   json request = json::array({
-    { { "jsonrpc", "2.0" }, { "method", "echo" }, { "params", json::array({ 1 }) }, { "id", 1 } },
-    { { "jsonrpc", "2.0" }, { "method", "echo" }, { "params", json::array({ 2 }) }, { "id", 2 } }
+    {{ "jsonrpc", "2.0" },  { "method", "echo" }, { "params", 1 }, { "id", 1 }},
+    { { "jsonrpc", "2.0" }, { "method", "echo" }, { "params", 2 }, { "id", 2 }}
   });
   std::string responseStr = handleJsonRequest(request.dump());
 
@@ -138,8 +139,8 @@ TEST_F(TckServerUnitTests, MissingJsonRpcReturnsInvalidRequest)
 {
   // Given/When
   json request = {
-    { "method", "test" },
-    { "id",     1      }
+    {"method", "test"},
+    { "id",    1     }
   };
   std::string responseStr = handleJsonRequest(request.dump());
 
@@ -153,9 +154,9 @@ TEST_F(TckServerUnitTests, WrongJsonRpcVersionReturnsInvalidRequest)
 {
   // Given/When
   json request = {
-    { "jsonrpc", "1.0"  },
-    { "method",  "test" },
-    { "id",      1      }
+    {"jsonrpc", "1.0" },
+    { "method", "test"},
+    { "id",     1     }
   };
   std::string responseStr = handleJsonRequest(request.dump());
 
@@ -169,8 +170,8 @@ TEST_F(TckServerUnitTests, MissingMethodReturnsInvalidRequest)
 {
   // Given/When
   json request = {
-    { "jsonrpc", "2.0" },
-    { "id",      1     }
+    {"jsonrpc", "2.0"},
+    { "id",     1    }
   };
   std::string responseStr = handleJsonRequest(request.dump());
 
@@ -184,9 +185,9 @@ TEST_F(TckServerUnitTests, InvalidIdTypeReturnsInvalidRequest)
 {
   // Given/When
   json request = {
-    { "jsonrpc", "2.0"  },
-    { "method",  "test" },
-    { "id",      true   }
+    {"jsonrpc", "2.0" },
+    { "method", "test"},
+    { "id",     true  }
   };
   std::string responseStr = handleJsonRequest(request.dump());
 
@@ -200,10 +201,10 @@ TEST_F(TckServerUnitTests, InvalidParamsTypeReturnsInvalidRequest)
 {
   // Given/When
   json request = {
-    { "jsonrpc", "2.0"  },
-    { "method",  "test" },
-    { "params",  42     },
-    { "id",      1      }
+    {"jsonrpc", "2.0" },
+    { "method", "test"},
+    { "params", 42    },
+    { "id",     1     }
   };
   std::string responseStr = handleJsonRequest(request.dump());
 
@@ -217,9 +218,9 @@ TEST_F(TckServerUnitTests, UnknownMethodReturnsMethodNotFound)
 {
   // Given/When
   json request = {
-    { "jsonrpc", "2.0"               },
-    { "method",  "nonExistentMethod" },
-    { "id",      1                   }
+    {"jsonrpc", "2.0"              },
+    { "method", "nonExistentMethod"},
+    { "id",     1                  }
   };
   std::string responseStr = handleJsonRequest(request.dump());
 
@@ -237,8 +238,8 @@ TEST_F(TckServerUnitTests, NotificationExecutesWithoutResponse)
 
   // When
   json request = {
-    { "jsonrpc", "2.0"    },
-    { "method",  "notify" }
+    {"jsonrpc", "2.0"   },
+    { "method", "notify"}
   };
   std::string responseStr = handleJsonRequest(request.dump());
 
