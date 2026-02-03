@@ -37,6 +37,14 @@ These issues stay low risk and well-scoped, while offering a bit more independen
 
 ---
 
+## Prerequisites
+
+Contributors must have completed at least **2 Good First Issues** in this repository before being assigned a Beginner issue.
+
+This requirement is enforced automatically by the `/assign` bot.
+
+---
+
 ## What to Expect
 
 Beginner Issues are designed for contributors who:

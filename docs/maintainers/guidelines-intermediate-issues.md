@@ -36,6 +36,14 @@ At this level, contributors begin to take ownership of technical decisions — n
 
 ---
 
+## Prerequisites
+
+Contributors must have completed at least **3 Beginner Issues** in this repository before being assigned an Intermediate issue.
+
+This requirement is enforced automatically by the `/assign` bot.
+
+---
+
 ## What to Expect
 
 Intermediate Issues are designed for contributors who:
