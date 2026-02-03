@@ -116,9 +116,9 @@ public:
   [[nodiscard]] std::vector<std::byte> toBytes() const;
 
   /**
-   * Get the checksum of this ContractId.
+   * Get the checksum of this ScheduleId.
    *
-   * @return The checksum of this ContractId.
+   * @return The checksum of this ScheduleId.
    */
   [[nodiscard]] inline std::string getChecksum() const { return mChecksum; }
 
@@ -139,7 +139,7 @@ public:
 
 private:
   /**
-   * The checksum of this ScheduleIds.
+   * The checksum of this ScheduleId.
    */
   mutable std::string mChecksum;
 };
