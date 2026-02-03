@@ -320,6 +320,12 @@ public:
   [[nodiscard]] inline std::shared_ptr<Key> getMetadataKey() const { return mMetadataKey; }
 
   /**
+   * Get the new metadata for the token.
+   *
+   * @return The new metadata for the token.
+   */
+  [[nodiscard]] inline std::vector<std::byte> getMetadata() const { return mMetadata; }
+  /**
    * Get the token verification mode for the token.
    *
    * @return The token verification mode for the token.
