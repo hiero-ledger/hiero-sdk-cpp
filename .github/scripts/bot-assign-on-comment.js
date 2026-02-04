@@ -17,15 +17,17 @@
 //   - One of: "skill: good first issue", "skill: beginner",
 //             "skill: intermediate", "skill: advanced"
 
-// Label constants
-const LABELS = {
-  READY_FOR_DEV: 'status: ready for dev',
-  IN_PROGRESS: 'status: in progress',
-  GOOD_FIRST_ISSUE: 'skill: good first issue',
-  BEGINNER: 'skill: beginner',
-  INTERMEDIATE: 'skill: intermediate',
-  ADVANCED: 'skill: advanced',
-};
+const {
+  MAINTAINER_TEAM,
+  LABELS,
+  createLogger,
+  isSafeSearchToken,
+  addLabels,
+  removeLabel,
+  addAssignees,
+  postComment,
+  hasLabel,
+} = require('./bot-helpers');
 
 // Prerequisites for each skill level
 const SKILL_PREREQUISITES = {
@@ -54,17 +56,8 @@ const SKILL_PREREQUISITES = {
   },
 };
 
-// Team to tag when manual intervention is needed
-const MAINTAINER_TEAM = '@hiero-ledger/hiero-sdk-cpp-maintainers';
-
-/**
- * Validates a string for safe use in GitHub search queries.
- * @param {string} value - The value to validate.
- * @returns {boolean} - True if the value is safe for search queries.
- */
-function isSafeSearchToken(value) {
-  return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
-}
+// Create logger for this bot
+const logger = createLogger('assign-bot');
 
 /**
  * Returns true if the comment is exactly "/assign" (with optional whitespace).
@@ -73,25 +66,8 @@ function isSafeSearchToken(value) {
  */
 function commentRequestsAssignment(body) {
   const matches = typeof body === 'string' && /^\s*\/assign\s*$/i.test(body);
-  console.log('[assign-bot] commentRequestsAssignment:', { body: body?.substring(0, 100), matches });
+  logger.log('commentRequestsAssignment:', { body: body?.substring(0, 100), matches });
   return matches;
-}
-
-/**
- * Checks if an issue has a specific label.
- * @param {object} issue - The issue object.
- * @param {string} labelName - The label name to check for.
- * @returns {boolean} - True if the issue has the label.
- */
-function hasLabel(issue, labelName) {
-  if (!issue?.labels?.length) {
-    return false;
-  }
-
-  return issue.labels.some((label) => {
-    const name = typeof label === 'string' ? label : label?.name;
-    return typeof name === 'string' && name.toLowerCase() === labelName.toLowerCase();
-  });
 }
 
 /**
@@ -126,7 +102,7 @@ async function countCompletedIssues(github, owner, repo, username, label) {
     !isSafeSearchToken(repo) ||
     !isSafeSearchToken(username)
   ) {
-    console.log('[assign-bot] Invalid search inputs:', { owner, repo, username, label });
+    logger.log('Invalid search inputs:', { owner, repo, username, label });
     return null;
   }
 
@@ -139,7 +115,7 @@ async function countCompletedIssues(github, owner, repo, username, label) {
       `assignee:${username}`,
     ].join(' ');
 
-    console.log('[assign-bot] GraphQL search query:', searchQuery);
+    logger.log('GraphQL search query:', searchQuery);
 
     const result = await github.graphql(
       `
@@ -153,11 +129,11 @@ async function countCompletedIssues(github, owner, repo, username, label) {
     );
 
     const count = result?.search?.issueCount ?? 0;
-    console.log(`[assign-bot] Completed "${label}" issues for ${username}: ${count}`);
+    logger.log(`Completed "${label}" issues for ${username}: ${count}`);
     return count;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.log(`[assign-bot] Failed to count issues for ${username}: ${message}`);
+    logger.log(`Failed to count issues for ${username}: ${message}`);
     return null;
   }
 }
@@ -369,7 +345,7 @@ module.exports = async ({ github, context }) => {
     const { issue, comment } = context.payload;
     const { owner, repo } = context.repo;
 
-    console.log('[assign-bot] Payload snapshot:', {
+    logger.log('Payload snapshot:', {
       issueNumber: issue?.number,
       commenter: comment?.user?.login,
       commenterType: comment?.user?.type,
@@ -381,33 +357,33 @@ module.exports = async ({ github, context }) => {
     // =========================================================================
 
     if (!issue?.number) {
-      console.log('[assign-bot] Exit: missing issue number');
+      logger.log('Exit: missing issue number');
       return;
     }
 
     if (!comment?.body) {
-      console.log('[assign-bot] Exit: missing comment body');
+      logger.log('Exit: missing comment body');
       return;
     }
 
     if (!comment?.user?.login) {
-      console.log('[assign-bot] Exit: missing comment user login');
+      logger.log('Exit: missing comment user login');
       return;
     }
 
     // Ignore comments from bots to prevent infinite loops
     if (comment.user.type === 'Bot') {
-      console.log('[assign-bot] Exit: comment authored by bot');
+      logger.log('Exit: comment authored by bot');
       return;
     }
 
     // Only proceed if the comment is exactly "/assign"
     if (!commentRequestsAssignment(comment.body)) {
-      console.log('[assign-bot] Exit: comment does not request assignment');
+      logger.log('Exit: comment does not request assignment');
       return;
     }
 
-    console.log('[assign-bot] Assignment command detected');
+    logger.log('Assignment command detected');
 
     const requesterUsername = comment.user.login;
     const issueNumber = issue.number;
@@ -421,10 +397,10 @@ module.exports = async ({ github, context }) => {
         comment_id: commentId,
         content: '+1',
       });
-      console.log('[assign-bot] Added thumbs-up reaction to comment');
+      logger.log('Added thumbs-up reaction to comment');
     } catch (error) {
       // Non-critical - continue even if reaction fails
-      console.log('[assign-bot] Could not add reaction:', error.message);
+      logger.log('Could not add reaction:', error.message);
     }
 
     // =========================================================================
@@ -433,16 +409,12 @@ module.exports = async ({ github, context }) => {
     // If yes, inform the user. Handles self-assignment case with friendly message.
 
     if (issue.assignees?.length > 0) {
-      console.log('[assign-bot] Exit: issue already assigned to', issue.assignees.map((a) => a.login));
+      logger.log('Exit: issue already assigned to', issue.assignees.map((a) => a.login));
 
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        body: buildAlreadyAssignedComment(requesterUsername, issue, owner, repo),
-      });
+      await postComment(github, owner, repo, issueNumber,
+        buildAlreadyAssignedComment(requesterUsername, issue, owner, repo), logger);
 
-      console.log('[assign-bot] Posted already-assigned comment');
+      logger.log('Posted already-assigned comment');
       return;
     }
 
@@ -452,16 +424,12 @@ module.exports = async ({ github, context }) => {
     // Issues must be explicitly marked ready before contributors can self-assign.
 
     if (!hasLabel(issue, LABELS.READY_FOR_DEV)) {
-      console.log('[assign-bot] Exit: issue missing ready for dev label');
+      logger.log('Exit: issue missing ready for dev label');
 
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        body: buildNotReadyComment(requesterUsername, owner, repo),
-      });
+      await postComment(github, owner, repo, issueNumber,
+        buildNotReadyComment(requesterUsername, owner, repo), logger);
 
-      console.log('[assign-bot] Posted not-ready comment');
+      logger.log('Posted not-ready comment');
       return;
     }
 
@@ -473,20 +441,16 @@ module.exports = async ({ github, context }) => {
     const skillLevel = getIssueSkillLevel(issue);
 
     if (!skillLevel) {
-      console.log('[assign-bot] Exit: issue has no skill level label');
+      logger.log('Exit: issue has no skill level label');
 
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        body: buildNoSkillLevelComment(requesterUsername),
-      });
+      await postComment(github, owner, repo, issueNumber,
+        buildNoSkillLevelComment(requesterUsername), logger);
 
-      console.log('[assign-bot] Posted no-skill-level comment');
+      logger.log('Posted no-skill-level comment');
       return;
     }
 
-    console.log('[assign-bot] Issue skill level:', skillLevel);
+    logger.log('Issue skill level:', skillLevel);
 
     // =========================================================================
     // CHECK 4: Does the contributor meet skill prerequisites?
@@ -509,38 +473,30 @@ module.exports = async ({ github, context }) => {
 
       // API error - can't verify prerequisites, tag maintainers
       if (completedCount === null) {
-        console.log('[assign-bot] Exit: could not verify prerequisites due to API error');
+        logger.log('Exit: could not verify prerequisites due to API error');
 
-        await github.rest.issues.createComment({
-          owner,
-          repo,
-          issue_number: issueNumber,
-          body: buildApiErrorComment(requesterUsername),
-        });
+        await postComment(github, owner, repo, issueNumber,
+          buildApiErrorComment(requesterUsername), logger);
 
-        console.log('[assign-bot] Posted API error comment, tagged maintainers');
+        logger.log('Posted API error comment, tagged maintainers');
         return;
       }
 
       // Prerequisites not met - show progress and link to prerequisite issues
       if (completedCount < prereq.requiredCount) {
-        console.log('[assign-bot] Exit: prerequisites not met', {
+        logger.log('Exit: prerequisites not met', {
           required: prereq.requiredCount,
           completed: completedCount,
         });
 
-        await github.rest.issues.createComment({
-          owner,
-          repo,
-          issue_number: issueNumber,
-          body: buildPrerequisiteNotMetComment(requesterUsername, skillLevel, completedCount, owner, repo),
-        });
+        await postComment(github, owner, repo, issueNumber,
+          buildPrerequisiteNotMetComment(requesterUsername, skillLevel, completedCount, owner, repo), logger);
 
-        console.log('[assign-bot] Posted prerequisite-not-met comment');
+        logger.log('Posted prerequisite-not-met comment');
         return;
       }
 
-      console.log('[assign-bot] Prerequisites met:', {
+      logger.log('Prerequisites met:', {
         required: prereq.requiredCount,
         completed: completedCount,
       });
@@ -550,28 +506,16 @@ module.exports = async ({ github, context }) => {
     // ALL CHECKS PASSED - Assign the contributor
     // =========================================================================
 
-    console.log('[assign-bot] Assigning issue to', requesterUsername);
+    logger.log('Assigning issue to', requesterUsername);
 
-    try {
-      await github.rest.issues.addAssignees({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        assignees: [requesterUsername],
-      });
-      console.log('[assign-bot] Assignment successful');
-    } catch (error) {
+    const assignResult = await addAssignees(github, owner, repo, issueNumber, [requesterUsername], logger);
+
+    if (!assignResult.success) {
       // Assignment failed - tag maintainers to assign manually
-      console.log('[assign-bot] Assignment failed:', error.message);
+      await postComment(github, owner, repo, issueNumber,
+        buildAssignmentFailureComment(requesterUsername, assignResult.error), logger);
 
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        body: buildAssignmentFailureComment(requesterUsername, error.message),
-      });
-
-      console.log('[assign-bot] Posted assignment failure comment, tagged maintainers');
+      logger.log('Posted assignment failure comment, tagged maintainers');
       return;
     }
 
@@ -585,33 +529,17 @@ module.exports = async ({ github, context }) => {
     let labelUpdateError = '';
 
     // Remove "ready for dev" label
-    try {
-      await github.rest.issues.removeLabel({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        name: LABELS.READY_FOR_DEV,
-      });
-      console.log('[assign-bot] Removed "ready for dev" label');
-    } catch (error) {
-      console.log('[assign-bot] Could not remove "ready for dev" label:', error.message);
+    const removeResult = await removeLabel(github, owner, repo, issueNumber, LABELS.READY_FOR_DEV, logger);
+    if (!removeResult.success) {
       labelUpdateFailed = true;
-      labelUpdateError = `Failed to remove "${LABELS.READY_FOR_DEV}" label: ${error.message}`;
+      labelUpdateError = `Failed to remove "${LABELS.READY_FOR_DEV}" label: ${removeResult.error}`;
     }
 
     // Add "in progress" label
-    try {
-      await github.rest.issues.addLabels({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        labels: [LABELS.IN_PROGRESS],
-      });
-      console.log('[assign-bot] Added "in progress" label');
-    } catch (error) {
-      console.log('[assign-bot] Could not add "in progress" label:', error.message);
+    const addResult = await addLabels(github, owner, repo, issueNumber, [LABELS.IN_PROGRESS], logger);
+    if (!addResult.success) {
       labelUpdateFailed = true;
-      labelUpdateError += (labelUpdateError ? '; ' : '') + `Failed to add "${LABELS.IN_PROGRESS}" label: ${error.message}`;
+      labelUpdateError += (labelUpdateError ? '; ' : '') + `Failed to add "${LABELS.IN_PROGRESS}" label: ${addResult.error}`;
     }
 
     // =========================================================================
@@ -621,13 +549,9 @@ module.exports = async ({ github, context }) => {
     // GFI contributors get extra warm welcome; returning contributors get
     // a shorter acknowledgment.
 
-    await github.rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: issueNumber,
-      body: buildWelcomeComment(requesterUsername, skillLevel),
-    });
-    console.log('[assign-bot] Posted welcome comment');
+    await postComment(github, owner, repo, issueNumber,
+      buildWelcomeComment(requesterUsername, skillLevel), logger);
+    logger.log('Posted welcome comment');
 
     // =========================================================================
     // NOTIFY MAINTAINERS IF LABEL UPDATE FAILED
@@ -637,20 +561,16 @@ module.exports = async ({ github, context }) => {
     // welcome first.
 
     if (labelUpdateFailed) {
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        body: buildLabelUpdateFailureComment(requesterUsername, labelUpdateError),
-      });
-      console.log('[assign-bot] Posted label update failure comment, tagged maintainers');
+      await postComment(github, owner, repo, issueNumber,
+        buildLabelUpdateFailureComment(requesterUsername, labelUpdateError), logger);
+      logger.log('Posted label update failure comment, tagged maintainers');
     }
 
-    console.log('[assign-bot] Assignment flow completed successfully');
+    logger.log('Assignment flow completed successfully');
 
   } catch (error) {
     // Unexpected error - log details and re-throw to fail the workflow
-    console.error('[assign-bot] Error:', {
+    logger.error('Error:', {
       message: error.message,
       status: error.status,
       issueNumber: context.payload.issue?.number,

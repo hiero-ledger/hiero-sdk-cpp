@@ -41,5 +41,8 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Run Bot Script Tests
+      - name: Run Assign Bot Tests
         run: node .github/scripts/test-assign-bot.js
+
+      - name: Run PR Automation Bot Tests
+        run: node .github/scripts/test-pr-automation.js
