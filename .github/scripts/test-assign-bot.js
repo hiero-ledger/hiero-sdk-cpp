@@ -84,9 +84,14 @@ function createMockGithub(options = {}) {
 // =============================================================================
 
 const scenarios = [
+  // ---------------------------------------------------------------------------
+  // HAPPY PATHS (4 tests)
+  // Successful assignment for each skill level
+  // ---------------------------------------------------------------------------
+
   {
     name: 'Happy Path - Good First Issue',
-    description: 'User requests assignment on a properly labeled GFI',
+    description: 'New contributor successfully assigned to GFI',
     context: {
       payload: {
         issue: {
@@ -106,12 +111,20 @@ const scenarios = [
     },
     githubOptions: {},
     expectedAssignee: 'new-contributor',
-    expectedCommentContains: 'welcome to the Hiero C++ SDK community',
+    expectedComments: [
+      `👋 Hi @new-contributor, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉
+
+You've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.
+
+The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.
+
+Good luck, and welcome aboard! 🚀`,
+    ],
   },
 
   {
-    name: 'Happy Path - Beginner Issue (Prerequisites Met)',
-    description: 'User with 2 completed GFIs requests beginner issue',
+    name: 'Happy Path - Beginner Issue',
+    description: 'Contributor with 2 completed GFIs assigned to Beginner',
     context: {
       payload: {
         issue: {
@@ -123,7 +136,7 @@ const scenarios = [
           ],
         },
         comment: {
-          body: 'I would like to work on this. /assign please',
+          body: '/assign',
           user: { login: 'experienced-contributor', type: 'User' },
         },
       },
@@ -131,12 +144,18 @@ const scenarios = [
     },
     githubOptions: { completedIssueCount: 2 },
     expectedAssignee: 'experienced-contributor',
-    expectedCommentContains: 'thanks for continuing to contribute',
+    expectedComments: [
+      `👋 Hi @experienced-contributor, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌
+
+If this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.
+
+Good luck! 🚀`,
+    ],
   },
 
   {
-    name: 'Failure - Prerequisites Not Met',
-    description: 'User with 0 GFIs tries to take a beginner issue',
+    name: 'Happy Path - Intermediate Issue',
+    description: 'Contributor with 3 completed Beginners assigned to Intermediate',
     context: {
       payload: {
         issue: {
@@ -144,28 +163,70 @@ const scenarios = [
           assignees: [],
           labels: [
             { name: 'status: ready for dev' },
-            { name: 'skill: beginner' },
+            { name: 'skill: intermediate' },
           ],
         },
         comment: {
           body: '/assign',
-          user: { login: 'eager-newbie', type: 'User' },
+          user: { login: 'growing-contributor', type: 'User' },
         },
       },
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
-    githubOptions: { completedIssueCount: 0 },
-    expectedAssignee: null,
-    expectedCommentContains: 'complete at least **2 Good First Issues**',
+    githubOptions: { completedIssueCount: 3 },
+    expectedAssignee: 'growing-contributor',
+    expectedComments: [
+      `👋 Hi @growing-contributor, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Intermediate** issue. 🙌
+
+If this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.
+
+Good luck! 🚀`,
+    ],
   },
 
   {
-    name: 'Failure - Already Assigned to Someone Else',
-    description: 'User tries to assign an issue already taken',
+    name: 'Happy Path - Advanced Issue',
+    description: 'Contributor with 3 completed Intermediates assigned to Advanced',
     context: {
       payload: {
         issue: {
           number: 103,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: advanced' },
+          ],
+        },
+        comment: {
+          body: '/assign',
+          user: { login: 'senior-contributor', type: 'User' },
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: { completedIssueCount: 3 },
+    expectedAssignee: 'senior-contributor',
+    expectedComments: [
+      `👋 Hi @senior-contributor, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Advanced** issue. 🙌
+
+If this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.
+
+Good luck! 🚀`,
+    ],
+  },
+
+  // ---------------------------------------------------------------------------
+  // VALIDATION FAILURES (5 tests)
+  // Bot rejects assignment with helpful message
+  // ---------------------------------------------------------------------------
+
+  {
+    name: 'Validation - Already Assigned to Someone Else',
+    description: 'Issue is taken by another contributor',
+    context: {
+      payload: {
+        issue: {
+          number: 104,
           assignees: [{ login: 'other-user' }],
           labels: [
             { name: 'status: ready for dev' },
@@ -181,16 +242,23 @@ const scenarios = [
     },
     githubOptions: {},
     expectedAssignee: null,
-    expectedCommentContains: 'already assigned to @other-user',
+    expectedComments: [
+      `👋 Hi @late-arrival! This issue is already assigned to @other-user.
+
+👉 **Find another issue to work on:**
+[Browse unassigned issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)
+
+Once you find one you like, comment \`/assign\` to get started!`,
+    ],
   },
 
   {
-    name: 'Info - Already Assigned to Self',
-    description: 'User who is already assigned comments /assign again',
+    name: 'Validation - Already Assigned to Self',
+    description: 'Contributor already owns the issue',
     context: {
       payload: {
         issue: {
-          number: 104,
+          number: 105,
           assignees: [{ login: 'forgetful-user' }],
           labels: [
             { name: 'status: ready for dev' },
@@ -206,16 +274,20 @@ const scenarios = [
     },
     githubOptions: {},
     expectedAssignee: null,
-    expectedCommentContains: "You're already assigned to this issue",
+    expectedComments: [
+      `👋 Hi @forgetful-user! You're already assigned to this issue. You're all set to start working on it!
+
+If you have any questions, feel free to ask here or reach out to the team.`,
+    ],
   },
 
   {
-    name: 'Failure - Not Ready for Dev',
-    description: 'User tries to assign an issue without ready for dev label',
+    name: 'Validation - Not Ready for Dev',
+    description: 'Issue missing status: ready for dev label',
     context: {
       payload: {
         issue: {
-          number: 105,
+          number: 106,
           assignees: [],
           labels: [
             { name: 'skill: good first issue' },
@@ -230,16 +302,56 @@ const scenarios = [
     },
     githubOptions: {},
     expectedAssignee: null,
-    expectedCommentContains: 'not ready for development yet',
+    expectedComments: [
+      `👋 Hi @eager-user! This issue is not ready for development yet.
+
+Issues must have the \`status: ready for dev\` label before they can be assigned.
+
+👉 **Find an issue that's ready:**
+[Browse ready issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)
+
+Once you find one you like, comment \`/assign\` to get started!`,
+    ],
   },
 
   {
-    name: 'Failure - No Skill Level Label',
-    description: 'Issue has ready for dev but no skill level',
+    name: 'Validation - No Labels At All',
+    description: 'Issue has no labels',
     context: {
       payload: {
         issue: {
-          number: 106,
+          number: 107,
+          assignees: [],
+          labels: [],
+        },
+        comment: {
+          body: '/assign',
+          user: { login: 'eager-user', type: 'User' },
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: {},
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @eager-user! This issue is not ready for development yet.
+
+Issues must have the \`status: ready for dev\` label before they can be assigned.
+
+👉 **Find an issue that's ready:**
+[Browse ready issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)
+
+Once you find one you like, comment \`/assign\` to get started!`,
+    ],
+  },
+
+  {
+    name: 'Validation - No Skill Level Label',
+    description: 'Issue missing skill level label',
+    context: {
+      payload: {
+        issue: {
+          number: 107,
           assignees: [],
           labels: [
             { name: 'status: ready for dev' },
@@ -254,37 +366,22 @@ const scenarios = [
     },
     githubOptions: {},
     expectedAssignee: null,
-    expectedCommentContains: "doesn't have a skill level label yet",
+    expectedComments: [
+      `👋 Hi @confused-user! This issue doesn't have a skill level label yet.
+
+@hiero-ledger/hiero-sdk-cpp-maintainers — could you please add one of the following labels?
+- \`skill: good first issue\`
+- \`skill: beginner\`
+- \`skill: intermediate\`
+- \`skill: advanced\`
+
+@confused-user, once a maintainer adds the label, comment \`/assign\` again to request assignment.`,
+    ],
   },
 
   {
-    name: 'No Action - Comment Without /assign',
-    description: 'Regular comment without assignment command',
-    context: {
-      payload: {
-        issue: {
-          number: 107,
-          assignees: [],
-          labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
-          ],
-        },
-        comment: {
-          body: 'This looks interesting, can someone help me understand it?',
-          user: { login: 'curious-user', type: 'User' },
-        },
-      },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
-    },
-    githubOptions: {},
-    expectedAssignee: null,
-    expectedCommentContains: null, // No comment expected
-  },
-
-  {
-    name: 'No Action - Bot Comment',
-    description: 'Bot comments /assign (should be ignored)',
+    name: 'Validation - Prerequisites Not Met',
+    description: 'Contributor lacks required experience',
     context: {
       payload: {
         issue: {
@@ -292,24 +389,40 @@ const scenarios = [
           assignees: [],
           labels: [
             { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: 'skill: beginner' },
           ],
         },
         comment: {
           body: '/assign',
-          user: { login: 'github-actions[bot]', type: 'Bot' },
+          user: { login: 'eager-newbie', type: 'User' },
         },
       },
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
-    githubOptions: {},
+    githubOptions: { completedIssueCount: 0 },
     expectedAssignee: null,
-    expectedCommentContains: null,
+    expectedComments: [
+      `👋 Hi @eager-newbie! Thanks for your interest in contributing!
+
+This is a **Beginner** issue. Before taking it on, you need to complete at least **2 Good First Issues** to build familiarity with the codebase.
+
+📊 **Your Progress:** You've completed **0** so far.
+
+👉 **Find Good First Issues to work on:**
+[Browse available Good First Issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22skill%3A%20good%20first%20issue%22+label%3A%22status%3A+ready+for+dev%22)
+
+Once you've completed 2, come back and we'll be happy to assign this to you! 🎯`,
+    ],
   },
 
+  // ---------------------------------------------------------------------------
+  // ERROR HANDLING (3 tests)
+  // API failures result in maintainer tagging
+  // ---------------------------------------------------------------------------
+
   {
-    name: 'Error Handling - GraphQL API Failure',
-    description: 'API fails when checking prerequisites, tags maintainers',
+    name: 'Error - GraphQL API Failure',
+    description: 'Tags maintainers when prerequisite check fails',
     context: {
       payload: {
         issue: {
@@ -329,12 +442,18 @@ const scenarios = [
     },
     githubOptions: { graphqlShouldFail: true },
     expectedAssignee: null,
-    expectedCommentContains: 'encountered an error while trying to verify',
+    expectedComments: [
+      `👋 Hi @unlucky-user! I encountered an error while trying to verify your eligibility for this issue.
+
+@hiero-ledger/hiero-sdk-cpp-maintainers — could you please help with this assignment request?
+
+@unlucky-user, a maintainer will review your request and assign you manually if appropriate. Sorry for the inconvenience!`,
+    ],
   },
 
   {
-    name: 'Error Handling - Assignment API Failure',
-    description: 'Assignment fails, tags maintainers',
+    name: 'Error - Assignment API Failure',
+    description: 'Tags maintainers when assignment fails',
     context: {
       payload: {
         issue: {
@@ -354,12 +473,18 @@ const scenarios = [
     },
     githubOptions: { assignShouldFail: true },
     expectedAssignee: null,
-    expectedCommentContains: 'tried to assign you to this issue, but encountered an error',
+    expectedComments: [
+      `⚠️ Hi @unlucky-user-2! I tried to assign you to this issue, but encountered an error.
+
+@hiero-ledger/hiero-sdk-cpp-maintainers — could you please manually assign @unlucky-user-2 to this issue?
+
+Error details: Simulated assignment failure`,
+    ],
   },
 
   {
-    name: 'Error Handling - Label Update Failure',
-    description: 'Assignment succeeds but label update fails',
+    name: 'Error - Label Update Failure',
+    description: 'Tags maintainers when labels cannot be updated',
     context: {
       payload: {
         issue: {
@@ -379,12 +504,32 @@ const scenarios = [
     },
     githubOptions: { removeLabelShouldFail: true, addLabelShouldFail: true },
     expectedAssignee: 'partially-lucky',
-    expectedCommentContains: 'encountered an error updating the labels',
+    expectedComments: [
+      `👋 Hi @partially-lucky, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉
+
+You've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.
+
+The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.
+
+Good luck, and welcome aboard! 🚀`,
+      `⚠️ @partially-lucky has been successfully assigned to this issue, but I encountered an error updating the labels.
+
+@hiero-ledger/hiero-sdk-cpp-maintainers — please manually:
+- Remove the \`status: ready for dev\` label
+- Add the \`status: in progress\` label
+
+Error details: Failed to remove "status: ready for dev" label: Simulated remove label failure; Failed to add "status: in progress" label: Simulated add label failure`,
+    ],
   },
 
+  // ---------------------------------------------------------------------------
+  // NO ACTION (2 tests)
+  // Bot stays silent and takes no action
+  // ---------------------------------------------------------------------------
+
   {
-    name: 'Happy Path - Intermediate Issue',
-    description: 'User with 3 completed Beginner issues requests intermediate',
+    name: 'No Action - Comment Without /assign',
+    description: 'Regular comment ignored',
     context: {
       payload: {
         issue: {
@@ -392,24 +537,24 @@ const scenarios = [
           assignees: [],
           labels: [
             { name: 'status: ready for dev' },
-            { name: 'skill: intermediate' },
+            { name: 'skill: good first issue' },
           ],
         },
         comment: {
-          body: '/assign',
-          user: { login: 'growing-contributor', type: 'User' },
+          body: 'This looks interesting, can someone help me understand it?',
+          user: { login: 'curious-user', type: 'User' },
         },
       },
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
-    githubOptions: { completedIssueCount: 3 },
-    expectedAssignee: 'growing-contributor',
-    expectedCommentContains: 'Intermediate',
+    githubOptions: {},
+    expectedAssignee: null,
+    expectedComments: [],
   },
 
   {
-    name: 'Happy Path - Advanced Issue',
-    description: 'User with 3 completed Intermediate issues requests advanced',
+    name: 'No Action - Bot Comment',
+    description: 'Bot users ignored to prevent loops',
     context: {
       payload: {
         issue: {
@@ -417,19 +562,19 @@ const scenarios = [
           assignees: [],
           labels: [
             { name: 'status: ready for dev' },
-            { name: 'skill: advanced' },
+            { name: 'skill: good first issue' },
           ],
         },
         comment: {
           body: '/assign',
-          user: { login: 'senior-contributor', type: 'User' },
+          user: { login: 'github-actions[bot]', type: 'Bot' },
         },
       },
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
-    githubOptions: { completedIssueCount: 3 },
-    expectedAssignee: 'senior-contributor',
-    expectedCommentContains: 'Advanced',
+    githubOptions: {},
+    expectedAssignee: null,
+    expectedComments: [],
   },
 ];
 
@@ -474,18 +619,31 @@ async function runTest(scenario, index) {
     }
   }
 
-  // Check comment
-  if (scenario.expectedCommentContains) {
-    const hasExpectedContent = mockGithub.calls.comments.some(c => c.includes(scenario.expectedCommentContains));
-    if (hasExpectedContent) {
-      results.details.push(`✅ Comment contains expected text`);
-    } else {
-      results.passed = false;
-      results.details.push(`❌ Comment should contain "${scenario.expectedCommentContains}"`);
-    }
-  } else if (scenario.expectedCommentContains === null) {
-    if (mockGithub.calls.comments.length === 0) {
-      results.details.push('✅ Correctly posted no comment');
+  // Check comments (snapshot comparison)
+  const expectedComments = scenario.expectedComments || [];
+  const actualComments = mockGithub.calls.comments;
+
+  if (expectedComments.length === 0 && actualComments.length === 0) {
+    results.details.push('✅ Correctly posted no comments');
+  } else if (expectedComments.length !== actualComments.length) {
+    results.passed = false;
+    results.details.push(`❌ Expected ${expectedComments.length} comment(s), got ${actualComments.length}`);
+  } else {
+    for (let i = 0; i < expectedComments.length; i++) {
+      if (actualComments[i] === expectedComments[i]) {
+        results.details.push(`✅ Comment ${i + 1} matches snapshot`);
+      } else {
+        results.passed = false;
+        results.details.push(`❌ Comment ${i + 1} does not match snapshot`);
+        console.log('\n📋 EXPECTED:');
+        console.log('─'.repeat(60));
+        console.log(expectedComments[i]);
+        console.log('─'.repeat(60));
+        console.log('\n📋 ACTUAL:');
+        console.log('─'.repeat(60));
+        console.log(actualComments[i]);
+        console.log('─'.repeat(60));
+      }
     }
   }
 

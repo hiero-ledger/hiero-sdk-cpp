@@ -67,12 +67,12 @@ function isSafeSearchToken(value) {
 }
 
 /**
- * Returns true if /assign appears as a standalone command in the comment.
+ * Returns true if the comment is exactly "/assign" (with optional whitespace).
  * @param {string} body - The comment body.
- * @returns {boolean} - True if the comment contains the /assign command.
+ * @returns {boolean} - True if the comment is the /assign command.
  */
 function commentRequestsAssignment(body) {
-  const matches = typeof body === 'string' && /(^|\s)\/assign(\s|$)/i.test(body);
+  const matches = typeof body === 'string' && /^\s*\/assign\s*$/i.test(body);
   console.log('[assign-bot] commentRequestsAssignment:', { body: body?.substring(0, 100), matches });
   return matches;
 }
@@ -228,15 +228,20 @@ function buildAlreadyAssignedComment(requesterUsername, issue, owner, repo) {
 /**
  * Builds a comment for when the issue is not ready for development.
  * @param {string} requesterUsername - The username requesting assignment.
+ * @param {string} owner - The repository owner.
+ * @param {string} repo - The repository name.
  * @returns {string} - The not ready comment.
  */
-function buildNotReadyComment(requesterUsername) {
+function buildNotReadyComment(requesterUsername, owner, repo) {
   return [
     `👋 Hi @${requesterUsername}! This issue is not ready for development yet.`,
     '',
     `Issues must have the \`${LABELS.READY_FOR_DEV}\` label before they can be assigned.`,
     '',
-    'Please wait for a maintainer to mark this issue as ready, or choose a different issue that\'s ready for development.',
+    '👉 **Find an issue that\'s ready:**',
+    `[Browse ready issues](https://github.com/${owner}/${repo}/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)`,
+    '',
+    'Once you find one you like, comment `/assign` to get started!',
   ].join('\n');
 }
 
@@ -283,13 +288,13 @@ function buildNoSkillLevelComment(requesterUsername) {
   return [
     `👋 Hi @${requesterUsername}! This issue doesn't have a skill level label yet.`,
     '',
-    'Please wait for a maintainer to categorize this issue with one of the following labels:',
+    `${MAINTAINER_TEAM} — could you please add one of the following labels?`,
     `- \`${LABELS.GOOD_FIRST_ISSUE}\``,
     `- \`${LABELS.BEGINNER}\``,
     `- \`${LABELS.INTERMEDIATE}\``,
     `- \`${LABELS.ADVANCED}\``,
     '',
-    'Once labeled, you can comment `/assign` again to request assignment.',
+    `@${requesterUsername}, once a maintainer adds the label, comment \`/assign\` again to request assignment.`,
   ].join('\n');
 }
 
@@ -347,7 +352,7 @@ function buildAssignmentFailureComment(requesterUsername, error) {
  *
  * Flow:
  * 1. Validate payload (issue exists, comment exists, not a bot)
- * 2. Check if comment contains "/assign" command
+ * 2. Check if comment is exactly "/assign"
  * 3. Verify issue is not already assigned
  * 4. Verify issue has "status: ready for dev" label
  * 5. Verify issue has a skill level label
@@ -396,7 +401,7 @@ module.exports = async ({ github, context }) => {
       return;
     }
 
-    // Only proceed if the comment contains the "/assign" command
+    // Only proceed if the comment is exactly "/assign"
     if (!commentRequestsAssignment(comment.body)) {
       console.log('[assign-bot] Exit: comment does not request assignment');
       return;
@@ -438,7 +443,7 @@ module.exports = async ({ github, context }) => {
         owner,
         repo,
         issue_number: issueNumber,
-        body: buildNotReadyComment(requesterUsername),
+        body: buildNotReadyComment(requesterUsername, owner, repo),
       });
 
       console.log('[assign-bot] Posted not-ready comment');
