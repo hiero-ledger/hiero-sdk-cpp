@@ -108,7 +108,7 @@ public:
   /**
    * Get the maximum amount of time to wait before attempting to resubmit this AddressBookQuery.
    *
-   * @return The the maximum amount of time to wait before attempting to resubmit this AddressBookQuery.
+   * @return The maximum amount of time to wait before attempting to resubmit this AddressBookQuery.
    */
   [[nodiscard]] inline std::chrono::system_clock::duration getMaxBackoff() const { return mMaxBackoff; }
 
@@ -136,7 +136,7 @@ private:
   unsigned int mMaxAttempts = DEFAULT_MAX_ATTEMPTS;
 
   /**
-   * The the maximum amount of time to wait before attempting to resubmit this AddressBookQuery.
+   * The maximum amount of time to wait before attempting to resubmit this AddressBookQuery.
    */
   std::chrono::system_clock::duration mMaxBackoff = DEFAULT_MAX_BACKOFF;
 };
