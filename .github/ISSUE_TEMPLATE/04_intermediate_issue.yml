@@ -199,11 +199,11 @@ body:
         - [ ] Sign each commit using `-s -S`
         - [ ] Push your branch and open a pull request
 
-        Read [Workflow Guide](docs/training/workflow.md) for step-by-step workflow guidance.  
-        Read [README.md](README.md) for setup instructions.
+        Read [Workflow Guide](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/docs/training/workflow.md) for step-by-step workflow guidance.  
+        Read [README.md](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/README.md) for setup instructions.
 
         ❗ Pull requests **cannot be merged** without `S` and `s` signed commits.  
-        See the [Signing Guide](docs/training/signing.md).
+        See the [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/docs/training/signing.md).
     validations:
       required: true
 

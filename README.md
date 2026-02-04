@@ -98,11 +98,12 @@ The following optional flags can be added during configuration:
 | `BUILD_TESTS` | `OFF` | Include the test suite in the build |
 | `BUILD_TCK` | `OFF` | Include TCK tests in the build |
 | `BUILD_EXAMPLES` | `OFF` | Include example programs in the build |
+| `BUILD_TCK_TESTS`| `OFF` | Include TCK Server unit tests in the build |
 
 Example with all options enabled:
 
 ```sh
-cmake --preset linux-x64-release -DBUILD_TESTS=ON -DBUILD_TCK=ON -DBUILD_EXAMPLES=ON
+cmake --preset linux-x64-release -DBUILD_TESTS=ON -DBUILD_TCK=ON -DBUILD_EXAMPLES=ON -DBUILD_TCK_TESTS=ON
 cmake --build --preset linux-x64-release
 ```
 

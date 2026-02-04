@@ -44,6 +44,8 @@ public:
    */
   explicit TckServer(int port);
 
+  friend class TckServerUnitTests;
+
   /**
    * Add a JSON RPC method function.
    *
