@@ -15,11 +15,46 @@ code contributions.
 
 ## Code Contributions
 
-1. Get assigned to an [Open C++ SDK Issue](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20state%3Aopen%20no%3Aassignee)
-2. Solve the issue and create a pull request following the [Issue Workflow Guide](docs/training/workflow.md)
+### Finding an Issue
+
+Browse [open, unassigned issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22) to find one that matches your skill level:
+
+| Skill Level | Description | Prerequisite |
+|-------------|-------------|--------------|
+| **Good First Issue** | Step-by-step tasks for newcomers | None |
+| **Beginner** | Small improvements with some exploration | 2 completed Good First Issues |
+| **Intermediate** | Multi-file changes with design decisions | 3 completed Beginner Issues |
+| **Advanced** | Architecture and design-heavy work | 3 completed Intermediate Issues |
+
+Look for issues with the `status: ready for dev` label — these are ready to be worked on.
+
+### Getting Assigned
+
+To claim an issue, comment on it with:
+
+```
+/assign
+```
+
+The bot will automatically:
+1. Verify you meet the skill-level prerequisites
+2. Assign you to the issue
+3. Update the issue labels
+4. Post a welcome message
+
+If you don't meet the prerequisites, the bot will show your progress and link to issues you can work on first.
+
+### Submitting Your Work
+
+Once assigned, follow the [Issue Workflow Guide](docs/training/workflow.md) to:
+1. Fork the repository and create a branch
+2. Make your changes
+3. Sign your commits (`-s -S`)
+4. Open a pull request
 
 Note:
 - The SDK is released under the [Apache 2.0 License][license]. Any code you submit will be released under this license.
+- Pull requests **cannot be merged** without signed commits. See the [Signing Guide](docs/training/signing.md).
 
 ## Feature Requests
 
