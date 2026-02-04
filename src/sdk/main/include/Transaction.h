@@ -558,7 +558,7 @@ private:
    * function was generated.
    *
    * @param publicKey  The PublicKey to add.
-   * @param signer     The singer function to add.
+   * @param signer     The signer function to add.
    * @param privateKey The PrivateKey to add.
    * @return A reference to this derived Transaction object with the newly-set "signature(s)".
    */
