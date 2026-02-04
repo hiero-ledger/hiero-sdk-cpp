@@ -45,7 +45,7 @@ protected:
   [[nodiscard]] inline const std::string& getTestTokenMemo() const { return mTestTokenMemo; }
   [[nodiscard]] inline const std::shared_ptr<PublicKey>& getTestFeeScheduleKey() const { return mTestFeeScheduleKey; }
   [[nodiscard]] inline const std::shared_ptr<PublicKey>& getTestPauseKey() const { return mTestPauseKey; }
-  [[nodiscard]] inline const std::vector<std::byte>& getTestMetadata() const { return mTestMetadata;}
+  [[nodiscard]] inline const std::vector<std::byte>& getTestMetadata() const { return mTestMetadata; }
 
 private:
   const TokenId mTestTokenId = TokenId(1ULL, 2ULL, 3ULL);
