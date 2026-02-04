@@ -325,6 +325,7 @@ public:
    * @return The new metadata for the token.
    */
   [[nodiscard]] inline std::vector<std::byte> getMetadata() const { return mMetadata; }
+ 
   /**
    * Get the token verification mode for the token.
    *
