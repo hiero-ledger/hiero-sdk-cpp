@@ -2,6 +2,7 @@
 #ifndef HIERO_SDK_CPP_BAD_ENTITY_ID_EXCEPTION_H_
 #define HIERO_SDK_CPP_BAD_ENTITY_ID_EXCEPTION_H_
 
+#include <cstdint>
 #include <exception>
 #include <string>
 #include <string_view>

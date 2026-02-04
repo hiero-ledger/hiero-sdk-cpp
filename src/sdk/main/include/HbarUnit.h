@@ -2,6 +2,7 @@
 #ifndef HBAR_UNIT_H_
 #define HBAR_UNIT_H_
 
+#include <cstdint>
 #include <map>
 #include <string>
 

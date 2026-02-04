@@ -3,6 +3,7 @@
 #define HIERO_SDK_CPP_SCHEDULE_ID_H_
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
