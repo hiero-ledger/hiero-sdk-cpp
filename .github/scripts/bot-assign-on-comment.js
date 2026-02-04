@@ -411,6 +411,21 @@ module.exports = async ({ github, context }) => {
 
     const requesterUsername = comment.user.login;
     const issueNumber = issue.number;
+    const commentId = comment.id;
+
+    // Acknowledge the /assign comment with a thumbs-up reaction
+    try {
+      await github.rest.reactions.createForIssueComment({
+        owner,
+        repo,
+        comment_id: commentId,
+        content: '+1',
+      });
+      console.log('[assign-bot] Added thumbs-up reaction to comment');
+    } catch (error) {
+      // Non-critical - continue even if reaction fails
+      console.log('[assign-bot] Could not add reaction:', error.message);
+    }
 
     // =========================================================================
     // CHECK 1: Is the issue already assigned?

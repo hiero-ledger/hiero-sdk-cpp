@@ -29,11 +29,18 @@ function createMockGithub(options = {}) {
     labelsAdded: [],
     labelsRemoved: [],
     graphqlCalls: [],
+    reactions: [],
   };
 
   return {
     calls,
     rest: {
+      reactions: {
+        createForIssueComment: async (params) => {
+          calls.reactions.push({ commentId: params.comment_id, content: params.content });
+          console.log(`\n👍 REACTION ADDED: ${params.content}`);
+        },
+      },
       issues: {
         createComment: async (params) => {
           calls.comments.push(params.body);
@@ -103,6 +110,7 @@ const scenarios = [
           ],
         },
         comment: {
+          id: 1001,
           body: '/assign',
           user: { login: 'new-contributor', type: 'User' },
         },
@@ -136,6 +144,7 @@ Good luck, and welcome aboard! 🚀`,
           ],
         },
         comment: {
+          id: 1002,
           body: '/assign',
           user: { login: 'experienced-contributor', type: 'User' },
         },
@@ -167,6 +176,7 @@ Good luck! 🚀`,
           ],
         },
         comment: {
+          id: 1003,
           body: '/assign',
           user: { login: 'growing-contributor', type: 'User' },
         },
@@ -198,6 +208,7 @@ Good luck! 🚀`,
           ],
         },
         comment: {
+          id: 1004,
           body: '/assign',
           user: { login: 'senior-contributor', type: 'User' },
         },
@@ -234,6 +245,7 @@ Good luck! 🚀`,
           ],
         },
         comment: {
+          id: 1005,
           body: '/assign',
           user: { login: 'late-arrival', type: 'User' },
         },
@@ -266,6 +278,7 @@ Once you find one you like, comment \`/assign\` to get started!`,
           ],
         },
         comment: {
+          id: 1006,
           body: '/assign',
           user: { login: 'forgetful-user', type: 'User' },
         },
@@ -294,6 +307,7 @@ If you have any questions, feel free to ask here or reach out to the team.`,
           ],
         },
         comment: {
+          id: 1007,
           body: '/assign',
           user: { login: 'eager-user', type: 'User' },
         },
@@ -325,6 +339,7 @@ Once you find one you like, comment \`/assign\` to get started!`,
           labels: [],
         },
         comment: {
+          id: 1007,
           body: '/assign',
           user: { login: 'eager-user', type: 'User' },
         },
@@ -358,6 +373,7 @@ Once you find one you like, comment \`/assign\` to get started!`,
           ],
         },
         comment: {
+          id: 1008,
           body: '/assign',
           user: { login: 'confused-user', type: 'User' },
         },
@@ -393,6 +409,7 @@ Once you find one you like, comment \`/assign\` to get started!`,
           ],
         },
         comment: {
+          id: 1009,
           body: '/assign',
           user: { login: 'eager-newbie', type: 'User' },
         },
@@ -434,6 +451,7 @@ Once you've completed 2, come back and we'll be happy to assign this to you! �
           ],
         },
         comment: {
+          id: 1010,
           body: '/assign',
           user: { login: 'unlucky-user', type: 'User' },
         },
@@ -465,6 +483,7 @@ Once you've completed 2, come back and we'll be happy to assign this to you! �
           ],
         },
         comment: {
+          id: 1011,
           body: '/assign',
           user: { login: 'unlucky-user-2', type: 'User' },
         },
@@ -496,6 +515,7 @@ Error details: Simulated assignment failure`,
           ],
         },
         comment: {
+          id: 1012,
           body: '/assign',
           user: { login: 'partially-lucky', type: 'User' },
         },
@@ -541,6 +561,7 @@ Error details: Failed to remove "status: ready for dev" label: Simulated remove 
           ],
         },
         comment: {
+          id: 1013,
           body: 'This looks interesting, can someone help me understand it?',
           user: { login: 'curious-user', type: 'User' },
         },
@@ -566,6 +587,7 @@ Error details: Failed to remove "status: ready for dev" label: Simulated remove 
           ],
         },
         comment: {
+          id: 1014,
           body: '/assign',
           user: { login: 'github-actions[bot]', type: 'Bot' },
         },
