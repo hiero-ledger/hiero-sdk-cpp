@@ -4,6 +4,8 @@
 
 #include "Transaction.h"
 
+#include <cstdint>
+
 namespace proto
 {
 class NodeDeleteTransactionBody;

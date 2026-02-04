@@ -5,7 +5,9 @@
 #include "HbarUnit.h"
 
 #include <cmath>
+#include <cstdint>
 #include <regex>
+#include <string>
 
 namespace Hiero
 {

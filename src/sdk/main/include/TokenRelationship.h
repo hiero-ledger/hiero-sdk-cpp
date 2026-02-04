@@ -4,6 +4,7 @@
 
 #include "TokenId.h"
 
+#include <cstdint>
 #include <iostream>
 #include <optional>
 #include <string>
