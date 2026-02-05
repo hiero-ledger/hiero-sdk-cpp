@@ -3,7 +3,10 @@
 // bot-assign-on-comment.js
 //
 // Assigns contributors to issues when they comment "/assign".
-// Enforces skill-level prerequisites and manages status labels.
+// Enforces skill-level prerequisites, assignment limits, and manages status labels.
+//
+// Assignment Limit:
+//   - Contributors can have at most 2 open issues assigned at a time
 //
 // Skill Level Requirements:
 //   - Good First Issue: No prerequisites
@@ -56,6 +59,9 @@ const SKILL_PREREQUISITES = {
 
 // Team to tag when manual intervention is needed
 const MAINTAINER_TEAM = '@hiero-ledger/hiero-sdk-cpp-maintainers';
+
+// Maximum number of open issues a contributor can be assigned to at once
+const MAX_OPEN_ASSIGNMENTS = 2;
 
 /**
  * Validates a string for safe use in GitHub search queries.
@@ -112,34 +118,42 @@ function getIssueSkillLevel(issue) {
 }
 
 /**
- * Counts completed issues for a user with a specific label.
+ * Counts issues assigned to a user matching specified criteria.
  * @param {object} github - The GitHub API client.
  * @param {string} owner - The repository owner.
  * @param {string} repo - The repository name.
  * @param {string} username - The username to check.
- * @param {string} label - The label to filter by.
- * @returns {Promise<number|null>} - The count of completed issues or null on error.
+ * @param {object} options - Query options.
+ * @param {string} options.state - Issue state: 'open' or 'closed'.
+ * @param {string} [options.label] - Optional label to filter by.
+ * @returns {Promise<number|null>} - The count of matching issues or null on error.
  */
-async function countCompletedIssues(github, owner, repo, username, label) {
+async function countAssignedIssues(github, owner, repo, username, { state, label = null }) {
   if (
     !isSafeSearchToken(owner) ||
     !isSafeSearchToken(repo) ||
     !isSafeSearchToken(username)
   ) {
-    console.log('[assign-bot] Invalid search inputs:', { owner, repo, username, label });
+    console.log('[assign-bot] Invalid search inputs:', { owner, repo, username });
     return null;
   }
 
   try {
-    const searchQuery = [
+    const queryParts = [
       `repo:${owner}/${repo}`,
-      `label:"${label}"`,
       'is:issue',
-      'is:closed',
+      `is:${state}`,
       `assignee:${username}`,
-    ].join(' ');
+    ];
 
-    console.log('[assign-bot] GraphQL search query:', searchQuery);
+    if (label) {
+      queryParts.push(`label:"${label}"`);
+    }
+
+    const searchQuery = queryParts.join(' ');
+    const queryType = label ? `completed "${label}"` : `${state} assigned`;
+
+    console.log(`[assign-bot] GraphQL search query (${queryType}):`, searchQuery);
 
     const result = await github.graphql(
       `
@@ -153,11 +167,11 @@ async function countCompletedIssues(github, owner, repo, username, label) {
     );
 
     const count = result?.search?.issueCount ?? 0;
-    console.log(`[assign-bot] Completed "${label}" issues for ${username}: ${count}`);
+    console.log(`[assign-bot] ${queryType} issues for ${username}: ${count}`);
     return count;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.log(`[assign-bot] Failed to count issues for ${username}: ${message}`);
+    console.log(`[assign-bot] Failed to count ${state} issues for ${username}: ${message}`);
     return null;
   }
 }
@@ -299,6 +313,31 @@ function buildNoSkillLevelComment(requesterUsername) {
 }
 
 /**
+ * Builds a comment for when the contributor has too many open assignments.
+ * @param {string} requesterUsername - The username requesting assignment.
+ * @param {number} openCount - The number of open issues currently assigned.
+ * @param {string} owner - The repository owner.
+ * @param {string} repo - The repository name.
+ * @returns {string} - The assignment limit exceeded comment.
+ */
+function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner, repo) {
+  const assignedIssuesUrl = `https://github.com/${owner}/${repo}/issues?q=is%3Aissue+is%3Aopen+assignee%3A${requesterUsername}`;
+
+  return [
+    `👋 Hi @${requesterUsername}! Thanks for your enthusiasm to contribute!`,
+    '',
+    `To help contributors stay focused and ensure issues remain available for others, we limit assignments to **${MAX_OPEN_ASSIGNMENTS} open issues** at a time.`,
+    '',
+    `📊 **Your Current Assignments:** You're currently assigned to **${openCount}** open issue${openCount === 1 ? '' : 's'}.`,
+    '',
+    '👉 **View your assigned issues:**',
+    `[Your open assignments](${assignedIssuesUrl})`,
+    '',
+    'Once you complete or unassign from one of your current issues, come back and we\'ll be happy to assign this to you! 🎯',
+  ].join('\n');
+}
+
+/**
  * Builds a comment for when an API error prevents prerequisite verification.
  * @param {string} requesterUsername - The username requesting assignment.
  * @returns {string} - The API error comment.
@@ -356,9 +395,10 @@ function buildAssignmentFailureComment(requesterUsername, error) {
  * 3. Verify issue is not already assigned
  * 4. Verify issue has "status: ready for dev" label
  * 5. Verify issue has a skill level label
- * 6. Verify contributor meets skill prerequisites (via GraphQL)
- * 7. Assign contributor and update labels
- * 8. Post welcome comment
+ * 6. Verify contributor doesn't have too many open assignments (via GraphQL)
+ * 7. Verify contributor meets skill prerequisites (via GraphQL)
+ * 8. Assign contributor and update labels
+ * 9. Post welcome comment
  *
  * On any failure, posts an informative comment explaining why.
  * On API errors, tags maintainers for manual intervention.
@@ -489,7 +529,53 @@ module.exports = async ({ github, context }) => {
     console.log('[assign-bot] Issue skill level:', skillLevel);
 
     // =========================================================================
-    // CHECK 4: Does the contributor meet skill prerequisites?
+    // CHECK 4: Does the contributor have too many open assignments?
+    // =========================================================================
+    // Contributors are limited to MAX_OPEN_ASSIGNMENTS open issues at a time
+    // to help them stay focused and ensure issues remain available for others.
+
+    const openAssignmentCount = await countAssignedIssues(github, owner, repo, requesterUsername, { state: 'open' });
+
+    // API error - can't verify open assignments, tag maintainers
+    if (openAssignmentCount === null) {
+      console.log('[assign-bot] Exit: could not verify open assignments due to API error');
+
+      await github.rest.issues.createComment({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        body: buildApiErrorComment(requesterUsername),
+      });
+
+      console.log('[assign-bot] Posted API error comment, tagged maintainers');
+      return;
+    }
+
+    // Too many open assignments - show current count and link to assigned issues
+    if (openAssignmentCount >= MAX_OPEN_ASSIGNMENTS) {
+      console.log('[assign-bot] Exit: contributor has too many open assignments', {
+        maxAllowed: MAX_OPEN_ASSIGNMENTS,
+        currentCount: openAssignmentCount,
+      });
+
+      await github.rest.issues.createComment({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        body: buildAssignmentLimitExceededComment(requesterUsername, openAssignmentCount, owner, repo),
+      });
+
+      console.log('[assign-bot] Posted assignment-limit-exceeded comment');
+      return;
+    }
+
+    console.log('[assign-bot] Open assignment count OK:', {
+      maxAllowed: MAX_OPEN_ASSIGNMENTS,
+      currentCount: openAssignmentCount,
+    });
+
+    // =========================================================================
+    // CHECK 5: Does the contributor meet skill prerequisites?
     // =========================================================================
     // For Beginner/Intermediate/Advanced issues, verify the contributor has
     // completed the required number of issues at the previous level.
@@ -499,12 +585,12 @@ module.exports = async ({ github, context }) => {
 
     // Only check prerequisites if this skill level requires them
     if (prereq.requiredLabel && prereq.requiredCount > 0) {
-      const completedCount = await countCompletedIssues(
+      const completedCount = await countAssignedIssues(
         github,
         owner,
         repo,
         requesterUsername,
-        prereq.requiredLabel
+        { state: 'closed', label: prereq.requiredLabel }
       );
 
       // API error - can't verify prerequisites, tag maintainers
