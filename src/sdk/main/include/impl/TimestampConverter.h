@@ -49,7 +49,7 @@ proto::TimestampSeconds* toSecondsProtobuf(const std::chrono::system_clock::time
 /**
  * Convert an epoch timestamp to a string representation of the form "<seconds>.<nanoseconds>".
  *
- * @param timestamp The timestamp of which to get the the string representation.
+ * @param timestamp The timestamp of which to get the string representation.
  * @return The string representation of the input timestamp.
  */
 [[nodiscard]] std::string toString(const std::chrono::system_clock::time_point& timestamp);
