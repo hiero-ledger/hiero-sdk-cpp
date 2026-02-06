@@ -17,6 +17,7 @@ const LABELS = {
   // Status labels
   READY_FOR_DEV: 'status: ready for dev',
   IN_PROGRESS: 'status: in progress',
+  BLOCKED: 'status: blocked',
   NEEDS_REVIEW: 'status: needs review',
   NEEDS_REVISION: 'status: needs revision',
 

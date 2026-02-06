@@ -8,6 +8,7 @@
 // This script mocks the GitHub API and runs various test scenarios
 // to verify the bot behaves correctly without making real API calls.
 
+const { LABELS } = require('./bot-helpers.js');
 const script = require('./bot-assign-on-comment.js');
 
 // =============================================================================
@@ -18,6 +19,7 @@ function createMockGithub(options = {}) {
   const {
     completedIssueCount = 0,
     openAssignmentCount = 0,
+    openAssignmentCountExcludingBlocked = openAssignmentCount,
     graphqlShouldFail = false,
     graphqlOpenAssignmentsShouldFail = false,
     assignShouldFail = false,
@@ -79,16 +81,18 @@ function createMockGithub(options = {}) {
       console.log(`\n🔍 GRAPHQL QUERY: ${variables.searchQuery}`);
 
       // Determine query type based on whether it's checking open or closed issues
-      // - Open assignments query uses "is:open" (counts current open assignments)
+      // - Open assignments query uses "is:open" (counts current open assignments, excluding status: blocked)
       // - Completed issues query uses "is:closed" (counts finished prerequisite issues)
       const isOpenAssignmentsQuery = variables.searchQuery.includes('is:open');
+      const excludesBlocked = variables.searchQuery.includes(`-label:"${LABELS.BLOCKED}"`);
 
       if (isOpenAssignmentsQuery) {
         if (graphqlOpenAssignmentsShouldFail) {
           throw new Error('Simulated GraphQL failure for open assignments');
         }
-        console.log(`   → Returning open assignment count: ${openAssignmentCount}`);
-        return { search: { issueCount: openAssignmentCount } };
+        const count = excludesBlocked ? openAssignmentCountExcludingBlocked : openAssignmentCount;
+        console.log(`   → Returning open assignment count: ${count}${excludesBlocked ? ' (excluding blocked)' : ''}`);
+        return { search: { issueCount: count } };
       }
 
       // Completed issues query (uses is:closed)
@@ -474,7 +478,7 @@ Once you've completed 2, come back and we'll be happy to assign this to you! �
     expectedComments: [
       `👋 Hi @busy-contributor! Thanks for your enthusiasm to contribute!
 
-To help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time.
+To help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time. Issues labeled \`status: blocked\` are not counted toward this limit.
 
 📊 **Your Current Assignments:** You're currently assigned to **2** open issues.
 
@@ -511,12 +515,52 @@ Once you complete or unassign from one of your current issues, come back and we'
     expectedComments: [
       `👋 Hi @very-busy-contributor! Thanks for your enthusiasm to contribute!
 
-To help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time.
+To help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time. Issues labeled \`status: blocked\` are not counted toward this limit.
 
 📊 **Your Current Assignments:** You're currently assigned to **5** open issues.
 
 👉 **View your assigned issues:**
 [Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+assignee%3Avery-busy-contributor)
+
+Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
+    ],
+  },
+
+  {
+    name: 'Validation - Over Limit After Issues Unblocked',
+    description: 'User has 3 open issues; some were blocked when they got the third. Now 3 count (excluding blocked), so over limit and cannot be assigned',
+    context: {
+      payload: {
+        issue: {
+          number: 118,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: good first issue' },
+          ],
+        },
+        comment: {
+          id: 1019,
+          body: '/assign',
+          user: { login: 'now-over-limit-user', type: 'User' },
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: {
+      openAssignmentCount: 3,
+      openAssignmentCountExcludingBlocked: 3,
+    },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @now-over-limit-user! Thanks for your enthusiasm to contribute!
+
+To help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time. Issues labeled \`status: blocked\` are not counted toward this limit.
+
+📊 **Your Current Assignments:** You're currently assigned to **3** open issues.
+
+👉 **View your assigned issues:**
+[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+assignee%3Anow-over-limit-user)
 
 Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
     ],
@@ -547,6 +591,43 @@ Once you complete or unassign from one of your current issues, come back and we'
     expectedAssignee: 'active-contributor',
     expectedComments: [
       `👋 Hi @active-contributor, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉
+
+You've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.
+
+The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.
+
+Good luck, and welcome aboard! 🚀`,
+    ],
+  },
+
+  {
+    name: 'Validation - Open Assignments Exclude Blocked',
+    description: 'Contributor with 2 open issues both status: blocked can be assigned (blocked not counted)',
+    context: {
+      payload: {
+        issue: {
+          number: 117,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: good first issue' },
+          ],
+        },
+        comment: {
+          id: 1018,
+          body: '/assign',
+          user: { login: 'blocked-contributor', type: 'User' },
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: {
+      openAssignmentCount: 2,
+      openAssignmentCountExcludingBlocked: 0,
+    },
+    expectedAssignee: 'blocked-contributor',
+    expectedComments: [
+      `👋 Hi @blocked-contributor, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉
 
 You've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.
 

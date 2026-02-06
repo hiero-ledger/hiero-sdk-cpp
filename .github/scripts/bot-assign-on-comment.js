@@ -7,6 +7,7 @@
 //
 // Assignment Limit:
 //   - Contributors can have at most 2 open issues assigned at a time
+//   - Issues with the label "status: blocked" are not counted toward this limit
 //
 // Skill Level Requirements:
 //   - Good First Issue: No prerequisites
@@ -124,6 +125,12 @@ async function countAssignedIssues(github, owner, repo, username, { state, label
 
     if (label) {
       queryParts.push(`label:"${label}"`);
+    }
+
+    // When counting open assignments, exclude issues with status: blocked
+    // so contributors can take another issue while blocked.
+    if (state === 'open' && !label) {
+      queryParts.push(`-label:"${LABELS.BLOCKED}"`);
     }
 
     const searchQuery = queryParts.join(' ');
@@ -302,7 +309,7 @@ function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner
   return [
     `👋 Hi @${requesterUsername}! Thanks for your enthusiasm to contribute!`,
     '',
-    `To help contributors stay focused and ensure issues remain available for others, we limit assignments to **${MAX_OPEN_ASSIGNMENTS} open issues** at a time.`,
+    `To help contributors stay focused and ensure issues remain available for others, we limit assignments to **${MAX_OPEN_ASSIGNMENTS} open issues** at a time. Issues labeled \`${LABELS.BLOCKED}\` are not counted toward this limit.`,
     '',
     `📊 **Your Current Assignments:** You're currently assigned to **${openCount}** open issue${openCount === 1 ? '' : 's'}.`,
     '',
