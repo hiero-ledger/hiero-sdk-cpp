@@ -12,6 +12,27 @@ const { LABELS } = require('./bot-helpers.js');
 const script = require('./bot-assign-on-comment.js');
 
 // =============================================================================
+// GRAPHQL QUERY KIND (for mock)
+// =============================================================================
+// Derives the kind of count query from the search string the bot builds.
+// Update this if the bot's query format changes so the mock stays in sync.
+
+/**
+ * @param {string} searchQuery - The GraphQL search query string.
+ * @returns {'openExcludingBlocked'|'openWithLabelBlocked'|'closedWithLabel'|'open'|'unknown'}
+ */
+function getGraphQLQueryKind(searchQuery) {
+  if (typeof searchQuery !== 'string') return 'unknown';
+  if (searchQuery.includes('is:closed')) return 'closedWithLabel';
+  if (searchQuery.includes('is:open')) {
+    if (searchQuery.includes(`-label:"${LABELS.BLOCKED}"`)) return 'openExcludingBlocked';
+    if (searchQuery.includes(`label:"${LABELS.BLOCKED}"`)) return 'openWithLabelBlocked';
+    return 'open';
+  }
+  return 'unknown';
+}
+
+// =============================================================================
 // MOCK GITHUB API
 // =============================================================================
 
@@ -20,6 +41,7 @@ function createMockGithub(options = {}) {
     completedIssueCount = 0,
     openAssignmentCount = 0,
     openAssignmentCountExcludingBlocked = openAssignmentCount,
+    blockedIssueCount = 0,
     graphqlShouldFail = false,
     graphqlOpenAssignmentsShouldFail = false,
     assignShouldFail = false,
@@ -80,28 +102,32 @@ function createMockGithub(options = {}) {
       calls.graphqlCalls.push(variables.searchQuery);
       console.log(`\n🔍 GRAPHQL QUERY: ${variables.searchQuery}`);
 
-      // Determine query type based on whether it's checking open or closed issues
-      // - Open assignments query uses "is:open" (counts current open assignments, excluding status: blocked)
-      // - Completed issues query uses "is:closed" (counts finished prerequisite issues)
-      const isOpenAssignmentsQuery = variables.searchQuery.includes('is:open');
-      const excludesBlocked = variables.searchQuery.includes(`-label:"${LABELS.BLOCKED}"`);
+      const kind = getGraphQLQueryKind(variables.searchQuery);
 
-      if (isOpenAssignmentsQuery) {
+      if (kind === 'openExcludingBlocked' || kind === 'openWithLabelBlocked' || kind === 'open') {
         if (graphqlOpenAssignmentsShouldFail) {
           throw new Error('Simulated GraphQL failure for open assignments');
         }
-        const count = excludesBlocked ? openAssignmentCountExcludingBlocked : openAssignmentCount;
-        console.log(`   → Returning open assignment count: ${count}${excludesBlocked ? ' (excluding blocked)' : ''}`);
+        const count =
+          kind === 'openExcludingBlocked'
+            ? openAssignmentCountExcludingBlocked
+            : kind === 'openWithLabelBlocked'
+              ? blockedIssueCount
+              : openAssignmentCount;
+        console.log(`   → Returning ${kind} count: ${count}`);
         return { search: { issueCount: count } };
       }
 
-      // Completed issues query (uses is:closed)
-      if (graphqlShouldFail) {
-        throw new Error('Simulated GraphQL failure');
+      if (kind === 'closedWithLabel') {
+        if (graphqlShouldFail) {
+          throw new Error('Simulated GraphQL failure');
+        }
+        console.log(`   → Returning completed count: ${completedIssueCount}`);
+        return { search: { issueCount: completedIssueCount } };
       }
 
-      console.log(`   → Returning completed count: ${completedIssueCount}`);
-      return { search: { issueCount: completedIssueCount } };
+      console.log(`   → Unknown query kind, returning 0`);
+      return { search: { issueCount: 0 } };
     },
   };
 }
@@ -446,7 +472,7 @@ This is a **Beginner** issue. Before taking it on, you need to complete at least
 📊 **Your Progress:** You've completed **0** so far.
 
 👉 **Find Good First Issues to work on:**
-[Browse available Good First Issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22skill%3A%20good%20first%20issue%22+label%3A%22status%3A+ready+for+dev%22)
+[Browse available Good First Issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20no%3Aassignee%20label%3A%22skill%3A%20good%20first%20issue%22%20label%3A%22status%3A%20ready%20for%20dev%22)
 
 Once you've completed 2, come back and we'll be happy to assign this to you! 🎯`,
     ],
@@ -483,7 +509,7 @@ To help contributors stay focused and ensure issues remain available for others,
 📊 **Your Current Assignments:** You're currently assigned to **2** open issues.
 
 👉 **View your assigned issues:**
-[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+assignee%3Abusy-contributor)
+[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Abusy-contributor%20-label%3A%22status%3A%20blocked%22)
 
 Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
     ],
@@ -520,7 +546,7 @@ To help contributors stay focused and ensure issues remain available for others,
 📊 **Your Current Assignments:** You're currently assigned to **5** open issues.
 
 👉 **View your assigned issues:**
-[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+assignee%3Avery-busy-contributor)
+[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Avery-busy-contributor%20-label%3A%22status%3A%20blocked%22)
 
 Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
     ],
@@ -560,7 +586,51 @@ To help contributors stay focused and ensure issues remain available for others,
 📊 **Your Current Assignments:** You're currently assigned to **3** open issues.
 
 👉 **View your assigned issues:**
-[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+assignee%3Anow-over-limit-user)
+[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Anow-over-limit-user%20-label%3A%22status%3A%20blocked%22)
+
+Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
+    ],
+  },
+
+  {
+    name: 'Validation - At Limit With Blocked Issues (shows blocked link)',
+    description: 'User at 2 open (excluding blocked) and has 1 blocked issue; comment includes link to blocked issues',
+    context: {
+      payload: {
+        issue: {
+          number: 119,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: good first issue' },
+          ],
+        },
+        comment: {
+          id: 1020,
+          body: '/assign',
+          user: { login: 'at-limit-with-blocked', type: 'User' },
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: {
+      openAssignmentCount: 2,
+      openAssignmentCountExcludingBlocked: 2,
+      blockedIssueCount: 1,
+    },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @at-limit-with-blocked! Thanks for your enthusiasm to contribute!
+
+To help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time. Issues labeled \`status: blocked\` are not counted toward this limit.
+
+📊 **Your Current Assignments:** You're currently assigned to **2** open issues.
+
+👉 **View your assigned issues:**
+[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Aat-limit-with-blocked%20-label%3A%22status%3A%20blocked%22)
+
+👉 **View your blocked issues:**
+[Your blocked issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Aat-limit-with-blocked%20label%3A%22status%3A%20blocked%22)
 
 Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
     ],
@@ -912,6 +982,17 @@ async function runTest(scenario, index) {
   return results.passed;
 }
 
+function printSummaryAndExit(total, passed, failed) {
+  console.log('\n' + '='.repeat(70));
+  console.log('📈 SUMMARY');
+  console.log('='.repeat(70));
+  console.log(`   Total:  ${total}`);
+  console.log(`   Passed: ${passed} ✅`);
+  console.log(`   Failed: ${failed} ${failed > 0 ? '❌' : ''}`);
+  console.log('='.repeat(70));
+  process.exit(failed > 0 ? 1 : 0);
+}
+
 async function runAllTests() {
   console.log('🧪 BOT-ASSIGN-ON-COMMENT TEST SUITE');
   console.log('====================================\n');
@@ -928,15 +1009,7 @@ async function runAllTests() {
     }
   }
 
-  console.log('\n' + '='.repeat(70));
-  console.log('📈 SUMMARY');
-  console.log('='.repeat(70));
-  console.log(`   Total:  ${scenarios.length}`);
-  console.log(`   Passed: ${passed} ✅`);
-  console.log(`   Failed: ${failed} ${failed > 0 ? '❌' : ''}`);
-  console.log('='.repeat(70));
-
-  process.exit(failed > 0 ? 1 : 0);
+  printSummaryAndExit(scenarios.length, passed, failed);
 }
 
 // Run specific test by index, or all tests
@@ -944,7 +1017,10 @@ const testIndex = process.argv[2];
 if (testIndex !== undefined) {
   const index = parseInt(testIndex, 10);
   if (index >= 0 && index < scenarios.length) {
-    runTest(scenarios[index], index);
+    (async () => {
+      const success = await runTest(scenarios[index], index);
+      printSummaryAndExit(1, success ? 1 : 0, success ? 0 : 1);
+    })();
   } else {
     console.log(`Invalid test index. Available: 0-${scenarios.length - 1}`);
     console.log('\nAvailable tests:');

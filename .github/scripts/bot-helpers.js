@@ -29,6 +29,15 @@ const LABELS = {
 };
 
 /**
+ * Issue state values for GitHub search queries.
+ * Frozen so callers cannot mutate values.
+ */
+const ISSUE_STATE = Object.freeze({
+  OPEN: 'open',
+  CLOSED: 'closed',
+});
+
+/**
  * Validates a string for safe use in GitHub search queries.
  * Prevents injection attacks by ensuring the value contains only safe characters.
  * @param {string} value - The value to validate.
@@ -179,6 +188,7 @@ function hasLabel(issueOrPr, labelName) {
 module.exports = {
   MAINTAINER_TEAM,
   LABELS,
+  ISSUE_STATE,
   createLogger,
   isSafeSearchToken,
   addLabels,
