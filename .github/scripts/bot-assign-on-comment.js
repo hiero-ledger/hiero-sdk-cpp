@@ -305,19 +305,30 @@ function buildNoSkillLevelComment(requesterUsername) {
 }
 
 /**
- * Builds a comment for when the contributor has too many open assignments.
- * @param {string} requesterUsername - The username requesting assignment.
- * @param {number} openCount - The number of open issues currently assigned (excluding blocked).
- * @param {string} owner - The repository owner.
- * @param {string} repo - The repository name.
- * @param {number} [blockedCount=0] - The number of open issues the user has with status: blocked (for optional link).
- * @returns {string} - The assignment limit exceeded comment.
+ * Builds a GitHub issues search URL for the given query.
+ * @param {string} owner - Repository owner.
+ * @param {string} repo - Repository name.
+ * @param {string} searchQuery - GitHub search query string (e.g. is:issue is:open assignee:user).
+ * @returns {string} - Full URL to the issues search.
  */
-function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner, repo, blockedCount = 0) {
-  // Match the same filter the bot uses: open issues assigned to user, excluding status: blocked
-  const searchQuery = `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} -label:"${LABELS.BLOCKED}"`;
-  const assignedIssuesUrl = `https://github.com/${owner}/${repo}/issues?q=${encodeURIComponent(searchQuery)}`;
+function buildIssuesSearchUrl(owner, repo, searchQuery) {
+  return `https://github.com/${owner}/${repo}/issues?q=${encodeURIComponent(searchQuery)}`;
+}
 
+/**
+ * Builds the body text for the assignment limit exceeded comment.
+ * @param {string} requesterUsername - The username requesting assignment.
+ * @param {number} openCount - The number of open issues (excluding blocked).
+ * @param {string} assignedIssuesUrl - URL to the user's open assignments (excluding blocked).
+ * @param {string|null} blockedIssuesUrl - URL to the user's blocked issues, or null to omit.
+ * @returns {string} - The comment body.
+ */
+function buildAssignmentLimitExceededCommentBody(
+  requesterUsername,
+  openCount,
+  assignedIssuesUrl,
+  blockedIssuesUrl
+) {
   const lines = [
     `👋 Hi @${requesterUsername}! Thanks for your enthusiasm to contribute!`,
     '',
@@ -328,16 +339,39 @@ function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner
     '👉 **View your assigned issues:**',
     `[Your open assignments](${assignedIssuesUrl})`,
   ];
-
-  if (blockedCount > 0) {
-    const blockedQuery = `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} label:"${LABELS.BLOCKED}"`;
-    const blockedIssuesUrl = `https://github.com/${owner}/${repo}/issues?q=${encodeURIComponent(blockedQuery)}`;
-    lines.push('', `👉 **View your blocked issues:**`, `[Your blocked issues](${blockedIssuesUrl})`);
+  if (blockedIssuesUrl) {
+    lines.push('', '👉 **View your blocked issues:**', `[Your blocked issues](${blockedIssuesUrl})`);
   }
-
   lines.push('', 'Once you complete or unassign from one of your current issues, come back and we\'ll be happy to assign this to you! 🎯');
-
   return lines.join('\n');
+}
+
+/**
+ * Builds a comment for when the contributor has too many open assignments.
+ * @param {string} requesterUsername - The username requesting assignment.
+ * @param {number} openCount - The number of open issues currently assigned (excluding blocked).
+ * @param {string} owner - The repository owner.
+ * @param {string} repo - The repository name.
+ * @param {number} [blockedCount=0] - The number of open issues the user has with status: blocked (for optional link).
+ * @returns {string} - The assignment limit exceeded comment.
+ */
+function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner, repo, blockedCount = 0) {
+  const assignedQuery = `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} -label:"${LABELS.BLOCKED}"`;
+  const assignedIssuesUrl = buildIssuesSearchUrl(owner, repo, assignedQuery);
+  const blockedIssuesUrl =
+    blockedCount > 0
+      ? buildIssuesSearchUrl(
+          owner,
+          repo,
+          `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} label:"${LABELS.BLOCKED}"`
+        )
+      : null;
+  return buildAssignmentLimitExceededCommentBody(
+    requesterUsername,
+    openCount,
+    assignedIssuesUrl,
+    blockedIssuesUrl
+  );
 }
 
 /**
