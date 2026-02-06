@@ -17,7 +17,9 @@ const script = require('./bot-assign-on-comment.js');
 function createMockGithub(options = {}) {
   const {
     completedIssueCount = 0,
+    openAssignmentCount = 0,
     graphqlShouldFail = false,
+    graphqlOpenAssignmentsShouldFail = false,
     assignShouldFail = false,
     removeLabelShouldFail = false,
     addLabelShouldFail = false,
@@ -76,11 +78,25 @@ function createMockGithub(options = {}) {
       calls.graphqlCalls.push(variables.searchQuery);
       console.log(`\n🔍 GRAPHQL QUERY: ${variables.searchQuery}`);
 
+      // Determine query type based on whether it's checking open or closed issues
+      // - Open assignments query uses "is:open" (counts current open assignments)
+      // - Completed issues query uses "is:closed" (counts finished prerequisite issues)
+      const isOpenAssignmentsQuery = variables.searchQuery.includes('is:open');
+
+      if (isOpenAssignmentsQuery) {
+        if (graphqlOpenAssignmentsShouldFail) {
+          throw new Error('Simulated GraphQL failure for open assignments');
+        }
+        console.log(`   → Returning open assignment count: ${openAssignmentCount}`);
+        return { search: { issueCount: openAssignmentCount } };
+      }
+
+      // Completed issues query (uses is:closed)
       if (graphqlShouldFail) {
         throw new Error('Simulated GraphQL failure');
       }
 
-      console.log(`   → Returning count: ${completedIssueCount}`);
+      console.log(`   → Returning completed count: ${completedIssueCount}`);
       return { search: { issueCount: completedIssueCount } };
     },
   };
@@ -227,7 +243,7 @@ Good luck! 🚀`,
   },
 
   // ---------------------------------------------------------------------------
-  // VALIDATION FAILURES (5 tests)
+  // VALIDATION FAILURES (9 tests)
   // Bot rejects assignment with helpful message
   // ---------------------------------------------------------------------------
 
@@ -416,7 +432,7 @@ Once you find one you like, comment \`/assign\` to get started!`,
       },
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
-    githubOptions: { completedIssueCount: 0 },
+    githubOptions: { completedIssueCount: 0, openAssignmentCount: 0 },
     expectedAssignee: null,
     expectedComments: [
       `👋 Hi @eager-newbie! Thanks for your interest in contributing!
@@ -432,10 +448,150 @@ Once you've completed 2, come back and we'll be happy to assign this to you! �
     ],
   },
 
+  {
+    name: 'Validation - Too Many Open Assignments (at limit)',
+    description: 'Contributor already has 2 open issues assigned',
+    context: {
+      payload: {
+        issue: {
+          number: 114,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: good first issue' },
+          ],
+        },
+        comment: {
+          id: 1015,
+          body: '/assign',
+          user: { login: 'busy-contributor', type: 'User' },
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: { openAssignmentCount: 2 },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @busy-contributor! Thanks for your enthusiasm to contribute!
+
+To help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time.
+
+📊 **Your Current Assignments:** You're currently assigned to **2** open issues.
+
+👉 **View your assigned issues:**
+[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+assignee%3Abusy-contributor)
+
+Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
+    ],
+  },
+
+  {
+    name: 'Validation - Too Many Open Assignments (over limit)',
+    description: 'Contributor has more than 2 open issues assigned',
+    context: {
+      payload: {
+        issue: {
+          number: 115,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: good first issue' },
+          ],
+        },
+        comment: {
+          id: 1016,
+          body: '/assign',
+          user: { login: 'very-busy-contributor', type: 'User' },
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: { openAssignmentCount: 5 },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @very-busy-contributor! Thanks for your enthusiasm to contribute!
+
+To help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time.
+
+📊 **Your Current Assignments:** You're currently assigned to **5** open issues.
+
+👉 **View your assigned issues:**
+[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+assignee%3Avery-busy-contributor)
+
+Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
+    ],
+  },
+
+  {
+    name: 'Validation - Under Assignment Limit (1 open issue)',
+    description: 'Contributor with 1 open issue can take another',
+    context: {
+      payload: {
+        issue: {
+          number: 116,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: good first issue' },
+          ],
+        },
+        comment: {
+          id: 1017,
+          body: '/assign',
+          user: { login: 'active-contributor', type: 'User' },
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: { openAssignmentCount: 1 },
+    expectedAssignee: 'active-contributor',
+    expectedComments: [
+      `👋 Hi @active-contributor, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉
+
+You've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.
+
+The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.
+
+Good luck, and welcome aboard! 🚀`,
+    ],
+  },
+
   // ---------------------------------------------------------------------------
-  // ERROR HANDLING (3 tests)
+  // ERROR HANDLING (5 tests)
   // API failures result in maintainer tagging
   // ---------------------------------------------------------------------------
+
+  {
+    name: 'Error - Open Assignments API Failure',
+    description: 'Tags maintainers when open assignments check fails',
+    context: {
+      payload: {
+        issue: {
+          number: 117,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: good first issue' },
+          ],
+        },
+        comment: {
+          id: 1018,
+          body: '/assign',
+          user: { login: 'unlucky-user-3', type: 'User' },
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: { graphqlOpenAssignmentsShouldFail: true },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @unlucky-user-3! I encountered an error while trying to verify your eligibility for this issue.
+
+@hiero-ledger/hiero-sdk-cpp-maintainers — could you please help with this assignment request?
+
+@unlucky-user-3, a maintainer will review your request and assign you manually if appropriate. Sorry for the inconvenience!`,
+    ],
+  },
 
   {
     name: 'Error - GraphQL API Failure',
