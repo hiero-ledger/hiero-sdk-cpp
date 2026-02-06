@@ -58,8 +58,8 @@ set(PROTO_FILES
         services/get_by_key.proto
         services/get_by_solidity_id.proto
         services/hook_dispatch.proto
+        services/hook_store.proto
         services/hook_types.proto
-        services/lambda_sstore.proto
         services/network_get_execution_time.proto
         services/network_get_version_info.proto
         services/network_service.proto
