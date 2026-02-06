@@ -316,14 +316,14 @@ function buildIssuesSearchUrl(owner, repo, searchQuery) {
 }
 
 /**
- * Builds the body text for the assignment limit exceeded comment.
+ * Formats the body text for the assignment limit exceeded comment.
  * @param {string} requesterUsername - The username requesting assignment.
  * @param {number} openCount - The number of open issues (excluding blocked).
  * @param {string} assignedIssuesUrl - URL to the user's open assignments (excluding blocked).
  * @param {string|null} blockedIssuesUrl - URL to the user's blocked issues, or null to omit.
  * @returns {string} - The comment body.
  */
-function buildAssignmentLimitExceededCommentBody(
+function formatAssignmentLimitExceededComment(
   requesterUsername,
   openCount,
   assignedIssuesUrl,
@@ -366,7 +366,7 @@ function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner
           `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} label:"${LABELS.BLOCKED}"`
         )
       : null;
-  return buildAssignmentLimitExceededCommentBody(
+  return formatAssignmentLimitExceededComment(
     requesterUsername,
     openCount,
     assignedIssuesUrl,
