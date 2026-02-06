@@ -17,6 +17,7 @@ const LABELS = {
   // Status labels
   READY_FOR_DEV: 'status: ready for dev',
   IN_PROGRESS: 'status: in progress',
+  BLOCKED: 'status: blocked',
   NEEDS_REVIEW: 'status: needs review',
   NEEDS_REVISION: 'status: needs revision',
 
@@ -26,6 +27,15 @@ const LABELS = {
   INTERMEDIATE: 'skill: intermediate',
   ADVANCED: 'skill: advanced',
 };
+
+/**
+ * Issue state values for GitHub search queries.
+ * Frozen so callers cannot mutate values.
+ */
+const ISSUE_STATE = Object.freeze({
+  OPEN: 'open',
+  CLOSED: 'closed',
+});
 
 /**
  * Validates a string for safe use in GitHub search queries.
@@ -178,6 +188,7 @@ function hasLabel(issueOrPr, labelName) {
 module.exports = {
   MAINTAINER_TEAM,
   LABELS,
+  ISSUE_STATE,
   createLogger,
   isSafeSearchToken,
   addLabels,

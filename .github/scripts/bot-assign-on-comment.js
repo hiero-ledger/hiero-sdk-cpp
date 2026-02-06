@@ -7,6 +7,7 @@
 //
 // Assignment Limit:
 //   - Contributors can have at most 2 open issues assigned at a time
+//   - Issues with the label "status: blocked" are not counted toward this limit
 //
 // Skill Level Requirements:
 //   - Good First Issue: No prerequisites
@@ -23,6 +24,7 @@
 const {
   MAINTAINER_TEAM,
   LABELS,
+  ISSUE_STATE,
   createLogger,
   isSafeSearchToken,
   addLabels,
@@ -95,22 +97,26 @@ function getIssueSkillLevel(issue) {
 
 /**
  * Counts issues assigned to a user matching specified criteria.
+ * When state is ISSUE_STATE.OPEN and no label is given, issues with "status: blocked" are excluded from the count.
  * @param {object} github - The GitHub API client.
  * @param {string} owner - The repository owner.
  * @param {string} repo - The repository name.
  * @param {string} username - The username to check.
- * @param {object} options - Query options.
- * @param {string} options.state - Issue state: 'open' or 'closed'.
- * @param {string} [options.label] - Optional label to filter by.
+ * @param {string} state - Issue state: use ISSUE_STATE.OPEN or ISSUE_STATE.CLOSED.
+ * @param {string} [label=null] - Optional label to filter by (e.g. skill level for closed, or BLOCKED for open).
  * @returns {Promise<number|null>} - The count of matching issues or null on error.
  */
-async function countAssignedIssues(github, owner, repo, username, { state, label = null }) {
+async function countAssignedIssues(github, owner, repo, username, state, label = null) {
   if (
     !isSafeSearchToken(owner) ||
     !isSafeSearchToken(repo) ||
     !isSafeSearchToken(username)
   ) {
     logger.log('[assign-bot] Invalid search inputs:', { owner, repo, username, label });
+    return null;
+  }
+  if (state !== ISSUE_STATE.OPEN && state !== ISSUE_STATE.CLOSED) {
+    logger.log('[assign-bot] Invalid state:', { state });
     return null;
   }
 
@@ -126,8 +132,18 @@ async function countAssignedIssues(github, owner, repo, username, { state, label
       queryParts.push(`label:"${label}"`);
     }
 
+    // When counting open assignments, exclude issues with status: blocked
+    // so contributors can take another issue while blocked.
+    if (state === ISSUE_STATE.OPEN && !label) {
+      queryParts.push(`-label:"${LABELS.BLOCKED}"`);
+    }
+
     const searchQuery = queryParts.join(' ');
-    const queryType = label ? `completed "${label}"` : `${state} assigned`;
+    const queryType = label
+      ? state === ISSUE_STATE.CLOSED
+        ? `completed "${label}"`
+        : `open "${label}"`
+      : `${state} assigned`;
 
     logger.log(`[assign-bot] GraphQL search query (${queryType}):`, searchQuery);
 
@@ -251,9 +267,9 @@ function buildPrerequisiteNotMetComment(requesterUsername, skillLevel, completed
   const prerequisiteDisplayName = prereq.prerequisiteDisplayName;
   const displayName = prereq.displayName;
 
-  // Build search URL for the prerequisite issues
-  const searchLabel = encodeURIComponent(requiredLabel);
-  const searchUrl = `https://github.com/${owner}/${repo}/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22${searchLabel}%22+label%3A%22status%3A+ready+for+dev%22`;
+  // Build search URL for the prerequisite issues (encode the whole query once)
+  const searchQuery = `is:issue is:open no:assignee label:"${requiredLabel}" label:"${LABELS.READY_FOR_DEV}"`;
+  const searchUrl = `https://github.com/${owner}/${repo}/issues?q=${encodeURIComponent(searchQuery)}`;
 
   return [
     `👋 Hi @${requesterUsername}! Thanks for your interest in contributing!`,
@@ -289,28 +305,73 @@ function buildNoSkillLevelComment(requesterUsername) {
 }
 
 /**
- * Builds a comment for when the contributor has too many open assignments.
- * @param {string} requesterUsername - The username requesting assignment.
- * @param {number} openCount - The number of open issues currently assigned.
- * @param {string} owner - The repository owner.
- * @param {string} repo - The repository name.
- * @returns {string} - The assignment limit exceeded comment.
+ * Builds a GitHub issues search URL for the given query.
+ * @param {string} owner - Repository owner.
+ * @param {string} repo - Repository name.
+ * @param {string} searchQuery - GitHub search query string (e.g. is:issue is:open assignee:user).
+ * @returns {string} - Full URL to the issues search.
  */
-function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner, repo) {
-  const assignedIssuesUrl = `https://github.com/${owner}/${repo}/issues?q=is%3Aissue+is%3Aopen+assignee%3A${requesterUsername}`;
+function buildIssuesSearchUrl(owner, repo, searchQuery) {
+  return `https://github.com/${owner}/${repo}/issues?q=${encodeURIComponent(searchQuery)}`;
+}
 
-  return [
+/**
+ * Formats the body text for the assignment limit exceeded comment.
+ * @param {string} requesterUsername - The username requesting assignment.
+ * @param {number} openCount - The number of open issues (excluding blocked).
+ * @param {string} assignedIssuesUrl - URL to the user's open assignments (excluding blocked).
+ * @param {string|null} blockedIssuesUrl - URL to the user's blocked issues, or null to omit.
+ * @returns {string} - The comment body.
+ */
+function formatAssignmentLimitExceededComment(
+  requesterUsername,
+  openCount,
+  assignedIssuesUrl,
+  blockedIssuesUrl
+) {
+  const lines = [
     `👋 Hi @${requesterUsername}! Thanks for your enthusiasm to contribute!`,
     '',
-    `To help contributors stay focused and ensure issues remain available for others, we limit assignments to **${MAX_OPEN_ASSIGNMENTS} open issues** at a time.`,
+    `To help contributors stay focused and ensure issues remain available for others, we limit assignments to **${MAX_OPEN_ASSIGNMENTS} open issues** at a time. Issues labeled \`${LABELS.BLOCKED}\` are not counted toward this limit.`,
     '',
-    `📊 **Your Current Assignments:** You're currently assigned to **${openCount}** open issue${openCount === 1 ? '' : 's'}.`,
+    `📊 **Your Current Assignments:** You're currently assigned to **${openCount}** open issues.`,
     '',
     '👉 **View your assigned issues:**',
     `[Your open assignments](${assignedIssuesUrl})`,
-    '',
-    'Once you complete or unassign from one of your current issues, come back and we\'ll be happy to assign this to you! 🎯',
-  ].join('\n');
+  ];
+  if (blockedIssuesUrl) {
+    lines.push('', '👉 **View your blocked issues:**', `[Your blocked issues](${blockedIssuesUrl})`);
+  }
+  lines.push('', 'Once you complete or unassign from one of your current issues, come back and we\'ll be happy to assign this to you! 🎯');
+  return lines.join('\n');
+}
+
+/**
+ * Builds a comment for when the contributor has too many open assignments.
+ * @param {string} requesterUsername - The username requesting assignment.
+ * @param {number} openCount - The number of open issues currently assigned (excluding blocked).
+ * @param {string} owner - The repository owner.
+ * @param {string} repo - The repository name.
+ * @param {number} [blockedCount=0] - The number of open issues the user has with status: blocked (for optional link).
+ * @returns {string} - The assignment limit exceeded comment.
+ */
+function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner, repo, blockedCount = 0) {
+  const assignedQuery = `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} -label:"${LABELS.BLOCKED}"`;
+  const assignedIssuesUrl = buildIssuesSearchUrl(owner, repo, assignedQuery);
+  const blockedIssuesUrl =
+    blockedCount > 0
+      ? buildIssuesSearchUrl(
+          owner,
+          repo,
+          `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} label:"${LABELS.BLOCKED}"`
+        )
+      : null;
+  return formatAssignmentLimitExceededComment(
+    requesterUsername,
+    openCount,
+    assignedIssuesUrl,
+    blockedIssuesUrl
+  );
 }
 
 /**
@@ -498,11 +559,17 @@ module.exports = async ({ github, context }) => {
     // Contributors are limited to MAX_OPEN_ASSIGNMENTS open issues at a time
     // to help them stay focused and ensure issues remain available for others.
 
-    const openAssignmentCount = await countAssignedIssues(github, owner, repo, requesterUsername, { state: 'open' });
+    const openAssignmentCount = await countAssignedIssues(
+      github,
+      owner,
+      repo,
+      requesterUsername,
+      ISSUE_STATE.OPEN
+    );
 
     // API error - can't verify open assignments, tag maintainers
     if (openAssignmentCount === null) {
-      console.log('[assign-bot] Exit: could not verify open assignments due to API error');
+      logger.log('Exit: could not verify open assignments due to API error');
 
       await github.rest.issues.createComment({
         owner,
@@ -511,29 +578,48 @@ module.exports = async ({ github, context }) => {
         body: buildApiErrorComment(requesterUsername),
       });
 
-      console.log('[assign-bot] Posted API error comment, tagged maintainers');
+      logger.log('Posted API error comment, tagged maintainers');
       return;
     }
 
     // Too many open assignments - show current count and link to assigned issues
     if (openAssignmentCount >= MAX_OPEN_ASSIGNMENTS) {
-      console.log('[assign-bot] Exit: contributor has too many open assignments', {
+      logger.log('Exit: contributor has too many open assignments', {
         maxAllowed: MAX_OPEN_ASSIGNMENTS,
         currentCount: openAssignmentCount,
       });
+
+      let blockedCount = 0;
+      const blockedIssueCount = await countAssignedIssues(
+        github,
+        owner,
+        repo,
+        requesterUsername,
+        ISSUE_STATE.OPEN,
+        LABELS.BLOCKED
+      );
+      if (blockedIssueCount !== null && typeof blockedIssueCount === 'number' && blockedIssueCount >= 0) {
+        blockedCount = Math.floor(blockedIssueCount);
+      }
 
       await github.rest.issues.createComment({
         owner,
         repo,
         issue_number: issueNumber,
-        body: buildAssignmentLimitExceededComment(requesterUsername, openAssignmentCount, owner, repo),
+        body: buildAssignmentLimitExceededComment(
+          requesterUsername,
+          openAssignmentCount,
+          owner,
+          repo,
+          blockedCount
+        ),
       });
 
-      console.log('[assign-bot] Posted assignment-limit-exceeded comment');
+      logger.log('Posted assignment-limit-exceeded comment');
       return;
     }
 
-    console.log('[assign-bot] Open assignment count OK:', {
+    logger.log('Open assignment count OK:', {
       maxAllowed: MAX_OPEN_ASSIGNMENTS,
       currentCount: openAssignmentCount,
     });
@@ -554,7 +640,8 @@ module.exports = async ({ github, context }) => {
         owner,
         repo,
         requesterUsername,
-        { state: 'closed', label: prereq.requiredLabel }
+        ISSUE_STATE.CLOSED,
+        prereq.requiredLabel
       );
 
       // API error - can't verify prerequisites, tag maintainers
