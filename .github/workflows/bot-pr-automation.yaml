@@ -1,0 +1,35 @@
+name: Bot - PR Automation
+
+on:
+  pull_request:
+    types:
+      - opened
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  pr-automation:
+    runs-on: hiero-client-sdk-linux-large
+
+    # Prevent race conditions: always wait for the first check to finish processing
+    concurrency:
+      group: pr-automation-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout Repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run PR Automation
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const script = require('./.github/scripts/bot-pr-automation.js');
+            await script({ github, context });

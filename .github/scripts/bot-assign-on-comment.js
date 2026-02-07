@@ -7,6 +7,7 @@
 //
 // Assignment Limit:
 //   - Contributors can have at most 2 open issues assigned at a time
+//   - Issues with the label "status: blocked" are not counted toward this limit
 //
 // Skill Level Requirements:
 //   - Good First Issue: No prerequisites
@@ -20,15 +21,18 @@
 //   - One of: "skill: good first issue", "skill: beginner",
 //             "skill: intermediate", "skill: advanced"
 
-// Label constants
-const LABELS = {
-  READY_FOR_DEV: 'status: ready for dev',
-  IN_PROGRESS: 'status: in progress',
-  GOOD_FIRST_ISSUE: 'skill: good first issue',
-  BEGINNER: 'skill: beginner',
-  INTERMEDIATE: 'skill: intermediate',
-  ADVANCED: 'skill: advanced',
-};
+const {
+  MAINTAINER_TEAM,
+  LABELS,
+  ISSUE_STATE,
+  createLogger,
+  isSafeSearchToken,
+  addLabels,
+  removeLabel,
+  addAssignees,
+  postComment,
+  hasLabel,
+} = require('./bot-helpers');
 
 // Prerequisites for each skill level
 const SKILL_PREREQUISITES = {
@@ -57,20 +61,11 @@ const SKILL_PREREQUISITES = {
   },
 };
 
-// Team to tag when manual intervention is needed
-const MAINTAINER_TEAM = '@hiero-ledger/hiero-sdk-cpp-maintainers';
+// Create logger for this bot
+const logger = createLogger('assign-bot');
 
 // Maximum number of open issues a contributor can be assigned to at once
 const MAX_OPEN_ASSIGNMENTS = 2;
-
-/**
- * Validates a string for safe use in GitHub search queries.
- * @param {string} value - The value to validate.
- * @returns {boolean} - True if the value is safe for search queries.
- */
-function isSafeSearchToken(value) {
-  return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
-}
 
 /**
  * Returns true if the comment is exactly "/assign" (with optional whitespace).
@@ -79,25 +74,8 @@ function isSafeSearchToken(value) {
  */
 function commentRequestsAssignment(body) {
   const matches = typeof body === 'string' && /^\s*\/assign\s*$/i.test(body);
-  console.log('[assign-bot] commentRequestsAssignment:', { body: body?.substring(0, 100), matches });
+  logger.log('commentRequestsAssignment:', { body: body?.substring(0, 100), matches });
   return matches;
-}
-
-/**
- * Checks if an issue has a specific label.
- * @param {object} issue - The issue object.
- * @param {string} labelName - The label name to check for.
- * @returns {boolean} - True if the issue has the label.
- */
-function hasLabel(issue, labelName) {
-  if (!issue?.labels?.length) {
-    return false;
-  }
-
-  return issue.labels.some((label) => {
-    const name = typeof label === 'string' ? label : label?.name;
-    return typeof name === 'string' && name.toLowerCase() === labelName.toLowerCase();
-  });
 }
 
 /**
@@ -119,22 +97,26 @@ function getIssueSkillLevel(issue) {
 
 /**
  * Counts issues assigned to a user matching specified criteria.
+ * When state is ISSUE_STATE.OPEN and no label is given, issues with "status: blocked" are excluded from the count.
  * @param {object} github - The GitHub API client.
  * @param {string} owner - The repository owner.
  * @param {string} repo - The repository name.
  * @param {string} username - The username to check.
- * @param {object} options - Query options.
- * @param {string} options.state - Issue state: 'open' or 'closed'.
- * @param {string} [options.label] - Optional label to filter by.
+ * @param {string} state - Issue state: use ISSUE_STATE.OPEN or ISSUE_STATE.CLOSED.
+ * @param {string} [label=null] - Optional label to filter by (e.g. skill level for closed, or BLOCKED for open).
  * @returns {Promise<number|null>} - The count of matching issues or null on error.
  */
-async function countAssignedIssues(github, owner, repo, username, { state, label = null }) {
+async function countAssignedIssues(github, owner, repo, username, state, label = null) {
   if (
     !isSafeSearchToken(owner) ||
     !isSafeSearchToken(repo) ||
     !isSafeSearchToken(username)
   ) {
-    console.log('[assign-bot] Invalid search inputs:', { owner, repo, username });
+    logger.log('[assign-bot] Invalid search inputs:', { owner, repo, username, label });
+    return null;
+  }
+  if (state !== ISSUE_STATE.OPEN && state !== ISSUE_STATE.CLOSED) {
+    logger.log('[assign-bot] Invalid state:', { state });
     return null;
   }
 
@@ -150,10 +132,20 @@ async function countAssignedIssues(github, owner, repo, username, { state, label
       queryParts.push(`label:"${label}"`);
     }
 
-    const searchQuery = queryParts.join(' ');
-    const queryType = label ? `completed "${label}"` : `${state} assigned`;
+    // When counting open assignments, exclude issues with status: blocked
+    // so contributors can take another issue while blocked.
+    if (state === ISSUE_STATE.OPEN && !label) {
+      queryParts.push(`-label:"${LABELS.BLOCKED}"`);
+    }
 
-    console.log(`[assign-bot] GraphQL search query (${queryType}):`, searchQuery);
+    const searchQuery = queryParts.join(' ');
+    const queryType = label
+      ? state === ISSUE_STATE.CLOSED
+        ? `completed "${label}"`
+        : `open "${label}"`
+      : `${state} assigned`;
+
+    logger.log(`[assign-bot] GraphQL search query (${queryType}):`, searchQuery);
 
     const result = await github.graphql(
       `
@@ -167,11 +159,11 @@ async function countAssignedIssues(github, owner, repo, username, { state, label
     );
 
     const count = result?.search?.issueCount ?? 0;
-    console.log(`[assign-bot] ${queryType} issues for ${username}: ${count}`);
+    logger.log(`[assign-bot] ${queryType} issues for ${username}: ${count}`);
     return count;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.log(`[assign-bot] Failed to count ${state} issues for ${username}: ${message}`);
+    logger.log(`[assign-bot] Failed to count ${state} issues for ${username}: ${message}`);
     return null;
   }
 }
@@ -275,9 +267,9 @@ function buildPrerequisiteNotMetComment(requesterUsername, skillLevel, completed
   const prerequisiteDisplayName = prereq.prerequisiteDisplayName;
   const displayName = prereq.displayName;
 
-  // Build search URL for the prerequisite issues
-  const searchLabel = encodeURIComponent(requiredLabel);
-  const searchUrl = `https://github.com/${owner}/${repo}/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22${searchLabel}%22+label%3A%22status%3A+ready+for+dev%22`;
+  // Build search URL for the prerequisite issues (encode the whole query once)
+  const searchQuery = `is:issue is:open no:assignee label:"${requiredLabel}" label:"${LABELS.READY_FOR_DEV}"`;
+  const searchUrl = `https://github.com/${owner}/${repo}/issues?q=${encodeURIComponent(searchQuery)}`;
 
   return [
     `👋 Hi @${requesterUsername}! Thanks for your interest in contributing!`,
@@ -313,28 +305,73 @@ function buildNoSkillLevelComment(requesterUsername) {
 }
 
 /**
- * Builds a comment for when the contributor has too many open assignments.
- * @param {string} requesterUsername - The username requesting assignment.
- * @param {number} openCount - The number of open issues currently assigned.
- * @param {string} owner - The repository owner.
- * @param {string} repo - The repository name.
- * @returns {string} - The assignment limit exceeded comment.
+ * Builds a GitHub issues search URL for the given query.
+ * @param {string} owner - Repository owner.
+ * @param {string} repo - Repository name.
+ * @param {string} searchQuery - GitHub search query string (e.g. is:issue is:open assignee:user).
+ * @returns {string} - Full URL to the issues search.
  */
-function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner, repo) {
-  const assignedIssuesUrl = `https://github.com/${owner}/${repo}/issues?q=is%3Aissue+is%3Aopen+assignee%3A${requesterUsername}`;
+function buildIssuesSearchUrl(owner, repo, searchQuery) {
+  return `https://github.com/${owner}/${repo}/issues?q=${encodeURIComponent(searchQuery)}`;
+}
 
-  return [
+/**
+ * Formats the body text for the assignment limit exceeded comment.
+ * @param {string} requesterUsername - The username requesting assignment.
+ * @param {number} openCount - The number of open issues (excluding blocked).
+ * @param {string} assignedIssuesUrl - URL to the user's open assignments (excluding blocked).
+ * @param {string|null} blockedIssuesUrl - URL to the user's blocked issues, or null to omit.
+ * @returns {string} - The comment body.
+ */
+function formatAssignmentLimitExceededComment(
+  requesterUsername,
+  openCount,
+  assignedIssuesUrl,
+  blockedIssuesUrl
+) {
+  const lines = [
     `👋 Hi @${requesterUsername}! Thanks for your enthusiasm to contribute!`,
     '',
-    `To help contributors stay focused and ensure issues remain available for others, we limit assignments to **${MAX_OPEN_ASSIGNMENTS} open issues** at a time.`,
+    `To help contributors stay focused and ensure issues remain available for others, we limit assignments to **${MAX_OPEN_ASSIGNMENTS} open issues** at a time. Issues labeled \`${LABELS.BLOCKED}\` are not counted toward this limit.`,
     '',
-    `📊 **Your Current Assignments:** You're currently assigned to **${openCount}** open issue${openCount === 1 ? '' : 's'}.`,
+    `📊 **Your Current Assignments:** You're currently assigned to **${openCount}** open issues.`,
     '',
     '👉 **View your assigned issues:**',
     `[Your open assignments](${assignedIssuesUrl})`,
-    '',
-    'Once you complete or unassign from one of your current issues, come back and we\'ll be happy to assign this to you! 🎯',
-  ].join('\n');
+  ];
+  if (blockedIssuesUrl) {
+    lines.push('', '👉 **View your blocked issues:**', `[Your blocked issues](${blockedIssuesUrl})`);
+  }
+  lines.push('', 'Once you complete or unassign from one of your current issues, come back and we\'ll be happy to assign this to you! 🎯');
+  return lines.join('\n');
+}
+
+/**
+ * Builds a comment for when the contributor has too many open assignments.
+ * @param {string} requesterUsername - The username requesting assignment.
+ * @param {number} openCount - The number of open issues currently assigned (excluding blocked).
+ * @param {string} owner - The repository owner.
+ * @param {string} repo - The repository name.
+ * @param {number} [blockedCount=0] - The number of open issues the user has with status: blocked (for optional link).
+ * @returns {string} - The assignment limit exceeded comment.
+ */
+function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner, repo, blockedCount = 0) {
+  const assignedQuery = `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} -label:"${LABELS.BLOCKED}"`;
+  const assignedIssuesUrl = buildIssuesSearchUrl(owner, repo, assignedQuery);
+  const blockedIssuesUrl =
+    blockedCount > 0
+      ? buildIssuesSearchUrl(
+          owner,
+          repo,
+          `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} label:"${LABELS.BLOCKED}"`
+        )
+      : null;
+  return formatAssignmentLimitExceededComment(
+    requesterUsername,
+    openCount,
+    assignedIssuesUrl,
+    blockedIssuesUrl
+  );
 }
 
 /**
@@ -409,7 +446,7 @@ module.exports = async ({ github, context }) => {
     const { issue, comment } = context.payload;
     const { owner, repo } = context.repo;
 
-    console.log('[assign-bot] Payload snapshot:', {
+    logger.log('Payload snapshot:', {
       issueNumber: issue?.number,
       commenter: comment?.user?.login,
       commenterType: comment?.user?.type,
@@ -421,33 +458,33 @@ module.exports = async ({ github, context }) => {
     // =========================================================================
 
     if (!issue?.number) {
-      console.log('[assign-bot] Exit: missing issue number');
+      logger.log('Exit: missing issue number');
       return;
     }
 
     if (!comment?.body) {
-      console.log('[assign-bot] Exit: missing comment body');
+      logger.log('Exit: missing comment body');
       return;
     }
 
     if (!comment?.user?.login) {
-      console.log('[assign-bot] Exit: missing comment user login');
+      logger.log('Exit: missing comment user login');
       return;
     }
 
     // Ignore comments from bots to prevent infinite loops
     if (comment.user.type === 'Bot') {
-      console.log('[assign-bot] Exit: comment authored by bot');
+      logger.log('Exit: comment authored by bot');
       return;
     }
 
     // Only proceed if the comment is exactly "/assign"
     if (!commentRequestsAssignment(comment.body)) {
-      console.log('[assign-bot] Exit: comment does not request assignment');
+      logger.log('Exit: comment does not request assignment');
       return;
     }
 
-    console.log('[assign-bot] Assignment command detected');
+    logger.log('Assignment command detected');
 
     const requesterUsername = comment.user.login;
     const issueNumber = issue.number;
@@ -461,10 +498,10 @@ module.exports = async ({ github, context }) => {
         comment_id: commentId,
         content: '+1',
       });
-      console.log('[assign-bot] Added thumbs-up reaction to comment');
+      logger.log('Added thumbs-up reaction to comment');
     } catch (error) {
       // Non-critical - continue even if reaction fails
-      console.log('[assign-bot] Could not add reaction:', error.message);
+      logger.log('Could not add reaction:', error.message);
     }
 
     // =========================================================================
@@ -473,16 +510,12 @@ module.exports = async ({ github, context }) => {
     // If yes, inform the user. Handles self-assignment case with friendly message.
 
     if (issue.assignees?.length > 0) {
-      console.log('[assign-bot] Exit: issue already assigned to', issue.assignees.map((a) => a.login));
+      logger.log('Exit: issue already assigned to', issue.assignees.map((a) => a.login));
 
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        body: buildAlreadyAssignedComment(requesterUsername, issue, owner, repo),
-      });
+      await postComment(github, owner, repo, issueNumber,
+        buildAlreadyAssignedComment(requesterUsername, issue, owner, repo), logger);
 
-      console.log('[assign-bot] Posted already-assigned comment');
+      logger.log('Posted already-assigned comment');
       return;
     }
 
@@ -492,16 +525,12 @@ module.exports = async ({ github, context }) => {
     // Issues must be explicitly marked ready before contributors can self-assign.
 
     if (!hasLabel(issue, LABELS.READY_FOR_DEV)) {
-      console.log('[assign-bot] Exit: issue missing ready for dev label');
+      logger.log('Exit: issue missing ready for dev label');
 
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        body: buildNotReadyComment(requesterUsername, owner, repo),
-      });
+      await postComment(github, owner, repo, issueNumber,
+        buildNotReadyComment(requesterUsername, owner, repo), logger);
 
-      console.log('[assign-bot] Posted not-ready comment');
+      logger.log('Posted not-ready comment');
       return;
     }
 
@@ -513,20 +542,16 @@ module.exports = async ({ github, context }) => {
     const skillLevel = getIssueSkillLevel(issue);
 
     if (!skillLevel) {
-      console.log('[assign-bot] Exit: issue has no skill level label');
+      logger.log('Exit: issue has no skill level label');
 
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        body: buildNoSkillLevelComment(requesterUsername),
-      });
+      await postComment(github, owner, repo, issueNumber,
+        buildNoSkillLevelComment(requesterUsername), logger);
 
-      console.log('[assign-bot] Posted no-skill-level comment');
+      logger.log('Posted no-skill-level comment');
       return;
     }
 
-    console.log('[assign-bot] Issue skill level:', skillLevel);
+    logger.log('Issue skill level:', skillLevel);
 
     // =========================================================================
     // CHECK 4: Does the contributor have too many open assignments?
@@ -534,11 +559,17 @@ module.exports = async ({ github, context }) => {
     // Contributors are limited to MAX_OPEN_ASSIGNMENTS open issues at a time
     // to help them stay focused and ensure issues remain available for others.
 
-    const openAssignmentCount = await countAssignedIssues(github, owner, repo, requesterUsername, { state: 'open' });
+    const openAssignmentCount = await countAssignedIssues(
+      github,
+      owner,
+      repo,
+      requesterUsername,
+      ISSUE_STATE.OPEN
+    );
 
     // API error - can't verify open assignments, tag maintainers
     if (openAssignmentCount === null) {
-      console.log('[assign-bot] Exit: could not verify open assignments due to API error');
+      logger.log('Exit: could not verify open assignments due to API error');
 
       await github.rest.issues.createComment({
         owner,
@@ -547,29 +578,48 @@ module.exports = async ({ github, context }) => {
         body: buildApiErrorComment(requesterUsername),
       });
 
-      console.log('[assign-bot] Posted API error comment, tagged maintainers');
+      logger.log('Posted API error comment, tagged maintainers');
       return;
     }
 
     // Too many open assignments - show current count and link to assigned issues
     if (openAssignmentCount >= MAX_OPEN_ASSIGNMENTS) {
-      console.log('[assign-bot] Exit: contributor has too many open assignments', {
+      logger.log('Exit: contributor has too many open assignments', {
         maxAllowed: MAX_OPEN_ASSIGNMENTS,
         currentCount: openAssignmentCount,
       });
+
+      let blockedCount = 0;
+      const blockedIssueCount = await countAssignedIssues(
+        github,
+        owner,
+        repo,
+        requesterUsername,
+        ISSUE_STATE.OPEN,
+        LABELS.BLOCKED
+      );
+      if (blockedIssueCount !== null && typeof blockedIssueCount === 'number' && blockedIssueCount >= 0) {
+        blockedCount = Math.floor(blockedIssueCount);
+      }
 
       await github.rest.issues.createComment({
         owner,
         repo,
         issue_number: issueNumber,
-        body: buildAssignmentLimitExceededComment(requesterUsername, openAssignmentCount, owner, repo),
+        body: buildAssignmentLimitExceededComment(
+          requesterUsername,
+          openAssignmentCount,
+          owner,
+          repo,
+          blockedCount
+        ),
       });
 
-      console.log('[assign-bot] Posted assignment-limit-exceeded comment');
+      logger.log('Posted assignment-limit-exceeded comment');
       return;
     }
 
-    console.log('[assign-bot] Open assignment count OK:', {
+    logger.log('Open assignment count OK:', {
       maxAllowed: MAX_OPEN_ASSIGNMENTS,
       currentCount: openAssignmentCount,
     });
@@ -590,43 +640,36 @@ module.exports = async ({ github, context }) => {
         owner,
         repo,
         requesterUsername,
-        { state: 'closed', label: prereq.requiredLabel }
+        ISSUE_STATE.CLOSED,
+        prereq.requiredLabel
       );
 
       // API error - can't verify prerequisites, tag maintainers
       if (completedCount === null) {
-        console.log('[assign-bot] Exit: could not verify prerequisites due to API error');
+        logger.log('Exit: could not verify prerequisites due to API error');
 
-        await github.rest.issues.createComment({
-          owner,
-          repo,
-          issue_number: issueNumber,
-          body: buildApiErrorComment(requesterUsername),
-        });
+        await postComment(github, owner, repo, issueNumber,
+          buildApiErrorComment(requesterUsername), logger);
 
-        console.log('[assign-bot] Posted API error comment, tagged maintainers');
+        logger.log('Posted API error comment, tagged maintainers');
         return;
       }
 
       // Prerequisites not met - show progress and link to prerequisite issues
       if (completedCount < prereq.requiredCount) {
-        console.log('[assign-bot] Exit: prerequisites not met', {
+        logger.log('Exit: prerequisites not met', {
           required: prereq.requiredCount,
           completed: completedCount,
         });
 
-        await github.rest.issues.createComment({
-          owner,
-          repo,
-          issue_number: issueNumber,
-          body: buildPrerequisiteNotMetComment(requesterUsername, skillLevel, completedCount, owner, repo),
-        });
+        await postComment(github, owner, repo, issueNumber,
+          buildPrerequisiteNotMetComment(requesterUsername, skillLevel, completedCount, owner, repo), logger);
 
-        console.log('[assign-bot] Posted prerequisite-not-met comment');
+        logger.log('Posted prerequisite-not-met comment');
         return;
       }
 
-      console.log('[assign-bot] Prerequisites met:', {
+      logger.log('Prerequisites met:', {
         required: prereq.requiredCount,
         completed: completedCount,
       });
@@ -636,28 +679,16 @@ module.exports = async ({ github, context }) => {
     // ALL CHECKS PASSED - Assign the contributor
     // =========================================================================
 
-    console.log('[assign-bot] Assigning issue to', requesterUsername);
+    logger.log('Assigning issue to', requesterUsername);
 
-    try {
-      await github.rest.issues.addAssignees({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        assignees: [requesterUsername],
-      });
-      console.log('[assign-bot] Assignment successful');
-    } catch (error) {
+    const assignResult = await addAssignees(github, owner, repo, issueNumber, [requesterUsername], logger);
+
+    if (!assignResult.success) {
       // Assignment failed - tag maintainers to assign manually
-      console.log('[assign-bot] Assignment failed:', error.message);
+      await postComment(github, owner, repo, issueNumber,
+        buildAssignmentFailureComment(requesterUsername, assignResult.error), logger);
 
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        body: buildAssignmentFailureComment(requesterUsername, error.message),
-      });
-
-      console.log('[assign-bot] Posted assignment failure comment, tagged maintainers');
+      logger.log('Posted assignment failure comment, tagged maintainers');
       return;
     }
 
@@ -671,33 +702,17 @@ module.exports = async ({ github, context }) => {
     let labelUpdateError = '';
 
     // Remove "ready for dev" label
-    try {
-      await github.rest.issues.removeLabel({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        name: LABELS.READY_FOR_DEV,
-      });
-      console.log('[assign-bot] Removed "ready for dev" label');
-    } catch (error) {
-      console.log('[assign-bot] Could not remove "ready for dev" label:', error.message);
+    const removeResult = await removeLabel(github, owner, repo, issueNumber, LABELS.READY_FOR_DEV, logger);
+    if (!removeResult.success) {
       labelUpdateFailed = true;
-      labelUpdateError = `Failed to remove "${LABELS.READY_FOR_DEV}" label: ${error.message}`;
+      labelUpdateError = `Failed to remove "${LABELS.READY_FOR_DEV}" label: ${removeResult.error}`;
     }
 
     // Add "in progress" label
-    try {
-      await github.rest.issues.addLabels({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        labels: [LABELS.IN_PROGRESS],
-      });
-      console.log('[assign-bot] Added "in progress" label');
-    } catch (error) {
-      console.log('[assign-bot] Could not add "in progress" label:', error.message);
+    const addResult = await addLabels(github, owner, repo, issueNumber, [LABELS.IN_PROGRESS], logger);
+    if (!addResult.success) {
       labelUpdateFailed = true;
-      labelUpdateError += (labelUpdateError ? '; ' : '') + `Failed to add "${LABELS.IN_PROGRESS}" label: ${error.message}`;
+      labelUpdateError += (labelUpdateError ? '; ' : '') + `Failed to add "${LABELS.IN_PROGRESS}" label: ${addResult.error}`;
     }
 
     // =========================================================================
@@ -707,13 +722,9 @@ module.exports = async ({ github, context }) => {
     // GFI contributors get extra warm welcome; returning contributors get
     // a shorter acknowledgment.
 
-    await github.rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: issueNumber,
-      body: buildWelcomeComment(requesterUsername, skillLevel),
-    });
-    console.log('[assign-bot] Posted welcome comment');
+    await postComment(github, owner, repo, issueNumber,
+      buildWelcomeComment(requesterUsername, skillLevel), logger);
+    logger.log('Posted welcome comment');
 
     // =========================================================================
     // NOTIFY MAINTAINERS IF LABEL UPDATE FAILED
@@ -723,20 +734,16 @@ module.exports = async ({ github, context }) => {
     // welcome first.
 
     if (labelUpdateFailed) {
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        body: buildLabelUpdateFailureComment(requesterUsername, labelUpdateError),
-      });
-      console.log('[assign-bot] Posted label update failure comment, tagged maintainers');
+      await postComment(github, owner, repo, issueNumber,
+        buildLabelUpdateFailureComment(requesterUsername, labelUpdateError), logger);
+      logger.log('Posted label update failure comment, tagged maintainers');
     }
 
-    console.log('[assign-bot] Assignment flow completed successfully');
+    logger.log('Assignment flow completed successfully');
 
   } catch (error) {
     // Unexpected error - log details and re-throw to fail the workflow
-    console.error('[assign-bot] Error:', {
+    logger.error('Error:', {
       message: error.message,
       status: error.status,
       issueNumber: context.payload.issue?.number,
