@@ -8,8 +8,8 @@ if(NOT WIN32)
     set_target_properties(sys::resolv PROPERTIES IMPORTED_LOCATION ${RESOLV_LIBRARY})
 endif()
 
-     # Linux dependency checks
-if(UNIX AND NOT APPLE)
+ # Linux dependency checks
+ if(UNIX AND NOT APPLE)
 
     # Check for zip utility
     find_program(ZIP_EXECUTABLE zip)
