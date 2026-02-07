@@ -20,6 +20,9 @@ endif()
 
     # Check for linux headers (linux-libc-dev)
     include(CheckIncludeFile)
+
+    set(CMAKE_TRY_COMPILE_SOURCE_EXTENSION c)
+    
     check_include_file("linux/version.h" HAVE_LINUX_HEADERS)
 
     if(NOT HAVE_LINUX_HEADERS)
