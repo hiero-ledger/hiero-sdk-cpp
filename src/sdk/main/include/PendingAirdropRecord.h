@@ -4,6 +4,8 @@
 
 #include "PendingAirdropId.h"
 
+#include <cstdint>
+
 namespace proto
 {
 class PendingAirdropRecord;

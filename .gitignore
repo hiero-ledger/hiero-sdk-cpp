@@ -10,6 +10,11 @@
 .vscode/
 *.code-workspace
 
+
+# vcpkg
+vcpkg_installed/
+manifest-info.json
+
 # Local History for Visual Studio Code
 .history/
 

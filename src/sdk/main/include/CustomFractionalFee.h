@@ -5,6 +5,7 @@
 #include "CustomFeeBase.h"
 #include "FeeAssessmentMethod.h"
 
+#include <cstdint>
 #include <memory>
 #include <optional>
 
