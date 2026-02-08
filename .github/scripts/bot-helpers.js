@@ -185,6 +185,107 @@ function hasLabel(issueOrPr, labelName) {
   });
 }
 
+// -----------------------------------------------------------------------------
+// DCO & GPG verification (shared by PR automation and DCO/GPG bot)
+// -----------------------------------------------------------------------------
+
+/**
+ * Fetches all commits for a pull request.
+ * @param {object} github - The GitHub API client.
+ * @param {string} owner - The repository owner.
+ * @param {string} repo - The repository name.
+ * @param {number} pullNumber - The pull request number.
+ * @param {object} [logger] - Optional logger (e.g. from createLogger).
+ * @returns {Promise<Array>} - Array of commit objects.
+ */
+async function fetchPRCommits(github, owner, repo, pullNumber, logger) {
+  const log = logger?.log || console.log;
+  const commits = [];
+  let page = 1;
+  const perPage = 100;
+
+  while (true) {
+    const response = await github.rest.pulls.listCommits({
+      owner,
+      repo,
+      pull_number: pullNumber,
+      per_page: perPage,
+      page,
+    });
+
+    commits.push(...response.data);
+
+    if (response.data.length < perPage) {
+      break;
+    }
+    page++;
+  }
+
+  log(`Fetched ${commits.length} commits for PR #${pullNumber}`);
+  return commits;
+}
+
+/**
+ * Checks if a commit message has DCO sign-off.
+ * @param {string} message - The commit message.
+ * @returns {boolean} - True if DCO sign-off is present.
+ */
+function hasDCOSignoff(message) {
+  if (!message) return false;
+  // DCO sign-off line format: "Signed-off-by: Name <email>"
+  return /^Signed-off-by:\s+.+\s+<.+>/mi.test(message);
+}
+
+/**
+ * Checks if a commit has a verified GPG signature.
+ * @param {object} commit - The commit object from GitHub API.
+ * @returns {boolean} - True if GPG signature is verified.
+ */
+function hasVerifiedGPGSignature(commit) {
+  return commit?.commit?.verification?.verified === true;
+}
+
+/**
+ * Verifies all commits for DCO sign-off.
+ * @param {Array} commits - Array of commit objects.
+ * @param {object} [logger] - Optional logger.
+ * @returns {boolean} - True if all commits have DCO sign-off.
+ */
+function verifyDCOSignoffs(commits, logger) {
+  const log = logger?.log || console.log;
+  let passed = 0;
+
+  for (const commit of commits) {
+    const message = commit.commit?.message || '';
+    if (hasDCOSignoff(message)) {
+      passed++;
+    }
+  }
+
+  log(`DCO check: ${passed}/${commits.length} passed`);
+  return passed === commits.length;
+}
+
+/**
+ * Verifies all commits for GPG signatures.
+ * @param {Array} commits - Array of commit objects.
+ * @param {object} [logger] - Optional logger.
+ * @returns {boolean} - True if all commits have verified GPG signatures.
+ */
+function verifyGPGSignatures(commits, logger) {
+  const log = logger?.log || console.log;
+  let passed = 0;
+
+  for (const commit of commits) {
+    if (hasVerifiedGPGSignature(commit)) {
+      passed++;
+    }
+  }
+
+  log(`GPG check: ${passed}/${commits.length} passed`);
+  return passed === commits.length;
+}
+
 module.exports = {
   MAINTAINER_TEAM,
   LABELS,
@@ -196,4 +297,9 @@ module.exports = {
   addAssignees,
   postComment,
   hasLabel,
+  fetchPRCommits,
+  hasDCOSignoff,
+  hasVerifiedGPGSignature,
+  verifyDCOSignoffs,
+  verifyGPGSignatures,
 };
