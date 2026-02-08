@@ -5,8 +5,8 @@
 #include "EvmAddress.h"
 #include "Key.h"
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
