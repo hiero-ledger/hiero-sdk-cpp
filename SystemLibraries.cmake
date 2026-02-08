@@ -18,16 +18,15 @@ endif()
         message(FATAL_ERROR "zip utility is required but not installed. Run: sudo apt install zip")
     endif()
 
-    # Check for linux headers (linux-libc-dev)
-    include(CheckIncludeFile)
+    # Check for linux headers (linux-libc-dev) 
+find_path(LINUX_VERSION_HEADER
+    NAMES linux/version.h
+    PATHS /usr/include
+)
 
-    set(CMAKE_TRY_COMPILE_SOURCE_EXTENSION c)
-    
-    check_include_file("linux/version.h" HAVE_LINUX_HEADERS)
-
-    if(NOT HAVE_LINUX_HEADERS)
-        message(FATAL_ERROR "linux-libc-dev is required but not installed. Run: sudo apt install linux-libc-dev")
-    endif()
+if(NOT LINUX_VERSION_HEADER)
+    message(FATAL_ERROR "linux-libc-dev is required but not installed. Run: sudo apt install linux-libc-dev")
+endif()
 
 endif()
 
