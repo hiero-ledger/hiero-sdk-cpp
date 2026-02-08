@@ -10,11 +10,12 @@
 #include <string>
 #include <string_view>
 #include <vector>
+
 namespace proto
 {
 class Key;
 class SignaturePair;
-} // namespace proto
+}
 
 namespace Hiero
 {
@@ -24,7 +25,7 @@ class EVP_PKEY;
 }
 
 class AccountId;
-} // namespace Hiero
+}
 
 namespace Hiero
 {
@@ -37,8 +38,7 @@ class PublicKey
 {
 public:
   /**
-   * Default destructor, but must define after PublicKeyImpl is defined (in
-   * source file).
+   * Default destructor, but must define after PublicKeyImpl is defined (in source file).
    */
   ~PublicKey() override;
 
@@ -53,24 +53,23 @@ public:
   [[nodiscard]] static std::unique_ptr<PublicKey> fromStringDer(std::string_view key);
 
   /**
-   * Construct a PublicKey object from a raw byte vector. This will attempt to
-   * determine the type of key based on the input byte vector length.
+   * Construct a PublicKey object from a raw byte vector. This will attempt to determine the type of key based on the
+   * input byte vector length.
    *
    * @param bytes The vector of raw bytes from which to construct a PublicKey.
    * @return A pointer to a PublicKey representing the input DER-encoded bytes.
-   * @throws BadKeyException If the public key type (ED25519 or ECDSAsecp256k1)
-   * is unable to be determined or realized from the input byte array.
+   * @throws BadKeyException If the public key type (ED25519 or ECDSAsecp256k1) is unable to be determined or realized
+   *                         from the input byte array.
    */
   [[nodiscard]] static std::unique_ptr<PublicKey> fromBytes(const std::vector<std::byte>& bytes);
 
   /**
    * Construct a PublicKey object from a DER-encoded byte vector.
    *
-   * @param bytes The vector of DER-encoded bytes from which to construct a
-   * PublicKey.
+   * @param bytes The vector of DER-encoded bytes from which to construct a PublicKey.
    * @return A pointer to a PublicKey representing the input DER-encoded bytes.
-   * @throws BadKeyException If the public key type (ED25519 or ECDSAsecp256k1)
-   * is unable to be determined or realized from the input byte array.
+   * @throws BadKeyException If the public key type (ED25519 or ECDSAsecp256k1) is unable to be determined or realized
+   *                         from the input byte array.
    */
   [[nodiscard]] static std::unique_ptr<PublicKey> fromBytesDer(const std::vector<std::byte>& bytes);
 
@@ -78,18 +77,16 @@ public:
    * Construct a PublicKey object from a byte array representing an alias.
    *
    * @param alias The bytes representing an alias.
-   * @return A pointer to a PublicKey representing the input alias bytes, or
-   * nullptr if the input alias byte array does not represent a PublicKey.
+   * @return A pointer to a PublicKey representing the input alias bytes, or nullptr if the input alias byte array does
+   *         not represent a PublicKey.
    */
   [[nodiscard]] static std::unique_ptr<PublicKey> fromAliasBytes(const std::vector<std::byte>& bytes);
 
   /**
-   * Verify that a signature was made by the PrivateKey which corresponds to
-   * this PublicKey.
+   * Verify that a signature was made by the PrivateKey which corresponds to this PublicKey.
    *
    * @param signatureBytes The byte vector representing the signature.
-   * @param signedBytes    The bytes which were purportedly signed to create the
-   * signature.
+   * @param signedBytes    The bytes which were purportedly signed to create the signature.
    * @return \c TRUE if the signature is valid, otherwise \c FALSE.
    */
   [[nodiscard]] virtual bool verifySignature(const std::vector<std::byte>& signatureBytes,
@@ -124,8 +121,7 @@ public:
   [[nodiscard]] virtual std::vector<std::byte> toBytesRaw() const = 0;
 
   /**
-   * Serialize this PublicKey to a SignaturePair protobuf object with the given
-   * signature.
+   * Serialize this PublicKey to a SignaturePair protobuf object with the given signature.
    *
    * @param signature The signature created by this PublicKey.
    */
@@ -152,8 +148,7 @@ public:
 
 protected:
   /**
-   * Prevent public copying and moving to prevent slicing. Use the 'clone()'
-   * virtual method instead.
+   * Prevent public copying and moving to prevent slicing. Use the 'clone()' virtual method instead.
    */
   PublicKey(const PublicKey&);
   PublicKey& operator=(const PublicKey&);
@@ -183,8 +178,7 @@ private:
   [[nodiscard]] virtual std::shared_ptr<PublicKey> getShared() const = 0;
 
   /**
-   * Implementation object used to hide implementation details and internal
-   * headers.
+   * Implementation object used to hide implementation details and internal headers.
    */
   struct PublicKeyImpl;
   std::unique_ptr<PublicKeyImpl> mImpl;
