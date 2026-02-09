@@ -9,7 +9,7 @@
 // Define the pattern
 namespace Const
 {
-const std::regex FROM_STRING_PATTERN("^((?:\\+|\\-)?\\d+(?:\\.\\d+)?)(\\ (tℏ|μℏ|mℏ|ℏ|kℏ|Mℏ|Gℏ))?$");
+const std::regex FROM_STRING_PATTERN("^((?:\\+|\\-)?\\d+(?:\\.\\d+)?)(\\ (tinybar|ubar|mbar|hbar|kbar|Mbar|Gbar))?$");
 }
 
 namespace Hiero
