@@ -25,7 +25,7 @@ The C++ SDK for interacting with a [Hiero](https://hiero.org) network.
 
 - **ninja**
   - macOS: `brew install ninja`
-  - Linux: `apt-get install ninja-build`
+  - Linux: `apt-get install ninja-build zip unzip linux-libc-dev`
 - **pkg-config**
   - macOS: `brew install pkg-config`
   - Linux: `apt-get install pkg-config`
