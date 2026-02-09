@@ -2,6 +2,7 @@
 #include "Hbar.h"
 
 #include <gtest/gtest.h>
+#include <cstring>
 
 using namespace Hiero;
 
@@ -15,49 +16,49 @@ protected:
 TEST_F(HbarUnitTests, TinybarUnit)
 {
   EXPECT_EQ(HbarUnit::TINYBAR().getTinybars(), 1ULL);
-  EXPECT_EQ(strcmp(HbarUnit::TINYBAR().getSymbol(), "tℏ"), 0);
+  EXPECT_EQ(strcmp(HbarUnit::TINYBAR().getSymbol(), "tinybar"), 0);
 }
 
 //-----
 TEST_F(HbarUnitTests, MicrobarUnit)
 {
   EXPECT_EQ(HbarUnit::MICROBAR().getTinybars(), 100ULL);
-  EXPECT_EQ(strcmp(HbarUnit::MICROBAR().getSymbol(), "μℏ"), 0);
+  EXPECT_EQ(strcmp(HbarUnit::MICROBAR().getSymbol(), "ubar"), 0);
 }
 
 //-----
 TEST_F(HbarUnitTests, MillibarUnit)
 {
   EXPECT_EQ(HbarUnit::MILLIBAR().getTinybars(), 100000ULL);
-  EXPECT_EQ(strcmp(HbarUnit::MILLIBAR().getSymbol(), "mℏ"), 0);
+  EXPECT_EQ(strcmp(HbarUnit::MILLIBAR().getSymbol(), "mbar"), 0);
 }
 
 //-----
 TEST_F(HbarUnitTests, HbarUnit)
 {
   EXPECT_EQ(HbarUnit::HBAR().getTinybars(), 100000000ULL);
-  EXPECT_EQ(strcmp(HbarUnit::HBAR().getSymbol(), "ℏ"), 0);
+  EXPECT_EQ(strcmp(HbarUnit::HBAR().getSymbol(), "hbar"), 0);
 }
 
 //-----
 TEST_F(HbarUnitTests, KilobarUnit)
 {
   EXPECT_EQ(HbarUnit::KILOBAR().getTinybars(), 100000000000ULL);
-  EXPECT_EQ(strcmp(HbarUnit::KILOBAR().getSymbol(), "kℏ"), 0);
+  EXPECT_EQ(strcmp(HbarUnit::KILOBAR().getSymbol(), "kbar"), 0);
 }
 
 //-----
 TEST_F(HbarUnitTests, MegabarUnit)
 {
   EXPECT_EQ(HbarUnit::MEGABAR().getTinybars(), 100000000000000ULL);
-  EXPECT_EQ(strcmp(HbarUnit::MEGABAR().getSymbol(), "Mℏ"), 0);
+  EXPECT_EQ(strcmp(HbarUnit::MEGABAR().getSymbol(), "Mbar"), 0);
 }
 
 //-----
 TEST_F(HbarUnitTests, GigabarUnit)
 {
   EXPECT_EQ(HbarUnit::GIGABAR().getTinybars(), 100000000000000000ULL);
-  EXPECT_EQ(strcmp(HbarUnit::GIGABAR().getSymbol(), "Gℏ"), 0);
+  EXPECT_EQ(strcmp(HbarUnit::GIGABAR().getSymbol(), "Gbar"), 0);
 }
 
 //-----
@@ -103,7 +104,10 @@ TEST_F(HbarUnitTests, AddEqualsOperator)
 {
   Hbar hbar(amount, HbarUnit::TINYBAR());
   hbar += Hbar(amount, HbarUnit::MICROBAR());
-  EXPECT_EQ(hbar.toTinybars(), amount * HbarUnit::MICROBAR().getTinybars() + amount);
+  EXPECT_EQ(
+    hbar.toTinybars(),
+    amount * HbarUnit::MICROBAR().getTinybars() + amount
+  );
 }
 
 //-----

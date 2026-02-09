@@ -25,7 +25,7 @@ The C++ SDK for interacting with a [Hiero](https://hiero.org) network.
 
 - **ninja**
   - macOS: `brew install ninja`
-  - Linux: `apt-get install ninja-build`
+  - Linux: `apt-get install ninja-build zip unzip linux-libc-dev`
 - **pkg-config**
   - macOS: `brew install pkg-config`
   - Linux: `apt-get install pkg-config`
@@ -181,8 +181,14 @@ Create a `.env` file in the project root with the following variables:
 
 ### Running Examples
 
-```sh
-build/<PRESET>/sdk/examples/Release/<EXAMPLE_NAME>
+#### Mac
+```C++
+package/Release/Darwin/arm64/examples/Release/<EXAMPLE-NAME>
+```
+
+#### Windows
+```C++
+package\Release\Windows\AMD64\examples\Release\<EXAMPLE-NAME>
 ```
 
 - `<PRESET>`: The CMake preset used during build (e.g., `linux-x64-release`)
