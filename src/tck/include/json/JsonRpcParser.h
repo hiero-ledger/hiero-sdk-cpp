@@ -50,6 +50,23 @@ private:
   nlohmann::json handleSingleRequest(const nlohmann::json& requestJson);
 
   /**
+   * Handle a batch of JSON-RPC requests.
+   *
+   * @param batchRequest The parsed JSON array of requests.
+   * @return The JSON-RPC batch response string.
+   */
+  std::string handleBatchRequest(const nlohmann::json& batchRequest);
+
+  /**
+   * Create an error response for an exception.
+   *
+   * @param requestId The request ID.
+   * @param ex The exception.
+   * @return The JSON error response object.
+   */
+  static nlohmann::json createExceptionErrorResponse(const nlohmann::json& requestId, const std::exception& ex);
+
+  /**
    * Map of registered method names to their handlers.
    */
   std::map<std::string, MethodHandler> mMethods;

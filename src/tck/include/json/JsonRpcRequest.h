@@ -31,6 +31,12 @@ private:
   // Private constructor forces users to use parse()
   JsonRpcRequest(std::string method, nlohmann::json params, nlohmann::json id);
 
+  // Helper methods to reduce cyclomatic complexity
+  static void validateJsonRpcField(const nlohmann::json& json);
+  static std::string validateAndExtractMethod(const nlohmann::json& json);
+  static nlohmann::json validateAndExtractId(const nlohmann::json& json);
+  static nlohmann::json validateAndExtractParams(const nlohmann::json& json);
+
   std::string mMethod;
   nlohmann::json mParams;
   nlohmann::json mId;
