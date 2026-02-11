@@ -40,6 +40,15 @@ protected:
    */
   [[nodiscard]] inline const std::string& getTestBigContents() const { return mBigContents; }
 
+  /** Get the test jumbo smart contract bytecode used in integration tests.
+   *
+   * @return The test jumbo smart contract bytecode in hex format.
+   */
+  [[nodiscard]] inline const std::string& getTestJumboSmartContractBytecode() const
+  {
+    return mJumboSmartContractBytecode;
+  }
+
   /** Set the test Client operator with the given account ID and private key.
    *
    * @param accountId The account ID of the operator.
@@ -245,6 +254,15 @@ private:
     "egestas augue elit, sollicitudin accumsan massa lobortis ac. Curabitur placerat, dolor a aliquam maximus, velit "
     "ipsum laoreet ligula, id ullamcorper lacus nibh eget nisl. Donec eget lacus venenatis enim consequat auctor vel "
     "in.\n";
+  const std::string mJumboSmartContractBytecode =
+    "6080604052348015600e575f5ffd5b506101828061001c5f395ff3fe608060405234801561000f575f5ffd5b5060043610610029575f3560e0"
+    "1c80631e0a3f051461002d575b5f5ffd5b610047600480360381019061004291906100d0565b61005d565b6040516100549190610133565b60"
+    "405180910390f35b5f5f905092915050565b5f5ffd5b5f5ffd5b5f5ffd5b5f5ffd5b5f5ffd5b5f5f83601f8401126100905761008f61006f56"
+    "5b5b8235905067ffffffffffffffff8111156100ad576100ac610073565b5b6020830191508360018202830111156100c9576100c861007756"
+    "5b5b9250929050565b5f5f602083850312156100e6576100e5610067565b5b5f83013567ffffffffffffffff8111156101035761010261006b"
+    "565b5b61010f8582860161007b565b92509250509250929050565b5f819050919050565b61012d8161011b565b82525050565b5f6020820190"
+    "506101465f830184610124565b9291505056fea26469706673582212202829ebd1cf38c443e4fd3770cd4306ac4c6bb9ac2828074ae2b9cd16"
+    "121fcfea64736f6c634300081e0033";
 };
 
 } // namespace Hiero
