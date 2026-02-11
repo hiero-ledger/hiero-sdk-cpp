@@ -36,24 +36,7 @@ std::string JsonRpcParser::handle(const std::string& body)
 
     if (jsonRequest.is_array())
     {
-      if (jsonRequest.empty())
-      {
-        return JsonRpcResponse::makeError(
-                 nullptr, static_cast<int>(JsonErrorType::INVALID_REQUEST), "invalid request: empty batch")
-          .dump();
-      }
-
-      nlohmann::json batchResponse = nlohmann::json::array();
-      for (const auto& req : jsonRequest)
-      {
-        nlohmann::json result = handleSingleRequest(req);
-        if (!result.is_null())
-        {
-          batchResponse.push_back(result);
-        }
-      }
-
-      return batchResponse.empty() ? "" : batchResponse.dump();
+      return handleBatchRequest(jsonRequest);
     }
 
     if (jsonRequest.is_object())
@@ -72,6 +55,29 @@ std::string JsonRpcParser::handle(const std::string& body)
              nullptr, static_cast<int>(JsonErrorType::PARSE_ERROR), std::string("parse error: ") + ex.what())
       .dump();
   }
+}
+
+//-----
+std::string JsonRpcParser::handleBatchRequest(const nlohmann::json& batchRequest)
+{
+  if (batchRequest.empty())
+  {
+    return JsonRpcResponse::makeError(
+             nullptr, static_cast<int>(JsonErrorType::INVALID_REQUEST), "invalid request: empty batch")
+      .dump();
+  }
+
+  nlohmann::json batchResponse = nlohmann::json::array();
+  for (const auto& req : batchRequest)
+  {
+    nlohmann::json result = handleSingleRequest(req);
+    if (!result.is_null())
+    {
+      batchResponse.push_back(result);
+    }
+  }
+
+  return batchResponse.empty() ? "" : batchResponse.dump();
 }
 
 //-----
@@ -103,35 +109,45 @@ nlohmann::json JsonRpcParser::handleSingleRequest(const nlohmann::json& requestJ
   {
     return JsonRpcResponse::makeError(requestId, static_cast<int>(e.getCode()), e.getMessage(), e.getData());
   }
-  catch (const Hiero::ReceiptStatusException& ex)
+  catch (const std::exception& ex)
   {
-    return JsonRpcResponse::makeError(requestId,
-                                      static_cast<int>(JsonErrorType::HIERO_ERROR),
-                                      "Hiero error",
-                                      nlohmann::json{
-                                        {"status",   gStatusToString.at(ex.mStatus)},
-                                        { "message", ex.what()                     }
+    return createExceptionErrorResponse(requestId, ex);
+  }
+}
+
+//-----
+nlohmann::json JsonRpcParser::createExceptionErrorResponse(const nlohmann::json& requestId, const std::exception& ex)
+{
+  if (const auto* receiptEx = dynamic_cast<const Hiero::ReceiptStatusException*>(&ex))
+  {
+    return JsonRpcResponse::makeError(
+      requestId,
+      static_cast<int>(JsonErrorType::HIERO_ERROR),
+      "Hiero error",
+      nlohmann::json{
+        {"status",   gStatusToString.at(receiptEx->mStatus)},
+        { "message", receiptEx->what()                     }
     });
   }
-  catch (const Hiero::PrecheckStatusException& ex)
+
+  if (const auto* precheckEx = dynamic_cast<const Hiero::PrecheckStatusException*>(&ex))
   {
-    return JsonRpcResponse::makeError(requestId,
-                                      static_cast<int>(JsonErrorType::HIERO_ERROR),
-                                      "Hiero error",
-                                      nlohmann::json{
-                                        {"status",   gStatusToString.at(ex.mStatus)},
-                                        { "message", ex.what()                     }
+    return JsonRpcResponse::makeError(
+      requestId,
+      static_cast<int>(JsonErrorType::HIERO_ERROR),
+      "Hiero error",
+      nlohmann::json{
+        {"status",   gStatusToString.at(precheckEx->mStatus)},
+        { "message", precheckEx->what()                     }
     });
   }
-  catch (const std::exception& e)
-  {
-    return JsonRpcResponse::makeError(requestId,
-                                      static_cast<int>(JsonErrorType::INTERNAL_ERROR),
-                                      "Internal error",
-                                      nlohmann::json{
-                                        {"message", e.what()}
-    });
-  }
+
+  return JsonRpcResponse::makeError(requestId,
+                                    static_cast<int>(JsonErrorType::INTERNAL_ERROR),
+                                    "Internal error",
+                                    nlohmann::json{
+                                      {"message", ex.what()}
+  });
 }
 
 } // namespace Hiero::TCK

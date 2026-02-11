@@ -16,39 +16,65 @@ JsonRpcRequest::JsonRpcRequest(std::string method, nlohmann::json params, nlohma
 //-----
 JsonRpcRequest JsonRpcRequest::parse(const nlohmann::json& json)
 {
+  validateJsonRpcField(json);
+  std::string method = validateAndExtractMethod(json);
+  nlohmann::json id = validateAndExtractId(json);
+  nlohmann::json params = validateAndExtractParams(json);
+
+  return JsonRpcRequest(std::move(method), std::move(params), std::move(id));
+}
+
+//-----
+void JsonRpcRequest::validateJsonRpcField(const nlohmann::json& json)
+{
   if (!json.contains("jsonrpc") || json["jsonrpc"] != "2.0")
   {
     throw JsonRpcException(JsonErrorType::INVALID_REQUEST, R"(invalid request: missing jsonrpc field set to "2.0")");
   }
+}
 
+//-----
+std::string JsonRpcRequest::validateAndExtractMethod(const nlohmann::json& json)
+{
   if (!json.contains("method") || !json["method"].is_string())
   {
     throw JsonRpcException(JsonErrorType::INVALID_REQUEST, "invalid request: method field must be a string");
   }
+  return json["method"].get<std::string>();
+}
 
-  nlohmann::json id = nullptr;
-  if (json.contains("id"))
+//-----
+nlohmann::json JsonRpcRequest::validateAndExtractId(const nlohmann::json& json)
+{
+  if (!json.contains("id"))
   {
-    id = json["id"];
-    if (!id.is_string() && !id.is_number() && !id.is_null())
-    {
-      throw JsonRpcException(JsonErrorType::INVALID_REQUEST,
-                             "invalid request: id field must be a number, string or null");
-    }
+    return nullptr;
   }
 
-  nlohmann::json params = nlohmann::json::object();
-  if (json.contains("params"))
+  nlohmann::json id = json["id"];
+  if (!id.is_string() && !id.is_number() && !id.is_null())
   {
-    params = json["params"];
-    if (!params.is_array() && !params.is_object() && !params.is_null())
-    {
-      throw JsonRpcException(JsonErrorType::INVALID_REQUEST,
-                             "invalid request: params field must be an array, object or null");
-    }
+    throw JsonRpcException(JsonErrorType::INVALID_REQUEST,
+                           "invalid request: id field must be a number, string or null");
+  }
+  return id;
+}
+
+//-----
+nlohmann::json JsonRpcRequest::validateAndExtractParams(const nlohmann::json& json)
+{
+  if (!json.contains("params"))
+  {
+    return nlohmann::json::object();
   }
 
-  return JsonRpcRequest(json["method"].get<std::string>(), params, id);
+  nlohmann::json params = json["params"];
+  if (!params.is_array() && !params.is_object() && !params.is_null())
+  {
+    throw JsonRpcException(JsonErrorType::INVALID_REQUEST,
+                           "invalid request: params field must be an array, object or null");
+  }
+  return params;
 }
 
 //-----
