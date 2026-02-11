@@ -3,6 +3,9 @@ add_executable(${TCK_SERVER_NAME}
         src/account/AccountService.cc
         src/file/FileService.cc
         src/json/JsonRpcException.cc
+        src/json/JsonRpcParser.cc
+        src/json/JsonRpcRequest.cc
+        src/json/JsonRpcResponse.cc
         src/json/JsonUtils.cc
         src/key/KeyService.cc
         src/sdk/SdkClient.cc

@@ -1,0 +1,78 @@
+// SPDX-License-Identifier: Apache-2.0
+#include "json/JsonRpcRequest.h"
+#include "json/JsonErrorType.h"
+#include "json/JsonRpcException.h"
+
+namespace Hiero::TCK
+{
+//-----
+JsonRpcRequest::JsonRpcRequest(std::string method, nlohmann::json params, nlohmann::json id)
+  : mMethod(std::move(method))
+  , mParams(std::move(params))
+  , mId(std::move(id))
+{
+}
+
+//-----
+JsonRpcRequest JsonRpcRequest::parse(const nlohmann::json& json)
+{
+  if (!json.contains("jsonrpc") || json["jsonrpc"] != "2.0")
+  {
+    throw JsonRpcException(JsonErrorType::INVALID_REQUEST, R"(invalid request: missing jsonrpc field set to "2.0")");
+  }
+
+  if (!json.contains("method") || !json["method"].is_string())
+  {
+    throw JsonRpcException(JsonErrorType::INVALID_REQUEST, "invalid request: method field must be a string");
+  }
+
+  nlohmann::json id = nullptr;
+  if (json.contains("id"))
+  {
+    id = json["id"];
+    if (!id.is_string() && !id.is_number() && !id.is_null())
+    {
+      throw JsonRpcException(JsonErrorType::INVALID_REQUEST,
+                             "invalid request: id field must be a number, string or null");
+    }
+  }
+
+  nlohmann::json params = nlohmann::json::object();
+  if (json.contains("params"))
+  {
+    params = json["params"];
+    if (!params.is_array() && !params.is_object() && !params.is_null())
+    {
+      throw JsonRpcException(JsonErrorType::INVALID_REQUEST,
+                             "invalid request: params field must be an array, object or null");
+    }
+  }
+
+  return JsonRpcRequest(json["method"].get<std::string>(), params, id);
+}
+
+//-----
+const std::string& JsonRpcRequest::getMethod() const
+{
+  return mMethod;
+}
+
+//-----
+const nlohmann::json& JsonRpcRequest::getParams() const
+{
+  return mParams;
+}
+
+//-----
+const nlohmann::json& JsonRpcRequest::getId() const
+{
+  return mId;
+}
+
+//-----
+bool JsonRpcRequest::isNotification() const
+{
+  return mId.is_null();
+}
+
+} // namespace Hiero::TCK
