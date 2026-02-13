@@ -92,3 +92,65 @@ TEST_F(JsonRpcRequestUnitTests, ThrowsOnInvalidIdType)
 
   EXPECT_THROW(JsonRpcRequest::parse(j), JsonRpcException);
 }
+
+TEST_F(JsonRpcRequestUnitTests, ThrowsOnMethodNotString)
+{
+  json j = {
+    {"jsonrpc", "2.0"},
+    { "method", 123  },
+    { "id",     1    }
+  };
+
+  try
+  {
+    JsonRpcRequest::parse(j);
+    FAIL() << "Expected JsonRpcException";
+  }
+  catch (const JsonRpcException& e)
+  {
+    EXPECT_EQ(e.getCode(), JsonErrorType::INVALID_REQUEST);
+    EXPECT_EQ(e.getMessage(), "invalid request: method field must be a string");
+  }
+}
+
+TEST_F(JsonRpcRequestUnitTests, ThrowsOnParamsInvalidTypeString)
+{
+  json j = {
+    {"jsonrpc", "2.0"    },
+    { "method", "test"   },
+    { "params", "invalid"},
+    { "id",     1        }
+  };
+
+  try
+  {
+    JsonRpcRequest::parse(j);
+    FAIL() << "Expected JsonRpcException";
+  }
+  catch (const JsonRpcException& e)
+  {
+    EXPECT_EQ(e.getCode(), JsonErrorType::INVALID_REQUEST);
+    EXPECT_EQ(e.getMessage(), "invalid request: params field must be an array, object or null");
+  }
+}
+
+TEST_F(JsonRpcRequestUnitTests, ThrowsOnParamsInvalidTypeBoolean)
+{
+  json j = {
+    {"jsonrpc", "2.0" },
+    { "method", "test"},
+    { "params", true  },
+    { "id",     1     }
+  };
+
+  try
+  {
+    JsonRpcRequest::parse(j);
+    FAIL() << "Expected JsonRpcException";
+  }
+  catch (const JsonRpcException& e)
+  {
+    EXPECT_EQ(e.getCode(), JsonErrorType::INVALID_REQUEST);
+    EXPECT_EQ(e.getMessage(), "invalid request: params field must be an array, object or null");
+  }
+}

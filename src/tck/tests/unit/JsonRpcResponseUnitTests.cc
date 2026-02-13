@@ -31,7 +31,7 @@ TEST_F(JsonRpcResponseUnitTests, MakeErrorWithoutData)
 {
   json id = "abc";
   std::string message = "Something went wrong";
-  int code = static_cast<int>(JsonErrorType::INVALID_PARAMS);
+  JsonErrorType code = JsonErrorType::INVALID_PARAMS;
 
   json response = JsonRpcResponse::makeError(id, code, message);
 
@@ -40,7 +40,7 @@ TEST_F(JsonRpcResponseUnitTests, MakeErrorWithoutData)
   EXPECT_FALSE(response.contains("result"));
 
   EXPECT_TRUE(response.contains("error"));
-  EXPECT_EQ(response["error"]["code"], code);
+  EXPECT_EQ(response["error"]["code"], static_cast<int>(code));
   EXPECT_EQ(response["error"]["message"], message);
   EXPECT_FALSE(response["error"].contains("data"));
 }
@@ -52,7 +52,7 @@ TEST_F(JsonRpcResponseUnitTests, MakeErrorWithData)
     {"details", "stack trace"}
   };
 
-  json response = JsonRpcResponse::makeError(id, static_cast<int>(JsonErrorType::INTERNAL_ERROR), "Error", data);
+  json response = JsonRpcResponse::makeError(id, JsonErrorType::INTERNAL_ERROR, "Error", data);
 
   EXPECT_EQ(response["error"]["data"]["details"], "stack trace");
 }

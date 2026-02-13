@@ -15,13 +15,13 @@ nlohmann::json JsonRpcResponse::makeSuccess(const nlohmann::json& id, const nloh
 
 //-----
 nlohmann::json JsonRpcResponse::makeError(const nlohmann::json& id,
-                                          int code,
+                                          JsonErrorType code,
                                           const std::string& message,
                                           const nlohmann::json& data)
 {
   nlohmann::json errorObj = {
-    {"code",     code   },
-    { "message", message}
+    {"code",     static_cast<int>(code)},
+    { "message", message               }
   };
 
   if (!data.is_null())
