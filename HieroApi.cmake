@@ -1,8 +1,8 @@
-set(HAPI_VERSION_TAG "v0.69.1" CACHE STRING "Use the configured version tag for the Hiero API protobufs")
-set(HAPI_COMMIT_HASH "83fa1eb1446524aa695fa2c0d817361805afb979" CACHE STRING "Use the configured commit hash for the Hiero API protobufs (overrides version tag if provided)")
+set(HAPI_VERSION_TAG "v0.72.0-alpha.1" CACHE STRING "Use the configured version tag for the Hiero API protobufs")
+set(HAPI_COMMIT_HASH "df70b5b7f32f0dabf1f6883c5d255248a8f3aa03" CACHE STRING "Use the configured commit hash for the Hiero API protobufs (overrides version tag if provided)")
 
 if (HAPI_VERSION_TAG STREQUAL "")
-    set(HAPI_VERSION_TAG "v0.69.1")
+    set(HAPI_VERSION_TAG "v0.72.0-alpha.1")
 endif ()
 
 # Use commit hash if provided, otherwise use version tag
