@@ -1,4 +1,4 @@
-name: Bot - Assign on /assign Comment
+name: Bot - On Comment
 
 on:
   issue_comment:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  assign-on-comment:
+  on-comment:
     # Only run on issue comments (not PR comments)
     if: github.event.issue.pull_request == null
 
@@ -18,7 +18,7 @@ jobs:
 
     # Prevent race conditions: always wait for the first assignment request to finish processing
     concurrency:
-      group: assign-on-comment-${{ github.event.issue.number }}
+      group: on-comment-${{ github.event.issue.number }}
       cancel-in-progress: false
 
     steps:
@@ -30,9 +30,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Run /assign Handler
+      - name: Run On-Comment Handler
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
-            const script = require('./.github/scripts/bot-assign-on-comment.js');
+            const script = require('./.github/scripts/bot-on-comment.js');
             await script({ github, context });

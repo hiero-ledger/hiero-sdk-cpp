@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
-// test-pr-automation.js
+// test-on-pr-bot.js
 //
-// Local test script for bot-pr-automation.js
-// Run with: node .github/scripts/test-pr-automation.js
+// Local test script for bot-on-pr.js (assign author, set needs review/revision from env).
+// Run with: node .github/scripts/test-on-pr-bot.js
 //
-// This script mocks the GitHub API and runs various test scenarios
-// to verify the bot behaves correctly without making real API calls.
+// Mocks the GitHub API and runs scenarios to verify the on-PR bot without real API calls.
 
-const script = require('./bot-pr-automation.js');
+const script = require('./bot-on-pr.js');
 const { LABELS } = script;
 
 // =============================================================================
@@ -90,7 +89,7 @@ function pullRequestContext(pr) {
 
 const scenarios = [
   // ---------------------------------------------------------------------------
-  // HAPPY PATH: DCO_GPG_PASSED=success, no conflicts → needs review
+  // HAPPY PATH: DCO, GPG, no conflicts → needs review
   // ---------------------------------------------------------------------------
   {
     name: 'Happy Path - All Checks Pass',
@@ -102,7 +101,7 @@ const scenarios = [
       base: { ref: 'main' },
       head: { ref: 'feature-branch' },
     }),
-    env: { DCO_GPG_PASSED: 'success' },
+    env: { DCO_PASSED: 'success', GPG_PASSED: 'success', MERGE_CONFLICT: 'success' },
     githubOptions: {
       mergeable: true,
       mergeableState: 'clean',
@@ -125,7 +124,7 @@ const scenarios = [
       base: { ref: 'main' },
       head: { ref: 'conflict-branch' },
     }),
-    env: { DCO_GPG_PASSED: 'success' },
+    env: { DCO_PASSED: 'success', GPG_PASSED: 'success', MERGE_CONFLICT: 'failure' },
     githubOptions: {
       mergeable: false,
       mergeableState: 'dirty',
@@ -136,7 +135,7 @@ const scenarios = [
   },
 
   // ---------------------------------------------------------------------------
-  // FAILURE: DCO & GPG check failed → needs revision
+  // FAILURE: DCO or GPG check failed → needs revision
   // ---------------------------------------------------------------------------
   {
     name: 'Failure - DCO & GPG Check Failed',
@@ -148,7 +147,7 @@ const scenarios = [
       base: { ref: 'main' },
       head: { ref: 'unsigned-branch' },
     }),
-    env: { DCO_GPG_PASSED: 'failure' },
+    env: { DCO_PASSED: 'failure', GPG_PASSED: 'success', MERGE_CONFLICT: 'success' },
     githubOptions: {
       mergeable: true,
       mergeableState: 'clean',
@@ -171,7 +170,7 @@ const scenarios = [
       base: { ref: 'main' },
       head: { ref: 'unlucky-branch' },
     }),
-    env: { DCO_GPG_PASSED: 'success' },
+    env: { DCO_PASSED: 'success', GPG_PASSED: 'success', MERGE_CONFLICT: 'success' },
     githubOptions: {
       mergeable: true,
       addLabelShouldFail: true,
@@ -195,10 +194,9 @@ Please add the label manually or check that it exists in the repository.`,
 // =============================================================================
 
 function runUnitTests() {
-  // PR automation no longer has DCO/GPG logic; unit tests for those live in test-dco-gpg-bot.js
-  console.log('🔬 UNIT TESTS (PR automation)');
+  console.log('🔬 UNIT TESTS (on-PR bot)');
   console.log('='.repeat(70));
-  console.log('   (No unit tests in this file; DCO/GPG tests are in test-dco-gpg-bot.js)');
+  console.log('   (No unit tests in this file; on-PR bot is integration-tested only.)');
   return true;
 }
 
@@ -230,13 +228,11 @@ async function runIntegrationTest(scenario, index) {
     }
   }
 
-  // Verify results
   const results = {
     passed: true,
     details: [],
   };
 
-  // Check assignee
   if (scenario.expectedAssignee) {
     if (mockGithub.calls.assignees.includes(scenario.expectedAssignee)) {
       results.details.push(`✅ Correctly assigned to ${scenario.expectedAssignee}`);
@@ -246,7 +242,6 @@ async function runIntegrationTest(scenario, index) {
     }
   }
 
-  // Check label
   if (scenario.expectedLabel) {
     if (mockGithub.calls.labelsAdded.includes(scenario.expectedLabel)) {
       results.details.push(`✅ Added label: ${scenario.expectedLabel}`);
@@ -256,7 +251,6 @@ async function runIntegrationTest(scenario, index) {
     }
   }
 
-  // Check comments (snapshot comparison)
   const expectedComments = scenario.expectedComments || [];
   const actualComments = mockGithub.calls.comments;
 
@@ -291,13 +285,11 @@ async function runIntegrationTest(scenario, index) {
 }
 
 async function runAllTests() {
-  console.log('🧪 BOT-PR-AUTOMATION TEST SUITE');
-  console.log('================================\n');
+  console.log('🧪 ON-PR BOT TEST SUITE');
+  console.log('=======================\n');
 
-  // Run unit tests first
   const unitTestsPassed = runUnitTests();
 
-  // Run integration tests
   console.log('\n\n🔗 INTEGRATION TESTS');
   console.log('='.repeat(70));
 
@@ -306,14 +298,10 @@ async function runAllTests() {
 
   for (let i = 0; i < scenarios.length; i++) {
     const success = await runIntegrationTest(scenarios[i], i);
-    if (success) {
-      integrationPassed++;
-    } else {
-      integrationFailed++;
-    }
+    if (success) integrationPassed++;
+    else integrationFailed++;
   }
 
-  // Summary
   console.log('\n' + '='.repeat(70));
   console.log('📈 SUMMARY');
   console.log('='.repeat(70));
@@ -322,16 +310,15 @@ async function runAllTests() {
   console.log(`   Failed: ${integrationFailed} ${integrationFailed > 0 ? '❌' : ''}`);
   console.log('='.repeat(70));
 
-  const allPassed = integrationFailed === 0;
+  const allPassed = unitTestsPassed && integrationFailed === 0;
   process.exit(allPassed ? 0 : 1);
 }
 
-// Run specific test by index, or all tests
 const testIndex = process.argv[2];
 if (testIndex !== undefined) {
   const index = parseInt(testIndex, 10);
   if (index >= 0 && index < scenarios.length) {
-    runIntegrationTest(scenarios[index], index);
+    runIntegrationTest(scenarios[index], index).then((ok) => process.exit(ok ? 0 : 1));
   } else {
     console.log(`Invalid test index. Available: 0-${scenarios.length - 1}`);
     console.log('\nAvailable scenarios:');

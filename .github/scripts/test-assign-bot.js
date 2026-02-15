@@ -2,14 +2,14 @@
 //
 // test-assign-bot.js
 //
-// Local test script for bot-assign-on-comment.js
+// Local test script for bot-on-comment.js
 // Run with: node .github/scripts/test-assign-bot.js
 //
 // This script mocks the GitHub API and runs various test scenarios
-// to verify the bot behaves correctly without making real API calls.
+// to verify the on-comment (assign) bot behaves correctly without making real API calls.
 
-const { LABELS } = require('./bot-helpers.js');
-const script = require('./bot-assign-on-comment.js');
+const { LABELS } = require('./helpers');
+const script = require('./bot-on-comment.js');
 
 // =============================================================================
 // GRAPHQL QUERY KIND (for mock)
@@ -146,6 +146,7 @@ const scenarios = [
     name: 'Happy Path - Good First Issue',
     description: 'New contributor successfully assigned to GFI',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 100,
@@ -180,6 +181,7 @@ Good luck, and welcome aboard! 🚀`,
     name: 'Happy Path - Beginner Issue',
     description: 'Contributor with 2 completed GFIs assigned to Beginner',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 101,
@@ -212,6 +214,7 @@ Good luck! 🚀`,
     name: 'Happy Path - Intermediate Issue',
     description: 'Contributor with 3 completed Beginners assigned to Intermediate',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 102,
@@ -244,6 +247,7 @@ Good luck! 🚀`,
     name: 'Happy Path - Advanced Issue',
     description: 'Contributor with 3 completed Intermediates assigned to Advanced',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 103,
@@ -281,6 +285,7 @@ Good luck! 🚀`,
     name: 'Validation - Already Assigned to Someone Else',
     description: 'Issue is taken by another contributor',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 104,
@@ -314,6 +319,7 @@ Once you find one you like, comment \`/assign\` to get started!`,
     name: 'Validation - Already Assigned to Self',
     description: 'Contributor already owns the issue',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 105,
@@ -344,6 +350,7 @@ If you have any questions, feel free to ask here or reach out to the team.`,
     name: 'Validation - Not Ready for Dev',
     description: 'Issue missing status: ready for dev label',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 106,
@@ -378,6 +385,7 @@ Once you find one you like, comment \`/assign\` to get started!`,
     name: 'Validation - No Labels At All',
     description: 'Issue has no labels',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 107,
@@ -410,6 +418,7 @@ Once you find one you like, comment \`/assign\` to get started!`,
     name: 'Validation - No Skill Level Label',
     description: 'Issue missing skill level label',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 107,
@@ -445,6 +454,7 @@ Once you find one you like, comment \`/assign\` to get started!`,
     name: 'Validation - Prerequisites Not Met',
     description: 'Contributor lacks required experience',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 108,
@@ -482,6 +492,7 @@ Once you've completed 2, come back and we'll be happy to assign this to you! �
     name: 'Validation - Too Many Open Assignments (at limit)',
     description: 'Contributor already has 2 open issues assigned',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 114,
@@ -519,6 +530,7 @@ Once you complete or unassign from one of your current issues, come back and we'
     name: 'Validation - Too Many Open Assignments (over limit)',
     description: 'Contributor has more than 2 open issues assigned',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 115,
@@ -556,6 +568,7 @@ Once you complete or unassign from one of your current issues, come back and we'
     name: 'Validation - Over Limit After Issues Unblocked',
     description: 'User has 3 open issues; some were blocked when they got the third. Now 3 count (excluding blocked), so over limit and cannot be assigned',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 118,
@@ -596,6 +609,7 @@ Once you complete or unassign from one of your current issues, come back and we'
     name: 'Validation - At Limit With Blocked Issues (shows blocked link)',
     description: 'User at 2 open (excluding blocked) and has 1 blocked issue; comment includes link to blocked issues',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 119,
@@ -640,6 +654,7 @@ Once you complete or unassign from one of your current issues, come back and we'
     name: 'Validation - Under Assignment Limit (1 open issue)',
     description: 'Contributor with 1 open issue can take another',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 116,
@@ -674,6 +689,7 @@ Good luck, and welcome aboard! 🚀`,
     name: 'Validation - Open Assignments Exclude Blocked',
     description: 'Contributor with 2 open issues both status: blocked can be assigned (blocked not counted)',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 117,
@@ -716,6 +732,7 @@ Good luck, and welcome aboard! 🚀`,
     name: 'Error - Open Assignments API Failure',
     description: 'Tags maintainers when open assignments check fails',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 117,
@@ -748,6 +765,7 @@ Good luck, and welcome aboard! 🚀`,
     name: 'Error - GraphQL API Failure',
     description: 'Tags maintainers when prerequisite check fails',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 109,
@@ -780,6 +798,7 @@ Good luck, and welcome aboard! 🚀`,
     name: 'Error - Assignment API Failure',
     description: 'Tags maintainers when assignment fails',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 110,
@@ -812,6 +831,7 @@ Error details: Simulated assignment failure`,
     name: 'Error - Label Update Failure',
     description: 'Tags maintainers when labels cannot be updated',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 111,
@@ -858,6 +878,7 @@ Error details: Failed to remove "status: ready for dev" label: Simulated remove 
     name: 'No Action - Comment Without /assign',
     description: 'Regular comment ignored',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 112,
@@ -884,6 +905,7 @@ Error details: Failed to remove "status: ready for dev" label: Simulated remove 
     name: 'No Action - Bot Comment',
     description: 'Bot users ignored to prevent loops',
     context: {
+      eventName: 'issue_comment',
       payload: {
         issue: {
           number: 113,
