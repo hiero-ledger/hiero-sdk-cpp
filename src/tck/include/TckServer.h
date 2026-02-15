@@ -44,6 +44,8 @@ public:
    */
   explicit TckServer(int port);
 
+  friend class TckServerUnitTests;
+
   /**
    * Wrapper function to get a MethodHandle from a function pointer.
    *

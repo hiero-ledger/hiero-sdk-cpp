@@ -11,14 +11,10 @@ set(TCK_TEST_NAME ${PROJECT_NAME}-tck-tests)
 # Create test executable with TCK sources (excluding main.cc)
 add_executable(${TCK_TEST_NAME}
         TckServerUnitTests.cc
-        JsonRpcParserUnitTests.cc
-        JsonRpcRequestUnitTests.cc
-        JsonRpcResponseUnitTests.cc
+        ../../src/TckServer.cc
         ../../src/json/JsonRpcException.cc
-        ../../src/json/JsonRpcParser.cc
-        ../../src/json/JsonRpcRequest.cc
-        ../../src/json/JsonRpcResponse.cc
-        ../../src/json/JsonUtils.cc)
+        ../../src/json/JsonUtils.cc
+        ../../src/key/KeyService.cc)
 
 # Include directories for TCK headers and SDK headers (for Transaction.h dependency)
 target_include_directories(${TCK_TEST_NAME} PRIVATE
