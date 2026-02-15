@@ -46,13 +46,12 @@ std::string JsonRpcParser::handle(const std::string& body)
     }
 
     return JsonRpcResponse::makeError(
-             nullptr, static_cast<int>(JsonErrorType::INVALID_REQUEST), "invalid request: expected array or object")
+             nullptr, JsonErrorType::INVALID_REQUEST, "invalid request: expected array or object")
       .dump();
   }
   catch (const nlohmann::json::parse_error& ex)
   {
-    return JsonRpcResponse::makeError(
-             nullptr, static_cast<int>(JsonErrorType::PARSE_ERROR), std::string("parse error: ") + ex.what())
+    return JsonRpcResponse::makeError(nullptr, JsonErrorType::PARSE_ERROR, std::string("parse error: ") + ex.what())
       .dump();
   }
 }
@@ -62,9 +61,7 @@ std::string JsonRpcParser::handleBatchRequest(const nlohmann::json& batchRequest
 {
   if (batchRequest.empty())
   {
-    return JsonRpcResponse::makeError(
-             nullptr, static_cast<int>(JsonErrorType::INVALID_REQUEST), "invalid request: empty batch")
-      .dump();
+    return JsonRpcResponse::makeError(nullptr, JsonErrorType::INVALID_REQUEST, "invalid request: empty batch").dump();
   }
 
   nlohmann::json batchResponse = nlohmann::json::array();
@@ -107,7 +104,7 @@ nlohmann::json JsonRpcParser::handleSingleRequest(const nlohmann::json& requestJ
   }
   catch (const JsonRpcException& e)
   {
-    return JsonRpcResponse::makeError(requestId, static_cast<int>(e.getCode()), e.getMessage(), e.getData());
+    return JsonRpcResponse::makeError(requestId, e.getCode(), e.getMessage(), e.getData());
   }
   catch (const std::exception& ex)
   {
@@ -122,7 +119,7 @@ nlohmann::json JsonRpcParser::createExceptionErrorResponse(const nlohmann::json&
   {
     return JsonRpcResponse::makeError(
       requestId,
-      static_cast<int>(JsonErrorType::HIERO_ERROR),
+      JsonErrorType::HIERO_ERROR,
       "Hiero error",
       nlohmann::json{
         {"status",   gStatusToString.at(receiptEx->mStatus)},
@@ -134,7 +131,7 @@ nlohmann::json JsonRpcParser::createExceptionErrorResponse(const nlohmann::json&
   {
     return JsonRpcResponse::makeError(
       requestId,
-      static_cast<int>(JsonErrorType::HIERO_ERROR),
+      JsonErrorType::HIERO_ERROR,
       "Hiero error",
       nlohmann::json{
         {"status",   gStatusToString.at(precheckEx->mStatus)},
@@ -143,7 +140,7 @@ nlohmann::json JsonRpcParser::createExceptionErrorResponse(const nlohmann::json&
   }
 
   return JsonRpcResponse::makeError(requestId,
-                                    static_cast<int>(JsonErrorType::INTERNAL_ERROR),
+                                    JsonErrorType::INTERNAL_ERROR,
                                     "Internal error",
                                     nlohmann::json{
                                       {"message", ex.what()}

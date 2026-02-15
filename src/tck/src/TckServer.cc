@@ -53,39 +53,48 @@ TckServer::TckServer()
 TckServer::TckServer(int port)
 {
   // Register Methods with the new JsonRpcParser
+
+  // Add the SDK client functions.
   mJsonRpcParser.addMethod("setup", getHandle(SdkClient::setup));
   mJsonRpcParser.addMethod("reset", getHandle(SdkClient::reset));
-  mJsonRpcParser.addMethod("createAccount", getHandle(AccountService::createAccount));
-  mJsonRpcParser.addMethod("updateAccount", getHandle(AccountService::updateAccount));
-  mJsonRpcParser.addMethod("deleteAccount", getHandle(AccountService::deleteAccount));
+
+  // Add the KeyService functions.
   mJsonRpcParser.addMethod("generateKey", getHandle(KeyService::generateKey));
-  mJsonRpcParser.addMethod("createToken", getHandle(TokenService::createToken));
-  mJsonRpcParser.addMethod("updateToken", getHandle(TokenService::updateToken));
-  mJsonRpcParser.addMethod("mintToken", getHandle(TokenService::mintToken));
-  mJsonRpcParser.addMethod("burnToken", getHandle(TokenService::burnToken));
-  mJsonRpcParser.addMethod("associateToken", getHandle(TokenService::associateToken));
-  mJsonRpcParser.addMethod("dissociateToken", getHandle(TokenService::dissociateToken));
-  mJsonRpcParser.addMethod("updateTokenFeeSchedule", getHandle(TokenService::updateTokenFeeSchedule));
-  mJsonRpcParser.addMethod("unpauseToken", getHandle(TokenService::unpauseToken));
-  mJsonRpcParser.addMethod("pauseToken", getHandle(TokenService::pauseToken));
-  mJsonRpcParser.addMethod("freezeToken", getHandle(TokenService::freezeToken));
-  mJsonRpcParser.addMethod("unfreezeToken", getHandle(TokenService::unfreezeToken));
-  mJsonRpcParser.addMethod("wipeToken", getHandle(TokenService::wipeToken));
-  mJsonRpcParser.addMethod("deleteToken", getHandle(TokenService::deleteToken));
-  mJsonRpcParser.addMethod("grantTokenKyc", getHandle(TokenService::grantTokenKyc));
-  mJsonRpcParser.addMethod("revokeTokenKyc", getHandle(TokenService::revokeTokenKyc));
-  mJsonRpcParser.addMethod("transferCrypto", getHandle(AccountService::transferCrypto));
+
+  // Add the AccountService functions.
   mJsonRpcParser.addMethod("approveAllowance", getHandle(AccountService::approveAllowance));
+  mJsonRpcParser.addMethod("createAccount", getHandle(AccountService::createAccount));
   mJsonRpcParser.addMethod("deleteAllowance", getHandle(AccountService::deleteAllowance));
-  mJsonRpcParser.addMethod("rejectToken", getHandle(TokenService::rejectToken));
+  mJsonRpcParser.addMethod("deleteAccount", getHandle(AccountService::deleteAccount));
+  mJsonRpcParser.addMethod("transferCrypto", getHandle(AccountService::transferCrypto));
+  mJsonRpcParser.addMethod("updateAccount", getHandle(AccountService::updateAccount));
+
   mJsonRpcParser.addMethod("airdropToken", getHandle(TokenService::airdropToken));
+  mJsonRpcParser.addMethod("associateToken", getHandle(TokenService::associateToken));
+  mJsonRpcParser.addMethod("burnToken", getHandle(TokenService::burnToken));
   mJsonRpcParser.addMethod("cancelAirdrop", getHandle(TokenService::cancelAirdrop));
   mJsonRpcParser.addMethod("claimAirdrop", getHandle(TokenService::claimAirdrop));
+  mJsonRpcParser.addMethod("createToken", getHandle(TokenService::createToken));
+  mJsonRpcParser.addMethod("deleteToken", getHandle(TokenService::deleteToken));
+  mJsonRpcParser.addMethod("dissociateToken", getHandle(TokenService::dissociateToken));
+  mJsonRpcParser.addMethod("freezeToken", getHandle(TokenService::freezeToken));
+  mJsonRpcParser.addMethod("grantTokenKyc", getHandle(TokenService::grantTokenKyc));
+  mJsonRpcParser.addMethod("mintToken", getHandle(TokenService::mintToken));
+  mJsonRpcParser.addMethod("pauseToken", getHandle(TokenService::pauseToken));
+  mJsonRpcParser.addMethod("rejectToken", getHandle(TokenService::rejectToken));
+  mJsonRpcParser.addMethod("revokeTokenKyc", getHandle(TokenService::revokeTokenKyc));
+  mJsonRpcParser.addMethod("unfreezeToken", getHandle(TokenService::unfreezeToken));
+  mJsonRpcParser.addMethod("unpauseToken", getHandle(TokenService::unpauseToken));
+  mJsonRpcParser.addMethod("updateToken", getHandle(TokenService::updateToken));
+  mJsonRpcParser.addMethod("updateTokenFeeSchedule", getHandle(TokenService::updateTokenFeeSchedule));
+  mJsonRpcParser.addMethod("wipeToken", getHandle(TokenService::wipeToken));
+
+  // Add the FileService functions.
   mJsonRpcParser.addMethod("createFile", getHandle(FileService::createFile));
   mJsonRpcParser.addMethod("updateFile", getHandle(FileService::updateFile));
 
   setupHttpHandler();
-  mServer.listen("0.0.0.0", port);
+  mServer.listen("localhost", port);
 }
 
 //-----

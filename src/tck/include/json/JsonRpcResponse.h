@@ -2,6 +2,8 @@
 #ifndef HIERO_TCK_JSON_RPC_RESPONSE_H_
 #define HIERO_TCK_JSON_RPC_RESPONSE_H_
 
+#include "JsonErrorType.h"
+
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -32,7 +34,7 @@ public:
    * @return The JSON response object.
    */
   static nlohmann::json makeError(const nlohmann::json& id,
-                                  int code,
+                                  JsonErrorType code,
                                   const std::string& message,
                                   const nlohmann::json& data = nullptr);
 };
