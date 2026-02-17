@@ -1,32 +1,57 @@
 name: Bot - On Comment
 
-# Runs when a comment is created on an issue. Dispatches to bot-on-comment.js
-# which parses commands (e.g. /assign) and runs the appropriate handler.
+# ──────────────────────────────────────────────────────────────────────
+# Workflow: Bot - On Comment
+#
+# Purpose:
+#   Runs when a NEW comment is created on an issue. Dispatches to
+#   bot-on-comment.js which parses slash commands (e.g. /assign) from
+#   the comment body and runs the appropriate handler.
+#
+# Currently supported commands:
+#   /assign — Assign the commenter to the issue (see commands/assign.js
+#             for eligibility checks: skill prerequisites, assignment
+#             limits, required status labels).
+#
+# Security:
+#   - Uses setup-bot composite action which checks out the default
+#     branch (never the PR branch) to prevent running untrusted code
+#     with the write token.
+#   - The if-guard ensures this only fires on issue comments, not on
+#     PR review comments (which have a different payload shape).
+#
+# Concurrency:
+#   Serialized per issue number (cancel-in-progress: false) to prevent
+#   race conditions when multiple /assign comments arrive in quick
+#   succession on the same issue.
+# ──────────────────────────────────────────────────────────────────────
 on:
   issue_comment:
     types:
       - created
 
 permissions:
-  issues: write
-  contents: read
+  issues: write       # Required to add assignees, labels, reactions, and post comments
+  contents: read      # Required to checkout the default branch for bot scripts
 
 jobs:
   on-comment:
-    # Only run on issue comments (not PR comments)
+    # Only run on issue comments (not PR review comments which also trigger issue_comment)
     if: github.event.issue.pull_request == null
 
     runs-on: hiero-client-sdk-linux-large
 
-    # Prevent race conditions: always wait for the first assignment request to finish processing
+    # Serialize per issue — never cancel a running /assign to prevent partial state
     concurrency:
       group: on-comment-${{ github.event.issue.number }}
       cancel-in-progress: false
 
     steps:
+      # Hardens the runner and checks out the default branch (not the PR branch)
       - name: Setup Bot Environment
         uses: ./.github/actions/setup-bot
 
+      # Parses the comment for commands, dispatches to handlers
       - name: Run On-Comment Handler
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:

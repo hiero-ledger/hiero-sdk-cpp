@@ -933,6 +933,8 @@ Error details: Failed to remove "status: ready for dev" label: Simulated remove 
 // TEST RUNNER
 // =============================================================================
 
+const { verifyComments, runTestSuite } = require('./helpers/test-utils');
+
 async function runTest(scenario, index) {
   console.log('\n' + '='.repeat(70));
   console.log(`TEST ${index + 1}: ${scenario.name}`);
@@ -947,13 +949,11 @@ async function runTest(scenario, index) {
     console.log(`\n❌ SCRIPT THREW ERROR: ${error.message}`);
   }
 
-  // Verify results
   const results = {
     passed: true,
     details: [],
   };
 
-  // Check assignee
   if (scenario.expectedAssignee) {
     if (mockGithub.calls.assignees.includes(scenario.expectedAssignee)) {
       results.details.push(`✅ Correctly assigned to ${scenario.expectedAssignee}`);
@@ -970,33 +970,9 @@ async function runTest(scenario, index) {
     }
   }
 
-  // Check comments (snapshot comparison)
-  const expectedComments = scenario.expectedComments || [];
-  const actualComments = mockGithub.calls.comments;
-
-  if (expectedComments.length === 0 && actualComments.length === 0) {
-    results.details.push('✅ Correctly posted no comments');
-  } else if (expectedComments.length !== actualComments.length) {
-    results.passed = false;
-    results.details.push(`❌ Expected ${expectedComments.length} comment(s), got ${actualComments.length}`);
-  } else {
-    for (let i = 0; i < expectedComments.length; i++) {
-      if (actualComments[i] === expectedComments[i]) {
-        results.details.push(`✅ Comment ${i + 1} matches snapshot`);
-      } else {
-        results.passed = false;
-        results.details.push(`❌ Comment ${i + 1} does not match snapshot`);
-        console.log('\n📋 EXPECTED:');
-        console.log('─'.repeat(60));
-        console.log(expectedComments[i]);
-        console.log('─'.repeat(60));
-        console.log('\n📋 ACTUAL:');
-        console.log('─'.repeat(60));
-        console.log(actualComments[i]);
-        console.log('─'.repeat(60));
-      }
-    }
-  }
+  const commentResult = verifyComments(scenario.expectedComments || [], mockGithub.calls.comments);
+  if (!commentResult.passed) results.passed = false;
+  results.details.push(...commentResult.details);
 
   console.log('\n📊 RESULT:');
   results.details.forEach(d => console.log(`   ${d}`));
@@ -1004,50 +980,4 @@ async function runTest(scenario, index) {
   return results.passed;
 }
 
-function printSummaryAndExit(total, passed, failed) {
-  console.log('\n' + '='.repeat(70));
-  console.log('📈 SUMMARY');
-  console.log('='.repeat(70));
-  console.log(`   Total:  ${total}`);
-  console.log(`   Passed: ${passed} ✅`);
-  console.log(`   Failed: ${failed} ${failed > 0 ? '❌' : ''}`);
-  console.log('='.repeat(70));
-  process.exit(failed > 0 ? 1 : 0);
-}
-
-async function runAllTests() {
-  console.log('🧪 BOT-ASSIGN-ON-COMMENT TEST SUITE');
-  console.log('====================================\n');
-
-  let passed = 0;
-  let failed = 0;
-
-  for (let i = 0; i < scenarios.length; i++) {
-    const success = await runTest(scenarios[i], i);
-    if (success) {
-      passed++;
-    } else {
-      failed++;
-    }
-  }
-
-  printSummaryAndExit(scenarios.length, passed, failed);
-}
-
-// Run specific test by index, or all tests
-const testIndex = process.argv[2];
-if (testIndex !== undefined) {
-  const index = parseInt(testIndex, 10);
-  if (index >= 0 && index < scenarios.length) {
-    (async () => {
-      const success = await runTest(scenarios[index], index);
-      printSummaryAndExit(1, success ? 1 : 0, success ? 0 : 1);
-    })();
-  } else {
-    console.log(`Invalid test index. Available: 0-${scenarios.length - 1}`);
-    console.log('\nAvailable tests:');
-    scenarios.forEach((s, i) => console.log(`  ${i}: ${s.name}`));
-  }
-} else {
-  runAllTests();
-}
+runTestSuite('BOT-ASSIGN-ON-COMMENT TEST SUITE', scenarios, runTest);

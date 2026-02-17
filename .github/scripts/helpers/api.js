@@ -78,14 +78,17 @@ function buildBotContext({ github, context }) {
         requireObject(comment.user, 'context.payload.comment.user');
         requireNonEmptyString(comment.user.login, 'context.payload.comment.user.login');
 
-        if (!isSafeSearchToken(comment.user.login)) {
+        // Flag bot users early so callers can skip processing without
+        // hitting the stricter username validation below.
+        const isBot = comment.user.type === 'Bot';
+        if (!isBot && !isSafeSearchToken(comment.user.login)) {
           throw new Error('Bot context invalid: comment.user.login contains invalid characters');
         }
         if (typeof comment.body !== 'string') {
           throw new Error('Bot context invalid: comment.body must be a string');
         }
         
-        payloadPart = { ...payloadPart, comment };
+        payloadPart = { ...payloadPart, comment, isBot };
       }
       break;
     }
@@ -108,10 +111,6 @@ function writeGithubOutput(keyValues) {
 
   try {
     for (const [key, value] of Object.entries(keyValues)) {
-      if (key === undefined || key === null) {
-        continue;
-      }
-
       const line = `${key}=${String(value)}\n`;
       fs.appendFileSync(path, line, 'utf8');
     }
@@ -225,8 +224,10 @@ async function postComment(botContext, body) {
       body,
     });
     getLogger().log('Posted comment');
+    return { success: true };
   } catch (error) {
     getLogger().error(`Could not post comment: ${error.message}`);
+    return { success: false, error: error.message };
   }
 }
 

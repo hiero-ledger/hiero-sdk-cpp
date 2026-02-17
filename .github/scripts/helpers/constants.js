@@ -12,7 +12,7 @@ const MAINTAINER_TEAM = '@hiero-ledger/hiero-sdk-cpp-maintainers';
 /**
  * Common label constants used across bot scripts.
  */
-const LABELS = {
+const LABELS = Object.freeze({
   // Status labels
   READY_FOR_DEV: 'status: ready for dev',
   IN_PROGRESS: 'status: in progress',
@@ -25,7 +25,7 @@ const LABELS = {
   BEGINNER: 'skill: beginner',
   INTERMEDIATE: 'skill: intermediate',
   ADVANCED: 'skill: advanced',
-};
+});
 
 /**
  * Issue state values for GitHub search queries.

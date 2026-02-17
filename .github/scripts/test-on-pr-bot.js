@@ -25,6 +25,7 @@ function createMockGithub(options = {}) {
   const calls = {
     assignees: [],
     labelsAdded: [],
+    labelsRemoved: [],
     comments: [],
     prFetches: 0,
   };
@@ -58,6 +59,10 @@ function createMockGithub(options = {}) {
           }
           calls.labelsAdded.push(...params.labels);
           console.log(`\n🏷️  LABEL ADDED: ${params.labels.join(', ')}`);
+        },
+        removeLabel: async (params) => {
+          calls.labelsRemoved.push(params.name);
+          console.log(`\n🏷️  LABEL REMOVED: ${params.name}`);
         },
         createComment: async (params) => {
           calls.comments.push(params.body);
@@ -193,12 +198,7 @@ Please add the label manually or check that it exists in the repository.`,
 // TEST RUNNER
 // =============================================================================
 
-function runUnitTests() {
-  console.log('🔬 UNIT TESTS (on-PR bot)');
-  console.log('='.repeat(70));
-  console.log('   (No unit tests in this file; on-PR bot is integration-tested only.)');
-  return true;
-}
+const { verifyComments, runTestSuite } = require('./helpers/test-utils');
 
 async function runIntegrationTest(scenario, index) {
   console.log('\n' + '='.repeat(70));
@@ -251,32 +251,9 @@ async function runIntegrationTest(scenario, index) {
     }
   }
 
-  const expectedComments = scenario.expectedComments || [];
-  const actualComments = mockGithub.calls.comments;
-
-  if (expectedComments.length === 0 && actualComments.length === 0) {
-    results.details.push('✅ Correctly posted no comments');
-  } else if (expectedComments.length !== actualComments.length) {
-    results.passed = false;
-    results.details.push(`❌ Expected ${expectedComments.length} comment(s), got ${actualComments.length}`);
-  } else {
-    for (let i = 0; i < expectedComments.length; i++) {
-      if (actualComments[i] === expectedComments[i]) {
-        results.details.push(`✅ Comment ${i + 1} matches snapshot`);
-      } else {
-        results.passed = false;
-        results.details.push(`❌ Comment ${i + 1} does not match snapshot`);
-        console.log('\n📋 EXPECTED:');
-        console.log('─'.repeat(60));
-        console.log(expectedComments[i]);
-        console.log('─'.repeat(60));
-        console.log('\n📋 ACTUAL:');
-        console.log('─'.repeat(60));
-        console.log(actualComments[i]);
-        console.log('─'.repeat(60));
-      }
-    }
-  }
+  const commentResult = verifyComments(scenario.expectedComments || [], mockGithub.calls.comments);
+  if (!commentResult.passed) results.passed = false;
+  results.details.push(...commentResult.details);
 
   console.log('\n📊 RESULT:');
   results.details.forEach(d => console.log(`   ${d}`));
@@ -284,46 +261,4 @@ async function runIntegrationTest(scenario, index) {
   return results.passed;
 }
 
-async function runAllTests() {
-  console.log('🧪 ON-PR BOT TEST SUITE');
-  console.log('=======================\n');
-
-  const unitTestsPassed = runUnitTests();
-
-  console.log('\n\n🔗 INTEGRATION TESTS');
-  console.log('='.repeat(70));
-
-  let integrationPassed = 0;
-  let integrationFailed = 0;
-
-  for (let i = 0; i < scenarios.length; i++) {
-    const success = await runIntegrationTest(scenarios[i], i);
-    if (success) integrationPassed++;
-    else integrationFailed++;
-  }
-
-  console.log('\n' + '='.repeat(70));
-  console.log('📈 SUMMARY');
-  console.log('='.repeat(70));
-  console.log(`   Integration Tests: ${scenarios.length} total`);
-  console.log(`   Passed: ${integrationPassed} ✅`);
-  console.log(`   Failed: ${integrationFailed} ${integrationFailed > 0 ? '❌' : ''}`);
-  console.log('='.repeat(70));
-
-  const allPassed = unitTestsPassed && integrationFailed === 0;
-  process.exit(allPassed ? 0 : 1);
-}
-
-const testIndex = process.argv[2];
-if (testIndex !== undefined) {
-  const index = parseInt(testIndex, 10);
-  if (index >= 0 && index < scenarios.length) {
-    runIntegrationTest(scenarios[index], index).then((ok) => process.exit(ok ? 0 : 1));
-  } else {
-    console.log(`Invalid test index. Available: 0-${scenarios.length - 1}`);
-    console.log('\nAvailable scenarios:');
-    scenarios.forEach((s, i) => console.log(`  ${i}: ${s.name}`));
-  }
-} else {
-  runAllTests();
-}
+runTestSuite('ON-PR BOT TEST SUITE', scenarios, runIntegrationTest);

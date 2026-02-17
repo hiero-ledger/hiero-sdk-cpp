@@ -405,6 +405,8 @@ const scenarios = [
 // TEST RUNNER
 // =============================================================================
 
+const { runTestSuite } = require('./helpers/test-utils');
+
 async function runUnitTests() {
   console.log('🔬 UNIT TESTS (on-commit bot)');
   console.log('='.repeat(70));
@@ -430,7 +432,7 @@ async function runUnitTests() {
 
   console.log('\n' + '-'.repeat(70));
   console.log(`Unit Tests: ${passed} passed, ${failed} failed`);
-  return failed === 0;
+  return { total: unitTests.length, passed, failed };
 }
 
 async function runIntegrationTest(scenario, index) {
@@ -487,46 +489,6 @@ async function runIntegrationTest(scenario, index) {
   return passed;
 }
 
-async function runAllTests() {
-  console.log('🧪 ON-COMMIT BOT TEST SUITE');
-  console.log('==========================\n');
-
-  const unitOk = await runUnitTests();
-
-  console.log('\n\n🔗 INTEGRATION TESTS');
-  console.log('='.repeat(70));
-
-  let integrationPassed = 0;
-  let integrationFailed = 0;
-
-  for (let i = 0; i < scenarios.length; i++) {
-    const success = await runIntegrationTest(scenarios[i], i);
-    if (success) integrationPassed++;
-    else integrationFailed++;
-  }
-
-  console.log('\n' + '='.repeat(70));
-  console.log('📈 SUMMARY');
-  console.log('='.repeat(70));
-  console.log(
-    `   Unit Tests:        ${unitTests.length} total, ${unitOk ? 'all passed ✅' : 'some failed ❌'}`
-  );
-  console.log(`   Integration Tests: ${scenarios.length} total, ${integrationPassed} passed, ${integrationFailed} failed`);
-  console.log('='.repeat(70));
-
-  const allPassed = unitOk && integrationFailed === 0;
-  process.exit(allPassed ? 0 : 1);
-}
-
-const testIndex = process.argv[2];
-if (testIndex !== undefined) {
-  const index = parseInt(testIndex, 10);
-  if (index >= 0 && index < scenarios.length) {
-    runIntegrationTest(scenarios[index], index).then((ok) => process.exit(ok ? 0 : 1));
-  } else {
-    console.log(`Invalid test index. Use 0-${scenarios.length - 1}`);
-    scenarios.forEach((s, i) => console.log(`  ${i}: ${s.name}`));
-  }
-} else {
-  runAllTests();
-}
+runTestSuite('ON-COMMIT BOT TEST SUITE', scenarios, runIntegrationTest, [
+  { label: 'Unit Tests', run: runUnitTests },
+]);
