@@ -225,6 +225,102 @@ async function updateLabels(botContext, requesterUsername) {
 }
 
 /**
+ * Validates that the issue is in a state that allows assignment. Checks three
+ * gates in order: no existing assignees, "status: ready for dev" label present,
+ * and a skill-level label present. Posts an informative comment and returns null
+ * when any gate fails.
+ *
+ * @param {object} botContext - Bot context from buildBotContext.
+ * @param {string} requesterUsername - GitHub username requesting assignment.
+ * @returns {Promise<string|null>} The skill-level label, or null if a gate failed.
+ */
+async function validateIssueState(botContext, requesterUsername) {
+  if (botContext.issue.assignees?.length > 0) {
+    logger.log('Exit: issue already assigned to', botContext.issue.assignees.map((a) => a.login));
+    await postComment(botContext, buildAlreadyAssignedComment(requesterUsername, botContext.issue, botContext.owner, botContext.repo));
+    logger.log('Posted already-assigned comment');
+    return null;
+  }
+
+  if (!hasLabel(botContext.issue, LABELS.READY_FOR_DEV)) {
+    logger.log('Exit: issue missing ready for dev label');
+    await postComment(botContext, buildNotReadyComment(requesterUsername, botContext.owner, botContext.repo));
+    logger.log('Posted not-ready comment');
+    return null;
+  }
+
+  const skillLevel = getIssueSkillLevel(botContext.issue);
+  if (!skillLevel) {
+    logger.log('Exit: issue has no skill level label');
+    await postComment(botContext, buildNoSkillLevelComment(requesterUsername));
+    logger.log('Posted no-skill-level comment');
+    return null;
+  }
+  logger.log('Issue skill level:', skillLevel);
+  return skillLevel;
+}
+
+/**
+ * Verifies the requester has not reached the open-assignment limit. Posts an
+ * API-error or limit-exceeded comment and returns false when the check fails;
+ * returns true when the user is within limits.
+ *
+ * @param {object} botContext - Bot context from buildBotContext.
+ * @param {string} requesterUsername - GitHub username requesting assignment.
+ * @returns {Promise<boolean>} True if within assignment limits; false otherwise.
+ */
+async function enforceAssignmentLimit(botContext, requesterUsername) {
+  const openAssignmentCount = await countAssignedIssues(
+    botContext.github, botContext.owner, botContext.repo, requesterUsername, ISSUE_STATE.OPEN
+  );
+  if (openAssignmentCount === null) {
+    logger.log('Exit: could not verify open assignments due to API error');
+    await postComment(botContext, buildApiErrorComment(requesterUsername));
+    logger.log('Posted API error comment, tagged maintainers');
+    return false;
+  }
+
+  if (openAssignmentCount >= MAX_OPEN_ASSIGNMENTS) {
+    logger.log('Exit: contributor has too many open assignments', {
+      maxAllowed: MAX_OPEN_ASSIGNMENTS, currentCount: openAssignmentCount,
+    });
+    const blockedCount = await getBlockedCount(botContext.github, botContext.owner, botContext.repo, requesterUsername);
+    await postComment(botContext, buildAssignmentLimitExceededComment(
+      requesterUsername, openAssignmentCount, botContext.owner, botContext.repo, blockedCount
+    ));
+    logger.log('Posted assignment-limit-exceeded comment');
+    return false;
+  }
+
+  logger.log('Open assignment count OK:', { maxAllowed: MAX_OPEN_ASSIGNMENTS, currentCount: openAssignmentCount });
+  return true;
+}
+
+/**
+ * Performs the actual issue assignment, posts a welcome comment, and transitions
+ * status labels. If the assignment API call fails, posts a failure comment instead.
+ *
+ * @param {object} botContext - Bot context from buildBotContext.
+ * @param {string} requesterUsername - GitHub username being assigned.
+ * @param {string} skillLevel - The skill-level label on the issue.
+ * @returns {Promise<void>}
+ */
+async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
+  logger.log('Assigning issue to', requesterUsername);
+  const assignResult = await addAssignees(botContext, [requesterUsername]);
+  if (!assignResult.success) {
+    await postComment(botContext, buildAssignmentFailureComment(requesterUsername, assignResult.error));
+    logger.log('Posted assignment failure comment, tagged maintainers');
+    return;
+  }
+
+  await postComment(botContext, buildWelcomeComment(requesterUsername, skillLevel));
+  logger.log('Posted welcome comment');
+  await updateLabels(botContext, requesterUsername);
+  logger.log('Assignment flow completed successfully');
+}
+
+/**
  * Main handler for the /assign command. Runs the following gates in order, posting
  * an informative comment and returning early if any gate fails:
  *
@@ -250,68 +346,16 @@ async function handleAssign(botContext) {
 
   await acknowledgeComment(botContext, botContext.comment.id);
 
-  if (botContext.issue.assignees?.length > 0) {
-    logger.log('Exit: issue already assigned to', botContext.issue.assignees.map((a) => a.login));
-    await postComment(botContext, buildAlreadyAssignedComment(requesterUsername, botContext.issue, botContext.owner, botContext.repo));
-    logger.log('Posted already-assigned comment');
-    return;
-  }
+  const skillLevel = await validateIssueState(botContext, requesterUsername);
+  if (!skillLevel) return;
 
-  if (!hasLabel(botContext.issue, LABELS.READY_FOR_DEV)) {
-    logger.log('Exit: issue missing ready for dev label');
-    await postComment(botContext, buildNotReadyComment(requesterUsername, botContext.owner, botContext.repo));
-    logger.log('Posted not-ready comment');
-    return;
-  }
-
-  const skillLevel = getIssueSkillLevel(botContext.issue);
-  if (!skillLevel) {
-    logger.log('Exit: issue has no skill level label');
-    await postComment(botContext, buildNoSkillLevelComment(requesterUsername));
-    logger.log('Posted no-skill-level comment');
-    return;
-  }
-  logger.log('Issue skill level:', skillLevel);
-
-  const openAssignmentCount = await countAssignedIssues(
-    botContext.github, botContext.owner, botContext.repo, requesterUsername, ISSUE_STATE.OPEN
-  );
-  if (openAssignmentCount === null) {
-    logger.log('Exit: could not verify open assignments due to API error');
-    await postComment(botContext, buildApiErrorComment(requesterUsername));
-    logger.log('Posted API error comment, tagged maintainers');
-    return;
-  }
-
-  if (openAssignmentCount >= MAX_OPEN_ASSIGNMENTS) {
-    logger.log('Exit: contributor has too many open assignments', {
-      maxAllowed: MAX_OPEN_ASSIGNMENTS, currentCount: openAssignmentCount,
-    });
-    const blockedCount = await getBlockedCount(botContext.github, botContext.owner, botContext.repo, requesterUsername);
-    await postComment(botContext, buildAssignmentLimitExceededComment(
-      requesterUsername, openAssignmentCount, botContext.owner, botContext.repo, blockedCount
-    ));
-    logger.log('Posted assignment-limit-exceeded comment');
-    return;
-  }
-
-  logger.log('Open assignment count OK:', { maxAllowed: MAX_OPEN_ASSIGNMENTS, currentCount: openAssignmentCount });
+  const withinLimit = await enforceAssignmentLimit(botContext, requesterUsername);
+  if (!withinLimit) return;
 
   const prereqsPassed = await checkPrerequisites(botContext, skillLevel, requesterUsername);
   if (!prereqsPassed) return;
 
-  logger.log('Assigning issue to', requesterUsername);
-  const assignResult = await addAssignees(botContext, [requesterUsername]);
-  if (!assignResult.success) {
-    await postComment(botContext, buildAssignmentFailureComment(requesterUsername, assignResult.error));
-    logger.log('Posted assignment failure comment, tagged maintainers');
-    return;
-  }
-
-  await postComment(botContext, buildWelcomeComment(requesterUsername, skillLevel));
-  logger.log('Posted welcome comment');
-  await updateLabels(botContext, requesterUsername);
-  logger.log('Assignment flow completed successfully');
+  await assignAndFinalize(botContext, requesterUsername, skillLevel);
 }
 
 module.exports = { handleAssign };
