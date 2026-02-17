@@ -7,8 +7,7 @@ on:
       - reopened
       - synchronize
     paths:
-      - ".github/scripts/bot-*.js"
-      - ".github/scripts/test-*.js"
+      - ".github/scripts/**"
       - ".github/workflows/zxc-test-bot-scripts.yaml"
   workflow_dispatch:
 

@@ -26,32 +26,24 @@ jobs:
       cancel-in-progress: false
 
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
-        with:
-          egress-policy: audit
-
-      # Checkout default branch so we run bot scripts from main, not the PR branch.
-      # Avoids running contributor-controlled code with write token on auto-run.
-      - name: Checkout Repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: ${{ github.event.repository.default_branch }}
+      - name: Setup Bot Environment
+        uses: ./.github/actions/setup-bot
 
       - name: Run On-Commit Checks
         id: on-commit
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const script = require('./.github/scripts/bot-on-commit.js');
             await script({ github, context });
 
       - name: Run On-PR
+        if: always()
         env:
           DCO_PASSED: ${{ steps.on-commit.outputs.dco }}
           GPG_PASSED: ${{ steps.on-commit.outputs.gpg }}
           MERGE_CONFLICT: ${{ steps.on-commit.outputs.merge_conflict }}
-        uses: actions/github-script@ed597411d8f924073f98df5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const script = require('./.github/scripts/bot-on-pr.js');

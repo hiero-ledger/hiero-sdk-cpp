@@ -84,16 +84,6 @@ function requireSafeUsername(value, label) {
   }
 }
 
-/**
- * Throws if value is not a non-empty string suitable for a label name.
- * @param {*} value - Value to check.
- * @param {string} label - Label for error message.
- * @throws {Error}
- */
-function requireSafeLabelName(value, label) {
-  requireNonEmptyString(value, label);
-}
-
 module.exports = {
   isObject,
   isNonNegativeInteger,
@@ -102,5 +92,4 @@ module.exports = {
   requireNonEmptyString,
   requirePositiveInt,
   requireSafeUsername,
-  requireSafeLabelName,
 };

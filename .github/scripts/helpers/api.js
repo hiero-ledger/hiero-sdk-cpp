@@ -13,7 +13,6 @@ const {
   requireNonEmptyString,
   requirePositiveInt,
   requireSafeUsername,
-  requireSafeLabelName,
 } = require('./validation');
 
 /**
@@ -135,7 +134,7 @@ async function addLabels(botContext, labels) {
   
   try {
     for (let i = 0; i < labels.length; i++) {
-      requireSafeLabelName(labels[i], `labels[${i}]`);
+      requireNonEmptyString(labels[i], `labels[${i}]`);
     }
 
     await botContext.github.rest.issues.addLabels({
@@ -161,7 +160,7 @@ async function addLabels(botContext, labels) {
  */
 async function removeLabel(botContext, labelName) {
   try {
-    requireSafeLabelName(labelName, 'labelName');
+    requireNonEmptyString(labelName, 'labelName');
 
     await botContext.github.rest.issues.removeLabel({
       owner: botContext.owner,
@@ -226,10 +225,8 @@ async function postComment(botContext, body) {
       body,
     });
     getLogger().log('Posted comment');
-    return { success: true };
   } catch (error) {
     getLogger().error(`Could not post comment: ${error.message}`);
-    return { success: false, error: error.message };
   }
 }
 

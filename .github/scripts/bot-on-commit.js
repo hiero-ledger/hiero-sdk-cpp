@@ -220,7 +220,7 @@ module.exports = async ({ github, context }) => {
       message: error.message,
       number: context?.payload?.pull_request?.number,
     });
-    writeGithubOutput({ dco: 'failure', gpg: 'failure', merge_conflict: 'success' });
+    writeGithubOutput({ dco: 'failure', gpg: 'failure', merge_conflict: 'failure' });
     throw error;
   }
 };

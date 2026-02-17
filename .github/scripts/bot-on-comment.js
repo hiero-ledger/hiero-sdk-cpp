@@ -10,7 +10,7 @@
 const { createLogger, buildBotContext } = require('./helpers');
 const { handleAssign } = require('./commands/assign');
 
-const logger = createLogger('on-comment');
+let logger = createLogger('on-comment');
 
 // =============================================================================
 // COMMAND PARSING
@@ -64,6 +64,10 @@ module.exports = async ({ github, context }) => {
     }
 
     for (const command of parsed.commands) {
+      // Update logger prefix to the command name so helper functions
+      // (postComment, addLabels, etc.) log with the correct tag.
+      logger = createLogger(`on-${command}`);
+
       if (command === 'assign') {
         await handleAssign(botContext);
       } else {
