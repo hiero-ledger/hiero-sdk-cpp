@@ -72,10 +72,10 @@ Open an [issue][issues] with the following:
 
 - A short, descriptive title. Other community members should be able to understand the nature of the issue by reading
   this title.
-- A detailed description of the the proposed feature. Explain why you believe it should be added to the SDK.
+- A detailed description of the proposed feature. Explain why you believe it should be added to the SDK.
   Illustrative example code may also be provided to help explain how the feature should work.
 - [Markdown][markdown] formatting as appropriate to make the request easier to read.
-- If you plan to implement this feature yourself, please let us know that you'd like to the issue to be assigned to you.
+- If you plan to implement this feature yourself, please let us know that you'd like the issue to be assigned to you.
 
 ## Bug Reports
 
