@@ -4,6 +4,8 @@
 
 find_package(httplib CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
+include(GoogleTest)
 
 # Set the test executable name
 set(TCK_TEST_NAME ${PROJECT_NAME}-tck-tests)
@@ -27,8 +29,8 @@ target_include_directories(${TCK_TEST_NAME} PRIVATE
 
 # Link against required libraries (including SDK for TCK dependencies)
 target_link_libraries(${TCK_TEST_NAME} PRIVATE
-        gtest_main
-        gtest
+        GTest::gtest_main
+        GTest::gtest
         httplib::httplib
         nlohmann_json::nlohmann_json
         ${PROJECT_NAME})
