@@ -43,7 +43,7 @@ TransactionId TransactionId::generate(const AccountId& accountId)
     newNanos = (nowNanos <= lastNanos) ? lastNanos + 1 : nowNanos;
   } while (!lastGeneratedNanos.compare_exchange_weak(lastNanos, newNanos));
   
-  // Convert back to time_point
+   // Convert back to time_point
   auto validStart = std::chrono::system_clock::time_point(
     std::chrono::nanoseconds(newNanos));
   
