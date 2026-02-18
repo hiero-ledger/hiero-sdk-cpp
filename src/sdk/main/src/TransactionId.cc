@@ -44,8 +44,8 @@ TransactionId TransactionId::generate(const AccountId& accountId)
   } while (!lastGeneratedNanos.compare_exchange_weak(lastNanos, newNanos));
   
    // Convert back to time_point
-  auto validStart = std::chrono::system_clock::time_point(
-    std::chrono::nanoseconds(newNanos));
+ auto validStart = std::chrono::system_clock::time_point(
+  std::chrono::duration_cast<std::chrono::system_clock::duration>(std::chrono::nanoseconds(newNanos)));
   
   return TransactionId(accountId, validStart);
 }
