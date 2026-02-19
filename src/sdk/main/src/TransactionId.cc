@@ -9,15 +9,14 @@
 #include "impl/TimestampConverter.h"
 #include "impl/Utilities.h"
 
-#include <services/basic_types.pb.h>
 #include <atomic>
+#include <services/basic_types.pb.h>
 
 namespace
 {
 // Tracks the last generated timestamp to ensure uniqueness
-std::atomic<int64_t> lastGeneratedNanos{0};
+std::atomic<int64_t> lastGeneratedNanos{ 0 };
 } // anonymous namespace
-
 
 namespace Hiero
 {
@@ -33,20 +32,20 @@ TransactionId TransactionId::generate(const AccountId& accountId)
 {
   // Get current time in nanoseconds since epoch
   auto now = std::chrono::system_clock::now();
-  auto nowNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(
-    now.time_since_epoch()).count();
-  
+  auto nowNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+
   // Ensure monotonically increasing timestamp
   int64_t lastNanos = lastGeneratedNanos.load();
   int64_t newNanos;
-  do {
+  do
+  {
     newNanos = (nowNanos <= lastNanos) ? lastNanos + 1 : nowNanos;
   } while (!lastGeneratedNanos.compare_exchange_weak(lastNanos, newNanos));
-  
-   // Convert back to time_point
- auto validStart = std::chrono::system_clock::time_point(
-  std::chrono::duration_cast<std::chrono::system_clock::duration>(std::chrono::nanoseconds(newNanos)));
-  
+
+  // Convert back to time_point
+  auto validStart = std::chrono::system_clock::time_point(
+    std::chrono::duration_cast<std::chrono::system_clock::duration>(std::chrono::nanoseconds(newNanos)));
+
   return TransactionId(accountId, validStart);
 }
 
