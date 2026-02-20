@@ -1,0 +1,50 @@
+name: Bot - On PR
+
+# Runs on opened, reopened, and ready_for_review. One job: run on-commit checks
+# (DCO, GPG, merge conflict), then on-PR (assign, labels), passing outputs between steps.
+on:
+  # Uses pull_request_target so fork PRs get write token without repo setting; we
+  # checkout default branch only so we never run PR branch code.
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+
+permissions:
+  pull-requests: write
+  contents: read
+  checks: write
+
+jobs:
+  on-pr:
+    runs-on: hiero-client-sdk-linux-large
+    if: github.event.pull_request.draft == false
+
+    concurrency:
+      group: on-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Setup Bot Environment
+        uses: ./.github/actions/setup-bot
+
+      - name: Run On-Commit Checks
+        id: on-commit
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const script = require('./.github/scripts/bot-on-commit.js');
+            await script({ github, context });
+
+      - name: Run On-PR
+        if: always()
+        env:
+          DCO_PASSED: ${{ steps.on-commit.outputs.dco }}
+          GPG_PASSED: ${{ steps.on-commit.outputs.gpg }}
+          MERGE_CONFLICT: ${{ steps.on-commit.outputs.merge_conflict }}
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const script = require('./.github/scripts/bot-on-pr.js');
+            await script({ github, context });

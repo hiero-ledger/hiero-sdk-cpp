@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
-// test-pr-automation.js
+// test-on-pr-bot.js
 //
-// Local test script for bot-pr-automation.js
-// Run with: node .github/scripts/test-pr-automation.js
+// Local test script for bot-on-pr.js (assign author, set needs review/revision from env).
+// Run with: node .github/scripts/test-on-pr-bot.js
 //
-// This script mocks the GitHub API and runs various test scenarios
-// to verify the bot behaves correctly without making real API calls.
+// Mocks the GitHub API and runs scenarios to verify the on-PR bot without real API calls.
 
-const script = require('./bot-pr-automation.js');
+const script = require('./bot-on-pr.js');
 const { LABELS } = script;
 
 // =============================================================================
@@ -26,6 +25,7 @@ function createMockGithub(options = {}) {
   const calls = {
     assignees: [],
     labelsAdded: [],
+    labelsRemoved: [],
     comments: [],
     prFetches: 0,
   };
@@ -60,6 +60,10 @@ function createMockGithub(options = {}) {
           calls.labelsAdded.push(...params.labels);
           console.log(`\n🏷️  LABEL ADDED: ${params.labels.join(', ')}`);
         },
+        removeLabel: async (params) => {
+          calls.labelsRemoved.push(params.name);
+          console.log(`\n🏷️  LABEL REMOVED: ${params.name}`);
+        },
         createComment: async (params) => {
           calls.comments.push(params.body);
           console.log('\n📝 COMMENT POSTED:');
@@ -90,7 +94,7 @@ function pullRequestContext(pr) {
 
 const scenarios = [
   // ---------------------------------------------------------------------------
-  // HAPPY PATH: DCO_GPG_PASSED=success, no conflicts → needs review
+  // HAPPY PATH: DCO, GPG, no conflicts → needs review
   // ---------------------------------------------------------------------------
   {
     name: 'Happy Path - All Checks Pass',
@@ -102,7 +106,7 @@ const scenarios = [
       base: { ref: 'main' },
       head: { ref: 'feature-branch' },
     }),
-    env: { DCO_GPG_PASSED: 'success' },
+    env: { DCO_PASSED: 'success', GPG_PASSED: 'success', MERGE_CONFLICT: 'success' },
     githubOptions: {
       mergeable: true,
       mergeableState: 'clean',
@@ -125,7 +129,7 @@ const scenarios = [
       base: { ref: 'main' },
       head: { ref: 'conflict-branch' },
     }),
-    env: { DCO_GPG_PASSED: 'success' },
+    env: { DCO_PASSED: 'success', GPG_PASSED: 'success', MERGE_CONFLICT: 'failure' },
     githubOptions: {
       mergeable: false,
       mergeableState: 'dirty',
@@ -136,7 +140,7 @@ const scenarios = [
   },
 
   // ---------------------------------------------------------------------------
-  // FAILURE: DCO & GPG check failed → needs revision
+  // FAILURE: DCO or GPG check failed → needs revision
   // ---------------------------------------------------------------------------
   {
     name: 'Failure - DCO & GPG Check Failed',
@@ -148,7 +152,7 @@ const scenarios = [
       base: { ref: 'main' },
       head: { ref: 'unsigned-branch' },
     }),
-    env: { DCO_GPG_PASSED: 'failure' },
+    env: { DCO_PASSED: 'failure', GPG_PASSED: 'success', MERGE_CONFLICT: 'success' },
     githubOptions: {
       mergeable: true,
       mergeableState: 'clean',
@@ -171,7 +175,7 @@ const scenarios = [
       base: { ref: 'main' },
       head: { ref: 'unlucky-branch' },
     }),
-    env: { DCO_GPG_PASSED: 'success' },
+    env: { DCO_PASSED: 'success', GPG_PASSED: 'success', MERGE_CONFLICT: 'success' },
     githubOptions: {
       mergeable: true,
       addLabelShouldFail: true,
@@ -194,13 +198,7 @@ Please add the label manually or check that it exists in the repository.`,
 // TEST RUNNER
 // =============================================================================
 
-function runUnitTests() {
-  // PR automation no longer has DCO/GPG logic; unit tests for those live in test-dco-gpg-bot.js
-  console.log('🔬 UNIT TESTS (PR automation)');
-  console.log('='.repeat(70));
-  console.log('   (No unit tests in this file; DCO/GPG tests are in test-dco-gpg-bot.js)');
-  return true;
-}
+const { verifyComments, runTestSuite } = require('./helpers/test-utils');
 
 async function runIntegrationTest(scenario, index) {
   console.log('\n' + '='.repeat(70));
@@ -230,13 +228,11 @@ async function runIntegrationTest(scenario, index) {
     }
   }
 
-  // Verify results
   const results = {
     passed: true,
     details: [],
   };
 
-  // Check assignee
   if (scenario.expectedAssignee) {
     if (mockGithub.calls.assignees.includes(scenario.expectedAssignee)) {
       results.details.push(`✅ Correctly assigned to ${scenario.expectedAssignee}`);
@@ -246,7 +242,6 @@ async function runIntegrationTest(scenario, index) {
     }
   }
 
-  // Check label
   if (scenario.expectedLabel) {
     if (mockGithub.calls.labelsAdded.includes(scenario.expectedLabel)) {
       results.details.push(`✅ Added label: ${scenario.expectedLabel}`);
@@ -256,33 +251,9 @@ async function runIntegrationTest(scenario, index) {
     }
   }
 
-  // Check comments (snapshot comparison)
-  const expectedComments = scenario.expectedComments || [];
-  const actualComments = mockGithub.calls.comments;
-
-  if (expectedComments.length === 0 && actualComments.length === 0) {
-    results.details.push('✅ Correctly posted no comments');
-  } else if (expectedComments.length !== actualComments.length) {
-    results.passed = false;
-    results.details.push(`❌ Expected ${expectedComments.length} comment(s), got ${actualComments.length}`);
-  } else {
-    for (let i = 0; i < expectedComments.length; i++) {
-      if (actualComments[i] === expectedComments[i]) {
-        results.details.push(`✅ Comment ${i + 1} matches snapshot`);
-      } else {
-        results.passed = false;
-        results.details.push(`❌ Comment ${i + 1} does not match snapshot`);
-        console.log('\n📋 EXPECTED:');
-        console.log('─'.repeat(60));
-        console.log(expectedComments[i]);
-        console.log('─'.repeat(60));
-        console.log('\n📋 ACTUAL:');
-        console.log('─'.repeat(60));
-        console.log(actualComments[i]);
-        console.log('─'.repeat(60));
-      }
-    }
-  }
+  const commentResult = verifyComments(scenario.expectedComments || [], mockGithub.calls.comments);
+  if (!commentResult.passed) results.passed = false;
+  results.details.push(...commentResult.details);
 
   console.log('\n📊 RESULT:');
   results.details.forEach(d => console.log(`   ${d}`));
@@ -290,53 +261,4 @@ async function runIntegrationTest(scenario, index) {
   return results.passed;
 }
 
-async function runAllTests() {
-  console.log('🧪 BOT-PR-AUTOMATION TEST SUITE');
-  console.log('================================\n');
-
-  // Run unit tests first
-  const unitTestsPassed = runUnitTests();
-
-  // Run integration tests
-  console.log('\n\n🔗 INTEGRATION TESTS');
-  console.log('='.repeat(70));
-
-  let integrationPassed = 0;
-  let integrationFailed = 0;
-
-  for (let i = 0; i < scenarios.length; i++) {
-    const success = await runIntegrationTest(scenarios[i], i);
-    if (success) {
-      integrationPassed++;
-    } else {
-      integrationFailed++;
-    }
-  }
-
-  // Summary
-  console.log('\n' + '='.repeat(70));
-  console.log('📈 SUMMARY');
-  console.log('='.repeat(70));
-  console.log(`   Integration Tests: ${scenarios.length} total`);
-  console.log(`   Passed: ${integrationPassed} ✅`);
-  console.log(`   Failed: ${integrationFailed} ${integrationFailed > 0 ? '❌' : ''}`);
-  console.log('='.repeat(70));
-
-  const allPassed = integrationFailed === 0;
-  process.exit(allPassed ? 0 : 1);
-}
-
-// Run specific test by index, or all tests
-const testIndex = process.argv[2];
-if (testIndex !== undefined) {
-  const index = parseInt(testIndex, 10);
-  if (index >= 0 && index < scenarios.length) {
-    runIntegrationTest(scenarios[index], index);
-  } else {
-    console.log(`Invalid test index. Available: 0-${scenarios.length - 1}`);
-    console.log('\nAvailable scenarios:');
-    scenarios.forEach((s, i) => console.log(`  ${i}: ${s.name}`));
-  }
-} else {
-  runAllTests();
-}
+runTestSuite('ON-PR BOT TEST SUITE', scenarios, runIntegrationTest);

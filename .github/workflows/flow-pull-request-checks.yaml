@@ -22,9 +22,13 @@ permissions:
 jobs:
   build:
     name: Code
+    # Skip the full build when a PR is closed without being merged.
+    if: github.event.action != 'closed' || github.event.pull_request.merged == true
     uses: ./.github/workflows/zxc-build-library.yaml
     
   check-links:
+    # Link checking is only useful while the PR is open.
+    if: github.event.action != 'closed'
     runs-on: hiero-client-sdk-linux-large
     steps:
     - name: Harden the runner (Audit all outbound calls)
