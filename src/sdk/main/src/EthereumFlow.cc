@@ -39,6 +39,7 @@ TransactionResponse EthereumFlow::execute(const Client& client, const std::chron
     // Put the Ethereum call data into a file.
     const FileId fileId =
       FileCreateTransaction()
+        .setKeys({ client.getOperatorPublicKey() })
         .setContents({ mEthereumData->mCallData.cbegin(),
                        mEthereumData->mCallData.cbegin() + FileAppendTransaction::DEFAULT_CHUNK_SIZE })
         .execute(client, timeout)
@@ -49,7 +50,8 @@ TransactionResponse EthereumFlow::execute(const Client& client, const std::chron
       .setFileId(fileId)
       .setContents({ mEthereumData->mCallData.cbegin() + FileAppendTransaction::DEFAULT_CHUNK_SIZE,
                      mEthereumData->mCallData.cend() })
-      .execute(client, timeout);
+      .execute(client, timeout)
+      .getReceipt(client, timeout);
 
     // Set the ethereum data without the call data, and reference the file ID that contains the call data.
     mEthereumData->mCallData.clear();

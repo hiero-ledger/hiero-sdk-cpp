@@ -10,6 +10,8 @@
 .vscode/
 *.code-workspace
 
+
+
 # Local History for Visual Studio Code
 .history/
 
@@ -889,6 +891,7 @@ src/proto/*.proto
 /proto/event
 /proto/sdk
 /proto/platform
+/proto/block
 
 ### Ignore Generated Package Files
 package

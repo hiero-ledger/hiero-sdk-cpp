@@ -45,6 +45,7 @@ protected:
   [[nodiscard]] inline const std::string& getTestTokenMemo() const { return mTestTokenMemo; }
   [[nodiscard]] inline const std::shared_ptr<PublicKey>& getTestFeeScheduleKey() const { return mTestFeeScheduleKey; }
   [[nodiscard]] inline const std::shared_ptr<PublicKey>& getTestPauseKey() const { return mTestPauseKey; }
+  [[nodiscard]] inline const std::vector<std::byte>& getTestMetadata() const { return mTestMetadata; }
 
 private:
   const TokenId mTestTokenId = TokenId(1ULL, 2ULL, 3ULL);
@@ -62,6 +63,11 @@ private:
   const std::string mTestTokenMemo = "test memo";
   const std::shared_ptr<PublicKey> mTestFeeScheduleKey = ECDSAsecp256k1PrivateKey::generatePrivateKey()->getPublicKey();
   const std::shared_ptr<PublicKey> mTestPauseKey = ECDSAsecp256k1PrivateKey::generatePrivateKey()->getPublicKey();
+  const std::vector<std::byte> mTestMetadata = {
+    std::byte(0x01),
+    std::byte(0x02),
+    std::byte(0x03)
+  };
 };
 
 //-----
@@ -509,4 +515,17 @@ TEST_F(TokenUpdateTransactionUnitTests, GetSetPauseKeyFrozen)
 
   // When / Then
   EXPECT_THROW(transaction.setPauseKey(getTestPauseKey()), IllegalStateException);
+}
+
+//-----
+TEST_F(TokenUpdateTransactionUnitTests, GetSetMetadata)
+{
+  // Given
+  TokenUpdateTransaction transaction;
+
+  // When
+  EXPECT_NO_THROW(transaction.setMetadata(getTestMetadata()));
+
+  // Then
+  EXPECT_EQ(transaction.getMetadata(), getTestMetadata());
 }

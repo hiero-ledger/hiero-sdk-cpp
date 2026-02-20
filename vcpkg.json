@@ -40,6 +40,9 @@
     {
       "name": "cpp-httplib",
       "version>=": "0.14.1"
+    },
+    {
+      "name": "gtest"
     }
   ]
 }

@@ -212,6 +212,17 @@ protected:
   }
 
   /**
+   * Set the internal network map. This should be used carefully when updating node keys.
+   *
+   * @param network The new network map.
+   */
+  inline void setNetworkInternal(
+    const std::unordered_map<KeyType, std::unordered_set<std::shared_ptr<NodeType>>>& network)
+  {
+    mNetwork = network;
+  }
+
+  /**
    * Get the list of NodeTypes on this BaseNetwork.
    *
    * @return The list of NodeTypes on this BaseNetwork.

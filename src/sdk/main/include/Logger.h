@@ -54,7 +54,7 @@ public:
   void debug(std::string_view message) const;
 
   /**
-   * Log a info-level message.
+   * Log an info-level message.
    *
    * @param message The info-level message to log.
    */
@@ -94,7 +94,7 @@ public:
    * Silence this Logger from logging.
    *
    * @param silent \c TRUE if this Logger should be silent, otherwise \c FALSE.
-   * @param A reference to this Logger with the newly-set silence policy.
+   * @return A reference to this Logger with the newly-set silence policy.
    */
   Logger& setSilent(bool silent);
 

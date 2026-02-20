@@ -1,0 +1,217 @@
+name: Beginner Issue Template
+description: Create a Beginner Issue for fairly new contributors (C++)
+title: "[Beginner]: "
+labels: ["beginner"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## **Thanks for contributing!** 😊
+
+        We truly appreciate your time and effort.
+
+        This template is designed to help you create a **Beginner-friendly issue** —
+        a moderately easy, well-scoped task that helps contributors build confidence
+        and deepen their understanding of the **Hiero C++ SDK** codebase.
+
+        > Maintainers can read more about:
+        > [Beginner Issues](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/docs/maintainers/guidelines-beginner-issues.md)
+        ---
+
+  - type: textarea
+    id: intro
+    attributes:
+      label: 🐥 Beginner Friendly
+      description: Who is this issue for?
+      value: |
+        This issue is a great fit for contributors who are ready to explore the Hiero C++
+        codebase a little more and take on slightly more independent work.
+
+        Beginner Issues often involve reading existing C++ code, understanding how
+        different parts of the SDK fit together, and making small, thoughtful updates
+        that follow established patterns.
+
+        The goal is to support skill growth while keeping the experience approachable,
+        well-scoped, and enjoyable.
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > ### 🐥 About Beginner Issues
+        >
+        > Beginner Issues are a great next step for contributors who feel comfortable
+        > with the basic project workflow and want to explore the codebase a little more.
+        >
+        > These issues often involve:
+        > - Reading existing C++ code  
+        > - Understanding how different parts of the SDK fit together  
+        > - Making small, thoughtful updates that follow established patterns  
+        >
+        > You’ll usually see Beginner Issues focused on things like:
+        > - Small, well-scoped improvements to existing tests  
+        > - Narrow updates to `src` functionality (e.g. refining helpers or improving readability)  
+        > - Documentation or comment clarity  
+        > - Enhancements to existing examples  
+        >
+        > Other types of contributions — such as brand-new features, broader system changes,
+        > or deeper technical work — are just as valuable and may use different labels.
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: 👾 Description of the Issue
+      description: |
+        Describe the issue in a clear, approachable way.
+
+        Aim to explain the context, what needs to change, and the expected outcome
+        without assuming deep knowledge of the codebase. The goal is to make the
+        task feel understandable, well-scoped, and encouraging to take on.
+      value: |
+        Edit here. Example provided below.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example (hidden in submission) -->
+        ## 👾 Description of the Issue — Example (C++)
+
+        The `AccountId` class located in:
+
+        ```
+        src/sdk/main/include/hiero/account/AccountId.h
+        src/sdk/main/src/account/AccountId.cc
+        ```
+
+        currently provides a `toString()` method, but when `AccountId` objects are
+        logged or inspected during debugging, the output is not very descriptive.
+
+        Improving the readability of this output would make debugging and logging
+        easier for developers using the SDK.
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 💡 Proposed Solution
+      description: |
+        Describe the approach for addressing this issue in a clear and focused way.
+
+        Explain what will be changed and what the end result should look like,
+        keeping the scope straightforward and easy to follow.
+      value: |
+        Edit here. An example is provided below.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example (hidden in submission) -->
+        ## 💡 Proposed Solution — Example (C++)
+
+        Update the existing `toString()` method in `AccountId` to produce a more
+        descriptive and readable string representation that clearly shows the
+        shard, realm, and account number.
+
+        The change should:
+        - Preserve existing behavior
+        - Avoid public API changes
+        - Follow formatting patterns used by other ID classes
+
+        Example output:
+
+        ```
+        AccountId{shard=0, realm=0, num=1234}
+        ```
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: 👩‍💻 Implementation Steps
+      description: |
+        Walk through how to implement the solution in clear, easy-to-follow steps.
+
+        Beginner Issues often leave a little more room for exploration than Good First
+        Issues, so it’s helpful to describe the overall approach, key files to look at,
+        what to change, and how to check the result.
+      value: |
+        Edit here. Example provided below.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example (hidden in submission) -->
+        ### 👩‍💻 Implementation — Example (C++)
+
+        To implement this improvement:
+
+        - [ ] Locate the `AccountId` class in the `src/` directory
+        - [ ] Review the existing `toString()` implementation
+        - [ ] Review how other ID classes format their string output
+        - [ ] Update `toString()` to:
+              - Clearly display `shard`, `realm`, and `num`
+              - Use a consistent, readable format
+        - [ ] Update or extend existing unit tests to validate the new output
+        - [ ] Build the SDK and ensure all tests pass
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ✅ Acceptance Criteria
+      description: Checklist required for completing this issue
+      value: |
+        To help get this change merged smoothly:
+
+        - [ ] **Scope:** Changes are limited to this issue
+        - [ ] **Behavior:** No other SDK behavior or API changes
+        - [ ] **Tests:** Existing and any new tests pass
+        - [ ] **Review:** All code review feedback addressed
+    validations:
+      required: true
+
+  - type: textarea
+    id: contribution_steps
+    attributes:
+      label: 📋 Step-by-Step Contribution Guide
+      description: Contribution workflow for contributors
+      value: |
+        To help keep contributions consistent and easy to review, we recommend following these steps:
+
+        - [ ] Comment `/assign` to request the issue
+        - [ ] Wait for assignment
+        - [ ] Fork the repository and create a branch
+        - [ ] Set up the project using the instructions in `README.md`
+        - [ ] Make the requested changes
+        - [ ] Sign each commit using `-s -S`
+        - [ ] Push your branch and open a pull request
+
+        Read [Workflow Guide](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/docs/training/workflow.md) for step-by-step workflow guidance.  
+        Read [README.md](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/README.md) for setup instructions.
+
+        ❗ Pull requests **cannot be merged** without `S` and `s` signed commits.  
+        See the [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/docs/training/signing.md).
+    validations:
+      required: true
+
+  - type: textarea
+    id: information
+    attributes:
+      label: 🤔 Additional Information
+      description: Extra context or resources for contributors
+      value: |
+        If you have questions while working on this issue, feel free to ask!
+
+        You can reach the community and maintainers here:
+        [Hiero-SDK-C++ Discord](https://discord.com/channels/905194001349627914/1337424839761465364)
+
+        Whether you need help finding the right file, understanding existing code,
+        or confirming your approach — we’re happy to help.

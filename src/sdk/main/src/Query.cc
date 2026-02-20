@@ -12,6 +12,7 @@
 #include "ContractFunctionResult.h"
 #include "ContractInfo.h"
 #include "ContractInfoQuery.h"
+#include "Defaults.h"
 #include "FileContentsQuery.h"
 #include "FileInfo.h"
 #include "FileInfoQuery.h"
@@ -321,9 +322,19 @@ void Query<SdkRequestType, SdkResponseType>::onExecute(const Client& client)
       throw UninitializedException("Client has not been initialized with a valid network");
     }
 
-    // Have the Client's network generate the node account IDs to which to send this Query.
+    // Determine maxAttempts using the same fallback hierarchy as setExecutionParameters():
+    // 1. Query's explicitly set maxAttempts
+    // 2. Client's explicitly set maxAttempts
+    // 3. DEFAULT_MAX_ATTEMPTS constant
+    const std::optional<uint32_t> executableMaxAttempts =
+      Executable<SdkRequestType, proto::Query, proto::Response, SdkResponseType>::getMaxAttemptsSet();
+    const unsigned int maxAttempts = executableMaxAttempts.has_value()     ? executableMaxAttempts.value()
+                                     : client.getMaxAttempts().has_value() ? client.getMaxAttempts().value()
+                                                                           : DEFAULT_MAX_ATTEMPTS;
+
+    // Request up to maxAttempts most healthy nodes from the network for this Query
     Executable<SdkRequestType, proto::Query, proto::Response, SdkResponseType>::setNodeAccountIds(
-      client.getClientNetwork()->getNodeAccountIdsForExecute());
+      client.getClientNetwork()->getNodeAccountIdsForExecute(maxAttempts));
   }
 
   // Validate checksums if that option is enabled.

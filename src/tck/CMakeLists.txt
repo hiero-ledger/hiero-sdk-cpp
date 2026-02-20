@@ -3,6 +3,9 @@ add_executable(${TCK_SERVER_NAME}
         src/account/AccountService.cc
         src/file/FileService.cc
         src/json/JsonRpcException.cc
+        src/json/JsonRpcParser.cc
+        src/json/JsonRpcRequest.cc
+        src/json/JsonRpcResponse.cc
         src/json/JsonUtils.cc
         src/key/KeyService.cc
         src/sdk/SdkClient.cc
@@ -15,3 +18,11 @@ target_link_libraries(${TCK_SERVER_NAME} ${PROJECT_NAME})
 target_include_directories(${TCK_SERVER_NAME} PRIVATE include)
 
 install(TARGETS ${TCK_SERVER_NAME} RUNTIME DESTINATION tck)
+
+if(BUILD_TCK_TESTS)
+    message(STATUS "Including TCK tests in the build.")
+    add_subdirectory(tests)
+else()
+    message(STATUS "TCK tests are not included in the build.")
+endif()
+

@@ -1,0 +1,50 @@
+name: "ZXC: Test Bot Scripts"
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - ".github/scripts/**"
+      - ".github/workflows/zxc-test-bot-scripts.yaml"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: test-bot-scripts-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test-bot-scripts:
+    name: Test Bot Scripts
+    runs-on: hiero-client-sdk-linux-large
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout Repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: "20"
+
+      - name: Run On-Commit Bot Tests
+        run: node .github/scripts/test-on-commit-bot.js
+
+      - name: Run On-PR Bot Tests
+        run: node .github/scripts/test-on-pr-bot.js
+
+      - name: Run On-Comment (Assign) Bot Tests
+        run: node .github/scripts/test-assign-bot.js

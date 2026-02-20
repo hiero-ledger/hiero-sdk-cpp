@@ -4,6 +4,7 @@
 
 #include "Key.h"
 
+#include <cstdint>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -45,7 +46,7 @@ public:
    * Construct a PublicKey object from a hex-encoded, DER-encoded key string.
    *
    * @param key The DER-encoded hex string from which to construct a PublicKey.
-   * @return A pointer to an PublicKey representing the input DER-encoded hex string.
+   * @return A pointer to a PublicKey representing the input DER-encoded hex string.
    * @throws BadKeyException If the public key type (ED25519 or ECDSAsecp256k1) is unable to be determined or realized
    *                         from the input hex string.
    */

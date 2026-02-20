@@ -1,4 +1,35 @@
 // SPDX-License-Identifier: Apache-2.0
+/**
+ * Auto-create a new account using a public-address via a `TransferTransaction`. Reference: [HIP-583 Expand alias
+ * support in CryptoCreate & CryptoTransfer Transactions](https://hips.hedera.com/hip/hip-583)
+ *
+ * - Create an ECSDA private key.
+ * - Extract the ECDSA public key.
+ * - Extract the Ethereum public address.
+ * - Use the `TransferTransaction`.
+ *    - Populate the `FromAddress` with the sender Hiero account ID.
+ *    - Populate the `ToAddress` with Ethereum public address.
+ *    - Note: Can transfer from public address to public address in the `TransferTransaction` for complete accounts.
+ *            Transfers from hollow accounts will not work because the hollow account does not have a public key
+ *            assigned to authorize transfers out of the account.
+ * - Sign the `TransferTransaction` transaction using an existing Hiero account and key paying for the transaction
+ *   fee.
+ * - The `AccountCreateTransaction` is executed as a child transaction triggered by the `TransferTransaction`.
+ * - The Hiero account that was created has a public address the user specified in the TransferTransaction ToAddress.
+ *    - Will not have a public key at this stage.
+ *    - Cannot do anything besides receive tokens or hbars.
+ *    - The alias property of the account does not have the public address.
+ *    - Referred to as a hollow account.
+ * - To get the new account ID ask for the child receipts or child records for the parent transaction ID of the
+ *   `TransferTransaction`.
+ * - Get the `AccountInfo` and verify the account is a hollow account with the supplied public address (may need to
+ *   verify with mirror node API).
+ * - To enhance the hollow account to have a public key the hollow account needs to be specified as a transaction fee
+ *   payer in a HAPI transaction.
+ * - Create a HAPI transaction and assign the new hollow account as the transaction fee payer.
+ * - Sign with the private key that corresponds to the public key on the hollow account.
+ * - Get the `AccountInfo` for the account and return the public key on the account to show it is a complete account.
+ */
 #include "AccountId.h"
 #include "Client.h"
 #include "ECDSAsecp256k1PrivateKey.h"
@@ -29,38 +60,6 @@ int main(int argc, char** argv)
   // will be paid for by this account and be signed by this key.
   Client client = Client::forTestnet();
   client.setOperator(operatorAccountId, operatorPrivateKey);
-
-  /**
-   * Auto-create a new account using a public-address via a `TransferTransaction`. Reference: [HIP-583 Expand alias
-   * support in CryptoCreate & CryptoTransfer Transactions](https://hips.hedera.com/hip/hip-583)
-   *
-   * - Create an ECSDA private key.
-   * - Extract the ECDSA public key.
-   * - Extract the Ethereum public address.
-   * - Use the `TransferTransaction`.
-   *    - Populate the `FromAddress` with the sender Hiero account ID.
-   *    - Populate the `ToAddress` with Ethereum public address.
-   *    - Note: Can transfer from public address to public address in the `TransferTransaction` for complete accounts.
-   *            Transfers from hollow accounts will not work because the hollow account does not have a public key
-   *            assigned to authorize transfers out of the account.
-   * - Sign the `TransferTransaction` transaction using an existing Hiero account and key paying for the transaction
-   *   fee.
-   * - The `AccountCreateTransaction` is executed as a child transaction triggered by the `TransferTransaction`.
-   * - The Hiero account that was created has a public address the user specified in the TransferTransaction ToAddress.
-   *    - Will not have a public key at this stage.
-   *    - Cannot do anything besides receive tokens or hbars.
-   *    - The alias property of the account does not have the public address.
-   *    - Referred to as a hollow account.
-   * - To get the new account ID ask for the child receipts or child records for the parent transaction ID of the
-   *   `TransferTransaction`.
-   * - Get the `AccountInfo` and verify the account is a hollow account with the supplied public address (may need to
-   *   verify with mirror node API).
-   * - To enhance the hollow account to have a public key the hollow account needs to be specified as a transaction fee
-   *   payer in a HAPI transaction.
-   * - Create a HAPI transaction and assign the new hollow account as the transaction fee payer.
-   * - Sign with the private key that corresponds to the public key on the hollow account.
-   * - Get the `AccountInfo` for the account and return the public key on the account to show it is a complete account.
-   */
 
   /**
    * Step 1: Create an ECSDA private key.

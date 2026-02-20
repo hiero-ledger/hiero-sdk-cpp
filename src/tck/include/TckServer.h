@@ -2,11 +2,11 @@
 #ifndef HIERO_TCK_CPP_TCK_SERVER_H_
 #define HIERO_TCK_CPP_TCK_SERVER_H_
 
+#include "json/JsonRpcParser.h"
 #include <functional>
 #include <httplib.h>
 #include <nlohmann/json_fwd.hpp>
 #include <string>
-#include <unordered_map>
 
 namespace Hiero::TCK
 {
@@ -40,52 +40,29 @@ public:
   /**
    * Construct a TckServer with a port on which to listen for JSON requests.
    *
-   * @param port The port on which to listen for JSON requests.
+   * @param port The port on which to listen.
    */
   explicit TckServer(int port);
 
   /**
-   * Add a JSON RPC method function.
+   * Wrapper function to get a MethodHandle from a function pointer.
    *
-   * @param name The name of the function.
-   * @param func The function to run.
-   */
-  void add(const std::string& name, const MethodHandle& func);
-
-  /**
-   * Add a JSON RPC notification function.
-   *
-   * @param name The name of the function.
-   * @param func The function to run.
-   */
-  void add(const std::string& name, const NotificationHandle& func);
-
-  /**
-   * Start listening for HTTP requests. All JSON RPC functions should be added before this is called.
-   */
-  void startServer();
-
-  /**
-   * Create a method handle for the input method. The created method handles creating the method inputs from the
-   * provided JSON.
-   *
-   * @tparam ParamsType The parameters to pass into to method.
-   * @param  method     The method of which to get the handle.
-   * @return The handle for the method.
+   * @tparam ParamsType The type of the parameters for the function.
+   * @param method The function to wrap.
+   * @return The wrapped function.
    */
   template<typename ParamsType>
   MethodHandle getHandle(nlohmann::json (*method)(const ParamsType&));
 
   /**
-   * Create a notification handle for the input notification. The created notification handles creating the notification
-   * inputs from the provided JSON.
+   * Wrapper function to get a NotificationHandle from a function pointer.
    *
-   * @tparam ParamsType   The parameters to pass into to notification.
-   * @param  notification The notification of which to get the handle.
-   * @return The handle for the notification.
+   * @tparam ParamsType The type of the parameters for the function.
+   * @param notification The function to wrap.
+   * @return The wrapped function.
    */
   template<typename ParamsType>
-  [[maybe_unused]] NotificationHandle getHandle(void (*notification)(const ParamsType&));
+  NotificationHandle getHandle(void (*notification)(const ParamsType&));
 
 private:
   /**
@@ -105,37 +82,19 @@ private:
   std::string handleJsonRequest(const std::string& request);
 
   /**
-   * Handle a single JSON request.
-   *
-   * @param request The JSON request to handle.
-   * @return The JSON response.
-   */
-  [[nodiscard]] nlohmann::json handleSingleRequest(const nlohmann::json& request);
-
-  /**
    * Set up the handler for the HTTP server.
    */
   void setupHttpHandler();
 
   /**
-   * Map of function names to their corresponding methods.
+   * The JSON-RPC Parser responsible for dispatching requests.
    */
-  std::unordered_map<std::string, MethodHandle> mMethods;
+  JsonRpcParser mJsonRpcParser;
 
   /**
-   * Map of function names to their corresponding notifications.
+   * The HTTP server to use for the TCK.
    */
-  std::unordered_map<std::string, NotificationHandle> mNotifications;
-
-  /**
-   * The HTTP server to use to receive JSON requests.
-   */
-  httplib::Server mHttpServer;
-
-  /**
-   * The port on which to listen for JSON requests.
-   */
-  int mPort = DEFAULT_HTTP_PORT;
+  httplib::Server mServer;
 };
 
 } // namespace Hiero::TCK

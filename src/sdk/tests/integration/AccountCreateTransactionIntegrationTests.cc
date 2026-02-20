@@ -493,7 +493,6 @@ TEST_F(AccountCreateTransactionIntegrationTests, SerializeDeserializeEditCompare
   ASSERT_NO_THROW(createAccount = AccountCreateTransaction().setKeyWithoutAlias(testPublicKey));
 
   const Hbar expectedBalance = Hbar(5LL);
-  std::vector<AccountId> nodeAccountIds = getTestClient().getClientNetwork()->getNodeAccountIdsForExecute();
 
   // When
   std::vector<std::byte> transactionBytesSerialized;
@@ -508,7 +507,6 @@ TEST_F(AccountCreateTransactionIntegrationTests, SerializeDeserializeEditCompare
   ASSERT_NO_THROW(txReceipt =
                     createAccount.setInitialBalance(Hbar(5LL))
                       .setTransactionId(TransactionId::generate(getTestClient().getOperatorAccountId().value()))
-                      .setNodeAccountIds(nodeAccountIds) // will fail if nodeAccountIds are bad so not checking equality
                       .execute(getTestClient())
                       .getReceipt(getTestClient()););
 

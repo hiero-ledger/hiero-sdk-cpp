@@ -1,5 +1,6 @@
 # Begin Protobuf Definitions
 set(PROTO_FILES
+        block/stream/chain_of_trust_proof.proto
         transaction_list.proto
 
         mirror/consensus_service.proto

@@ -8,6 +8,8 @@
 #include <chrono>
 #include <gtest/gtest.h>
 
+#include <set>
+#include <vector>
 using namespace Hiero;
 
 class TransactionIdUnitTests : public ::testing::Test
@@ -206,4 +208,26 @@ TEST_F(TransactionIdUnitTests, SetGetNonce)
 
   // Then
   EXPECT_EQ(transactionId.getNonce(), getTestNonce());
+}
+//-----
+TEST_F(TransactionIdUnitTests, GenerateUniqueTransactionIds)
+{
+  // Given
+  const size_t count = 100000;
+  std::vector<TransactionId> ids;
+  ids.reserve(count);
+  
+  // When - generate many IDs rapidly
+  for (size_t i = 0; i < count; ++i)
+  {
+    ids.push_back(TransactionId::generate(getTestAccountId()));
+  }
+  
+  // Then - all IDs should be unique
+  std::set<std::chrono::system_clock::time_point> timestamps;
+  for (const auto& id : ids)
+  {
+    EXPECT_TRUE(timestamps.insert(id.mValidTransactionTime).second)
+      << "Duplicate timestamp found";
+  }
 }

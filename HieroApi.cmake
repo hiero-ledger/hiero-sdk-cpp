@@ -1,8 +1,8 @@
-set(HAPI_VERSION_TAG "v0.67.1" CACHE STRING "Use the configured version tag for the Hiero API protobufs")
-set(HAPI_COMMIT_HASH "3fd256e226c24e3d7fea459e6bd2361704010515" CACHE STRING "Use the configured commit hash for the Hiero API protobufs (overrides version tag if provided)")
+set(HAPI_VERSION_TAG "v0.69.1" CACHE STRING "Use the configured version tag for the Hiero API protobufs")
+set(HAPI_COMMIT_HASH "83fa1eb1446524aa695fa2c0d817361805afb979" CACHE STRING "Use the configured commit hash for the Hiero API protobufs (overrides version tag if provided)")
 
 if (HAPI_VERSION_TAG STREQUAL "")
-    set(HAPI_VERSION_TAG "v0.67.1")
+    set(HAPI_VERSION_TAG "v0.69.1")
 endif ()
 
 # Use commit hash if provided, otherwise use version tag
@@ -61,6 +61,7 @@ file(INSTALL ${PROJECT_SOURCE_DIR}/proto/service-external-proto/sdk/ DESTINATION
 
 file(INSTALL ${hproto_SOURCE_DIR}/hapi/hedera-protobuf-java-api/src/main/proto/platform/ DESTINATION ${PROTO_SRC}/platform)
 file(INSTALL ${hproto_SOURCE_DIR}/hapi/hedera-protobuf-java-api/src/main/proto/services/ DESTINATION ${PROTO_SRC}/services)
+file(INSTALL ${hproto_SOURCE_DIR}/hapi/hedera-protobuf-java-api/src/main/proto/block/ DESTINATION ${PROTO_SRC}/block)
 
 add_subdirectory(proto)
 

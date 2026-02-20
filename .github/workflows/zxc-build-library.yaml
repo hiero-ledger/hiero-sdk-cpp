@@ -49,12 +49,12 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Run Clang-Format
         uses: jidicula/clang-format-action@6cd220de46c89139a0365edae93eee8eb30ca8fe # v4.16.0
@@ -76,7 +76,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
 
@@ -122,12 +122,12 @@ jobs:
           echo "exec=${CG_EXEC}" >> "${GITHUB_OUTPUT}"
 
       - name: Checkout Code
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: true
 
       - name: Use Node.js 22
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: 22
 
@@ -140,7 +140,7 @@ jobs:
         run: mkdir -p "${{ github.workspace }}/b/vcpkg_cache"
 
       - name: Install CMake & Ninja
-        uses: step-security/get-cmake@84feda99b925eb830227d4cd02c07991a323306f # v4.1.2
+        uses: step-security/get-cmake@5968f9433f9674d353d478aec2649ee3e6f40867 # v4.2.1
         with:
           useCloudCache: true
 
@@ -158,7 +158,7 @@ jobs:
           VCPKG_BINARY_SOURCES: clear
         run: |
           echo "::group::Configure Project"
-          ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-debug -DBUILD_TESTS=ON
+          ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-debug -DBUILD_TESTS=ON -DBUILD_TCK_TESTS=ON
           echo "::endgroup::"
 
           echo "::group::Build Project"
@@ -171,7 +171,7 @@ jobs:
           VCPKG_BINARY_SOURCES: clear
         run: |
           echo "::group::Configure Project"
-          ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-release -DBUILD_TESTS=ON
+          ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-release -DBUILD_TESTS=ON -DBUILD_TCK_TESTS=ON
           echo "::endgroup::"
 
           echo "::group::Build Project"
@@ -180,19 +180,26 @@ jobs:
 
       - name: Prepare Hiero Solo
         id: solo
-        uses: hiero-ledger/hiero-solo-action@fbca3e7a99ce9aa8a250563a81187abe115e0dad # v0.16.0
+        uses: hiero-ledger/hiero-solo-action@4d42a74e8e644a2753f3bb7a2afa429305375b14 # v0.17.0
         with:
           installMirrorNode: true
-          hieroVersion: v0.69.0-alpha.2
-          mirrorNodeVersion: v0.139.0
-          
+          mirrorNodeVersion: v0.142.0
+          hieroVersion: v0.69.1
+          dualMode: true
 
       - name: Start CTest suite (Debug)
-        run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug --output-on-failure
+        run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-debug -E NodeUpdateTransactionIntegrationTests --output-on-failure
 
       - name: Start CTest suite (Release)
         if: github.event.pull_request.merged == true
-        run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-release --output-on-failure
+        run: ${{ steps.cgroup.outputs.exec }} ctest -j 6 -C Debug --test-dir build/${{ matrix.preset }}-release -E NodeUpdateTransactionIntegrationTests --output-on-failure
+
+      - name: Run Node Update Integration Tests (Debug)
+        run: ${{ steps.cgroup.outputs.exec }} ctest -C Debug --test-dir build/${{ matrix.preset }}-debug -R NodeUpdateTransactionIntegrationTests --output-on-failure
+
+      - name: Run Node Update Integration Tests (Release)
+        if: github.event.pull_request.merged == true
+        run: ${{ steps.cgroup.outputs.exec }} ctest -C Debug --test-dir build/${{ matrix.preset }}-release -R NodeUpdateTransactionIntegrationTests --output-on-failure
 
       - name: Compute Short SHA
         id: sha
@@ -200,7 +207,7 @@ jobs:
 
       - name: Attach Artifact
         if: github.event.pull_request.merged == true
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
@@ -216,12 +223,12 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
@@ -231,7 +238,7 @@ jobs:
           msbuild-architecture: x64
 
       - name: Setup-perl
-        uses: shogo82148/actions-setup-perl@f9f0bf89e0d19ddbabb2f40d43db2e944bce7d2f # v1.36.0
+        uses: shogo82148/actions-setup-perl@b6cfc127f1b0a63ac98797800f641494d80f42f8 # v1.37.1
         with:
           perl-version: "5.32"
           distribution: strawberry
@@ -262,7 +269,7 @@ jobs:
           Add-Content -Path $env:GITHUB_OUTPUT -Value "short=$short"
 
       - name: Attach Artifact
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
@@ -277,12 +284,12 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
 
       - name: Checkout Code
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
@@ -305,7 +312,7 @@ jobs:
         run: echo "short=$(echo -n "${{ github.sha }}" | cut -c1-8)" >> $GITHUB_OUTPUT
 
       - name: Attach Artifact
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
