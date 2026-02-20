@@ -48,6 +48,11 @@ jobs:
 
     steps:
       # Hardens the runner and checks out the default branch (not the PR branch)
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
       - name: Setup Bot Environment
         uses: ./.github/actions/setup-bot
 
