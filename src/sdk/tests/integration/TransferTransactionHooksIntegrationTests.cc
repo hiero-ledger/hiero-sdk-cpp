@@ -269,7 +269,7 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldExecuteHooksOnMultipleAcc
 }
 
 //-----
-TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldTransferFungibleTokensWithAllowanceHook)
+TEST_F(TransferTransactionHooksIntegrationTests, ShouldTransferFungibleTokensWithAllowanceHook)
 {
   // Given
   const std::shared_ptr<PrivateKey> receiverKey = ED25519PrivateKey::generatePrivateKey();
@@ -465,7 +465,7 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldTransferNftWithSenderAndR
 }
 
 //-----
-TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldCallPreTransactionAllowanceHookAndApproveTransfer)
+TEST_F(TransferTransactionHooksIntegrationTests, ShouldCallPreTransactionAllowanceHookAndApproveTransfer)
 {
   // Given
   const std::shared_ptr<PrivateKey> senderKey = ED25519PrivateKey::generatePrivateKey();
