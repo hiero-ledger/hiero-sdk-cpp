@@ -1,6 +1,5 @@
 # Begin Protobuf Definitions
 set(PROTO_FILES
-        block/stream/chain_of_trust_proof.proto
         transaction_list.proto
 
         mirror/consensus_service.proto
@@ -58,8 +57,8 @@ set(PROTO_FILES
         services/get_by_key.proto
         services/get_by_solidity_id.proto
         services/hook_dispatch.proto
+        services/hook_store.proto
         services/hook_types.proto
-        services/lambda_sstore.proto
         services/network_get_execution_time.proto
         services/network_get_version_info.proto
         services/network_service.proto
@@ -127,6 +126,8 @@ set(PROTO_FILES
         services/auxiliary/history/history_proof_signature.proto
         services/auxiliary/history/history_proof_key_publication.proto
         services/auxiliary/history/history_proof_vote.proto
+        services/auxiliary/tss/ledger_id_publication.proto
+        services/auxiliary/tss/tss_encryption_key.proto
         services/auxiliary/tss/tss_message.proto
         services/auxiliary/tss/tss_vote.proto
 

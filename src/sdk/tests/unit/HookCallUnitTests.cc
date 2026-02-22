@@ -83,7 +83,6 @@ TEST_F(HookCallUnitTests, ToProtobuf)
 
   // Then
   EXPECT_TRUE(protoHookCall->has_hook_id());
-  EXPECT_FALSE(protoHookCall->has_full_hook_id());
   EXPECT_EQ(protoHookCall->hook_id(), getTestHookId());
   EXPECT_EQ(protoHookCall->evm_hook_call().data(), internal::Utilities::byteVectorToString(getTestCallData()));
   EXPECT_EQ(protoHookCall->evm_hook_call().gas_limit(), getTestGasLimit());

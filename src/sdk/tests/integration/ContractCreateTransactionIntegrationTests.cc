@@ -31,21 +31,21 @@ protected:
   {
     BaseIntegrationTest::SetUp();
 
-    mLambdaId = ContractCreateTransaction()
-                  .setBytecode(internal::HexConverter::hexToBytes(mLambdaBytecode))
+    mHookContractId = ContractCreateTransaction()
+                  .setBytecode(internal::HexConverter::hexToBytes(mHookBytecode))
                   .setGas(300000ULL)
                   .execute(getTestClient())
                   .getReceipt(getTestClient())
                   .mContractId.value();
   }
 
-  [[nodiscard]] const ContractId& getTestLambdaId() const { return mLambdaId; }
-  [[nodiscard]] const std::string& getTestLambdaBytecode() const { return mLambdaBytecode; }
+  [[nodiscard]] const ContractId& getTestHookContractId() const { return mHookContractId; }
+  [[nodiscard]] const std::string& getTestHookBytecode() const { return mHookBytecode; }
 
 private:
-  ContractId mLambdaId;
+  ContractId mHookContractId;
 
-  const std::string mLambdaBytecode = "6080604052348015600e575f5ffd5b506103da8061001c5f395ff3fe608060"
+  const std::string mHookBytecode = "6080604052348015600e575f5ffd5b506103da8061001c5f395ff3fe608060"
                                       "40526004361061001d575f3560e01c80630b6c5c0414610021"
                                       "575b5f5ffd5b61003b6004803603810190610036919061021c565b61005156"
                                       "5b60405161004891906102ed565b60405180910390f35b5f61"
@@ -288,20 +288,20 @@ TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHook)
                       .getReceipt(getTestClient())
                       .mContractId.value());
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
-  evmHookSpec.setContractId(getTestLambdaId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHookSpec.setContractId(getTestHookContractId());
+  evmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   // When
   TransactionResponse txResponse;
   EXPECT_NO_THROW(txResponse = ContractCreateTransaction()
-                                 .setBytecode(internal::HexConverter::hexToBytes(getTestLambdaBytecode()))
+                                 .setBytecode(internal::HexConverter::hexToBytes(getTestHookBytecode()))
                                  .setGas(300000ULL)
                                  .addHook(hookCreationDetails)
                                  .execute(getTestClient()));
@@ -347,29 +347,29 @@ TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHookWithStor
                       .getReceipt(getTestClient())
                       .mContractId.value());
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
-  evmHookSpec.setContractId(getTestLambdaId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHookSpec.setContractId(getTestHookContractId());
+  evmHook.setEvmHookSpec(evmHookSpec);
 
-  LambdaStorageSlot lambdaStorageSlot;
-  lambdaStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
-  lambdaStorageSlot.setValue({ std::byte(0x67), std::byte(0x89), std::byte(0xAB) });
+  EvmHookStorageSlot evmHookStorageSlot;
+  evmHookStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
+  evmHookStorageSlot.setValue({ std::byte(0x67), std::byte(0x89), std::byte(0xAB) });
 
-  LambdaStorageUpdate lambdaStorageUpdate;
-  lambdaStorageUpdate.setStorageSlot(lambdaStorageSlot);
+  EvmHookStorageUpdate evmHookStorageUpdate;
+  evmHookStorageUpdate.setStorageSlot(evmHookStorageSlot);
 
-  lambdaEvmHook.addStorageUpdate(lambdaStorageUpdate);
+  evmHook.addStorageUpdate(evmHookStorageUpdate);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   // When
   TransactionResponse txResponse;
   EXPECT_NO_THROW(txResponse = ContractCreateTransaction()
-                                 .setBytecode(internal::HexConverter::hexToBytes(getTestLambdaBytecode()))
+                                 .setBytecode(internal::HexConverter::hexToBytes(getTestHookBytecode()))
                                  .setGas(300000ULL)
                                  .addHook(hookCreationDetails)
                                  .execute(getTestClient()));
@@ -415,25 +415,25 @@ TEST_F(ContractCreateTransactionIntegrationTests, CannotCreateContractWithNoCont
                       .getReceipt(getTestClient())
                       .mContractId.value());
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
 
-  LambdaStorageSlot lambdaStorageSlot;
-  lambdaStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
-  lambdaStorageSlot.setValue({ std::byte(0x67), std::byte(0x89), std::byte(0xAB) });
+  EvmHookStorageSlot evmHookStorageSlot;
+  evmHookStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
+  evmHookStorageSlot.setValue({ std::byte(0x67), std::byte(0x89), std::byte(0xAB) });
 
-  LambdaStorageUpdate lambdaStorageUpdate;
-  lambdaStorageUpdate.setStorageSlot(lambdaStorageSlot);
+  EvmHookStorageUpdate evmHookStorageUpdate;
+  evmHookStorageUpdate.setStorageSlot(evmHookStorageSlot);
 
-  lambdaEvmHook.addStorageUpdate(lambdaStorageUpdate);
+  evmHook.addStorageUpdate(evmHookStorageUpdate);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   // When / Then
   TransactionReceipt txReceipt;
   EXPECT_THROW(txReceipt = ContractCreateTransaction()
-                             .setBytecode(internal::HexConverter::hexToBytes(getTestLambdaBytecode()))
+                             .setBytecode(internal::HexConverter::hexToBytes(getTestHookBytecode()))
                              .setGas(300000ULL)
                              .addHook(hookCreationDetails)
                              .execute(getTestClient())
@@ -475,20 +475,20 @@ TEST_F(ContractCreateTransactionIntegrationTests, CannotCreateContractWithDuplic
                       .getReceipt(getTestClient())
                       .mContractId.value());
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
-  evmHookSpec.setContractId(getTestLambdaId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHookSpec.setContractId(getTestHookContractId());
+  evmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   // When / Then
   TransactionReceipt txReceipt;
   EXPECT_THROW(txReceipt = ContractCreateTransaction()
-                             .setBytecode(internal::HexConverter::hexToBytes(getTestLambdaBytecode()))
+                             .setBytecode(internal::HexConverter::hexToBytes(getTestHookBytecode()))
                              .setGas(300000ULL)
                              .addHook(hookCreationDetails)
                              .addHook(hookCreationDetails)
@@ -532,30 +532,30 @@ TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHookWithAdmi
                       .getReceipt(getTestClient())
                       .mContractId.value());
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
-  evmHookSpec.setContractId(getTestLambdaId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHookSpec.setContractId(getTestHookContractId());
+  evmHook.setEvmHookSpec(evmHookSpec);
 
-  LambdaStorageSlot lambdaStorageSlot;
-  lambdaStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
-  lambdaStorageSlot.setValue({ std::byte(0x67), std::byte(0x89), std::byte(0xAB) });
+  EvmHookStorageSlot evmHookStorageSlot;
+  evmHookStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
+  evmHookStorageSlot.setValue({ std::byte(0x67), std::byte(0x89), std::byte(0xAB) });
 
-  LambdaStorageUpdate lambdaStorageUpdate;
-  lambdaStorageUpdate.setStorageSlot(lambdaStorageSlot);
+  EvmHookStorageUpdate evmHookStorageUpdate;
+  evmHookStorageUpdate.setStorageSlot(evmHookStorageSlot);
 
-  lambdaEvmHook.addStorageUpdate(lambdaStorageUpdate);
+  evmHook.addStorageUpdate(evmHookStorageUpdate);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
   hookCreationDetails.setAdminKey(adminKey);
 
   // When
   TransactionResponse txResponse;
   EXPECT_NO_THROW(txResponse = ContractCreateTransaction()
-                                 .setBytecode(internal::HexConverter::hexToBytes(getTestLambdaBytecode()))
+                                 .setBytecode(internal::HexConverter::hexToBytes(getTestHookBytecode()))
                                  .setGas(300000ULL)
                                  .addHook(hookCreationDetails)
                                  .freezeWith(&getTestClient())

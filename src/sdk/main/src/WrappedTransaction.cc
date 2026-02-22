@@ -80,9 +80,9 @@ WrappedTransaction WrappedTransaction::fromProtobuf(const proto::TransactionBody
   {
     return WrappedTransaction(FreezeTransaction(proto));
   }
-  else if (proto.has_lambda_sstore())
+  else if (proto.has_hook_store())
   {
-    return WrappedTransaction(LambdaSStoreTransaction(proto));
+    return WrappedTransaction(HookStoreTransaction(proto));
   }
   else if (proto.has_nodecreate())
   {
@@ -555,9 +555,9 @@ std::unique_ptr<proto::TransactionBody> WrappedTransaction::toProtobuf() const
       transaction->updateSourceTransactionBody(nullptr);
       return std::make_unique<proto::TransactionBody>(transaction->getSourceTransactionBody());
     }
-    case LAMBDA_SSTORE_TRANSACTION:
+    case HOOK_STORE_TRANSACTION:
     {
-      const auto transaction = getTransaction<LambdaSStoreTransaction>();
+      const auto transaction = getTransaction<HookStoreTransaction>();
       transaction->updateSourceTransactionBody(nullptr);
       return std::make_unique<proto::TransactionBody>(transaction->getSourceTransactionBody());
     }
@@ -857,9 +857,9 @@ std::unique_ptr<proto::Transaction> WrappedTransaction::toProtobufTransaction() 
       const auto transaction = getTransaction<FreezeTransaction>();
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
-    case LAMBDA_SSTORE_TRANSACTION:
+    case HOOK_STORE_TRANSACTION:
     {
-      const auto transaction = getTransaction<LambdaSStoreTransaction>();
+      const auto transaction = getTransaction<HookStoreTransaction>();
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case NODE_CREATE_TRANSACTION:

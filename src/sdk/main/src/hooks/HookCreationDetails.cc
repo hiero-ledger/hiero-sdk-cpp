@@ -12,9 +12,9 @@ HookCreationDetails HookCreationDetails::fromProtobuf(const com::hedera::hapi::n
   hookCreationDetails.mExtensionPoint = gProtobufHookExtensionPointToHookExtensionPoint.at(proto.extension_point());
   hookCreationDetails.mHookId = proto.hook_id();
 
-  if (proto.has_lambda_evm_hook())
+  if (proto.has_evm_hook())
   {
-    hookCreationDetails.mLambdaEvmHook = LambdaEvmHook::fromProtobuf(proto.lambda_evm_hook());
+    hookCreationDetails.mEvmHook = EvmHook::fromProtobuf(proto.evm_hook());
   }
 
   if (proto.has_admin_key())
@@ -32,9 +32,9 @@ std::unique_ptr<com::hedera::hapi::node::hooks::HookCreationDetails> HookCreatio
   proto->set_extension_point(gHookExtensionPointToProtobufHookExtensionPoint.at(mExtensionPoint));
   proto->set_hook_id(mHookId);
 
-  if (mLambdaEvmHook.has_value())
+  if (mEvmHook.has_value())
   {
-    proto->set_allocated_lambda_evm_hook(mLambdaEvmHook->toProtobuf().release());
+    proto->set_allocated_evm_hook(mEvmHook->toProtobuf().release());
   }
 
   if (mAdminKey)
@@ -60,9 +60,9 @@ HookCreationDetails& HookCreationDetails::setHookId(int64_t hookId)
 }
 
 //-----
-HookCreationDetails& HookCreationDetails::setLambdaEvmHook(const LambdaEvmHook& lambdaEvmHook)
+HookCreationDetails& HookCreationDetails::setEvmHook(const EvmHook& evmHook)
 {
-  mLambdaEvmHook = lambdaEvmHook;
+  mEvmHook = evmHook;
   return *this;
 }
 

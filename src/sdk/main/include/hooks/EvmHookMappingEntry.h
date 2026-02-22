@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-#ifndef HIERO_SDK_CPP_LAMBDA_MAPPING_ENTRY_H_
-#define HIERO_SDK_CPP_LAMBDA_MAPPING_ENTRY_H_
+#ifndef HIERO_SDK_CPP_EVM_HOOK_MAPPING_ENTRY_H_
+#define HIERO_SDK_CPP_EVM_HOOK_MAPPING_ENTRY_H_
 
 #include <cstddef>
 #include <memory>
@@ -9,7 +9,7 @@
 
 namespace com::hedera::hapi::node::hooks
 {
-class LambdaMappingEntry;
+class EvmHookMappingEntry;
 }
 
 namespace Hiero
@@ -17,48 +17,48 @@ namespace Hiero
 /**
  * An implicit storage slot specified as a Solidity mapping entry.
  */
-class LambdaMappingEntry
+class EvmHookMappingEntry
 {
 public:
   /**
-   * Construct a LambdaMappingEntry object from a LambdaMappingEntry protobuf object.
+   * Construct a EvmHookMappingEntry object from a EvmHookMappingEntry protobuf object.
    *
-   * @param proto The LambdaMappingEntry protobuf object from which to create a LambdaMappingEntry object.
-   * @return The constructed LambdaMappingEntry object.
+   * @param proto The EvmHookMappingEntry protobuf object from which to create a EvmHookMappingEntry object.
+   * @return The constructed EvmHookMappingEntry object.
    */
-  [[nodiscard]] static LambdaMappingEntry fromProtobuf(const com::hedera::hapi::node::hooks::LambdaMappingEntry& proto);
+  [[nodiscard]] static EvmHookMappingEntry fromProtobuf(const com::hedera::hapi::node::hooks::EvmHookMappingEntry& proto);
 
   /**
-   * Construct a LambdaMappingEntry protobuf object from this LambdaMappingEntry object.
+   * Construct a EvmHookMappingEntry protobuf object from this EvmHookMappingEntry object.
    *
-   * @return A pointer to the created LambdaMappingEntry protobuf object filled with this LambdaMappingEntry
+   * @return A pointer to the created EvmHookMappingEntry protobuf object filled with this EvmHookMappingEntry
    *         object's data.
    */
-  [[nodiscard]] std::unique_ptr<com::hedera::hapi::node::hooks::LambdaMappingEntry> toProtobuf() const;
+  [[nodiscard]] std::unique_ptr<com::hedera::hapi::node::hooks::EvmHookMappingEntry> toProtobuf() const;
 
   /**
    * Set the key for the mapping entry. Resets the preimage if set.
    *
    * @param key The key for the mapping entry.
-   * @return A reference to this LambdaMappingEntry object with the newly-set mapping entry key.
+   * @return A reference to this EvmHookMappingEntry object with the newly-set mapping entry key.
    */
-  LambdaMappingEntry& setKey(const std::vector<std::byte>& key);
+  EvmHookMappingEntry& setKey(const std::vector<std::byte>& key);
 
   /**
    * Set the preimage. Resets the key if set.
    *
    * @param preimage The preimage for the mapping entry.
-   * @return A reference to this LambdaMappingEntry object with the newly-set preimage.
+   * @return A reference to this EvmHookMappingEntry object with the newly-set preimage.
    */
-  LambdaMappingEntry& setPreimage(const std::vector<std::byte>& preimage);
+  EvmHookMappingEntry& setPreimage(const std::vector<std::byte>& preimage);
 
   /**
    * Set the value for the mapping entry.
    *
    * @param value The value for the mapping entry.
-   * @return A reference to this LambdaMappingEntry object with the newly-set mapping entry value.
+   * @return A reference to this EvmHookMappingEntry object with the newly-set mapping entry value.
    */
-  LambdaMappingEntry& setValue(const std::vector<std::byte>& value);
+  EvmHookMappingEntry& setValue(const std::vector<std::byte>& value);
 
   /**
    * Get the Solidity mapping entry key.
@@ -101,4 +101,4 @@ private:
 
 } // namespace Hiero
 
-#endif // HIERO_SDK_CPP_LAMBDA_MAPPING_ENTRY_H_
+#endif // HIERO_SDK_CPP_EVM_HOOK_MAPPING_ENTRY_H_

@@ -699,20 +699,20 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithAliasAndKe
 }
 
 //-----
-TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithLambdaHook)
+TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithEvmHook)
 {
   // Given
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
   evmHookSpec.setContractId(getTestContractId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   // When / Then
   TransactionResponse txResponse;
@@ -730,29 +730,29 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithLambdaHook
 }
 
 //-----
-TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithLambdaHookAndStorageUpdates)
+TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithEvmHookAndStorageUpdates)
 {
   // Given
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
   evmHookSpec.setContractId(getTestContractId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHook.setEvmHookSpec(evmHookSpec);
 
-  LambdaStorageSlot lambdaStorageSlot;
-  lambdaStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
-  lambdaStorageSlot.setValue({ std::byte(0x67), std::byte(0x89), std::byte(0xAB) });
+  EvmHookStorageSlot evmHookStorageSlot;
+  evmHookStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
+  evmHookStorageSlot.setValue({ std::byte(0x67), std::byte(0x89), std::byte(0xAB) });
 
-  LambdaStorageUpdate lambdaStorageUpdate;
-  lambdaStorageUpdate.setStorageSlot(lambdaStorageSlot);
+  EvmHookStorageUpdate evmHookStorageUpdate;
+  evmHookStorageUpdate.setStorageSlot(evmHookStorageSlot);
 
-  lambdaEvmHook.addStorageUpdate(lambdaStorageUpdate);
+  evmHook.addStorageUpdate(evmHookStorageUpdate);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   // When / Then
   TransactionResponse txResponse;
@@ -770,26 +770,26 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithLambdaHook
 }
 
 //-----
-TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithLambdaHookWithNoContractId)
+TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithEvmHookWithNoContractId)
 {
   // Given
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
 
-  LambdaStorageSlot lambdaStorageSlot;
-  lambdaStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
-  lambdaStorageSlot.setValue({ std::byte(0x67), std::byte(0x89), std::byte(0xAB) });
+  EvmHookStorageSlot evmHookStorageSlot;
+  evmHookStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
+  evmHookStorageSlot.setValue({ std::byte(0x67), std::byte(0x89), std::byte(0xAB) });
 
-  LambdaStorageUpdate lambdaStorageUpdate;
-  lambdaStorageUpdate.setStorageSlot(lambdaStorageSlot);
+  EvmHookStorageUpdate evmHookStorageUpdate;
+  evmHookStorageUpdate.setStorageSlot(evmHookStorageSlot);
 
-  lambdaEvmHook.addStorageUpdate(lambdaStorageUpdate);
+  evmHook.addStorageUpdate(evmHookStorageUpdate);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   // When / Then
   EXPECT_THROW(AccountCreateTransaction()
@@ -801,20 +801,20 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithLambdaHook
 }
 
 //-----
-TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithSameLambdaHookIds)
+TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithSameEvmHookIds)
 {
   // Given
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
   evmHookSpec.setContractId(getTestContractId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   // When / Then
   EXPECT_THROW(AccountCreateTransaction()

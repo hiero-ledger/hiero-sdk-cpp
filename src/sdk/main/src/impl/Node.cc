@@ -130,8 +130,8 @@ grpc::Status Node::submitTransaction(proto::TransactionBody::DataCase funcEnum,
       return mFileStub->updateFile(&context, transaction, response);
     case proto::TransactionBody::DataCase::kFreeze:
       return mFreezeStub->freeze(&context, transaction, response);
-    case proto::TransactionBody::DataCase::kLambdaSstore:
-      return mSmartContractStub->lambdaSStore(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kHookStore:
+      return mSmartContractStub->hookStore(&context, transaction, response);
     case proto::TransactionBody::DataCase::kNodeCreate:
       return mAddressBookStub->createNode(&context, transaction, response);
     case proto::TransactionBody::DataCase::kNodeDelete:

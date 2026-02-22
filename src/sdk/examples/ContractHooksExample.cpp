@@ -12,7 +12,7 @@
 #include "hooks/EvmHookSpec.h"
 #include "hooks/HookCreationDetails.h"
 #include "hooks/HookExtensionPoint.h"
-#include "hooks/LambdaEvmHook.h"
+#include "hooks/EvmHook.h"
 #include "impl/HexConverter.h"
 #include "impl/Utilities.h"
 
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
      * Step 2: Demonstrate creating a contract with hooks.
      */
     std::cout << "\n=== Creating Contract with Hooks ===" << std::endl;
-    std::cout << "Creating contract with lambda EVM hook..." << std::endl;
+    std::cout << "Creating contract with EVM hook..." << std::endl;
 
     // Create a simple contract bytecode (HelloWorld-like contract)
     const std::vector<std::byte> simpleContractBytecode = internal::HexConverter::hexToBytes(
@@ -105,16 +105,16 @@ int main(int argc, char** argv)
       "50610114816100ee565b92915050565b6000602082840312156101305761012f6100bc565b5b600061013e84828501610105565b91505092"
       "91505056fea2646970667358221220");
 
-    // Build a basic lambda EVM hook (no admin key, no storage updates)
+    // Build a basic EVM hook (no admin key, no storage updates)
     EvmHookSpec evmHookSpec;
     evmHookSpec.setContractId(hookContractId);
-    LambdaEvmHook lambdaHook;
-    lambdaHook.setEvmHookSpec(evmHookSpec);
+    EvmHook evmHook;
+    evmHook.setEvmHookSpec(evmHookSpec);
 
     HookCreationDetails hookWithId1;
     hookWithId1.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
     hookWithId1.setHookId(1LL);
-    hookWithId1.setLambdaEvmHook(lambdaHook);
+    hookWithId1.setEvmHook(evmHook);
 
     txReceipt = ContractCreateTransaction()
                   .setAdminKey(operatorPrivateKey->getPublicKey())
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
 
     const ContractId contractWithHooksId = txReceipt.mContractId.value();
     std::cout << "Created contract with ID: " << contractWithHooksId.toString() << std::endl;
-    std::cout << "Successfully created contract with basic lambda hook!" << std::endl;
+    std::cout << "Successfully created contract with basic hook!" << std::endl;
 
     /*
      * Step 3: Demonstrate adding hooks to an existing contract.
@@ -144,13 +144,13 @@ int main(int argc, char** argv)
 
     const std::shared_ptr<PublicKey> adminKey = client.getOperatorPublicKey();
 
-    // Hook 3: Basic lambda hook with no storage updates (using ID 3 to avoid conflict with existing hook 1)
-    LambdaEvmHook basicHook;
+    // Hook 3: Basic hook with no storage updates (using ID 3 to avoid conflict with existing hook 1)
+    EvmHook basicHook;
     basicHook.setEvmHookSpec(evmHookSpec);
     HookCreationDetails hookWithId3;
     hookWithId3.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
     hookWithId3.setHookId(3LL);
-    hookWithId3.setLambdaEvmHook(basicHook);
+    hookWithId3.setEvmHook(basicHook);
     hookWithId3.setAdminKey(adminKey);
 
     try

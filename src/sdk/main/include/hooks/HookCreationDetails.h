@@ -4,7 +4,7 @@
 
 #include "Key.h"
 #include "hooks/HookExtensionPoint.h"
-#include "hooks/LambdaEvmHook.h"
+#include "hooks/EvmHook.h"
 
 #include <cstdint>
 #include <memory>
@@ -57,12 +57,12 @@ public:
   HookCreationDetails& setHookId(int64_t hookId);
 
   /**
-   * Set the lambda EVM hook implementation. Resets any other hook implementation.
+   * Set the EVM hook implementation. Resets any other hook implementation.
    *
-   * @param lambdaEvmHook The hook implementation.
-   * @return A reference to this HookCreationDetails object with the newly-set lambda EVM hook implementation.
+   * @param evmHook The hook implementation.
+   * @return A reference to this HookCreationDetails object with the newly-set EVM hook implementation.
    */
-  HookCreationDetails& setLambdaEvmHook(const LambdaEvmHook& lambdaEvmHook);
+  HookCreationDetails& setEvmHook(const EvmHook& evmHook);
 
   /**
    * Set the hook admin key.
@@ -91,7 +91,7 @@ public:
    *
    * @return The ID of the hook.
    */
-  [[nodiscard]] inline std::optional<LambdaEvmHook> getLambdaEvmHook() const { return mLambdaEvmHook; }
+  [[nodiscard]] inline std::optional<EvmHook> getEvmHook() const { return mEvmHook; }
 
   /**
    * Get the hook admin key.
@@ -112,11 +112,11 @@ private:
   int64_t mHookId;
 
   /**
-   * The lambda EVM hook implementation.
+   * The EVM hook implementation.
    *
    * A hook programmed in EVM bytecode that may access state or interact with external contracts.
    */
-  std::optional<LambdaEvmHook> mLambdaEvmHook;
+  std::optional<EvmHook> mEvmHook;
 
   /**
    * A key that that can be used to remove or replace the hook.

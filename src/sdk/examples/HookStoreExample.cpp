@@ -6,7 +6,7 @@
 #include "ContractId.h"
 #include "ED25519PrivateKey.h"
 #include "Hbar.h"
-#include "LambdaSStoreTransaction.h"
+#include "HookStoreTransaction.h"
 #include "PublicKey.h"
 #include "TransactionReceipt.h"
 #include "TransactionResponse.h"
@@ -15,9 +15,9 @@
 #include "hooks/HookEntityId.h"
 #include "hooks/HookExtensionPoint.h"
 #include "hooks/HookId.h"
-#include "hooks/LambdaEvmHook.h"
-#include "hooks/LambdaStorageSlot.h"
-#include "hooks/LambdaStorageUpdate.h"
+#include "hooks/EvmHook.h"
+#include "hooks/EvmHookStorageSlot.h"
+#include "hooks/EvmHookStorageUpdate.h"
 #include "impl/HexConverter.h"
 #include "impl/Utilities.h"
 
@@ -47,10 +47,10 @@ int main(int argc, char** argv)
 
   try
   {
-    std::cout << "Lambda SStore Example Start!" << std::endl;
+    std::cout << "HookStore Example Start!" << std::endl;
 
     /*
-     * Step 1: Set up prerequisites - create hook contract and account with lambda hook
+     * Step 1: Set up prerequisites - create hook contract and account with hook
      */
     std::cout << "Setting up prerequisites..." << std::endl;
 
@@ -89,23 +89,23 @@ int main(int argc, char** argv)
     const ContractId contractId = txReceipt.mContractId.value();
     std::cout << "Hook contract created with ID: " << contractId.toString() << std::endl;
 
-    // Create account with lambda hook
-    std::cout << "Creating account with lambda hook..." << std::endl;
+    // Create account with hook
+    std::cout << "Creating account with hook..." << std::endl;
     const std::shared_ptr<PrivateKey> accountKey = ED25519PrivateKey::generatePrivateKey();
     const std::shared_ptr<PublicKey> accountPublicKey = accountKey->getPublicKey();
 
-    // Create a lambda EVM hook
+    // Create an EVM hook
     EvmHookSpec evmHookSpec;
     evmHookSpec.setContractId(contractId);
-    LambdaEvmHook lambdaHook;
-    lambdaHook.setEvmHookSpec(evmHookSpec);
+    EvmHook evmHook;
+    evmHook.setEvmHookSpec(evmHookSpec);
 
     // Create hook creation details
     const std::shared_ptr<PublicKey> adminKey = client.getOperatorPublicKey();
     HookCreationDetails hookDetails;
     hookDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
     hookDetails.setHookId(1LL);
-    hookDetails.setLambdaEvmHook(lambdaHook);
+    hookDetails.setEvmHook(evmHook);
     hookDetails.setAdminKey(adminKey);
 
     txReceipt = AccountCreateTransaction()
@@ -125,12 +125,12 @@ int main(int argc, char** argv)
 
     const AccountId accountId = txReceipt.mAccountId.value();
     std::cout << "account id = " << accountId.toString() << std::endl;
-    std::cout << "Successfully created account with lambda hook!" << std::endl;
+    std::cout << "Successfully created account with hook!" << std::endl;
 
     /*
-     * Step 2: Demonstrate LambdaSStoreTransaction - the core functionality.
+     * Step 2: Demonstrate HookStoreTransaction - the core functionality.
      */
-    std::cout << "\n=== LambdaSStoreTransaction Example ===" << std::endl;
+    std::cout << "\n=== HookStoreTransaction Example ===" << std::endl;
 
     // Create storage key (1 byte filled with value 1)
     std::vector<std::byte> storageKey(1);
@@ -143,11 +143,11 @@ int main(int argc, char** argv)
       byte = std::byte{ 200 };
     }
 
-    LambdaStorageSlot storageSlot;
+    EvmHookStorageSlot storageSlot;
     storageSlot.setKey(storageKey);
     storageSlot.setValue(storageValue);
 
-    LambdaStorageUpdate storageUpdate;
+    EvmHookStorageUpdate storageUpdate;
     storageUpdate.setStorageSlot(storageSlot);
 
     // Create HookId for the existing hook (accountId with hook ID 1)
@@ -176,9 +176,9 @@ int main(int argc, char** argv)
     std::cout << "  Hook ID: " << hookId.getHookId() << std::endl;
     std::cout << "  Hook Entity ID: " << hookId.getEntityId().getAccountId()->toString() << std::endl;
 
-    // Execute LambdaSStoreTransaction
-    std::cout << "Executing LambdaSStoreTransaction..." << std::endl;
-    txReceipt = LambdaSStoreTransaction()
+    // Execute HookStoreTransaction
+    std::cout << "Executing HookStoreTransaction..." << std::endl;
+    txReceipt = HookStoreTransaction()
                   .setHookId(hookId)
                   .addStorageUpdate(storageUpdate)
                   .freezeWith(&client)
@@ -186,11 +186,11 @@ int main(int argc, char** argv)
                   .execute(client)
                   .getReceipt(client);
 
-    std::cout << "Successfully updated lambda hook storage!" << std::endl;
+    std::cout << "Successfully updated hook storage!" << std::endl;
     std::cout << "Transaction completed successfully!" << std::endl;
     std::cout << "Receipt status: " << gStatusToString.at(txReceipt.mStatus) << std::endl;
 
-    std::cout << "\nLambda SStore Example Complete!" << std::endl;
+    std::cout << "\nHookStore Example Complete!" << std::endl;
   }
   catch (const std::exception& error)
   {

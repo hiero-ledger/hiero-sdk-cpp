@@ -42,7 +42,7 @@ set(GET_FILE_CONTENTS_EXAMPLE_NAME ${PROJECT_NAME}-get-file-contents-example)
 set(GRPC_DEADLINE_EXAMPLE_NAME ${PROJECT_NAME}-grpc-deadline-example)
 set(INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME
         ${PROJECT_NAME}-initialize-client-with-mirror-node-address-book-example)
-set(LAMBDA_SSTORE_EXAMPLE_NAME ${PROJECT_NAME}-lambda-sstore-example)
+set(HOOK_STORE_EXAMPLE_NAME ${PROJECT_NAME}-hook-store-example)
 set(LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME ${PROJECT_NAME}-long-term-scheduled-transaction-example)
 set(MIRROR_NODE_CONTRACT_QUERY_EXAMPLE ${PROJECT_NAME}-mirror-node-contract-query-example)
 set(MULTI_APP_TRANSFER_EXAMPLE_NAME ${PROJECT_NAME}-multi-app-transfer-example)
@@ -108,7 +108,7 @@ add_executable(${GET_EXCHANGE_RATES_EXAMPLE_NAME} GetExchangeRatesExample.cpp)
 add_executable(${GET_FILE_CONTENTS_EXAMPLE_NAME} GetFileContentsExample.cpp)
 add_executable(${GRPC_DEADLINE_EXAMPLE_NAME} GrpcDeadlineExample.cpp)
 add_executable(${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME} InitializeClientWithMirrorNodeAddressBookExample.cpp)
-add_executable(${LAMBDA_SSTORE_EXAMPLE_NAME} LambdaSStoreExample.cpp)
+add_executable(${HOOK_STORE_EXAMPLE_NAME} HookStoreExample.cpp)
 add_executable(${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME} LongTermScheduledTransactionExample.cpp)
 add_executable(${MIRROR_NODE_CONTRACT_QUERY_EXAMPLE} MirrorNodeContractQueryExample.cpp)
 add_executable(${MULTI_APP_TRANSFER_EXAMPLE_NAME} MultiAppTransferExample.cpp)
@@ -196,7 +196,7 @@ target_link_libraries(${GET_EXCHANGE_RATES_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GET_FILE_CONTENTS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GRPC_DEADLINE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
-target_link_libraries(${LAMBDA_SSTORE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${HOOK_STORE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${MIRROR_NODE_CONTRACT_QUERY_EXAMPLE} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${MULTI_APP_TRANSFER_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
@@ -264,7 +264,7 @@ install(TARGETS
         ${GET_FILE_CONTENTS_EXAMPLE_NAME}
         ${GRPC_DEADLINE_EXAMPLE_NAME}
         ${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME}
-        ${LAMBDA_SSTORE_EXAMPLE_NAME}
+        ${HOOK_STORE_EXAMPLE_NAME}
         ${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME}
         ${MIRROR_NODE_CONTRACT_QUERY_EXAMPLE}
         ${MULTI_APP_TRANSFER_EXAMPLE_NAME}

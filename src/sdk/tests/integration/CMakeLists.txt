@@ -36,7 +36,7 @@ add_executable(${TEST_PROJECT_NAME}
         HIP1300IntegrationTests.cc
         HttpClientIntegrationTests.cc
         JSONIntegrationTests.cc
-        LambdaSStoreTransactionIntegrationTests.cc
+        HookStoreTransactionIntegrationTests.cc
         MirrorNodeContractQueryIntegrationTests.cc
         MirrorNodeGatewayIntegrationTests.cc
         NetworkVersionInfoQueryIntegrationTests.cc

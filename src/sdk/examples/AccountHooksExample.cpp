@@ -13,7 +13,7 @@
 #include "hooks/EvmHookSpec.h"
 #include "hooks/HookCreationDetails.h"
 #include "hooks/HookExtensionPoint.h"
-#include "hooks/LambdaEvmHook.h"
+#include "hooks/EvmHook.h"
 #include "impl/HexConverter.h"
 #include "impl/Utilities.h"
 
@@ -90,23 +90,23 @@ int main(int argc, char** argv)
      * Step 2: Demonstrate creating an account with hooks.
      */
     std::cout << "\n=== Creating Account with Hooks ===" << std::endl;
-    std::cout << "Creating account with lambda EVM hook..." << std::endl;
+    std::cout << "Creating account with EVM hook..." << std::endl;
 
     const std::shared_ptr<PrivateKey> accountKey = ED25519PrivateKey::generatePrivateKey();
     const std::shared_ptr<PublicKey> accountPublicKey = accountKey->getPublicKey();
 
-    // Create a lambda EVM hook
+    // Create a EVM hook
     EvmHookSpec evmHookSpec;
     evmHookSpec.setContractId(contractId);
-    LambdaEvmHook lambdaHook;
-    lambdaHook.setEvmHookSpec(evmHookSpec);
+    EvmHook evmHook;
+    evmHook.setEvmHookSpec(evmHookSpec);
 
     // Create hook creation details
     const std::shared_ptr<PublicKey> adminKey = client.getOperatorPublicKey();
     HookCreationDetails hookWithId1002;
     hookWithId1002.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
     hookWithId1002.setHookId(1002LL);
-    hookWithId1002.setLambdaEvmHook(lambdaHook);
+    hookWithId1002.setEvmHook(evmHook);
     hookWithId1002.setAdminKey(adminKey);
 
     txReceipt = AccountCreateTransaction()
@@ -124,7 +124,7 @@ int main(int argc, char** argv)
 
     const AccountId accountId = txReceipt.mAccountId.value();
     std::cout << "account id = " << accountId.toString() << std::endl;
-    std::cout << "Successfully created account with lambda hook!" << std::endl;
+    std::cout << "Successfully created account with hook!" << std::endl;
 
     /*
      * Step 3: Demonstrate adding hooks to an existing account.
@@ -132,21 +132,21 @@ int main(int argc, char** argv)
     std::cout << "\n=== Adding Hooks to Existing Account ===" << std::endl;
     std::cout << "Adding hooks to existing account..." << std::endl;
 
-    // Create basic lambda hooks with no storage updates
-    LambdaEvmHook basicHook;
+    // Create basic hooks with no storage updates
+    EvmHook basicHook;
     basicHook.setEvmHookSpec(evmHookSpec);
     HookCreationDetails hookWithId1;
     hookWithId1.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
     hookWithId1.setHookId(1LL);
-    hookWithId1.setLambdaEvmHook(basicHook);
+    hookWithId1.setEvmHook(basicHook);
     hookWithId1.setAdminKey(adminKey);
 
-    LambdaEvmHook basicHook2;
+    EvmHook basicHook2;
     basicHook2.setEvmHookSpec(evmHookSpec);
     HookCreationDetails hookWithId2;
     hookWithId2.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
     hookWithId2.setHookId(2LL);
-    hookWithId2.setLambdaEvmHook(basicHook2);
+    hookWithId2.setEvmHook(basicHook2);
     hookWithId2.setAdminKey(adminKey);
 
     try

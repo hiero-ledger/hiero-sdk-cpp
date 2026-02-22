@@ -73,11 +73,11 @@ add_executable(${TEST_PROJECT_NAME}
         HookIdUnitTests.cc
         IPv4AddressUnitTests.cc
         KeyListUnitTests.cc
-        LambdaEvmHookUnitTests.cc
-        LambdaMappingEntriesUnitTests.cc
-        LambdaMappingEntryUnitTests.cc
-        LambdaStorageSlotUnitTests.cc
-        LambdaStorageUpdateUnitTests.cc
+        EvmHookUnitTests.cc
+        EvmHookMappingEntriesUnitTests.cc
+        EvmHookMappingEntryUnitTests.cc
+        EvmHookStorageSlotUnitTests.cc
+        EvmHookStorageUpdateUnitTests.cc
         LedgerIdUnitTests.cc
         MirrorNodeContractQueryUnitTests.cc
         NetworkUnitTests.cc

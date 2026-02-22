@@ -28,7 +28,7 @@
 #include "hooks/HookCreationDetails.h"
 #include "hooks/HookExtensionPoint.h"
 #include "hooks/HookId.h"
-#include "hooks/LambdaEvmHook.h"
+#include "hooks/EvmHook.h"
 #include "hooks/NftHookCall.h"
 #include "hooks/NftHookType.h"
 #include "impl/HexConverter.h"
@@ -43,7 +43,7 @@ using namespace Hiero;
 class TransferTransactionHooksIntegrationTests : public BaseIntegrationTest
 {
 protected:
-  ContractId createLambdaContract(const std::string& hexBytecode, const Client& client)
+  ContractId createHookContract(const std::string& hexBytecode, const Client& client)
   {
     return ContractCreateTransaction()
       .setBytecode(internal::HexConverter::hexToBytes(hexBytecode))
@@ -58,13 +58,13 @@ protected:
                                   int64_t hookId,
                                   const Client& client)
   {
-    LambdaEvmHook lambdaHook;
-    lambdaHook.setEvmHookSpec(EvmHookSpec().setContractId(contractId));
+    EvmHook evmHook;
+    evmHook.setEvmHookSpec(EvmHookSpec().setContractId(contractId));
 
     HookCreationDetails hookDetails;
     hookDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK)
       .setHookId(hookId)
-      .setLambdaEvmHook(lambdaHook);
+      .setEvmHook(evmHook);
 
     return AccountCreateTransaction()
       .setKeyWithoutAlias(key->getPublicKey())
@@ -80,10 +80,10 @@ protected:
   [[nodiscard]] inline const Hbar& getTestHbarAmount() const { return mHbarAmount; }
   [[nodiscard]] inline int64_t getTestHookId1() const { return mHookId1; }
   [[nodiscard]] inline int64_t getTestHookId2() const { return mHookId2; }
-  [[nodiscard]] inline const std::string& getTestLambdaBytecode() const { return mLambdaBytecode; }
+  [[nodiscard]] inline const std::string& getTestHookBytecode() const { return mHookBytecode; }
 
 private:
-  const std::string mLambdaBytecode =
+  const std::string mHookBytecode =
     "6080604052348015600e575f5ffd5b506107d18061001c5f395ff3fe608060405260043610610033575f3560e01c8063124d8b301461003757"
     "806394112e2f14610067578063bd0dd0b614610097575b5f5ffd5b610051600480360381019061004c91906106f2565b6100c7565b60405161"
     "005e9190610782565b60405180910390f35b610081600480360381019061007c91906106f2565b6100d2565b60405161008e9190610782565b"
@@ -133,15 +133,15 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldTransferHbarToAccountWith
   const AccountId operatorId = AccountId(2ULL); // Operator account ID
 
   // Create account with a pre allowance hook on receiving side
-  ContractId lambdaContractId = createLambdaContract(getTestLambdaBytecode(), getTestClient());
+  ContractId hookContractId = createHookContract(getTestHookBytecode(), getTestClient());
 
-  LambdaEvmHook lambdaHook;
-  lambdaHook.setEvmHookSpec(EvmHookSpec().setContractId(lambdaContractId));
+  EvmHook evmHook;
+  evmHook.setEvmHookSpec(EvmHookSpec().setContractId(hookContractId));
 
   HookCreationDetails hookDetails;
   hookDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK)
     .setHookId(getTestHookId2())
-    .setLambdaEvmHook(lambdaHook);
+    .setEvmHook(evmHook);
 
   AccountId receiverId = AccountCreateTransaction()
                            .setKeyWithoutAlias(receiverKey->getPublicKey())
@@ -188,17 +188,17 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldExecuteHooksOnMultipleAcc
   const std::shared_ptr<PrivateKey> receiverKey2 = ED25519PrivateKey::generatePrivateKey();
   const AccountId operatorId = AccountId(2ULL); // Operator account ID
 
-  // Create lambda contract
-  ContractId lambdaContractId = createLambdaContract(getTestLambdaBytecode(), getTestClient());
+  // Create hook contract
+  ContractId hookContractId = createHookContract(getTestHookBytecode(), getTestClient());
 
   // Create first account with hook
-  LambdaEvmHook lambdaHook1;
-  lambdaHook1.setEvmHookSpec(EvmHookSpec().setContractId(lambdaContractId));
+  EvmHook evmHook1;
+  evmHook1.setEvmHookSpec(EvmHookSpec().setContractId(hookContractId));
 
   HookCreationDetails hookDetails1;
   hookDetails1.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK)
     .setHookId(getTestHookId2())
-    .setLambdaEvmHook(lambdaHook1);
+    .setEvmHook(evmHook1);
 
   AccountId receiverId1 = AccountCreateTransaction()
                             .setKeyWithoutAlias(receiverKey1->getPublicKey())
@@ -211,13 +211,13 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldExecuteHooksOnMultipleAcc
                             .mAccountId.value();
 
   // Create second account with hook
-  LambdaEvmHook lambdaHook2;
-  lambdaHook2.setEvmHookSpec(EvmHookSpec().setContractId(lambdaContractId));
+  EvmHook evmHook2;
+  evmHook2.setEvmHookSpec(EvmHookSpec().setContractId(hookContractId));
 
   HookCreationDetails hookDetails2;
   hookDetails2.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK)
     .setHookId(getTestHookId2())
-    .setLambdaEvmHook(lambdaHook2);
+    .setEvmHook(evmHook2);
 
   AccountId receiverId2 = AccountCreateTransaction()
                             .setKeyWithoutAlias(receiverKey2->getPublicKey())
@@ -275,15 +275,15 @@ TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldTransferFungible
   const std::shared_ptr<PrivateKey> receiverKey = ED25519PrivateKey::generatePrivateKey();
   const AccountId operatorId = AccountId(2ULL); // Operator account ID
 
-  ContractId lambdaContractId = createLambdaContract(getTestLambdaBytecode(), getTestClient());
+  ContractId hookContractId = createHookContract(getTestHookBytecode(), getTestClient());
 
-  LambdaEvmHook lambdaHook;
-  lambdaHook.setEvmHookSpec(EvmHookSpec().setContractId(lambdaContractId));
+  EvmHook evmHook;
+  evmHook.setEvmHookSpec(EvmHookSpec().setContractId(hookContractId));
 
   HookCreationDetails hookDetails;
   hookDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK)
     .setHookId(getTestHookId1())
-    .setLambdaEvmHook(lambdaHook);
+    .setEvmHook(evmHook);
 
   AccountId receiverId = AccountCreateTransaction()
                            .setKeyWithoutAlias(receiverKey->getPublicKey())
@@ -350,17 +350,17 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldTransferNftWithSenderAndR
   const std::shared_ptr<PrivateKey> senderKey = ED25519PrivateKey::generatePrivateKey();
   const std::shared_ptr<PrivateKey> receiverKey = ED25519PrivateKey::generatePrivateKey();
 
-  // Create lambda contract
-  ContractId lambdaContractId = createLambdaContract(getTestLambdaBytecode(), getTestClient());
+  // Create hook contract
+  ContractId hookContractId = createHookContract(getTestHookBytecode(), getTestClient());
 
   // Create sender account with hook
-  LambdaEvmHook senderHook;
-  senderHook.setEvmHookSpec(EvmHookSpec().setContractId(lambdaContractId));
+  EvmHook senderHook;
+  senderHook.setEvmHookSpec(EvmHookSpec().setContractId(hookContractId));
 
   HookCreationDetails senderHookDetails;
   senderHookDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK)
     .setHookId(getTestHookId2())
-    .setLambdaEvmHook(senderHook);
+    .setEvmHook(senderHook);
 
   AccountId senderId = AccountCreateTransaction()
                          .setKeyWithoutAlias(senderKey->getPublicKey())
@@ -373,13 +373,13 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldTransferNftWithSenderAndR
                          .mAccountId.value();
 
   // Create receiver account with hook
-  LambdaEvmHook receiverHook;
-  receiverHook.setEvmHookSpec(EvmHookSpec().setContractId(lambdaContractId));
+  EvmHook receiverHook;
+  receiverHook.setEvmHookSpec(EvmHookSpec().setContractId(hookContractId));
 
   HookCreationDetails receiverHookDetails;
   receiverHookDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK)
     .setHookId(getTestHookId2())
-    .setLambdaEvmHook(receiverHook);
+    .setEvmHook(receiverHook);
 
   AccountId receiverId = AccountCreateTransaction()
                            .setKeyWithoutAlias(receiverKey->getPublicKey())
@@ -471,15 +471,15 @@ TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldCallPreTransacti
   const std::shared_ptr<PrivateKey> senderKey = ED25519PrivateKey::generatePrivateKey();
   const AccountId operatorId = AccountId(2ULL); // Operator account ID
 
-  ContractId lambdaContractId = createLambdaContract(getTestLambdaBytecode(), getTestClient());
+  ContractId hookContractId = createHookContract(getTestHookBytecode(), getTestClient());
 
-  LambdaEvmHook lambdaHook;
-  lambdaHook.setEvmHookSpec(EvmHookSpec().setContractId(lambdaContractId));
+  EvmHook evmHook;
+  evmHook.setEvmHookSpec(EvmHookSpec().setContractId(hookContractId));
 
   HookCreationDetails hookDetails;
   hookDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK)
     .setHookId(getTestHookId1())
-    .setLambdaEvmHook(lambdaHook);
+    .setEvmHook(evmHook);
 
   AccountId senderId = AccountCreateTransaction()
                          .setKeyWithoutAlias(senderKey->getPublicKey())
@@ -527,15 +527,15 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldCallPreAndPostAllowanceHo
   const AccountId operatorId = AccountId(2ULL); // Operator account ID
 
   // Create account with a pre/post allowance hook (hookId = 2)
-  ContractId lambdaContractId = createLambdaContract(getTestLambdaBytecode(), getTestClient());
+  ContractId hookContractId = createHookContract(getTestHookBytecode(), getTestClient());
 
-  LambdaEvmHook lambdaHook;
-  lambdaHook.setEvmHookSpec(EvmHookSpec().setContractId(lambdaContractId));
+  EvmHook evmHook;
+  evmHook.setEvmHookSpec(EvmHookSpec().setContractId(hookContractId));
 
   HookCreationDetails hookDetails;
   hookDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK)
     .setHookId(getTestHookId2())
-    .setLambdaEvmHook(lambdaHook);
+    .setEvmHook(evmHook);
 
   AccountId senderId = AccountCreateTransaction()
                          .setKeyWithoutAlias(senderKey->getPublicKey())
@@ -585,10 +585,10 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldFailWhenHookIdDoesNotExis
   const std::shared_ptr<PrivateKey> senderKey = ED25519PrivateKey::generatePrivateKey();
   const std::shared_ptr<PrivateKey> receiverKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
 
-  // Create lambda contract with bytecode (simplified version)
+  // Create hook contract with bytecode (simplified version)
 
-  ContractId lambdaContractId = createLambdaContract(getTestLambdaBytecode(), getTestClient());
-  AccountId senderId = createAccountWithHook(senderKey, lambdaContractId, getTestHookId1(), getTestClient());
+  ContractId hookContractId = createHookContract(getTestHookBytecode(), getTestClient());
+  AccountId senderId = createAccountWithHook(senderKey, hookContractId, getTestHookId1(), getTestClient());
   AccountId receiverId = AccountCreateTransaction()
                            .setKeyWithoutAlias(receiverKey->getPublicKey())
                            .setInitialBalance(Hbar(10LL))
@@ -632,9 +632,9 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldFailWithInsufficientGasFo
   const std::shared_ptr<PrivateKey> senderKey = ED25519PrivateKey::generatePrivateKey();
   const std::shared_ptr<PrivateKey> receiverKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
 
-  // Create lambda contract with bytecode (simplified version)
-  ContractId lambdaContractId = createLambdaContract(getTestLambdaBytecode(), getTestClient());
-  AccountId senderId = createAccountWithHook(senderKey, lambdaContractId, getTestHookId1(), getTestClient());
+  // Create hook contract with bytecode (simplified version)
+  ContractId hookContractId = createHookContract(getTestHookBytecode(), getTestClient());
+  AccountId senderId = createAccountWithHook(senderKey, hookContractId, getTestHookId1(), getTestClient());
   AccountId receiverId = AccountCreateTransaction()
                            .setKeyWithoutAlias(receiverKey->getPublicKey())
                            .setInitialBalance(Hbar(10LL))
@@ -678,7 +678,7 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldNotTransferWhenHookReturn
   const std::shared_ptr<PrivateKey> senderKey = ED25519PrivateKey::generatePrivateKey();
   const std::shared_ptr<PrivateKey> receiverKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
 
-  // Create lambda contract with bytecode (simplified version that returns false)
+  // Create hook contract with bytecode (simplified version that returns false)
   const std::string bytecode =
     "6080604052348015600e575f5ffd5b506107d18061001c5f395ff3fe608060405260043610610033575f3560e01c8063124d8b301461003757"
     "806394112e2f14610067578063bd0dd0b614610097575b5f5ffd5b610051600480360381019061004c91906106f2565b6100c7565b60405161"
@@ -717,8 +717,8 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldNotTransferWhenHookReturn
     "7981610765565b82525050565b5f6020820190506107925f830184610770565b9291505056fea26469706673582212206ee6e21549dc017713"
     "ebcaf2cc8da2267cab2518f23f1b8818b87b97b4b8389064736f6c634300081e0033";
 
-  ContractId lambdaContractId = createLambdaContract(bytecode, getTestClient());
-  AccountId senderId = createAccountWithHook(senderKey, lambdaContractId, getTestHookId1(), getTestClient());
+  ContractId hookContractId = createHookContract(bytecode, getTestClient());
+  AccountId senderId = createAccountWithHook(senderKey, hookContractId, getTestHookId1(), getTestClient());
   AccountId receiverId = AccountCreateTransaction()
                            .setKeyWithoutAlias(receiverKey->getPublicKey())
                            .setInitialBalance(Hbar(10LL))

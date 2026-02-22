@@ -7,7 +7,7 @@
 #include "ECDSAsecp256k1PrivateKey.h"
 #include "ED25519PrivateKey.h"
 #include "Hbar.h"
-#include "LambdaSStoreTransaction.h"
+#include "HookStoreTransaction.h"
 #include "Status.h"
 #include "TransactionId.h"
 #include "TransactionReceipt.h"
@@ -18,9 +18,9 @@
 #include "hooks/HookEntityId.h"
 #include "hooks/HookExtensionPoint.h"
 #include "hooks/HookId.h"
-#include "hooks/LambdaEvmHook.h"
-#include "hooks/LambdaStorageSlot.h"
-#include "hooks/LambdaStorageUpdate.h"
+#include "hooks/EvmHook.h"
+#include "hooks/EvmHookStorageSlot.h"
+#include "hooks/EvmHookStorageUpdate.h"
 #include "impl/HexConverter.h"
 #include "impl/Utilities.h"
 
@@ -28,7 +28,7 @@
 
 using namespace Hiero;
 
-class LambdaSStoreTransactionIntegrationTests : public BaseIntegrationTest
+class HookStoreTransactionIntegrationTests : public BaseIntegrationTest
 {
 protected:
   void SetUp() override
@@ -64,22 +64,22 @@ protected:
 
     mPrivateKey = ED25519PrivateKey::generatePrivateKey();
 
-    LambdaStorageUpdate storageUpdate;
-    LambdaStorageSlot storageSlot;
+    EvmHookStorageUpdate storageUpdate;
+    EvmHookStorageSlot storageSlot;
     storageSlot.setKey(getTestStorageKey1());
     storageSlot.setValue(getTestStorageValue1());
     storageUpdate.setStorageSlot(storageSlot);
 
-    LambdaEvmHook lambdaEvmHook;
+    EvmHook evmHook;
     EvmHookSpec evmHookSpec;
     evmHookSpec.setContractId(getTestContractId());
-    lambdaEvmHook.setEvmHookSpec(evmHookSpec);
-    lambdaEvmHook.addStorageUpdate(storageUpdate);
+    evmHook.setEvmHookSpec(evmHookSpec);
+    evmHook.addStorageUpdate(storageUpdate);
 
     HookCreationDetails hookCreationDetails;
     hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
     hookCreationDetails.setHookId(getTestHookId());
-    hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+    hookCreationDetails.setEvmHook(evmHook);
 
     mAccountId = AccountCreateTransaction()
                    .setKeyWithoutAlias(mPrivateKey)
@@ -132,18 +132,18 @@ private:
 };
 
 //-----
-TEST_F(LambdaSStoreTransactionIntegrationTests, ExecuteLambdaSStoreTransactionWithSingleStorageUpdate)
+TEST_F(HookStoreTransactionIntegrationTests, ExecuteHookStoreTransactionWithSingleStorageUpdate)
 {
   // Given
-  LambdaStorageUpdate storageUpdate;
-  LambdaStorageSlot storageSlot;
+  EvmHookStorageUpdate storageUpdate;
+  EvmHookStorageSlot storageSlot;
   storageSlot.setKey(getTestStorageKey2());
   storageSlot.setValue(getTestStorageValue2());
   storageUpdate.setStorageSlot(storageSlot);
 
   // When
   TransactionResponse txResponse;
-  EXPECT_NO_THROW(txResponse = LambdaSStoreTransaction()
+  EXPECT_NO_THROW(txResponse = HookStoreTransaction()
                                  .setHookId(getTransactionHookId())
                                  .addStorageUpdate(storageUpdate)
                                  .freezeWith(&getTestClient())
@@ -157,41 +157,41 @@ TEST_F(LambdaSStoreTransactionIntegrationTests, ExecuteLambdaSStoreTransactionWi
 }
 
 //-----
-TEST_F(LambdaSStoreTransactionIntegrationTests, ExecuteLambdaSStoreTransactionWithTooManyStorageUpdates)
+TEST_F(HookStoreTransactionIntegrationTests, ExecuteHookStoreTransactionWithTooManyStorageUpdates)
 {
   // Given
-  LambdaStorageUpdate storageUpdate;
-  LambdaStorageSlot storageSlot;
+  EvmHookStorageUpdate storageUpdate;
+  EvmHookStorageSlot storageSlot;
   storageSlot.setKey(getTestStorageKey2());
   storageSlot.setValue(getTestStorageValue2());
   storageUpdate.setStorageSlot(storageSlot);
 
-  LambdaSStoreTransaction lambdaTx = LambdaSStoreTransaction().setHookId(getTransactionHookId());
+  HookStoreTransaction hookStoreTx = HookStoreTransaction().setHookId(getTransactionHookId());
   for (int i = 0; i < 256; ++i)
   {
-    lambdaTx.addStorageUpdate(storageUpdate);
+    hookStoreTx.addStorageUpdate(storageUpdate);
   }
 
   // When / Then
-  EXPECT_THROW(const TransactionReceipt txReceipt = lambdaTx.freezeWith(&getTestClient())
+  EXPECT_THROW(const TransactionReceipt txReceipt = hookStoreTx.freezeWith(&getTestClient())
                                                       .sign(getTestPrivateKey())
                                                       .execute(getTestClient())
                                                       .getReceipt(getTestClient()),
-               ReceiptStatusException); // TOO_MANY_LAMBDA_STORAGE_UPDATES
+               ReceiptStatusException); // TOO_MANY_EVM_HOOK_STORAGE_UPDATES
 }
 
 //-----
-TEST_F(LambdaSStoreTransactionIntegrationTests, ExecuteLambdaSStoreTransactionWithoutProperSignatures)
+TEST_F(HookStoreTransactionIntegrationTests, ExecuteHookStoreTransactionWithoutProperSignatures)
 {
   // Given
-  LambdaStorageUpdate storageUpdate;
-  LambdaStorageSlot storageSlot;
+  EvmHookStorageUpdate storageUpdate;
+  EvmHookStorageSlot storageSlot;
   storageSlot.setKey(getTestStorageKey2());
   storageSlot.setValue(getTestStorageValue2());
   storageUpdate.setStorageSlot(storageSlot);
 
   // When / Then
-  EXPECT_THROW(const TransactionReceipt txReceipt = LambdaSStoreTransaction()
+  EXPECT_THROW(const TransactionReceipt txReceipt = HookStoreTransaction()
                                                       .setHookId(getTransactionHookId())
                                                       .addStorageUpdate(storageUpdate)
                                                       .execute(getTestClient())
@@ -200,11 +200,11 @@ TEST_F(LambdaSStoreTransactionIntegrationTests, ExecuteLambdaSStoreTransactionWi
 }
 
 //-----
-TEST_F(LambdaSStoreTransactionIntegrationTests, ExecuteLambdaSStoreTransactionWithoutInvalidHookId)
+TEST_F(HookStoreTransactionIntegrationTests, ExecuteHookStoreTransactionWithoutInvalidHookId)
 {
   // Given
-  LambdaStorageUpdate storageUpdate;
-  LambdaStorageSlot storageSlot;
+  EvmHookStorageUpdate storageUpdate;
+  EvmHookStorageSlot storageSlot;
   storageSlot.setKey(getTestStorageKey1());
   storageSlot.setValue(getTestStorageValue1());
   storageUpdate.setStorageSlot(storageSlot);
@@ -217,7 +217,7 @@ TEST_F(LambdaSStoreTransactionIntegrationTests, ExecuteLambdaSStoreTransactionWi
   hookId.setEntityId(hookEntityId);
 
   // When / Then
-  EXPECT_THROW(LambdaSStoreTransaction()
+  EXPECT_THROW(HookStoreTransaction()
                  .setHookId(hookId)
                  .addStorageUpdate(storageUpdate)
                  .execute(getTestClient())

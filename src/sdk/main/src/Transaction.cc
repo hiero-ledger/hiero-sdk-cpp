@@ -18,7 +18,7 @@
 #include "FileDeleteTransaction.h"
 #include "FileUpdateTransaction.h"
 #include "FreezeTransaction.h"
-#include "LambdaSStoreTransaction.h"
+#include "HookStoreTransaction.h"
 #include "NodeCreateTransaction.h"
 #include "NodeDeleteTransaction.h"
 #include "NodeUpdateTransaction.h"
@@ -305,8 +305,8 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
       return WrappedTransaction(FileUpdateTransaction(transactions));
     case proto::TransactionBody::kFreeze:
       return WrappedTransaction(FreezeTransaction(transactions));
-    case proto::TransactionBody::kLambdaSstore:
-      return WrappedTransaction(LambdaSStoreTransaction(transactions));
+    case proto::TransactionBody::kHookStore:
+      return WrappedTransaction(HookStoreTransaction(transactions));
     case proto::TransactionBody::kNodeCreate:
       return WrappedTransaction(NodeCreateTransaction(transactions));
     case proto::TransactionBody::kNodeDelete:
@@ -1456,7 +1456,7 @@ template class Transaction<FileCreateTransaction>;
 template class Transaction<FileDeleteTransaction>;
 template class Transaction<FileUpdateTransaction>;
 template class Transaction<FreezeTransaction>;
-template class Transaction<LambdaSStoreTransaction>;
+template class Transaction<HookStoreTransaction>;
 template class Transaction<NodeCreateTransaction>;
 template class Transaction<NodeDeleteTransaction>;
 template class Transaction<NodeUpdateTransaction>;

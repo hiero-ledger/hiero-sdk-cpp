@@ -335,15 +335,15 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CanAddHookToAccount)
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
   evmHookSpec.setContractId(getTestContractId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   // When / Then
   EXPECT_NO_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
@@ -375,15 +375,15 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotUpdateWithMultipleOfSameH
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
   evmHookSpec.setContractId(getTestContractId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   // When / Then
   EXPECT_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
@@ -417,15 +417,15 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotUpdateWithHookAlreadyInUs
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
   evmHookSpec.setContractId(getTestContractId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   ASSERT_NO_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                          .setAccountId(accountId)
@@ -466,24 +466,24 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CanAddHookToAccountWithStorageU
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
   evmHookSpec.setContractId(getTestContractId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHook.setEvmHookSpec(evmHookSpec);
 
-  LambdaStorageSlot lambdaStorageSlot;
-  lambdaStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
-  lambdaStorageSlot.setValue({ std::byte(0x67), std::byte(0x89), std::byte(0xAB) });
+  EvmHookStorageSlot evmHookStorageSlot;
+  evmHookStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
+  evmHookStorageSlot.setValue({ std::byte(0x67), std::byte(0x89), std::byte(0xAB) });
 
-  LambdaStorageUpdate lambdaStorageUpdate;
-  lambdaStorageUpdate.setStorageSlot(lambdaStorageSlot);
+  EvmHookStorageUpdate evmHookStorageUpdate;
+  evmHookStorageUpdate.setStorageSlot(evmHookStorageSlot);
 
-  lambdaEvmHook.addStorageUpdate(lambdaStorageUpdate);
+  evmHook.addStorageUpdate(evmHookStorageUpdate);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   // When / Then
   EXPECT_NO_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
@@ -515,16 +515,16 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CanDeleteHook)
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
   evmHookSpec.setContractId(getTestContractId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHook.setEvmHookSpec(evmHookSpec);
 
   const int64_t hookId = 1LL;
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(hookId);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   ASSERT_NO_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                          .setAccountId(accountId)
@@ -564,15 +564,15 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotDeleteNonExistentHook)
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
   evmHookSpec.setContractId(getTestContractId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHook.setEvmHookSpec(evmHookSpec);
 
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(1LL);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   ASSERT_NO_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()
                                                          .setAccountId(accountId)
@@ -613,16 +613,16 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotAddAndDeleteSameHook)
                                 .getReceipt(getTestClient())
                                 .mAccountId.value());
 
-  LambdaEvmHook lambdaEvmHook;
+  EvmHook evmHook;
   EvmHookSpec evmHookSpec;
   evmHookSpec.setContractId(getTestContractId());
-  lambdaEvmHook.setEvmHookSpec(evmHookSpec);
+  evmHook.setEvmHookSpec(evmHookSpec);
 
   const int64_t hookId = 1LL;
   HookCreationDetails hookCreationDetails;
   hookCreationDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
   hookCreationDetails.setHookId(hookId);
-  hookCreationDetails.setLambdaEvmHook(lambdaEvmHook);
+  hookCreationDetails.setEvmHook(evmHook);
 
   // When / Then
   EXPECT_THROW(const TransactionReceipt txReceipt = AccountUpdateTransaction()

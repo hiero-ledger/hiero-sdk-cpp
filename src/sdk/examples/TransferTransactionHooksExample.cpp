@@ -22,7 +22,7 @@
 #include "hooks/FungibleHookType.h"
 #include "hooks/HookCreationDetails.h"
 #include "hooks/HookExtensionPoint.h"
-#include "hooks/LambdaEvmHook.h"
+#include "hooks/EvmHook.h"
 #include "hooks/NftHookCall.h"
 #include "hooks/NftHookType.h"
 #include "impl/HexConverter.h"
@@ -94,13 +94,13 @@ int main(int argc, char** argv)
     // Create hook details
     EvmHookSpec evmHookSpec;
     evmHookSpec.setContractId(hookContractId);
-    LambdaEvmHook lambdaHook;
-    lambdaHook.setEvmHookSpec(evmHookSpec);
+    EvmHook evmHook;
+    evmHook.setEvmHookSpec(evmHookSpec);
 
     HookCreationDetails hookDetails;
     hookDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
     hookDetails.setHookId(1LL);
-    hookDetails.setLambdaEvmHook(lambdaHook);
+    hookDetails.setEvmHook(evmHook);
 
     // Create sender account
     const std::shared_ptr<PrivateKey> senderPrivateKey = ED25519PrivateKey::generatePrivateKey();

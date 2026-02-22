@@ -2,7 +2,7 @@
 #include "ED25519PrivateKey.h"
 #include "hooks/HookCreationDetails.h"
 #include "hooks/HookExtensionPoint.h"
-#include "hooks/LambdaEvmHook.h"
+#include "hooks/EvmHook.h"
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
@@ -24,47 +24,47 @@ protected:
     const std::vector<std::byte> mValue2 = { std::byte(0x0A), std::byte(0x0C), std::byte(0x0E) };
     const std::vector<std::byte> mValue3 = { std::byte(0x11), std::byte(0x13), std::byte(0x15) };
 
-    LambdaStorageSlot mLambdaStorageSlot;
+    EvmHookStorageSlot mEvmHookStorageSlot;
 
-    LambdaMappingEntry mLambdaMappingEntry1;
-    LambdaMappingEntry mLambdaMappingEntry2;
-    LambdaMappingEntries mLambdaMappingEntries;
+    EvmHookMappingEntry mEvmHookMappingEntry1;
+    EvmHookMappingEntry mEvmHookMappingEntry2;
+    EvmHookMappingEntries mEvmHookMappingEntries;
 
-    LambdaStorageUpdate mLambdaStorageUpdate1;
-    LambdaStorageUpdate mLambdaStorageUpdate2;
+    EvmHookStorageUpdate mEvmHookStorageUpdate1;
+    EvmHookStorageUpdate mEvmHookStorageUpdate2;
 
-    mLambdaStorageSlot.setKey(mKey1);
-    mLambdaStorageSlot.setValue(mValue1);
+    mEvmHookStorageSlot.setKey(mKey1);
+    mEvmHookStorageSlot.setValue(mValue1);
 
-    mLambdaStorageUpdate1.setStorageSlot(mLambdaStorageSlot);
+    mEvmHookStorageUpdate1.setStorageSlot(mEvmHookStorageSlot);
 
-    mLambdaMappingEntry1.setKey(mKey2);
-    mLambdaMappingEntry1.setValue(mValue2);
+    mEvmHookMappingEntry1.setKey(mKey2);
+    mEvmHookMappingEntry1.setValue(mValue2);
 
-    mLambdaMappingEntry2.setPreimage(mPreimage);
-    mLambdaMappingEntry2.setValue(mValue3);
+    mEvmHookMappingEntry2.setPreimage(mPreimage);
+    mEvmHookMappingEntry2.setValue(mValue3);
 
-    mLambdaMappingEntries.addEntry(mLambdaMappingEntry1);
-    mLambdaMappingEntries.addEntry(mLambdaMappingEntry2);
+    mEvmHookMappingEntries.addEntry(mEvmHookMappingEntry1);
+    mEvmHookMappingEntries.addEntry(mEvmHookMappingEntry2);
 
-    mLambdaStorageUpdate2.setMappingEntries(mLambdaMappingEntries);
+    mEvmHookStorageUpdate2.setMappingEntries(mEvmHookMappingEntries);
 
-    mLambdaEvmHook.addStorageUpdate(mLambdaStorageUpdate1);
-    mLambdaEvmHook.addStorageUpdate(mLambdaStorageUpdate2);
+    mEvmHook.addStorageUpdate(mEvmHookStorageUpdate1);
+    mEvmHook.addStorageUpdate(mEvmHookStorageUpdate2);
   }
 
   [[nodiscard]] inline HookExtensionPoint getTestHookExtensionPoint() const { return mHookExtensionPoint; }
   [[nodiscard]] inline int64_t getTestHookId() const { return mHookId; }
   [[nodiscard]] inline const std::shared_ptr<Key>& getTestAdminKey() const { return mAdminKey; }
 
-  [[nodiscard]] const LambdaEvmHook& getTestLambdaEvmHook() const { return mLambdaEvmHook; }
+  [[nodiscard]] const EvmHook& getTestEvmHook() const { return mEvmHook; }
 
 private:
   const HookExtensionPoint mHookExtensionPoint = HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK;
   const int64_t mHookId = 1LL;
   const std::shared_ptr<Key> mAdminKey = ED25519PrivateKey::generatePrivateKey();
 
-  LambdaEvmHook mLambdaEvmHook;
+  EvmHook mEvmHook;
 };
 
 //-----
@@ -81,18 +81,18 @@ TEST_F(HookCreationDetailsUnitTests, GetSetExtensionPoint)
 }
 
 //-----
-TEST_F(HookCreationDetailsUnitTests, GetSetLambdaEvmHook)
+TEST_F(HookCreationDetailsUnitTests, GetSetEvmHook)
 {
   // Given
   HookCreationDetails hookCreationDetails;
 
   // When
-  EXPECT_NO_THROW(hookCreationDetails.setLambdaEvmHook(getTestLambdaEvmHook()));
+  EXPECT_NO_THROW(hookCreationDetails.setEvmHook(getTestEvmHook()));
 
   // Then
-  EXPECT_TRUE(hookCreationDetails.getLambdaEvmHook().has_value());
-  EXPECT_EQ(hookCreationDetails.getLambdaEvmHook()->getStorageUpdates().size(),
-            getTestLambdaEvmHook().getStorageUpdates().size());
+  EXPECT_TRUE(hookCreationDetails.getEvmHook().has_value());
+  EXPECT_EQ(hookCreationDetails.getEvmHook()->getStorageUpdates().size(),
+            getTestEvmHook().getStorageUpdates().size());
 }
 
 //-----
@@ -117,7 +117,7 @@ TEST_F(HookCreationDetailsUnitTests, FromProtobuf)
   protoHookCreationDetails.set_extension_point(
     gHookExtensionPointToProtobufHookExtensionPoint.at(getTestHookExtensionPoint()));
   protoHookCreationDetails.set_hook_id(getTestHookId());
-  protoHookCreationDetails.set_allocated_lambda_evm_hook(getTestLambdaEvmHook().toProtobuf().release());
+  protoHookCreationDetails.set_allocated_evm_hook(getTestEvmHook().toProtobuf().release());
   protoHookCreationDetails.set_allocated_admin_key(getTestAdminKey()->toProtobufKey().release());
 
   // When
@@ -126,7 +126,7 @@ TEST_F(HookCreationDetailsUnitTests, FromProtobuf)
   // Then
   EXPECT_EQ(hookCreationDetails.getExtensionPoint(), getTestHookExtensionPoint());
   EXPECT_EQ(hookCreationDetails.getHookId(), getTestHookId());
-  EXPECT_TRUE(hookCreationDetails.getLambdaEvmHook().has_value());
+  EXPECT_TRUE(hookCreationDetails.getEvmHook().has_value());
   EXPECT_TRUE(hookCreationDetails.getAdminKey());
 }
 
@@ -138,7 +138,7 @@ TEST_F(HookCreationDetailsUnitTests, ToProtobuf)
 
   hookCreationDetails.setExtensionPoint(getTestHookExtensionPoint());
   hookCreationDetails.setHookId(getTestHookId());
-  hookCreationDetails.setLambdaEvmHook(getTestLambdaEvmHook());
+  hookCreationDetails.setEvmHook(getTestEvmHook());
   hookCreationDetails.setAdminKey(getTestAdminKey());
 
   // When
@@ -149,6 +149,6 @@ TEST_F(HookCreationDetailsUnitTests, ToProtobuf)
   EXPECT_EQ(protoHookCreationDetails->extension_point(),
             gHookExtensionPointToProtobufHookExtensionPoint.at(getTestHookExtensionPoint()));
   EXPECT_EQ(protoHookCreationDetails->hook_id(), getTestHookId());
-  EXPECT_TRUE(protoHookCreationDetails->has_lambda_evm_hook());
+  EXPECT_TRUE(protoHookCreationDetails->has_evm_hook());
   EXPECT_TRUE(protoHookCreationDetails->has_admin_key());
 }
