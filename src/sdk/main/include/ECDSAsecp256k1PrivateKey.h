@@ -176,6 +176,18 @@ public:
    */
   [[nodiscard]] std::vector<std::byte> toBytesRaw() const override;
 
+  /**
+   * Calculate the ECDSA recovery id for a given message hash and signature (r, s).
+   *
+   * @param msgHash The message hash that was signed.
+   * @param r The r value of the signature (32 bytes).
+   * @param s The s value of the signature (32 bytes).
+   * @return The recovery id (0-3) if found, or -1 if not found.
+   */
+  int calculateRecoveryId(const std::vector<std::byte>& msgHash,
+                          const std::vector<std::byte>& r,
+                          const std::vector<std::byte>& s) const;
+
 private:
   /**
    * Construct from a wrapped OpenSSL key object and optionally a chain code.
