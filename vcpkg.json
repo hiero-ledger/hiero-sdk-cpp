@@ -42,7 +42,8 @@
       "version>=": "0.14.1"
     },
     {
-      "name": "gtest"
+      "name": "gtest",
+      "version>=": "1.16.0"
     }
   ]
 }
