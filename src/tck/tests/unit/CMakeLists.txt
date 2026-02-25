@@ -4,8 +4,6 @@
 
 find_package(httplib CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
-find_package(GTest CONFIG REQUIRED)
-include(GoogleTest)
 
 # Set the test executable name
 set(TCK_TEST_NAME ${PROJECT_NAME}-tck-tests)
