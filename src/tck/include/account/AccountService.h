@@ -13,6 +13,7 @@ struct ApproveAllowanceParams;
 struct CreateAccountParams;
 struct DeleteAccountParams;
 struct DeleteAllowanceParams;
+struct GetAccountInfoParams;
 struct TransferCryptoParams;
 struct UpdateAccountParams;
 
@@ -63,6 +64,14 @@ nlohmann::json transferCrypto(const TransferCryptoParams& params);
  * @return A JSON response containing the status of the account update.
  */
 nlohmann::json updateAccount(const UpdateAccountParams& params);
+
+/**
+ * Get account info.
+ *
+ * @param params The parameters to use to get account info.
+ * @return A JSON response containing the account info.
+ */
+nlohmann::json getAccountInfo(const GetAccountInfoParams& params);
 
 } // namespace Hiero::TCK::AccountService
 
