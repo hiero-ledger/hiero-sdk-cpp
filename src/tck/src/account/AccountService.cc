@@ -13,6 +13,8 @@
 #include "common/transfer/TransferParams.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
+#include <algorithm>
+#include <cctype>
 
 #include <AccountAllowanceApproveTransaction.h>
 #include <AccountAllowanceDeleteTransaction.h>
@@ -256,13 +258,14 @@ nlohmann::json getAccountInfo(const GetAccountInfoParams& params)
   response["contractAccountId"] = info.mContractAccountId;
   response["isDeleted"] = info.mIsDeleted;
 
-  // proxyAccountId is deprecated and not stored in the SDK; always null.
   response["proxyAccountId"] = nullptr;
   response["proxyReceived"] = std::to_string(info.mProxyReceived.toTinybars());
 
   if (const auto* pubKey = dynamic_cast<const PublicKey*>(info.mKey.get()))
   {
-    response["key"] = pubKey->toStringDer();
+    std::string keyStr = pubKey->toStringDer();
+    std::transform(keyStr.begin(), keyStr.end(), keyStr.begin(), [](unsigned char c) { return std::tolower(c); });
+    response["key"] = keyStr;
   }
   else
   {
@@ -271,8 +274,6 @@ nlohmann::json getAccountInfo(const GetAccountInfoParams& params)
 
   response["balance"] = std::to_string(info.mBalance.toTinybars());
 
-  // sendRecordThreshold / receiveRecordThreshold are deprecated proto fields not
-  // surfaced by the SDK; return "0" so the TCK property-existence checks pass.
   response["sendRecordThreshold"] = "0";
   response["receiveRecordThreshold"] = "0";
 
@@ -285,18 +286,14 @@ nlohmann::json getAccountInfo(const GetAccountInfoParams& params)
   auto autoRenewSeconds = std::chrono::duration_cast<std::chrono::seconds>(info.mAutoRenewPeriod).count();
   response["autoRenewPeriod"] = std::to_string(autoRenewSeconds);
 
-  // liveHashes is deprecated; return an empty array so the TCK array check passes.
   response["liveHashes"] = nlohmann::json::array();
 
-  // Token relationships map: token-ID string → relationship object.
   nlohmann::json tokenRelJson = nlohmann::json::object();
   for (const auto& [tokenId, rel] : info.mTokenRelationships)
   {
     nlohmann::json relObj;
-    // mBalance is uint64_t (unit: smallest denomination), not an Hbar object.
     relObj["balance"] = std::to_string(rel.mBalance);
     relObj["decimals"] = rel.mDecimals;
-    // mKycStatus / mFreezeStatus are optional<bool>; null means NOT_APPLICABLE.
     relObj["kycStatus"] = rel.mKycStatus.has_value() ? nlohmann::json(rel.mKycStatus.value()) : nlohmann::json(nullptr);
     relObj["freezeStatus"] =
       rel.mFreezeStatus.has_value() ? nlohmann::json(rel.mFreezeStatus.value()) : nlohmann::json(nullptr);
@@ -309,7 +306,6 @@ nlohmann::json getAccountInfo(const GetAccountInfoParams& params)
   response["ownedNfts"] = std::to_string(info.mOwnedNfts);
   response["maxAutomaticTokenAssociations"] = std::to_string(info.mMaxAutomaticTokenAssociations);
 
-  // aliasKey: prefer the EVM-address alias, then the public-key alias.
   if (info.mEvmAddressAlias.has_value())
   {
     response["aliasKey"] = info.mEvmAddressAlias->toString();
@@ -325,17 +321,12 @@ nlohmann::json getAccountInfo(const GetAccountInfoParams& params)
 
   response["ledgerId"] = info.mLedgerId.toString();
 
-  // ethereumNonce is not surfaced in the C++ SDK AccountInfo; default to "0".
   response["ethereumNonce"] = "0";
 
-  // Staking info — every sub-field must always be present (even as null) because
-  // the TCK uses .to.have.property() checks unconditionally.
   nlohmann::json stakingJson;
 
-  // SDK field is mDeclineRewards, not mDeclineStakingReward.
   stakingJson["declineStakingReward"] = info.mStakingInfo.mDeclineRewards;
 
-  // time_point has no toString(); convert to seconds-since-epoch string.
   if (info.mStakingInfo.mStakePeriodStart.has_value())
   {
     auto stakePeriodStartSeconds =
@@ -360,7 +351,6 @@ nlohmann::json getAccountInfo(const GetAccountInfoParams& params)
     stakingJson["stakedAccountId"] = nullptr;
   }
 
-  // stakedNodeId must be a string when present (TCK compares with "0", "1", …).
   if (info.mStakingInfo.mStakedNodeId.has_value())
   {
     stakingJson["stakedNodeId"] = std::to_string(info.mStakingInfo.mStakedNodeId.value());
