@@ -18,6 +18,7 @@
 #include "FileDeleteTransaction.h"
 #include "FileUpdateTransaction.h"
 #include "FreezeTransaction.h"
+#include "HookStoreTransaction.h"
 #include "NodeCreateTransaction.h"
 #include "NodeDeleteTransaction.h"
 #include "NodeUpdateTransaction.h"
@@ -89,6 +90,7 @@ public:
                                               FileDeleteTransaction,
                                               FileUpdateTransaction,
                                               FreezeTransaction,
+                                              HookStoreTransaction,
                                               NodeCreateTransaction,
                                               NodeDeleteTransaction,
                                               NodeUpdateTransaction,

@@ -47,6 +47,8 @@ add_executable(${TEST_PROJECT_NAME}
         EthereumTransactionDataEip1559UnitTests.cc
         EthereumTransactionDataLegacyUnitTests.cc
         EvmAddressUnitTests.cc
+        EvmHookCallUnitTests.cc
+        EvmHookSpecUnitTests.cc
         ExchangeRateUnitTests.cc
         FeeAssessmentMethodUnitTests.cc
         FileAppendTransactionUnitTests.cc
@@ -58,20 +60,32 @@ add_executable(${TEST_PROJECT_NAME}
         FileInfoUnitTests.cc
         FileUpdateTransactionUnitTests.cc
         FreezeTransactionUnitTests.cc
-        NodeCreateTransactionUnitTests.cc
-        NodeDeleteTransactionUnitTests.cc
-        NodeUpdateTransactionUnitTests.cc
+        FungibleHookCallUnitTests.cc
         HbarAllowanceUnitTests.cc
-        HbarUnitTests.cc
         HbarTransferUnitTests.cc
+        HbarUnitTests.cc
+        HookCallUnitTests.cc
+        HookCreationDetailsUnitTests.cc
+        HookEntityIdUnitTests.cc
+        HookIdUnitTests.cc
         IPv4AddressUnitTests.cc
         KeyListUnitTests.cc
+        EvmHookUnitTests.cc
+        EvmHookMappingEntriesUnitTests.cc
+        EvmHookMappingEntryUnitTests.cc
+        EvmHookStorageSlotUnitTests.cc
+        EvmHookStorageUpdateUnitTests.cc
         LedgerIdUnitTests.cc
         MirrorNodeContractQueryUnitTests.cc
         NetworkUnitTests.cc
         NetworkVersionInfoUnitTests.cc
+        NftHookCallUnitTests.cc
+        NftHookTypeUnitTests.cc
         NftIdUnitTests.cc
         NodeAddressUnitTests.cc
+        NodeCreateTransactionUnitTests.cc
+        NodeDeleteTransactionUnitTests.cc
+        NodeUpdateTransactionUnitTests.cc
         PendingAirdropIdUnitTests.cc
         PendingAirdropRecordUnitTests.cc
         PrngTransactionUnitTests.cc
@@ -105,11 +119,13 @@ add_executable(${TEST_PROJECT_NAME}
         TokenMintTransactionUnitTests.cc
         TokenNftAllowanceUnitTests.cc
         TokenNftInfoQueryUnitTests.cc
+        TokenNftTransferHookUnitTests.cc
         TokenNftTransferUnitTests.cc
         TokenPauseTransactionUnitTests.cc
         TokenRejectTransactionUnitTests.cc
         TokenRevokeKycTransactionUnitTests.cc
         TokenSupplyTypeUnitTests.cc
+        TokenTransferHookUnitTests.cc
         TokenTransferUnitTests.cc
         TokenTypeUnitTests.cc
         TokenUnfreezeTransactionUnitTests.cc

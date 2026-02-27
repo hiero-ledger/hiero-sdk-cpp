@@ -9,6 +9,7 @@
 #include "Hbar.h"
 #include "Key.h"
 #include "Transaction.h"
+#include "hooks/HookCreationDetails.h"
 
 #include <chrono>
 #include <cstdint>
@@ -16,6 +17,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace proto
 {
@@ -213,6 +215,22 @@ public:
   AccountCreateTransaction& setAlias(const EvmAddress& address);
 
   /**
+   * Add a hook to be added immediately after creating the account.
+   *
+   * @param hook The details of the hook to create.
+   * @return A reference to this AccountCreateTransaction object with the newly-added hook creation details.
+   */
+  AccountCreateTransaction& addHook(const HookCreationDetails& hook);
+
+  /**
+   * Set the list of hooks to be added immediately after creating the account.
+   *
+   * @param hooks The details of the hooks to create.
+   * @return A reference to this AccountCreateTransaction object with the newly-set list of hook creation details.
+   */
+  AccountCreateTransaction& setHooks(const std::vector<HookCreationDetails>& hooks);
+
+  /**
    * Get the key to be used for the new account.
    *
    * @return A pointer to the key to be used for the new account. Nullptr if the key has not yet been set.
@@ -283,6 +301,13 @@ public:
    * @return The EVM address of the new account. Returns uninitialized if a value has not yet been set.
    */
   [[nodiscard]] inline std::optional<EvmAddress> getAlias() const { return mAlias; }
+
+  /**
+   * Get the hooks to create for the new account.
+   *
+   * @return The hooks to create for the new account.
+   */
+  [[nodiscard]] inline std::vector<HookCreationDetails> getHooks() const { return mHookCreationDetails; }
 
 private:
   friend class WrappedTransaction;
@@ -386,6 +411,11 @@ private:
    * The EOA 20-byte address to create that is derived from the keccak-256 hash of a ECDSA_SECP256K1 primitive key.
    */
   std::optional<EvmAddress> mAlias;
+
+  /**
+   * The details of hooks to add immediately after creating this account.
+   */
+  std::vector<HookCreationDetails> mHookCreationDetails;
 };
 
 } // namespace Hiero
