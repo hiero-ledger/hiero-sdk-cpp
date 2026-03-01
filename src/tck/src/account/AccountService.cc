@@ -4,6 +4,7 @@
 #include "account/params/CreateAccountParams.h"
 #include "account/params/DeleteAccountParams.h"
 #include "account/params/DeleteAllowanceParams.h"
+#include "account/params/GetAccountInfoParams.h"
 #include "account/params/TransferCryptoParams.h"
 #include "account/params/UpdateAccountParams.h"
 #include "account/params/allowance/AllowanceParams.h"
@@ -18,10 +19,13 @@
 #include <AccountCreateTransaction.h>
 #include <AccountDeleteTransaction.h>
 #include <AccountId.h>
+#include <AccountInfo.h>
+#include <AccountInfoQuery.h>
 #include <AccountUpdateTransaction.h>
 #include <EvmAddress.h>
 #include <HbarUnit.h>
 #include <NftId.h>
+#include <PublicKey.h>
 #include <Status.h>
 #include <TokenId.h>
 #include <TransactionReceipt.h>
@@ -231,6 +235,130 @@ nlohmann::json deleteAccount(const DeleteAccountParams& params)
      gStatusToString.at(
         accountDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
+}
+
+//-----
+nlohmann::json getAccountInfo(const GetAccountInfoParams& params)
+{
+  AccountInfoQuery query;
+  query.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mAccountId.has_value())
+  {
+    query.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+
+  const AccountInfo info = query.execute(SdkClient::getClient());
+
+  nlohmann::json response;
+
+  response["accountId"] = info.mAccountId.toString();
+  response["contractAccountId"] = info.mContractAccountId;
+  response["isDeleted"] = info.mIsDeleted;
+
+  response["proxyAccountId"] = nullptr;
+  response["proxyReceived"] = std::to_string(info.mProxyReceived.toTinybars());
+
+  if (const auto* pubKey = dynamic_cast<const PublicKey*>(info.mKey.get()))
+  {
+    response["key"] = pubKey->toStringDer();
+  }
+  else
+  {
+    response["key"] = nullptr;
+  }
+
+  response["balance"] = std::to_string(info.mBalance.toTinybars());
+
+  response["sendRecordThreshold"] = "0";
+  response["receiveRecordThreshold"] = "0";
+
+  response["isReceiverSignatureRequired"] = info.mReceiverSignatureRequired;
+
+  auto expirySeconds =
+    std::chrono::duration_cast<std::chrono::seconds>(info.mExpirationTime.time_since_epoch()).count();
+  response["expirationTime"] = std::to_string(expirySeconds);
+
+  auto autoRenewSeconds = std::chrono::duration_cast<std::chrono::seconds>(info.mAutoRenewPeriod).count();
+  response["autoRenewPeriod"] = std::to_string(autoRenewSeconds);
+
+  response["liveHashes"] = nlohmann::json::array();
+
+  nlohmann::json tokenRelJson = nlohmann::json::object();
+  for (const auto& [tokenId, rel] : info.mTokenRelationships)
+  {
+    nlohmann::json relObj;
+    relObj["balance"] = std::to_string(rel.mBalance);
+    relObj["decimals"] = rel.mDecimals;
+    relObj["kycStatus"] = rel.mKycStatus.has_value() ? nlohmann::json(rel.mKycStatus.value()) : nlohmann::json(nullptr);
+    relObj["freezeStatus"] =
+      rel.mFreezeStatus.has_value() ? nlohmann::json(rel.mFreezeStatus.value()) : nlohmann::json(nullptr);
+    relObj["automaticAssociation"] = rel.mAutomaticAssociation;
+    tokenRelJson[tokenId.toString()] = relObj;
+  }
+  response["tokenRelationships"] = tokenRelJson;
+
+  response["accountMemo"] = info.mMemo;
+  response["ownedNfts"] = std::to_string(info.mOwnedNfts);
+  response["maxAutomaticTokenAssociations"] = std::to_string(info.mMaxAutomaticTokenAssociations);
+
+  if (info.mEvmAddressAlias.has_value())
+  {
+    response["aliasKey"] = info.mEvmAddressAlias->toString();
+  }
+  else if (info.mPublicKeyAlias)
+  {
+    response["aliasKey"] = info.mPublicKeyAlias->toStringDer();
+  }
+  else
+  {
+    response["aliasKey"] = nullptr;
+  }
+
+  response["ledgerId"] = info.mLedgerId.toString();
+
+  response["ethereumNonce"] = "0";
+
+  nlohmann::json stakingJson;
+
+  stakingJson["declineStakingReward"] = info.mStakingInfo.mDeclineRewards;
+
+  if (info.mStakingInfo.mStakePeriodStart.has_value())
+  {
+    auto stakePeriodStartSeconds =
+      std::chrono::duration_cast<std::chrono::seconds>(info.mStakingInfo.mStakePeriodStart.value().time_since_epoch())
+        .count();
+    stakingJson["stakePeriodStart"] = std::to_string(stakePeriodStartSeconds);
+  }
+  else
+  {
+    stakingJson["stakePeriodStart"] = nullptr;
+  }
+
+  stakingJson["pendingReward"] = std::to_string(info.mStakingInfo.mPendingReward.toTinybars());
+  stakingJson["stakedToMe"] = std::to_string(info.mStakingInfo.mStakedToMe.toTinybars());
+
+  if (info.mStakingInfo.mStakedAccountId.has_value())
+  {
+    stakingJson["stakedAccountId"] = info.mStakingInfo.mStakedAccountId->toString();
+  }
+  else
+  {
+    stakingJson["stakedAccountId"] = nullptr;
+  }
+
+  if (info.mStakingInfo.mStakedNodeId.has_value())
+  {
+    stakingJson["stakedNodeId"] = std::to_string(info.mStakingInfo.mStakedNodeId.value());
+  }
+  else
+  {
+    stakingJson["stakedNodeId"] = nullptr;
+  }
+
+  response["stakingInfo"] = stakingJson;
+
+  return response;
 }
 
 //-----
