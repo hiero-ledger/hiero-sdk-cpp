@@ -13,8 +13,6 @@
 #include "common/transfer/TransferParams.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
-#include <algorithm>
-#include <cctype>
 
 #include <AccountAllowanceApproveTransaction.h>
 #include <AccountAllowanceDeleteTransaction.h>
@@ -263,9 +261,7 @@ nlohmann::json getAccountInfo(const GetAccountInfoParams& params)
 
   if (const auto* pubKey = dynamic_cast<const PublicKey*>(info.mKey.get()))
   {
-    std::string keyStr = pubKey->toStringDer();
-    std::transform(keyStr.begin(), keyStr.end(), keyStr.begin(), [](unsigned char c) { return std::tolower(c); });
-    response["key"] = keyStr;
+    response["key"] = pubKey->toStringDer();
   }
   else
   {
