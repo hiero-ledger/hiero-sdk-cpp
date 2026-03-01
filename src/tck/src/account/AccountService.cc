@@ -4,6 +4,7 @@
 #include "account/params/CreateAccountParams.h"
 #include "account/params/DeleteAccountParams.h"
 #include "account/params/DeleteAllowanceParams.h"
+#include "account/params/GetAccountBalanceParams.h"
 #include "account/params/GetAccountInfoParams.h"
 #include "account/params/TransferCryptoParams.h"
 #include "account/params/UpdateAccountParams.h"
@@ -16,6 +17,8 @@
 
 #include <AccountAllowanceApproveTransaction.h>
 #include <AccountAllowanceDeleteTransaction.h>
+#include <AccountBalance.h>
+#include <AccountBalanceQuery.h>
 #include <AccountCreateTransaction.h>
 #include <AccountDeleteTransaction.h>
 #include <AccountId.h>
@@ -234,6 +237,45 @@ nlohmann::json deleteAccount(const DeleteAccountParams& params)
     {"status",
      gStatusToString.at(
         accountDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json getAccountBalance(const GetAccountBalanceParams& params)
+{
+  AccountBalanceQuery query;
+  query.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mContractId.has_value())
+  {
+    query.setContractId(ContractId::fromString(params.mContractId.value()));
+  }
+  else if (params.mAccountId.has_value())
+  {
+    query.setAccountId(AccountId::fromString(params.mAccountId.value()));
+  }
+  const AccountBalance balance = query.execute(SdkClient::getClient());
+
+  nlohmann::json tokenBalances = nlohmann::json::array();
+  nlohmann::json tokenDecimals = nlohmann::json::array();
+
+  for (const auto& [tokenId, amount] : balance.mTokens)
+  {
+    nlohmann::json tokenBalance;
+    tokenBalance["tokenId"] = tokenId.toString();
+    tokenBalance["amount"] = std::to_string(amount);
+    tokenBalances.push_back(tokenBalance);
+
+    nlohmann::json tokenDecimal;
+    tokenDecimal["tokenId"] = tokenId.toString();
+    tokenDecimal["amount"] = "0";
+    tokenDecimals.push_back(tokenDecimal);
+  }
+
+  return {
+    {"hbars",         std::to_string(balance.mBalance.toTinybars())},
+    {"tokenBalances", tokenBalances                                 },
+    {"tokenDecimals", tokenDecimals                                 }
   };
 }
 
