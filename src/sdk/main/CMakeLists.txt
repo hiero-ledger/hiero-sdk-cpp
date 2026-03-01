@@ -81,6 +81,7 @@ add_library(${PROJECT_NAME} STATIC
         src/FeeComponents.cc
         src/FeeData.cc
         src/FeeDataType.cc
+        src/FeeEstimateQuery.cc
         src/FeeSchedule.cc
         src/FeeSchedules.cc
         src/FileAppendTransaction.cc
