@@ -13,6 +13,7 @@ struct ApproveAllowanceParams;
 struct CreateAccountParams;
 struct DeleteAccountParams;
 struct DeleteAllowanceParams;
+struct GetAccountBalanceParams;
 struct GetAccountInfoParams;
 struct TransferCryptoParams;
 struct UpdateAccountParams;
@@ -64,6 +65,14 @@ nlohmann::json transferCrypto(const TransferCryptoParams& params);
  * @return A JSON response containing the status of the account update.
  */
 nlohmann::json updateAccount(const UpdateAccountParams& params);
+
+/**
+ * Get Account Balance
+ *
+ * @param params The Parameter to use to get account info.
+ * @return A JSON response containing the account info.
+ */
+nlohmann::json getAccountBalance(const GetAccountBalanceParams& params);
 
 /**
  * Get account info.
