@@ -8,6 +8,7 @@
 #include "account/params/CreateAccountParams.h"
 #include "account/params/DeleteAccountParams.h"
 #include "account/params/DeleteAllowanceParams.h"
+#include "account/params/GetAccountBalanceParams.h"
 #include "account/params/GetAccountInfoParams.h"
 #include "account/params/TransferCryptoParams.h"
 #include "account/params/UpdateAccountParams.h"
@@ -67,6 +68,7 @@ TckServer::TckServer(int port)
   mJsonRpcParser.addMethod("createAccount", getHandle(AccountService::createAccount));
   mJsonRpcParser.addMethod("deleteAllowance", getHandle(AccountService::deleteAllowance));
   mJsonRpcParser.addMethod("deleteAccount", getHandle(AccountService::deleteAccount));
+  mJsonRpcParser.addMethod("getAccountBalance", getHandle(AccountService::getAccountBalance));
   mJsonRpcParser.addMethod("getAccountInfo", getHandle(AccountService::getAccountInfo));
   mJsonRpcParser.addMethod("transferCrypto", getHandle(AccountService::transferCrypto));
   mJsonRpcParser.addMethod("updateAccount", getHandle(AccountService::updateAccount));
@@ -153,6 +155,8 @@ template TckServer::MethodHandle TckServer::getHandle<AccountService::UpdateAcco
   nlohmann::json (*method)(const AccountService::UpdateAccountParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::DeleteAccountParams>(
   nlohmann::json (*method)(const AccountService::DeleteAccountParams&));
+template TckServer::MethodHandle TckServer::getHandle<AccountService::GetAccountBalanceParams>(
+  nlohmann::json (*method)(const AccountService::GetAccountBalanceParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::GetAccountInfoParams>(
   nlohmann::json (*method)(const AccountService::GetAccountInfoParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::TransferCryptoParams>(
