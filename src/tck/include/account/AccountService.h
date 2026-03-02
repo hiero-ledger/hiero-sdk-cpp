@@ -69,8 +69,8 @@ nlohmann::json updateAccount(const UpdateAccountParams& params);
 /**
  * Get Account Balance
  *
- * @param params The Parameter to use to get account info.
- * @return A JSON response containing the account info.
+ * @param params The Parameter to use to get account balance.
+ * @return A JSON response containing the account balance.
  */
 nlohmann::json getAccountBalance(const GetAccountBalanceParams& params);
 

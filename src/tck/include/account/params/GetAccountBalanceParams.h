@@ -31,7 +31,7 @@ struct GetAccountBalanceParams
 namespace nlohmann
 {
 /**
- * JSON serialiser template specialisation is required to conver the GetAccountBalance arguements properly.
+ * JSON serialiser template specialisation is required to convert the GetAccountBalance arguements properly.
  */
 template<>
 struct [[maybe_unused]] adl_serializer<Hiero::TCK::AccountService::GetAccountBalanceParams>

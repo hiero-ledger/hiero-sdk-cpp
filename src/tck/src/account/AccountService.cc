@@ -273,9 +273,9 @@ nlohmann::json getAccountBalance(const GetAccountBalanceParams& params)
   }
 
   return {
-    {"hbars",         std::to_string(balance.mBalance.toTinybars())},
-    {"tokenBalances", tokenBalances                                 },
-    {"tokenDecimals", tokenDecimals                                 }
+    {"hbars",          std::to_string(balance.mBalance.toTinybars())},
+    { "tokenBalances", tokenBalances                                },
+    { "tokenDecimals", tokenDecimals                                }
   };
 }
 
