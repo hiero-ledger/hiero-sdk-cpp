@@ -107,6 +107,52 @@ async function checkMergeConflict(botContext) {
 }
 
 /**
+ * Extracts issue numbers from a PR body using closing and "related to" keywords.
+ * @param {string} body
+ * @returns {Set<number>}
+ */
+function parseIssueNumbers(body) {
+  const numbers = new Set();
+  const patterns = [
+    /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)/gi,
+    /related\s+to\s+#(\d+)/gi,
+  ];
+  for (const regex of patterns) {
+    let match;
+    while ((match = regex.exec(body)) !== null) {
+      numbers.add(parseInt(match[1], 10));
+    }
+  }
+  return numbers;
+}
+
+/**
+ * Fetches each issue by number and checks whether the given author is assigned.
+ * Issues that fail to fetch are silently skipped (logged only).
+ * @param {object} botContext
+ * @param {function} fetchIssue
+ * @param {Set<number>} issueNumbers
+ * @param {string} prAuthor
+ * @returns {Promise<Array<{ number: number, title: string, isAssigned: boolean }>>}
+ */
+async function fetchAndCheckAssignees(botContext, fetchIssue, issueNumbers, prAuthor) {
+  const logger = getLogger();
+  const results = [];
+  for (const num of issueNumbers) {
+    try {
+      const issue = await fetchIssue(botContext, num);
+      const isAssigned = (issue.assignees || []).some(
+        a => a.login.toLowerCase() === prAuthor.toLowerCase()
+      );
+      results.push({ number: num, title: issue.title, isAssigned });
+    } catch (err) {
+      logger.log(`Issue link check: could not fetch issue #${num}: ${err.message}`);
+    }
+  }
+  return results;
+}
+
+/**
  * Checks whether the PR is linked to an issue and whether the PR author is
  * assigned to that issue.
  *
@@ -122,16 +168,7 @@ async function checkIssueLink(botContext, { fetchIssue, fetchClosingIssueNumbers
   const body = botContext.pr?.body || '';
   const prAuthor = botContext.pr?.user?.login;
 
-  const issueNumbers = new Set();
-  const closingRegex = /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)/gi;
-  const relatedRegex = /related\s+to\s+#(\d+)/gi;
-  let match;
-  while ((match = closingRegex.exec(body)) !== null) {
-    issueNumbers.add(parseInt(match[1], 10));
-  }
-  while ((match = relatedRegex.exec(body)) !== null) {
-    issueNumbers.add(parseInt(match[1], 10));
-  }
+  const issueNumbers = parseIssueNumbers(body);
 
   if (issueNumbers.size === 0) {
     const graphqlIssues = await fetchClosingIssueNumbers(botContext);
@@ -143,18 +180,7 @@ async function checkIssueLink(botContext, { fetchIssue, fetchClosingIssueNumbers
     return { passed: false, reason: 'no_issue_linked', issues: [] };
   }
 
-  const linkedIssues = [];
-  for (const num of issueNumbers) {
-    try {
-      const issue = await fetchIssue(botContext, num);
-      const isAssigned = (issue.assignees || []).some(
-        a => a.login.toLowerCase() === prAuthor.toLowerCase()
-      );
-      linkedIssues.push({ number: num, title: issue.title, isAssigned });
-    } catch (err) {
-      logger.log(`Issue link check: could not fetch issue #${num}: ${err.message}`);
-    }
-  }
+  const linkedIssues = await fetchAndCheckAssignees(botContext, fetchIssue, issueNumbers, prAuthor);
 
   if (linkedIssues.length === 0) {
     logger.log('Issue link check: all linked issues returned errors');
