@@ -9,6 +9,7 @@ const { runTestSuite } = require('./test-utils');
 const {
   hasDCOSignoff,
   hasVerifiedGPGSignature,
+  isMergeCommit,
   checkDCO,
   checkGPG,
   checkMergeConflict,
@@ -86,6 +87,34 @@ const unitTests = [
   },
 
   // ---------------------------------------------------------------------------
+  // isMergeCommit
+  // ---------------------------------------------------------------------------
+  {
+    name: 'isMergeCommit: commit with two parents returns true',
+    test: () => isMergeCommit({ parents: [{}, {}] }) === true,
+  },
+  {
+    name: 'isMergeCommit: commit with one parent returns false',
+    test: () => isMergeCommit({ parents: [{}] }) === false,
+  },
+  {
+    name: 'isMergeCommit: commit with no parents field returns false',
+    test: () => isMergeCommit({}) === false,
+  },
+  {
+    name: 'isMergeCommit: null commit returns false',
+    test: () => isMergeCommit(null) === false,
+  },
+  {
+    name: 'isMergeCommit: undefined commit returns false',
+    test: () => isMergeCommit(undefined) === false,
+  },
+  {
+    name: 'isMergeCommit: commit with empty parents array returns false',
+    test: () => isMergeCommit({ parents: [] }) === false,
+  },
+
+  // ---------------------------------------------------------------------------
   // checkDCO
   // ---------------------------------------------------------------------------
   {
@@ -130,6 +159,43 @@ const unitTests = [
     name: 'checkDCO: empty commits',
     test: () => {
       const r = checkDCO([]);
+      return r.passed === true && r.failures.length === 0;
+    },
+  },
+  {
+    name: 'checkDCO: merge commit without sign-off is skipped (passes)',
+    test: () => {
+      const commits = [
+        { sha: 'merge123', parents: [{}, {}], commit: { message: 'Merge branch main into feat' } },
+      ];
+      const r = checkDCO(commits);
+      return r.passed === true && r.failures.length === 0;
+    },
+  },
+  {
+    name: 'checkDCO: merge commit skipped, regular commits still checked',
+    test: () => {
+      const commits = [
+        { sha: 'abc1234', commit: { message: 'Fix\n\nSigned-off-by: A <a@x.com>' } },
+        { sha: 'merge56', parents: [{}, {}], commit: { message: 'Merge branch main into feat' } },
+        { sha: 'def5678', commit: { message: 'No sign-off here' } },
+      ];
+      const r = checkDCO(commits);
+      return (
+        r.passed === false &&
+        r.failures.length === 1 &&
+        r.failures[0].sha === 'def5678'
+      );
+    },
+  },
+  {
+    name: 'checkDCO: all regular commits pass with merge commit present',
+    test: () => {
+      const commits = [
+        { sha: 'abc1234', commit: { message: 'Fix\n\nSigned-off-by: A <a@x.com>' } },
+        { sha: 'merge56', parents: [{}, {}], commit: { message: 'Merge branch main into feat' } },
+      ];
+      const r = checkDCO(commits);
       return r.passed === true && r.failures.length === 0;
     },
   },

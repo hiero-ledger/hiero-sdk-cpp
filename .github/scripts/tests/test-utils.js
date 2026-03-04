@@ -156,6 +156,17 @@ function commitGPGFail(sha, message) {
   };
 }
 
+function commitMerge(sha, message) {
+  return {
+    sha,
+    parents: [{}, {}],
+    commit: {
+      message,
+      verification: { verified: true },
+    },
+  };
+}
+
 // =============================================================================
 // MOCK GITHUB FACTORY
 // =============================================================================
@@ -264,5 +275,6 @@ module.exports = {
   commitDCOAndGPG,
   commitDCOFail,
   commitGPGFail,
+  commitMerge,
   createMockGithub,
 };
