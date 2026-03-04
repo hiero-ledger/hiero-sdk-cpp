@@ -42,6 +42,34 @@ protected:
   [[nodiscard]] const ContractId& getTestHookContractId() const { return mHookContractId; }
   [[nodiscard]] const std::string& getTestHookBytecode() const { return mHookBytecode; }
 
+  FileId createTestFileId()
+  {
+    const std::unique_ptr<PrivateKey> operatorKey = ED25519PrivateKey::fromString(
+      "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137");
+    return FileCreateTransaction()
+      .setKeys({ operatorKey->getPublicKey() })
+      .setContents(internal::Utilities::stringToByteVector(getTestSmartContractBytecode()))
+      .execute(getTestClient())
+      .getReceipt(getTestClient())
+      .mFileId.value();
+  }
+
+  ContractId createTestContractId(const FileId& fileId)
+  {
+    return ContractCreateTransaction()
+      .setBytecodeFileId(fileId)
+      .setGas(1000000ULL)
+      .setAutoRenewPeriod(std::chrono::hours(2016))
+      .setConstructorParameters(ContractFunctionParameters().addString("Hello from Hiero.").toBytes())
+      .setMemo("[e2e::ContractCreateTransaction]")
+      .setAutoRenewAccountId(AccountId(2ULL))
+      .setStakedAccountId(AccountId(2ULL))
+      .setDeclineStakingReward(true)
+      .execute(getTestClient())
+      .getReceipt(getTestClient())
+      .mContractId.value();
+  }
+
 private:
   ContractId mHookContractId;
 
@@ -321,36 +349,12 @@ TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHook)
 TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHookWithStorageUpdates)
 {
   // Given
-  const std::unique_ptr<PrivateKey> operatorKey = ED25519PrivateKey::fromString(
-    "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137");
-  const std::string memo = "[e2e::ContractCreateTransaction]";
-  const std::chrono::system_clock::duration autoRenewPeriod = std::chrono::hours(2016);
   FileId fileId;
-  ASSERT_NO_THROW(fileId = FileCreateTransaction()
-                             .setKeys({ operatorKey->getPublicKey() })
-                             .setContents(internal::Utilities::stringToByteVector(getTestSmartContractBytecode()))
-                             .execute(getTestClient())
-                             .getReceipt(getTestClient())
-                             .mFileId.value());
-  ContractId contractId;
-  ASSERT_NO_THROW(contractId =
-                    ContractCreateTransaction()
-                      .setBytecodeFileId(fileId)
-                      .setGas(1000000ULL)
-                      .setAutoRenewPeriod(autoRenewPeriod)
-                      .setConstructorParameters(ContractFunctionParameters().addString("Hello from Hiero.").toBytes())
-                      .setMemo(memo)
-                      .setAutoRenewAccountId(AccountId(2ULL))
-                      .setStakedAccountId(AccountId(2ULL))
-                      .setDeclineStakingReward(true)
-                      .execute(getTestClient())
-                      .getReceipt(getTestClient())
-                      .mContractId.value());
+  ASSERT_NO_THROW(fileId = createTestFileId());
+  ASSERT_NO_THROW(createTestContractId(fileId));
 
   EvmHook evmHook;
-  EvmHookSpec evmHookSpec;
-  evmHookSpec.setContractId(getTestHookContractId());
-  evmHook.setEvmHookSpec(evmHookSpec);
+  evmHook.setEvmHookSpec(EvmHookSpec().setContractId(getTestHookContractId()));
 
   EvmHookStorageSlot evmHookStorageSlot;
   evmHookStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
@@ -358,7 +362,6 @@ TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHookWithStor
 
   EvmHookStorageUpdate evmHookStorageUpdate;
   evmHookStorageUpdate.setStorageSlot(evmHookStorageSlot);
-
   evmHook.addStorageUpdate(evmHookStorageUpdate);
 
   HookCreationDetails hookCreationDetails;
@@ -377,7 +380,6 @@ TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHookWithStor
   // Then
   TransactionReceipt txReceipt;
   EXPECT_NO_THROW(txReceipt = txResponse.getReceipt(getTestClient()));
-
   EXPECT_TRUE(txReceipt.mContractId.has_value());
 
   // Clean up
@@ -505,37 +507,13 @@ TEST_F(ContractCreateTransactionIntegrationTests, CannotCreateContractWithDuplic
 TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHookWithAdminKey)
 {
   // Given
-  const std::unique_ptr<PrivateKey> operatorKey = ED25519PrivateKey::fromString(
-    "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137");
   const std::shared_ptr<PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
-  const std::string memo = "[e2e::ContractCreateTransaction]";
-  const std::chrono::system_clock::duration autoRenewPeriod = std::chrono::hours(2016);
   FileId fileId;
-  ASSERT_NO_THROW(fileId = FileCreateTransaction()
-                             .setKeys({ operatorKey->getPublicKey() })
-                             .setContents(internal::Utilities::stringToByteVector(getTestSmartContractBytecode()))
-                             .execute(getTestClient())
-                             .getReceipt(getTestClient())
-                             .mFileId.value());
-  ContractId contractId;
-  ASSERT_NO_THROW(contractId =
-                    ContractCreateTransaction()
-                      .setBytecodeFileId(fileId)
-                      .setGas(1000000ULL)
-                      .setAutoRenewPeriod(autoRenewPeriod)
-                      .setConstructorParameters(ContractFunctionParameters().addString("Hello from Hiero.").toBytes())
-                      .setMemo(memo)
-                      .setAutoRenewAccountId(AccountId(2ULL))
-                      .setStakedAccountId(AccountId(2ULL))
-                      .setDeclineStakingReward(true)
-                      .execute(getTestClient())
-                      .getReceipt(getTestClient())
-                      .mContractId.value());
+  ASSERT_NO_THROW(fileId = createTestFileId());
+  ASSERT_NO_THROW(createTestContractId(fileId));
 
   EvmHook evmHook;
-  EvmHookSpec evmHookSpec;
-  evmHookSpec.setContractId(getTestHookContractId());
-  evmHook.setEvmHookSpec(evmHookSpec);
+  evmHook.setEvmHookSpec(EvmHookSpec().setContractId(getTestHookContractId()));
 
   EvmHookStorageSlot evmHookStorageSlot;
   evmHookStorageSlot.setKey({ std::byte(0x01), std::byte(0x23), std::byte(0x45) });
@@ -543,7 +521,6 @@ TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHookWithAdmi
 
   EvmHookStorageUpdate evmHookStorageUpdate;
   evmHookStorageUpdate.setStorageSlot(evmHookStorageSlot);
-
   evmHook.addStorageUpdate(evmHookStorageUpdate);
 
   HookCreationDetails hookCreationDetails;
@@ -565,7 +542,6 @@ TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHookWithAdmi
   // Then
   TransactionReceipt txReceipt;
   EXPECT_NO_THROW(txReceipt = txResponse.getReceipt(getTestClient()));
-
   EXPECT_TRUE(txReceipt.mContractId.has_value());
 
   // Clean up
