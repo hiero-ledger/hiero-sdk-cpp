@@ -1,6 +1,3 @@
-find_package(GTest CONFIG REQUIRED)
-include(GoogleTest)
-
 set(TEST_PROJECT_NAME ${PROJECT_NAME}-unit-tests)
 add_executable(${TEST_PROJECT_NAME}
         AccountAllowanceApproveTransactionUnitTests.cc

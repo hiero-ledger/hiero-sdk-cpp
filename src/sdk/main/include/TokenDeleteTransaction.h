@@ -17,7 +17,7 @@ namespace Hiero
 {
 /**
  * Deleting a token marks a token as deleted, though it will remain in the ledger. The operation must be signed by the
- * specified admin key of the token. If the admin key is not set, the transaction will result in TOKEN_IS_IMMUTABlE.
+ * specified admin key of the token. If the admin key is not set, the transaction will result in TOKEN_IS_IMMUTABLE.
  * Once deleted, update, mint, burn, wipe, freeze, unfreeze, grant KYC, revoke KYC and token transfer transactions will
  * resolve to TOKEN_WAS_DELETED.
  *
@@ -61,7 +61,7 @@ public:
   /**
    * Get the ID of the token this TokenDeleteTransaction is currently configured to delete.
    *
-   * @return The ID of the account this TokenDeleteTransaction is currently configured to delete. Uninitialized if no
+   * @return The ID of the token this TokenDeleteTransaction is currently configured to delete. Uninitialized if no
    *         token ID has been set.
    */
   [[nodiscard]] inline std::optional<TokenId> getTokenId() const { return mTokenId; }
