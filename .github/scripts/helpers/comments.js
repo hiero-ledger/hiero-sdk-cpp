@@ -14,8 +14,7 @@ const SIGNING_GUIDE = 'https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/d
 const MERGE_CONFLICTS_GUIDE = 'https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/docs/training/merge-conflicts.md';
 
 /**
- * Renders a single check result into a markdown section.
- * Supports three states: passed, failed, or error.
+ * Determines the display state of a check result.
  * @param {{ passed?: boolean, error?: boolean }} result
  * @returns {'pass'|'fail'|'error'}
  */
@@ -25,21 +24,34 @@ function checkState(result) {
 }
 
 /**
+ * Shared renderer for the error and pass states of a check section.
+ * Returns null for the fail state so callers can supply their own content.
+ * @param {{ title: string, result: object, passMessage: string }} opts
+ * @returns {string|null}
+ */
+function buildSection({ title, result, passMessage }) {
+  const state = checkState(result);
+  if (state === 'error') {
+    return [
+      `:warning: **${title}** -- This check encountered an internal error. ${MAINTAINER_TEAM} please review manually.`,
+      '',
+      `Error: ${result.errorMessage || 'Unknown error'}`,
+    ].join('\n');
+  }
+  if (state === 'pass') {
+    return `:white_check_mark: **${title}** -- ${passMessage}`;
+  }
+  return null;
+}
+
+/**
  * @param {{ passed: boolean, failures?: Array<{ sha: string, message: string }>, error?: boolean, errorMessage?: string }} dco
  * @returns {string}
  */
 function buildDCOSection(dco) {
-  const state = checkState(dco);
-  if (state === 'error') {
-    return [
-      `:warning: **DCO Sign-off** -- This check encountered an internal error. ${MAINTAINER_TEAM} please review manually.`,
-      '',
-      `Error: ${dco.errorMessage || 'Unknown error'}`,
-    ].join('\n');
-  }
-  if (state === 'pass') {
-    return ':white_check_mark: **DCO Sign-off** -- All commits have valid sign-offs.';
-  }
+  const common = buildSection({ title: 'DCO Sign-off', result: dco, passMessage: 'All commits have valid sign-offs.' });
+  if (common) return common;
+
   const failList = (dco.failures || []).map(f => `- \`${f.sha}\` ${f.message}`).join('\n');
   return [
     ':x: **DCO Sign-off** -- The following commits are missing the required DCO sign-off:',
@@ -54,17 +66,9 @@ function buildDCOSection(dco) {
  * @returns {string}
  */
 function buildGPGSection(gpg) {
-  const state = checkState(gpg);
-  if (state === 'error') {
-    return [
-      `:warning: **GPG Signature** -- This check encountered an internal error. ${MAINTAINER_TEAM} please review manually.`,
-      '',
-      `Error: ${gpg.errorMessage || 'Unknown error'}`,
-    ].join('\n');
-  }
-  if (state === 'pass') {
-    return ':white_check_mark: **GPG Signature** -- All commits have verified GPG signatures.';
-  }
+  const common = buildSection({ title: 'GPG Signature', result: gpg, passMessage: 'All commits have verified GPG signatures.' });
+  if (common) return common;
+
   const failList = (gpg.failures || []).map(f => `- \`${f.sha}\` ${f.message}`).join('\n');
   return [
     ':x: **GPG Signature** -- The following commits don\'t have a verified GPG signature:',
@@ -79,17 +83,9 @@ function buildGPGSection(gpg) {
  * @returns {string}
  */
 function buildMergeSection(merge) {
-  const state = checkState(merge);
-  if (state === 'error') {
-    return [
-      `:warning: **Merge Conflicts** -- This check encountered an internal error. ${MAINTAINER_TEAM} please review manually.`,
-      '',
-      `Error: ${merge.errorMessage || 'Unknown error'}`,
-    ].join('\n');
-  }
-  if (state === 'pass') {
-    return ':white_check_mark: **Merge Conflicts** -- No merge conflicts detected.';
-  }
+  const common = buildSection({ title: 'Merge Conflicts', result: merge, passMessage: 'No merge conflicts detected.' });
+  if (common) return common;
+
   return [
     ':x: **Merge Conflicts** -- This PR has merge conflicts with the base branch.',
     '',
@@ -102,21 +98,13 @@ function buildMergeSection(merge) {
  * @returns {string}
  */
 function buildIssueLinkSection(issueLink) {
-  const state = checkState(issueLink);
-  if (state === 'error') {
-    return [
-      `:warning: **Issue Link** -- This check encountered an internal error. ${MAINTAINER_TEAM} please review manually.`,
-      '',
-      `Error: ${issueLink.errorMessage || 'Unknown error'}`,
-    ].join('\n');
-  }
-  if (state === 'pass') {
-    const linked = (issueLink.issues || [])
-      .filter(i => i.isAssigned)
-      .map(i => `#${i.number}`)
-      .join(', ');
-    return `:white_check_mark: **Issue Link** -- Linked to ${linked} (assigned to you).`;
-  }
+  const linked = (issueLink.issues || [])
+    .filter(i => i.isAssigned)
+    .map(i => `#${i.number}`)
+    .join(', ');
+  const common = buildSection({ title: 'Issue Link', result: issueLink, passMessage: `Linked to ${linked} (assigned to you).` });
+  if (common) return common;
+
   if (issueLink.reason === 'not_assigned') {
     const unassigned = (issueLink.issues || []).filter(i => !i.isAssigned).map(i => `#${i.number}`).join(', ');
     return [
