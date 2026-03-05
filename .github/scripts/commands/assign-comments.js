@@ -333,8 +333,6 @@ module.exports = {
   buildNotReadyComment,
   buildPrerequisiteNotMetComment,
   buildNoSkillLevelComment,
-  buildIssuesSearchUrl,
-  formatAssignmentLimitExceededComment,
   buildAssignmentLimitExceededComment,
   buildApiErrorComment,
   buildLabelUpdateFailureComment,

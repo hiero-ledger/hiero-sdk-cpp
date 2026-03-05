@@ -2,18 +2,20 @@
 //
 // helpers/api.js
 //
-// Bot context builder and GitHub API wrappers (labels, assignees, comments).
+// Bot context builder and GitHub API wrappers (labels, assignees, comments,
+// commit/issue fetching, and label swap helpers).
 
-const fs = require('fs');
 const { getLogger } = require('./logger');
 const {
-  isObject,
   isSafeSearchToken,
   requireObject,
   requireNonEmptyString,
   requirePositiveInt,
   requireSafeUsername,
 } = require('./validation');
+const { LABELS } = require('./constants');
+const { checkDCO, checkGPG, checkMergeConflict, checkIssueLink } = require('./checks');
+const { buildBotComment } = require('./comments');
 
 /**
  * Builds the bot context for any bot. Validates github, context, and payload; throws if invalid.
@@ -96,28 +98,6 @@ function buildBotContext({ github, context }) {
       throw new Error(`Bot context invalid: unsupported event type "${eventType}"`);
   }
   return { ...base, eventType, ...payloadPart };
-}
-
-/**
- * Writes key-value pairs to GITHUB_OUTPUT when set (e.g. in a workflow step).
- * Use this to pass outputs to later steps via steps.<id>.outputs.<key>.
- *
- * @param {Record<string, string|number|boolean>} keyValues - Object of output names to values (coerced to string).
- */
-function writeGithubOutput(keyValues) {
-  const path = process.env.GITHUB_OUTPUT;
-  if (!path) return;
-  if (!keyValues || !isObject(keyValues)) return;
-
-  try {
-    for (const [key, value] of Object.entries(keyValues)) {
-      const line = `${key}=${String(value)}\n`;
-      fs.appendFileSync(path, line, 'utf8');
-    }
-    getLogger().log('Wrote to GITHUB_OUTPUT:', Object.keys(keyValues).join(', '));
-  } catch (err) {
-    getLogger().error('Failed to write GITHUB_OUTPUT:', err.message);
-  }
 }
 
 /**
@@ -248,12 +228,221 @@ function hasLabel(issueOrPr, labelName) {
   });
 }
 
+/**
+ * Posts a new comment or updates an existing one identified by an HTML marker.
+ * Paginates through all comments to find a match.
+ * @param {object} botContext
+ * @param {string} marker - HTML comment marker (e.g. '<!-- bot:pr-helper -->').
+ * @param {string} body - Full comment body (must include the marker).
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+async function postOrUpdateComment(botContext, marker, body) {
+  try {
+    requireNonEmptyString(marker, 'marker');
+    requireNonEmptyString(body, 'comment body');
+
+    let existingCommentId = null;
+    let page = 1;
+    const perPage = 100;
+
+    while (!existingCommentId) {
+      const { data: comments } = await botContext.github.rest.issues.listComments({
+        owner: botContext.owner,
+        repo: botContext.repo,
+        issue_number: botContext.number,
+        per_page: perPage,
+        page,
+      });
+
+      for (const c of comments) {
+        if (c.body && c.body.startsWith(marker)) {
+          existingCommentId = c.id;
+          break;
+        }
+      }
+
+      if (comments.length < perPage) break;
+      page++;
+    }
+
+    if (existingCommentId) {
+      await botContext.github.rest.issues.updateComment({
+        owner: botContext.owner,
+        repo: botContext.repo,
+        comment_id: existingCommentId,
+        body,
+      });
+      getLogger().log('Updated existing bot comment');
+    } else {
+      await botContext.github.rest.issues.createComment({
+        owner: botContext.owner,
+        repo: botContext.repo,
+        issue_number: botContext.number,
+        body,
+      });
+      getLogger().log('Created new bot comment');
+    }
+    return { success: true };
+  } catch (error) {
+    getLogger().error(`Could not post/update comment: ${error.message}`);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Fetches all commits for a pull request via the GitHub API (paginated).
+ * @param {object} botContext
+ * @returns {Promise<Array>}
+ */
+async function fetchPRCommits(botContext) {
+  const commits = [];
+  let page = 1;
+  const perPage = 100;
+
+  while (true) {
+    const response = await botContext.github.rest.pulls.listCommits({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      pull_number: botContext.number,
+      per_page: perPage,
+      page,
+    });
+
+    commits.push(...response.data);
+
+    if (response.data.length < perPage) break;
+    page++;
+  }
+
+  getLogger().log(`Fetched ${commits.length} commits for PR #${botContext.number}`);
+  return commits;
+}
+
+/**
+ * Fetches a single issue by number.
+ * @param {object} botContext
+ * @param {number} issueNumber
+ * @returns {Promise<object>}
+ */
+async function fetchIssue(botContext, issueNumber) {
+  const { data: issue } = await botContext.github.rest.issues.get({
+    owner: botContext.owner,
+    repo: botContext.repo,
+    issue_number: issueNumber,
+  });
+  return issue;
+}
+
+/**
+ * Fetches issue numbers linked to a PR via GitHub's closingIssuesReferences GraphQL field.
+ * @param {object} botContext
+ * @returns {Promise<number[]>}
+ */
+async function fetchClosingIssueNumbers(botContext) {
+  try {
+    const query = `query($owner:String!,$repo:String!,$number:Int!){
+      repository(owner:$owner,name:$repo){
+        pullRequest(number:$number){
+          closingIssuesReferences(first:10){
+            nodes { number }
+          }
+        }
+      }
+    }`;
+    const result = await botContext.github.graphql(query, {
+      owner: botContext.owner,
+      repo: botContext.repo,
+      number: botContext.number,
+    });
+    const nodes = result.repository.pullRequest.closingIssuesReferences.nodes || [];
+    return nodes.map(n => n.number);
+  } catch (error) {
+    getLogger().error(`GraphQL closingIssuesReferences failed: ${error.message}`);
+    return [];
+  }
+}
+
+/**
+ * Swaps between needs-review and needs-revision labels based on check results.
+ * By default only changes the label if the opposite label is currently applied.
+ * When force is true, unconditionally applies the target label (used on PR open
+ * to guarantee a status label is always present).
+ * @param {object} botContext
+ * @param {boolean} allPassed
+ * @param {{ force?: boolean }} [options]
+ * @returns {Promise<void>}
+ */
+async function swapStatusLabel(botContext, allPassed, { force = false } = {}) {
+  const pr = botContext.pr;
+  const labelToAdd = allPassed ? LABELS.NEEDS_REVIEW : LABELS.NEEDS_REVISION;
+  const labelToRemove = allPassed ? LABELS.NEEDS_REVISION : LABELS.NEEDS_REVIEW;
+
+  if (force) {
+    if (hasLabel(pr, labelToRemove)) {
+      await removeLabel(botContext, labelToRemove);
+    }
+    await addLabels(botContext, [labelToAdd]);
+  } else {
+    if (hasLabel(pr, labelToRemove)) {
+      await removeLabel(botContext, labelToRemove);
+      await addLabels(botContext, [labelToAdd]);
+    }
+  }
+}
+
+/**
+ * Runs all 4 PR checks (DCO, GPG, merge conflict, issue link) with error
+ * resilience, builds the unified dashboard comment, and posts/updates it.
+ * Returns { allPassed } so callers can decide on label handling.
+ * @param {object} botContext
+ * @returns {Promise<{ allPassed: boolean }>}
+ */
+async function runAllChecksAndComment(botContext) {
+  let dco, gpg, merge, issueLink;
+  let commits = [];
+
+  try {
+    commits = await fetchPRCommits(botContext);
+  } catch (e) {
+    getLogger().error('Failed to fetch PR commits:', e.message);
+    dco = { error: true, errorMessage: e.message };
+    gpg = { error: true, errorMessage: e.message };
+  }
+
+  if (!dco) {
+    try { dco = checkDCO(commits); }
+    catch (e) { dco = { error: true, errorMessage: e.message }; }
+  }
+
+  if (!gpg) {
+    try { gpg = checkGPG(commits); }
+    catch (e) { gpg = { error: true, errorMessage: e.message }; }
+  }
+
+  try { merge = await checkMergeConflict(botContext); }
+  catch (e) { merge = { error: true, errorMessage: e.message }; }
+
+  try { issueLink = await checkIssueLink(botContext, { fetchIssue, fetchClosingIssueNumbers }); }
+  catch (e) { issueLink = { error: true, errorMessage: e.message }; }
+
+  const prAuthor = botContext.pr?.user?.login;
+  const { marker, body, allPassed } = buildBotComment({ prAuthor, dco, gpg, merge, issueLink });
+  await postOrUpdateComment(botContext, marker, body);
+
+  return { allPassed };
+}
+
 module.exports = {
   buildBotContext,
-  writeGithubOutput,
   addLabels,
   removeLabel,
   addAssignees,
   postComment,
   hasLabel,
+  postOrUpdateComment,
+  fetchPRCommits,
+  fetchIssue,
+  fetchClosingIssueNumbers,
+  swapStatusLabel,
+  runAllChecksAndComment,
 };

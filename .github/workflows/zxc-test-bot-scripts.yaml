@@ -40,11 +40,20 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Run On-Commit Bot Tests
-        run: node .github/scripts/test-on-commit-bot.js
+      - name: Run Check Helpers Tests
+        run: node .github/scripts/tests/test-checks.js
 
-      - name: Run On-PR Bot Tests
-        run: node .github/scripts/test-on-pr-bot.js
+      - name: Run Comment Helpers Tests
+        run: node .github/scripts/tests/test-comments.js
+
+      - name: Run API Helpers Tests
+        run: node .github/scripts/tests/test-api.js
+
+      - name: Run On-PR-Open Bot Tests
+        run: node .github/scripts/tests/test-on-pr-open-bot.js
+
+      - name: Run On-PR-Update Bot Tests
+        run: node .github/scripts/tests/test-on-pr-update-bot.js
 
       - name: Run On-Comment (Assign) Bot Tests
-        run: node .github/scripts/test-assign-bot.js
+        run: node .github/scripts/tests/test-assign-bot.js

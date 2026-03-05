@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //
-// helpers/test-utils.js
+// tests/test-utils.js
 //
-// Shared test utilities for bot script test suites. Provides comment snapshot
-// verification, result checking, summary printing, and CLI argument handling.
+// Shared test utilities for bot script test suites. Provides commit helpers,
+// mock GitHub factory, comment snapshot verification, result checking, summary
+// printing, and CLI argument handling.
 
 /**
  * Compares actual comments against expected snapshots. Returns an array of
@@ -121,8 +122,147 @@ async function runTestSuite(suiteName, scenarios, runScenario, extraSections = [
   printSummaryAndExit(summaries);
 }
 
+// =============================================================================
+// COMMIT HELPERS
+// =============================================================================
+
+function commitDCOAndGPG(sha, message) {
+  return {
+    sha,
+    commit: {
+      message: `${message}\n\nSigned-off-by: Contributor <contributor@example.com>`,
+      verification: { verified: true },
+    },
+  };
+}
+
+function commitDCOFail(sha, message) {
+  return {
+    sha,
+    commit: {
+      message,
+      verification: { verified: true },
+    },
+  };
+}
+
+function commitGPGFail(sha, message) {
+  return {
+    sha,
+    commit: {
+      message: `${message}\n\nSigned-off-by: Contributor <contributor@example.com>`,
+      verification: { verified: false },
+    },
+  };
+}
+
+// =============================================================================
+// MOCK GITHUB FACTORY
+// =============================================================================
+
+/**
+ * Creates a mock GitHub API object for integration tests.
+ * Tracks labels, assignees, and comments via the returned calls object.
+ *
+ * @param {object} options
+ * @param {Array} options.commits - Commits for pulls.listCommits
+ * @param {boolean} options.mergeable - Merge state for pulls.get
+ * @param {Record<number, object>} options.issues - issue_number -> issue data
+ * @param {number[]} options.graphqlClosingIssues - Issue numbers for graphql
+ * @param {Array<{id: number, body: string}>} options.existingComments - Pre-existing PR comments
+ * @returns {{ calls: object, rest: object, graphql: function }}
+ */
+function createMockGithub(options = {}) {
+  const {
+    commits = [],
+    mergeable = true,
+    issues = {},
+    graphqlClosingIssues = [],
+    existingComments = [],
+  } = options;
+
+  const calls = {
+    labelsAdded: [],
+    labelsRemoved: [],
+    assignees: [],
+    commentsCreated: [],
+    commentsUpdated: [],
+  };
+
+  const perPage = 100;
+  const listComments = async (params) => {
+    const page = params.page || 1;
+    const start = (page - 1) * perPage;
+    const slice = existingComments.slice(start, start + perPage);
+    return { data: slice };
+  };
+
+  const mock = {
+    calls,
+    rest: {
+      pulls: {
+        listCommits: async (params) => {
+          const page = params.page || 1;
+          const start = (page - 1) * perPage;
+          const slice = commits.slice(start, start + perPage);
+          return { data: slice };
+        },
+        get: async () => ({
+          data: {
+            mergeable,
+            mergeable_state: mergeable ? 'clean' : 'dirty',
+          },
+        }),
+      },
+      issues: {
+        listComments: async (params) => listComments(params),
+        createComment: async (params) => {
+          calls.commentsCreated.push(params.body);
+          return {};
+        },
+        updateComment: async (params) => {
+          calls.commentsUpdated.push({ comment_id: params.comment_id, body: params.body });
+          return {};
+        },
+        addLabels: async (params) => {
+          const labels = Array.isArray(params.labels) ? params.labels : [params.labels];
+          calls.labelsAdded.push(...labels);
+          return {};
+        },
+        removeLabel: async (params) => {
+          calls.labelsRemoved.push(params.name);
+          return {};
+        },
+        addAssignees: async (params) => {
+          calls.assignees.push(...(params.assignees || []));
+          return {};
+        },
+        get: async (params) => {
+          const num = params.issue_number;
+          const issue = issues[num] || { title: 'Issue', assignees: [] };
+          return { data: issue };
+        },
+      },
+    },
+    graphql: async () => ({
+      repository: {
+        pullRequest: {
+          closingIssuesReferences: {
+            nodes: graphqlClosingIssues.map((n) => ({ number: n })),
+          },
+        },
+      },
+    }),
+  };
+
+  return mock;
+}
+
 module.exports = {
   verifyComments,
-  printSummaryAndExit,
   runTestSuite,
+  commitDCOAndGPG,
+  commitDCOFail,
+  commitGPGFail,
+  createMockGithub,
 };

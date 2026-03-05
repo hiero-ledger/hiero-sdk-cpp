@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 //
-// test-assign-bot.js
+// tests/test-assign-bot.js
 //
 // Local test script for bot-on-comment.js
-// Run with: node .github/scripts/test-assign-bot.js
+// Run with: node .github/scripts/tests/test-assign-bot.js
 //
 // This script mocks the GitHub API and runs various test scenarios
 // to verify the on-comment (assign) bot behaves correctly without making real API calls.
 
-const { LABELS } = require('./helpers');
-const script = require('./bot-on-comment.js');
+const { LABELS } = require('../helpers');
+const script = require('../bot-on-comment.js');
 
 // =============================================================================
 // GRAPHQL QUERY KIND (for mock)
@@ -933,7 +933,7 @@ Error details: Failed to remove "status: ready for dev" label: Simulated remove 
 // TEST RUNNER
 // =============================================================================
 
-const { verifyComments, runTestSuite } = require('./helpers/test-utils');
+const { verifyComments, runTestSuite } = require('./test-utils');
 
 async function runTest(scenario, index) {
   console.log('\n' + '='.repeat(70));
