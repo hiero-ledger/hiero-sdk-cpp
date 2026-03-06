@@ -312,4 +312,129 @@ ECDSAsecp256k1PrivateKey::ECDSAsecp256k1PrivateKey(internal::OpenSSLUtils::EVP_P
 {
 }
 
+int ECDSAsecp256k1PrivateKey::calculateRecoveryId(const std::vector<std::byte>& msgHash,
+                                                  const std::vector<std::byte>& rBytes,
+                                                  const std::vector<std::byte>& sBytes) const
+{
+  if (rBytes.size() != 32 || sBytes.size() != 32)
+  {
+    return -1;
+  }
+
+  // Convert r and s to BIGNUM
+  BIGNUM* r = BN_bin2bn(reinterpret_cast<const unsigned char*>(rBytes.data()), 32, nullptr);
+  BIGNUM* s = BN_bin2bn(reinterpret_cast<const unsigned char*>(sBytes.data()), 32, nullptr);
+  if (!r || !s)
+  {
+    if (r)
+      BN_free(r);
+    if (s)
+      BN_free(s);
+    return -1;
+  }
+
+  int recid = -1;
+  EC_GROUP* group = EC_GROUP_new_by_curve_name(NID_secp256k1);
+  BN_CTX* ctx = BN_CTX_new();
+  BIGNUM* order = BN_new();
+  EC_GROUP_get_order(group, order, ctx);
+
+  // Get this key's public key for comparison
+  auto pubKeyObj = std::dynamic_pointer_cast<const ECDSAsecp256k1PublicKey>(getPublicKey());
+  if (!pubKeyObj)
+  {
+    BN_free(r);
+    BN_free(s);
+    EC_GROUP_free(group);
+    BN_CTX_free(ctx);
+    BN_free(order);
+    return -1;
+  }
+  std::vector<std::byte> pubKeyBytes = pubKeyObj->toBytesRaw();
+
+  for (int i = 0; i < 4; ++i)
+  {
+    // x = r + (i / 2) * order
+    BIGNUM* x = BN_dup(r);
+    if (i >= 2)
+    {
+      BN_add(x, x, order);
+    }
+
+    // Try to construct R
+    EC_POINT* R = EC_POINT_new(group);
+    if (!EC_POINT_set_compressed_coordinates_GFp(group, R, x, i % 2, ctx))
+    {
+      EC_POINT_free(R);
+      BN_free(x);
+      continue;
+    }
+
+    // Check nR == infinity
+    EC_POINT* nR = EC_POINT_new(group);
+    EC_POINT_mul(group, nR, nullptr, R, order, ctx);
+    if (!EC_POINT_is_at_infinity(group, nR))
+    {
+      EC_POINT_free(R);
+      EC_POINT_free(nR);
+      BN_free(x);
+      continue;
+    }
+    EC_POINT_free(nR);
+
+    // r^-1 mod n
+    BIGNUM* r_inv = BN_mod_inverse(nullptr, r, order, ctx);
+    // e = msgHash as BIGNUM
+    BIGNUM* e = BN_bin2bn(reinterpret_cast<const unsigned char*>(msgHash.data()), msgHash.size(), nullptr);
+
+    // Q = r^-1 * (sR - eG)
+    EC_POINT* sR = EC_POINT_new(group);
+    EC_POINT_mul(group, sR, nullptr, R, s, ctx);
+
+    EC_POINT* eG = EC_POINT_new(group);
+    EC_POINT_mul(group, eG, e, nullptr, nullptr, ctx);
+    EC_POINT_invert(group, eG, ctx); // -eG
+
+    EC_POINT* Q = EC_POINT_new(group);
+    EC_POINT_add(group, Q, sR, eG, ctx);
+    EC_POINT_mul(group, Q, nullptr, Q, r_inv, ctx);
+
+    // Serialize recovered pubkey to compare
+    std::vector<unsigned char> recPubKey(65);
+    size_t len = EC_POINT_point2oct(group, Q, POINT_CONVERSION_UNCOMPRESSED, recPubKey.data(), recPubKey.size(), ctx);
+    if (len == 65)
+    {
+      std::vector<std::byte> recPubKeyBytes(recPubKey.size());
+      std::memcpy(recPubKeyBytes.data(), recPubKey.data(), recPubKey.size());
+      if (recPubKeyBytes == pubKeyBytes)
+      {
+        recid = i;
+        EC_POINT_free(R);
+        EC_POINT_free(sR);
+        EC_POINT_free(eG);
+        EC_POINT_free(Q);
+        BN_free(x);
+        BN_free(r_inv);
+        BN_free(e);
+        break;
+      }
+    }
+    EC_POINT_free(R);
+    EC_POINT_free(sR);
+    EC_POINT_free(eG);
+    EC_POINT_free(Q);
+    BN_free(x);
+    BN_free(r_inv);
+    BN_free(e);
+  }
+
+  BN_free(r);
+  BN_free(s);
+  EC_GROUP_free(group);
+  BN_CTX_free(ctx);
+  BN_free(order);
+
+  return recid;
+}
+
 } // namespace Hiero
