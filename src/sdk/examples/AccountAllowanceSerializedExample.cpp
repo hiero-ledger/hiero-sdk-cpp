@@ -1,4 +1,33 @@
 // SPDX-License-Identifier: Apache-2.0
+/**
+ * This example demonstrates how Hiero transactions can be serialized, deserialized,
+ * inspected, signed, and executed using WrappedTransaction — alongside Hbar allowance usage.
+ *
+ * It extends the standard allowance flow by showing how transactions can be converted
+ * to raw bytes and reconstructed before execution.
+ *
+ * Essential steps:
+ * - Load an operator account to pay for transactions and set it for client usage.
+ * - Generate accounts for Alice (owner), Bob (spender), and Charlie (receiver), with 5Hbar each.
+ * - Alice approves Bob to spend 2 Hbar from her account, through the allowance.
+ * - Construct an approved transfer transaction of 1 Hbar, from Alice to Charlie, using Bob’s allowance.
+ * - Serialize the unexecuted transaction into raw byte array.
+ * - Deserialize the bytes into a transaction using WrappedTransaction.
+ * - Freeze, sign (using Bob's key), and execute the reconstructed transaction.
+ *
+ * Optional steps (for illustration purposes):
+ * - Verify deserialization by querying the transaction type.
+ * - Inspect the raw byte array at different lifecycle stages (unfrozen, frozen, signed).
+ * - Attempt to exceed the remaining (1 Hbar) allowance (sending 2 Hbar) to demonstrate ledger enforcement.
+ * - Modify the allowance to 3 Hbar and successfully re-attempt the (2 Hbar) transfer.
+ * - Query account balances to verify the flow of funds.
+ * - Clean up the ledger by resetting the allowance and deleting all generated accounts. *
+ *
+ * This example highlights how transactions can be transported or stored
+ * as raw bytes, reconstructed later, and still maintain correctness
+ * through freezing and signing prior to execution.
+ */
+
 #include "AccountAllowanceApproveTransaction.h"
 #include "AccountBalance.h"
 #include "AccountBalanceQuery.h"
