@@ -72,7 +72,7 @@ public:
   FileUpdateTransaction& setExpirationTime(const std::chrono::system_clock::time_point& expirationTime);
 
   /**
-   * Set the new key(s) that must sign when mutating the file.
+   * Set the Keys that must sign when mutating the new file via FileAppendTransactions or FileUpdateTransactions.
    *
    * @param keys The keys that must sign any Transaction that edits the created file.
    * @return A reference to this FileUpdateTransaction object with the newly-set keys.
@@ -82,8 +82,7 @@ public:
   FileUpdateTransaction& setKeys(const KeyList& keys);
 
   /**
-   * Set the new contents of the file. The contents cannot exceed 4096 bytes. A FileAppendTransaction must be used to
-   * set larger contents.
+   * Set the new contents of the file by replacing the existing file contents. The contents cannot exceed 4096 bytes. To set larger contents, a FileAppendTransaction must be used.
    *
    * @param contents The new contents of the file.
    * @return A reference to this FileUpdateTransaction object with the newly-set contents.
@@ -96,7 +95,7 @@ public:
   /**
    * Set the new memo for the file.
    *
-   * @param memo The new memo of the file.
+   * @param memo The new memo for the file.
    * @return A reference to this FileUpdateTransaction object with the newly-set memo.
    * @throws IllegalStateException If this FileUpdateTransaction is frozen.
    */
