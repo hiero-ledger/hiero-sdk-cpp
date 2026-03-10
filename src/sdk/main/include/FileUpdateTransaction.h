@@ -72,7 +72,7 @@ public:
   FileUpdateTransaction& setExpirationTime(const std::chrono::system_clock::time_point& expirationTime);
 
   /**
-   * Set the Keys that must sign when mutating the new file via FileAppendTransactions or FileUpdateTransactions.
+   * Set the Keys that must sign when mutating the file via FileAppendTransactions or FileUpdateTransactions.
    *
    * @param keys The keys that must sign any Transaction that edits the created file.
    * @return A reference to this FileUpdateTransaction object with the newly-set keys.
