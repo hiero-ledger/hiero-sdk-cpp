@@ -82,7 +82,8 @@ public:
   FileUpdateTransaction& setKeys(const KeyList& keys);
 
   /**
-   * Set the new contents of the file by replacing the existing file contents. The contents cannot exceed 4096 bytes. To set larger contents, a FileAppendTransaction must be used.
+   * Set the new contents of the file by replacing the existing file contents. The contents cannot exceed 4096 bytes.
+   * To set larger contents, a FileAppendTransaction must be used.
    *
    * @param contents The new contents of the file.
    * @return A reference to this FileUpdateTransaction object with the newly-set contents.
