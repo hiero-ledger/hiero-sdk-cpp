@@ -237,3 +237,89 @@ TEST_F(ClientUnitTests, DefaultValuesRespectConstraint)
   EXPECT_NO_THROW(client.setGrpcDeadline(DEFAULT_GRPC_DEADLINE));
   EXPECT_NO_THROW(client.setRequestTimeout(DEFAULT_REQUEST_TIMEOUT));
 }
+
+//-----
+TEST_F(ClientUnitTests, AllowReceiptNodeFailoverDefaultIsFalse)
+{
+  // Given
+  Client client;
+
+  // When / Then - default must be false (strict single-node pinning by default)
+  EXPECT_FALSE(client.getAllowReceiptNodeFailover());
+}
+
+//-----
+TEST_F(ClientUnitTests, SetAllowReceiptNodeFailover)
+{
+  // Given
+  Client client;
+
+  // When
+  client.setAllowReceiptNodeFailover(true);
+
+  // Then
+  EXPECT_TRUE(client.getAllowReceiptNodeFailover());
+
+  // When reset
+  client.setAllowReceiptNodeFailover(false);
+
+  // Then
+  EXPECT_FALSE(client.getAllowReceiptNodeFailover());
+}
+
+//-----
+TEST_F(ClientUnitTests, AllowRecordNodeFailoverDefaultIsFalse)
+{
+  // Given
+  Client client;
+
+  // When / Then - default must be false (strict single-node pinning by default)
+  EXPECT_FALSE(client.getAllowRecordNodeFailover());
+}
+
+//-----
+TEST_F(ClientUnitTests, SetAllowRecordNodeFailover)
+{
+  // Given
+  Client client;
+
+  // When
+  client.setAllowRecordNodeFailover(true);
+
+  // Then
+  EXPECT_TRUE(client.getAllowRecordNodeFailover());
+
+  // When reset
+  client.setAllowRecordNodeFailover(false);
+
+  // Then
+  EXPECT_FALSE(client.getAllowRecordNodeFailover());
+}
+
+//-----
+TEST_F(ClientUnitTests, ReceiptAndRecordFailoverFlagsAreIndependent)
+{
+  // Given
+  Client client;
+
+  // When enabling only receipt failover
+  client.setAllowReceiptNodeFailover(true);
+
+  // Then receipt is on, record is still off
+  EXPECT_TRUE(client.getAllowReceiptNodeFailover());
+  EXPECT_FALSE(client.getAllowRecordNodeFailover());
+
+  // When also enabling record failover
+  client.setAllowRecordNodeFailover(true);
+
+  // Then both are on
+  EXPECT_TRUE(client.getAllowReceiptNodeFailover());
+  EXPECT_TRUE(client.getAllowRecordNodeFailover());
+
+  // When disabling only receipt failover
+  client.setAllowReceiptNodeFailover(false);
+
+  // Then receipt is off, record is still on
+  EXPECT_FALSE(client.getAllowReceiptNodeFailover());
+  EXPECT_TRUE(client.getAllowRecordNodeFailover());
+}

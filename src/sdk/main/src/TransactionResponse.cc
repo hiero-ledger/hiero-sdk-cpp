@@ -42,7 +42,7 @@ TransactionReceipt TransactionResponse::getReceipt(const Client& client,
 //-----
 TransactionReceiptQuery TransactionResponse::getReceiptQuery() const
 {
-  return TransactionReceiptQuery().setTransactionId(mTransactionId).setNodeAccountIds({ mNodeId });
+  return TransactionReceiptQuery().setTransactionId(mTransactionId).setSubmittingNodeId(mNodeId);
 }
 
 //-----
@@ -123,13 +123,13 @@ TransactionRecord TransactionResponse::getRecord(const Client& client) const
 TransactionRecord TransactionResponse::getRecord(const Client& client,
                                                  const std::chrono::system_clock::duration& timeout) const
 {
-  return TransactionRecordQuery().setTransactionId(mTransactionId).execute(client, timeout);
+  return getRecordQuery().execute(client, timeout);
 }
 
 //-----
 TransactionRecordQuery TransactionResponse::getRecordQuery() const
 {
-  return TransactionRecordQuery().setTransactionId(mTransactionId).setNodeAccountIds({ mNodeId });
+  return TransactionRecordQuery().setTransactionId(mTransactionId).setSubmittingNodeId(mNodeId);
 }
 
 //-----
