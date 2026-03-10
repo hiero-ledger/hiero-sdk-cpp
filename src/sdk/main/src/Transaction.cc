@@ -76,6 +76,34 @@
 
 namespace Hiero
 {
+  
+namespace
+{
+/**
+ * Helper function - Extract the raw signature bytes from a protobuf SignaturePair.
+ */
+std::vector<std::byte> extractSignatureBytes(const proto::SignaturePair& pair)
+{
+  const std::string* sigStr = nullptr;
+  if (pair.has_ed25519())
+  {
+    sigStr = &pair.ed25519();
+  }
+  else if (pair.has_ecdsa_secp256k1())
+  {
+    sigStr = &pair.ecdsa_secp256k1();
+  }
+  else
+  {
+    throw IllegalStateException("Unknown signature type");
+  }
+
+  std::vector<std::byte> sigBytes(sigStr->size());
+  std::transform(sigStr->begin(), sigStr->end(), sigBytes.begin(), [](char c) { return static_cast<std::byte>(c); });
+  return sigBytes;
+}
+} // anonymous namespace
+
 //-----
 template<typename SdkRequestType>
 struct Transaction<SdkRequestType>::TransactionImpl
@@ -600,27 +628,7 @@ std::vector<std::vector<std::byte>> Transaction<SdkRequestType>::removeSignature
 
       if (pair.pubkeyprefix() == pubKeyPrefixStr)
       {
-        const std::string* sigStr = nullptr;
-        if (pair.has_ed25519())
-        {
-          sigStr = &pair.ed25519();
-        }
-        else if (pair.has_ecdsa_secp256k1())
-        {
-          sigStr = &pair.ecdsa_secp256k1();
-        }
-        else
-        {
-          throw IllegalStateException("Unknown signature type");
-        }
-
-        // Extract the bytes and save them to return to the caller
-        std::vector<std::byte> sigBytes(sigStr->size());
-        std::transform(
-          sigStr->begin(), sigStr->end(), sigBytes.begin(), [](char c) { return static_cast<std::byte>(c); });
-
-        removedSignatures.push_back(std::move(sigBytes));
-
+        removedSignatures.push_back(extractSignatureBytes(pair));
         // Erase the signature directly from the Protobuf array
         sigPairs->erase(sigPairs->begin() + i);
       }
@@ -682,25 +690,7 @@ Transaction<SdkRequestType>::removeAllSignatures()
       auto it = prefixToKey.find(pair.pubkeyprefix());
       if (it != prefixToKey.end())
       {
-        const std::string* sigStr = nullptr;
-        if (pair.has_ed25519())
-        {
-          sigStr = &pair.ed25519();
-        }
-        else if (pair.has_ecdsa_secp256k1())
-        {
-          sigStr = &pair.ecdsa_secp256k1();
-        }
-        else
-        {
-          throw IllegalStateException("Unknown signature type");
-        }
-
-        // Convert and store the extracted signature bytes
-        std::vector<std::byte> sigBytes(sigStr->size());
-        std::transform(
-          sigStr->begin(), sigStr->end(), sigBytes.begin(), [](char c) { return static_cast<std::byte>(c); });
-
+        std::vector<std::byte> sigBytes = extractSignatureBytes(pair);
         removedByKey[it->second].push_back(std::move(sigBytes));
       }
     }
