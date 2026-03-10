@@ -2893,3 +2893,174 @@ TEST_F(TransactionUnitTests, FromBytesSuccessWhenTransactionListHasConsistentBod
   EXPECT_NO_THROW(
     Transaction<TransferTransaction>::fromBytes(internal::Utilities::stringToByteVector(txList.SerializeAsString())));
 }
+
+//-----
+TEST_F(TransactionUnitTests, RemoveSignatureFromSingleSignerTransaction)
+{
+  // Given
+  const std::shared_ptr<ED25519PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
+  AccountCreateTransaction tx;
+
+  tx.setNodeAccountIds({ AccountId(3) }).setTransactionId(getTestTransactionIdMock()).freezeWith(&getTestClientMock());
+
+  tx.sign(privateKey);
+  const size_t sizeSigned = tx.getTransactionSize();
+
+  // When
+  std::vector<std::vector<std::byte>> removedSigs;
+  ASSERT_NO_THROW(removedSigs = tx.removeSignature(privateKey->getPublicKey()));
+
+  // Then
+  EXPECT_EQ(removedSigs.size(), 1);
+  EXPECT_FALSE(removedSigs[0].empty());
+
+  // getTransactionSize() rebuilds the transaction. Since the signature was removed,
+  // the rebuilt (unsigned) transaction should be strictly smaller.
+  EXPECT_LT(tx.getTransactionSize(), sizeSigned);
+}
+
+//-----
+TEST_F(TransactionUnitTests, RemoveSignatureFromSingleSignerTransactionWithECDSAsecp256k1Key)
+{
+  // Given
+  const std::shared_ptr<ECDSAsecp256k1PrivateKey> privateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
+  AccountCreateTransaction tx;
+
+  tx.setNodeAccountIds({ AccountId(3) }).setTransactionId(getTestTransactionIdMock()).freezeWith(&getTestClientMock());
+
+  tx.sign(privateKey);
+  const size_t sizeSigned = tx.getTransactionSize();
+
+  // When
+  std::vector<std::vector<std::byte>> removedSigs;
+  ASSERT_NO_THROW(removedSigs = tx.removeSignature(privateKey->getPublicKey()));
+
+  // Then
+  EXPECT_EQ(removedSigs.size(), 1);
+  EXPECT_FALSE(removedSigs[0].empty());
+
+  // getTransactionSize() rebuilds the transaction. Since the signature was removed,
+  // the rebuilt (unsigned) transaction should be strictly smaller.
+  EXPECT_LT(tx.getTransactionSize(), sizeSigned);
+}
+
+//-----
+TEST_F(TransactionUnitTests, RemoveOneSignatureFromMultiSignerTransaction)
+{
+  // Given
+  const std::shared_ptr<ED25519PrivateKey> privateKey1 = ED25519PrivateKey::generatePrivateKey();
+  const std::shared_ptr<ED25519PrivateKey> privateKey2 = ED25519PrivateKey::generatePrivateKey();
+
+  AccountCreateTransaction tx;
+  tx.setNodeAccountIds({ AccountId(3) }).setTransactionId(getTestTransactionIdMock()).freezeWith(&getTestClientMock());
+
+  tx.sign(privateKey1);
+  tx.sign(privateKey2);
+
+  const size_t sizeTwoSigs = tx.getTransactionSize();
+
+  // When
+  std::vector<std::vector<std::byte>> removedSigs;
+  ASSERT_NO_THROW(removedSigs = tx.removeSignature(privateKey1->getPublicKey()));
+
+  // Then
+  EXPECT_EQ(removedSigs.size(), 1);
+  EXPECT_FALSE(removedSigs[0].empty());
+
+  // Transaction size should reflect the removal of the first signature
+  EXPECT_LT(tx.getTransactionSize(), sizeTwoSigs);
+
+  // Ensure that the second signature is still perfectly intact and can also be removed
+  ASSERT_NO_THROW(tx.removeSignature(privateKey2->getPublicKey()));
+}
+
+//-----
+TEST_F(TransactionUnitTests, RemoveSignatureThatDoesNotExistThrows)
+{
+  // Given
+  const std::shared_ptr<ED25519PrivateKey> signerKey = ED25519PrivateKey::generatePrivateKey();
+  const std::shared_ptr<ED25519PrivateKey> nonSignerKey = ED25519PrivateKey::generatePrivateKey();
+
+  AccountCreateTransaction tx;
+  tx.setNodeAccountIds({ AccountId(3) }).setTransactionId(getTestTransactionIdMock()).freezeWith(&getTestClientMock());
+
+  tx.sign(signerKey);
+
+  // When / Then
+  // Attempting to remove a signature for a key that hasn't signed should throw
+  EXPECT_THROW(tx.removeSignature(nonSignerKey->getPublicKey()), IllegalStateException);
+  // The signer key can still be removed
+  ASSERT_NO_THROW(tx.removeSignature(signerKey->getPublicKey()));
+}
+
+//-----
+TEST_F(TransactionUnitTests, RemoveSignatureFromUnfrozenTransactionThrows)
+{
+  // Given
+  const std::shared_ptr<ED25519PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
+  AccountCreateTransaction tx;
+  // Transaction is intentionally left unfrozen
+
+  // Then
+  // Signature map modifications require a frozen transaction state
+  EXPECT_THROW(tx.removeSignature(privateKey->getPublicKey()), IllegalStateException);
+}
+
+//-----
+TEST_F(TransactionUnitTests, RemoveAllSignaturesAndVerifyTransactionState)
+{
+  // Given
+  const std::shared_ptr<ED25519PrivateKey> privateKey1 = ED25519PrivateKey::generatePrivateKey();
+  const std::shared_ptr<ED25519PrivateKey> privateKey2 = ED25519PrivateKey::generatePrivateKey();
+
+  AccountCreateTransaction tx;
+  tx.setNodeAccountIds({ AccountId(3) }).setTransactionId(getTestTransactionIdMock()).freezeWith(&getTestClientMock());
+
+  const size_t sizeUnsigned = tx.getTransactionSize();
+
+  tx.sign(privateKey1);
+  tx.sign(privateKey2);
+  EXPECT_GT(tx.getTransactionSize(), sizeUnsigned);
+
+  // When (First Removal)
+  std::map<std::shared_ptr<PublicKey>, std::vector<std::vector<std::byte>>> removedSigsMap;
+  ASSERT_NO_THROW(removedSigsMap = tx.removeAllSignatures());
+
+  // Then
+  // Verify both signatures were extracted and the transaction size reverted to baseline
+  EXPECT_EQ(removedSigsMap.size(), 2);
+  EXPECT_EQ(tx.getTransactionSize(), sizeUnsigned);
+
+  // When (Second Removal)
+  std::map<std::shared_ptr<PublicKey>, std::vector<std::vector<std::byte>>> secondRemoval;
+  ASSERT_NO_THROW(secondRemoval = tx.removeAllSignatures());
+
+  // Then
+  // A second pass should safely return an empty map without throwing an exception
+  EXPECT_EQ(secondRemoval.size(), 0);
+}
+
+//-----
+TEST_F(TransactionUnitTests, VerifyReturnedSignaturesMatchWhatWasAdded)
+{
+  // Given
+  const auto privateKey = ED25519PrivateKey::generatePrivateKey();
+  const std::shared_ptr<PublicKey> publicKey = privateKey->getPublicKey();
+
+  // Create a predictable dummy signature to test byte extraction accuracy
+  const std::vector<std::byte> dummySignature(64, std::byte{ 0xAB });
+
+  AccountCreateTransaction tx;
+  tx.setNodeAccountIds({ AccountId(3) }).setTransactionId(getTestTransactionIdMock()).freezeWith(&getTestClientMock());
+
+  tx.addSignature(publicKey, dummySignature);
+
+  // When
+  std::vector<std::vector<std::byte>> removedSigs;
+  ASSERT_NO_THROW(removedSigs = tx.removeSignature(publicKey));
+
+  // Then
+  // The bytes returned by the removal function should perfectly match the injected dummy bytes
+  ASSERT_EQ(removedSigs.size(), 1);
+  EXPECT_EQ(removedSigs[0], dummySignature);
+}
