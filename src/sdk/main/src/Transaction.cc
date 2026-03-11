@@ -76,7 +76,7 @@
 
 namespace Hiero
 {
-  
+
 namespace
 {
 /**
@@ -638,6 +638,11 @@ std::vector<std::vector<std::byte>> Transaction<SdkRequestType>::removeSignature
         // Erase it so it can be cleanly regenerated without duplication.
         sigPairs->erase(sigPairs->begin() + i);
       }
+    }
+
+    if (sigPairs->empty())
+    {
+      signedTransaction.clear_sigmap();
     }
   }
 
