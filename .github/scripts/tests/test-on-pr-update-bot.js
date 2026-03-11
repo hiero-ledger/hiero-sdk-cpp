@@ -10,6 +10,7 @@ const {
   commitDCOAndGPG,
   commitDCOFail,
   commitGPGFail,
+  commitMerge,
   createMockGithub,
 } = require('./test-utils');
 const script = require('../bot-on-pr-update.js');
@@ -388,6 +389,33 @@ const syncScenarios = [
       calls.updateComment.length === 0,
     commentIncludes: ['All checks passed'],
     expectCreate: true,
+  },
+  {
+    name: '[sync] Merge commit without DCO sign-off is skipped',
+    setup: () => ({
+      commits: [
+        ...passingCommits(),
+        {
+          sha: 'merge1234567890',
+          parents: [{}, {}],
+          commit: {
+            message: 'Merge branch \'main\' into feat/my-feature',
+            verification: { verified: true },
+          },
+        },
+      ],
+      mergeable: true,
+      comments: [],
+      prLabels: [{ name: LABELS.NEEDS_REVISION }],
+      prUser: { login: 'larry', type: 'User' },
+      prBody: 'Fixes #100',
+      closingIssues: [100],
+      issues: { 100: issueWithAssignee(100, 'Fix', 'larry') },
+    }),
+    verify: ({ calls }) =>
+      calls.labelsRemoved.includes(LABELS.NEEDS_REVISION) &&
+      calls.labelsAdded.some((arr) => arr.includes(LABELS.NEEDS_REVIEW)),
+    commentIncludes: ['All checks passed', ':white_check_mark:'],
   },
 ];
 
@@ -773,6 +801,27 @@ const editScenarios = [
       assignees: [],
       commentCreated: true,
       commentIncludes: [':x: **Issue Link**', 'not linked to any issue'],
+    },
+  },
+  {
+    name: '[edit] Merge commit without DCO sign-off is skipped',
+    description: 'Mix of passing commit and merge commit (no sign-off). DCO still passes.',
+    context: defaultEditContext(),
+    githubOptions: {
+      commits: [
+        commitDCOAndGPG('abc1234', 'Add feature'),
+        commitMerge('merge567', 'Merge branch \'main\' into feat/my-feature'),
+      ],
+      mergeable: true,
+      issues: { 42: { title: 'Bug', assignees: [{ login: 'contributor' }] } },
+      graphqlClosingIssues: [],
+    },
+    expect: {
+      labelsAdded: [],
+      labelsRemoved: [],
+      assignees: [],
+      commentCreated: true,
+      commentIncludes: [':white_check_mark:', 'All checks passed'],
     },
   },
   {

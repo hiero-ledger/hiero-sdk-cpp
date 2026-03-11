@@ -49,15 +49,15 @@ function buildSection({ title, result, passMessage }) {
  * @returns {string}
  */
 function buildDCOSection(dco) {
-  const common = buildSection({ title: 'DCO Sign-off', result: dco, passMessage: 'All commits have valid sign-offs.' });
+  const common = buildSection({ title: 'DCO Sign-off', result: dco, passMessage: 'All commits have valid sign-offs. Nice work!' });
   if (common) return common;
 
   const failList = (dco.failures || []).map(f => `- \`${f.sha}\` ${f.message}`).join('\n');
   return [
-    ':x: **DCO Sign-off** -- The following commits are missing the required DCO sign-off:',
+    ':x: **DCO Sign-off** -- Uh oh! The following commits are missing the required DCO sign-off:',
     failList,
     '',
-    `Please add \`Signed-off-by: Your Name <email>\` to each commit (e.g. \`git commit -s\`). See the [Signing Guide](${SIGNING_GUIDE}).`,
+    `No worries, this is an easy fix! Add \`Signed-off-by: Your Name <email>\` to each commit (e.g. \`git commit -s\`). See the [Signing Guide](${SIGNING_GUIDE}).`,
   ].join('\n');
 }
 
@@ -66,15 +66,15 @@ function buildDCOSection(dco) {
  * @returns {string}
  */
 function buildGPGSection(gpg) {
-  const common = buildSection({ title: 'GPG Signature', result: gpg, passMessage: 'All commits have verified GPG signatures.' });
+  const common = buildSection({ title: 'GPG Signature', result: gpg, passMessage: 'All commits have verified GPG signatures. Locked and loaded!' });
   if (common) return common;
 
   const failList = (gpg.failures || []).map(f => `- \`${f.sha}\` ${f.message}`).join('\n');
   return [
-    ':x: **GPG Signature** -- The following commits don\'t have a verified GPG signature:',
+    ':x: **GPG Signature** -- Heads up! The following commits don\'t have a verified GPG signature:',
     failList,
     '',
-    `Please sign your commits with GPG (e.g. \`git commit -S\`). See the [Signing Guide](${SIGNING_GUIDE}).`,
+    `You\'ll need to sign your commits with GPG (e.g. \`git commit -S\`). See the [Signing Guide](${SIGNING_GUIDE}) for a step-by-step walkthrough.`,
   ].join('\n');
 }
 
@@ -83,13 +83,13 @@ function buildGPGSection(gpg) {
  * @returns {string}
  */
 function buildMergeSection(merge) {
-  const common = buildSection({ title: 'Merge Conflicts', result: merge, passMessage: 'No merge conflicts detected.' });
+  const common = buildSection({ title: 'Merge Conflicts', result: merge, passMessage: 'No merge conflicts detected. Smooth sailing!' });
   if (common) return common;
 
   return [
-    ':x: **Merge Conflicts** -- This PR has merge conflicts with the base branch.',
+    ':x: **Merge Conflicts** -- Oh no, this PR has merge conflicts with the base branch.',
     '',
-    `Please update your branch (e.g. rebase or merge from base) and push. See the [Merge Conflicts Guide](${MERGE_CONFLICTS_GUIDE}).`,
+    `Let\'s get this sorted! Update your branch (e.g. rebase or merge from base) and push. See the [Merge Conflicts Guide](${MERGE_CONFLICTS_GUIDE}) if you need a hand.`,
   ].join('\n');
 }
 
@@ -108,15 +108,15 @@ function buildIssueLinkSection(issueLink) {
   if (issueLink.reason === 'not_assigned') {
     const unassigned = (issueLink.issues || []).filter(i => !i.isAssigned).map(i => `#${i.number}`).join(', ');
     return [
-      `:x: **Issue Link** -- You are not assigned to the following linked issues: ${unassigned}.`,
+      `:x: **Issue Link** -- Almost there! You are not assigned to the following linked issues: ${unassigned}.`,
       '',
-      'Please ensure you are assigned to all linked issues before opening a PR.',
+      'Please ensure you are assigned to all linked issues before opening a PR. You can comment `/assign` on the issue to grab it!',
     ].join('\n');
   }
   return [
     ':x: **Issue Link** -- This PR is not linked to any issue.',
     '',
-    'Please reference an issue using a closing keyword (e.g. `Fixes #123`) and ensure the issue is assigned to you.',
+    'Please reference an issue using a closing keyword (e.g. `Fixes #123`) and ensure the issue is assigned to you. Every PR needs a home!',
   ].join('\n');
 }
 
@@ -166,20 +166,19 @@ function allChecksPassed({ dco, gpg, merge, issueLink }) {
  */
 function buildBotComment({ prAuthor, dco, gpg, merge, issueLink }) {
   const greeting = [
-    `Hi @${prAuthor} :wave:, thank you for submitting this PR!`,
-    "I'm your **PR Helper Bot** and I'll be keeping track of your PR's",
-    'status to help you get it approved and merged.',
+    `Hey @${prAuthor} :wave: thanks for the PR!`,
+    "I'm your friendly **PR Helper Bot** :robot: and I'll be riding shotgun on this one, keeping track of your PR's status to help you get it approved and merged.",
     '',
-    'This comment will stay updated as you make changes.',
-    "Here's where things stand:",
+    "This comment updates automatically as you push changes -- think of it as your PR's live scoreboard!",
+    "Here's the latest:",
   ].join('\n');
 
   const checksSection = buildChecksSection({ dco, gpg, merge, issueLink });
   const passed = allChecksPassed({ dco, gpg, merge, issueLink });
 
   const footer = passed
-    ? ':tada: *All checks passed! Your PR is ready for review.*'
-    : '*All checks must pass before this PR can be reviewed.*';
+    ? ':tada: *All checks passed! Your PR is ready for review. Great job!*'
+    : ':hourglass_flowing_sand: *All checks must pass before this PR can be reviewed. You\'ve got this!*';
 
   const body = [MARKER, greeting, '', '---', '', checksSection, '', '---', '', footer].join('\n');
   return { marker: MARKER, body, allPassed: passed };
