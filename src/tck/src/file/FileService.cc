@@ -73,8 +73,8 @@ nlohmann::json createFile(const CreateFileParams& params)
     fileCreateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
 
   return {
-    { "fileId", txReceipt.mFileId.value().toString()  },
-    { "status", gStatusToString.at(txReceipt.mStatus) }
+    {"fileId",  txReceipt.mFileId.value().toString() },
+    { "status", gStatusToString.at(txReceipt.mStatus)}
   };
 }
 
@@ -95,9 +95,9 @@ nlohmann::json deleteFile(const DeleteFileParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        fileDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        fileDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -149,7 +149,7 @@ nlohmann::json updateFile(const UpdateFileParams& params)
     fileUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
 
   return {
-    { "status", gStatusToString.at(txReceipt.mStatus) }
+    {"status", gStatusToString.at(txReceipt.mStatus)}
   };
 }
 
