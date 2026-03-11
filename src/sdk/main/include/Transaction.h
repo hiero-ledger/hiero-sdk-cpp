@@ -172,13 +172,10 @@ public:
   std::vector<std::vector<std::byte>> removeSignature(const std::shared_ptr<PublicKey>& publicKey);
 
   /**
-   * Clear all signatures from the transaction and return them in a specific format.
+   * Remove all signatures from the transaction.
    *
-   * It will call collectSignatures to get the removed signatures, then clear all signatures
-   * from the internal tracking.
-   *
-   * @return The removed signatures in the specified format.
-   * @throws IllegalStateException if transaction is not frozen.
+   * @return The removed signatures grouped by their associated public key.
+   * @throws IllegalStateException if the transaction is not frozen.
    */
   std::map<std::shared_ptr<PublicKey>, std::vector<std::vector<std::byte>>> removeAllSignatures();
 
@@ -537,9 +534,10 @@ private:
    */
   [[nodiscard]]
   typename Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::
-    ExecutionStatus determineStatus(Status status,
-                                    const Client& client,
-                                    [[maybe_unused]] const proto::TransactionResponse& response) override;
+    ExecutionStatus
+    determineStatus(Status status,
+                    const Client& client,
+                    [[maybe_unused]] const proto::TransactionResponse& response) override;
 
   /**
    * Derived from Executable. Perform any needed actions for this Transaction when it is being submitted.
