@@ -10,6 +10,7 @@ namespace Hiero::TCK::FileService
  * Forward declarations.
  */
 struct CreateFileParams;
+struct DeleteFileParams;
 struct UpdateFileParams;
 
 /**
@@ -19,6 +20,14 @@ struct UpdateFileParams;
  * @return A JSON response containing the created file ID and the status of the file creation.
  */
 nlohmann::json createFile(const CreateFileParams& params);
+
+/**
+ * delete a file.
+ *
+ * @param params The parameters to use to delete a file.
+ * @return A JSON response containing the status of the file deletion.
+ */
+nlohmann::json deleteFile(const DeleteFileParams& params);
 
 /**
  * Update a file.

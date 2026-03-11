@@ -14,6 +14,7 @@
 #include "account/params/UpdateAccountParams.h"
 #include "file/FileService.h"
 #include "file/params/CreateFileParams.h"
+#include "file/params/DeleteFileParams.h"
 #include "file/params/UpdateFileParams.h"
 #include "key/KeyService.h"
 #include "key/params/GenerateKeyParams.h"
@@ -95,6 +96,7 @@ TckServer::TckServer(int port)
 
   // Add the FileService functions.
   mJsonRpcParser.addMethod("createFile", getHandle(FileService::createFile));
+  mJsonRpcParser.addMethod("deleteFile", getHandle(FileService::deleteFile));
   mJsonRpcParser.addMethod("updateFile", getHandle(FileService::updateFile));
 
   setupHttpHandler();
@@ -207,6 +209,8 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::ClaimAirdrop
   nlohmann::json (*method)(const TokenService::ClaimAirdropParams&));
 template TckServer::MethodHandle TckServer::getHandle<FileService::CreateFileParams>(
   nlohmann::json (*method)(const FileService::CreateFileParams&));
+template TckServer::MethodHandle TckServer::getHandle<FileService::DeleteFileParams>(
+  nlohmann::json (*method)(const FileService::DeleteFileParams&));
 template TckServer::MethodHandle TckServer::getHandle<FileService::UpdateFileParams>(
   nlohmann::json (*method)(const FileService::UpdateFileParams&));
 

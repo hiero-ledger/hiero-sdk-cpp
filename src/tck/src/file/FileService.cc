@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "file/FileService.h"
 #include "file/params/CreateFileParams.h"
+#include "file/params/DeleteFileParams.h"
 #include "file/params/UpdateFileParams.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
@@ -8,6 +9,7 @@
 #include "json/JsonRpcException.h"
 
 #include <FileCreateTransaction.h>
+#include <FileDeleteTransaction.h>
 #include <FileId.h>
 #include <FileUpdateTransaction.h>
 #include <Key.h>
@@ -73,6 +75,29 @@ nlohmann::json createFile(const CreateFileParams& params)
   return {
     {"fileId",  txReceipt.mFileId.value().toString() },
     { "status", gStatusToString.at(txReceipt.mStatus)}
+  };
+}
+
+//-----
+nlohmann::json deleteFile(const DeleteFileParams& params)
+{
+  FileDeleteTransaction fileDeleteTransaction;
+  fileDeleteTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mFileId.has_value())
+  {
+    fileDeleteTransaction.setFileId(FileId::fromString(params.mFileId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(fileDeleteTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        fileDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
