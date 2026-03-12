@@ -45,7 +45,7 @@ public:
   TransactionResponse(AccountId nodeId,
                       TransactionId transactionId,
                       std::vector<std::byte> hash,
-                      std::vector<AccountId> transactionNodeAccountIds);
+                      std::vector<AccountId> transactionNodeAccountIds = {});
 
   /**
    * Get a TransactionReceipt for this TransactionResponse's corresponding Transaction.
