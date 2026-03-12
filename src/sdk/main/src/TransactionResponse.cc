@@ -9,13 +9,20 @@
 
 #include <nlohmann/json.hpp>
 
+#include <algorithm>
+#include <unordered_set>
+
 namespace Hiero
 {
 //-----
-TransactionResponse::TransactionResponse(AccountId nodeId, TransactionId transactionId, std::vector<std::byte> hash)
+TransactionResponse::TransactionResponse(AccountId nodeId,
+                                         TransactionId transactionId,
+                                         std::vector<std::byte> hash,
+                                         std::vector<AccountId> transactionNodeAccountIds)
   : mNodeId(std::move(nodeId))
   , mTransactionHash(std::move(hash))
   , mTransactionId(std::move(transactionId))
+  , mTransactionNodeAccountIds(std::move(transactionNodeAccountIds))
 {
 }
 
@@ -29,7 +36,7 @@ TransactionReceipt TransactionResponse::getReceipt(const Client& client) const
 TransactionReceipt TransactionResponse::getReceipt(const Client& client,
                                                    const std::chrono::system_clock::duration& timeout) const
 {
-  TransactionReceipt txReceipt = getReceiptQuery().execute(client, timeout);
+  TransactionReceipt txReceipt = getReceiptQuery(&client).execute(client, timeout);
 
   if (mValidateStatus)
   {
@@ -40,9 +47,67 @@ TransactionReceipt TransactionResponse::getReceipt(const Client& client,
 }
 
 //-----
-TransactionReceiptQuery TransactionResponse::getReceiptQuery() const
+TransactionReceiptQuery TransactionResponse::getReceiptQuery(const Client* client) const
 {
-  return TransactionReceiptQuery().setTransactionId(mTransactionId).setSubmittingNodeId(mNodeId);
+  auto query = TransactionReceiptQuery().setTransactionId(mTransactionId);
+
+  if (client && client->getAllowReceiptNodeFailover())
+  {
+    std::vector<AccountId> candidates;
+    if (!mTransactionNodeAccountIds.empty())
+    {
+      candidates = mTransactionNodeAccountIds;
+    }
+    else
+    {
+      std::unordered_set<std::string> seen;
+      for (const auto& [url, accountId] : client->getNetwork())
+      {
+        const std::string key = accountId.toString();
+        if (seen.find(key) == seen.end())
+        {
+          seen.insert(key);
+          candidates.push_back(accountId);
+        }
+      }
+    }
+
+    std::unordered_set<std::string> seen;
+    std::vector<AccountId> nodeIds;
+    nodeIds.push_back(mNodeId);
+    seen.insert(mNodeId.toString());
+
+    std::vector<AccountId> others;
+    for (const auto& node : candidates)
+    {
+      const std::string key = node.toString();
+      if (seen.find(key) == seen.end())
+      {
+        seen.insert(key);
+        others.push_back(node);
+      }
+    }
+
+    std::sort(others.begin(),
+              others.end(),
+              [](const AccountId& a, const AccountId& b)
+              {
+                if (a.mShardNum != b.mShardNum)
+                  return a.mShardNum < b.mShardNum;
+                if (a.mRealmNum != b.mRealmNum)
+                  return a.mRealmNum < b.mRealmNum;
+                return a.mAccountNum.value_or(0ULL) < b.mAccountNum.value_or(0ULL);
+              });
+
+    nodeIds.insert(nodeIds.end(), others.begin(), others.end());
+    query.setNodeAccountIds(nodeIds);
+  }
+  else
+  {
+    query.setNodeAccountIds({ mNodeId });
+  }
+
+  return query;
 }
 
 //-----
@@ -123,13 +188,71 @@ TransactionRecord TransactionResponse::getRecord(const Client& client) const
 TransactionRecord TransactionResponse::getRecord(const Client& client,
                                                  const std::chrono::system_clock::duration& timeout) const
 {
-  return getRecordQuery().execute(client, timeout);
+  return getRecordQuery(&client).execute(client, timeout);
 }
 
 //-----
-TransactionRecordQuery TransactionResponse::getRecordQuery() const
+TransactionRecordQuery TransactionResponse::getRecordQuery(const Client* client) const
 {
-  return TransactionRecordQuery().setTransactionId(mTransactionId).setSubmittingNodeId(mNodeId);
+  auto query = TransactionRecordQuery().setTransactionId(mTransactionId);
+
+  if (client && client->getAllowReceiptNodeFailover())
+  {
+    std::vector<AccountId> candidates;
+    if (!mTransactionNodeAccountIds.empty())
+    {
+      candidates = mTransactionNodeAccountIds;
+    }
+    else
+    {
+      std::unordered_set<std::string> seen;
+      for (const auto& [url, accountId] : client->getNetwork())
+      {
+        const std::string key = accountId.toString();
+        if (seen.find(key) == seen.end())
+        {
+          seen.insert(key);
+          candidates.push_back(accountId);
+        }
+      }
+    }
+
+    std::unordered_set<std::string> seen;
+    std::vector<AccountId> nodeIds;
+    nodeIds.push_back(mNodeId);
+    seen.insert(mNodeId.toString());
+
+    std::vector<AccountId> others;
+    for (const auto& node : candidates)
+    {
+      const std::string key = node.toString();
+      if (seen.find(key) == seen.end())
+      {
+        seen.insert(key);
+        others.push_back(node);
+      }
+    }
+
+    std::sort(others.begin(),
+              others.end(),
+              [](const AccountId& a, const AccountId& b)
+              {
+                if (a.mShardNum != b.mShardNum)
+                  return a.mShardNum < b.mShardNum;
+                if (a.mRealmNum != b.mRealmNum)
+                  return a.mRealmNum < b.mRealmNum;
+                return a.mAccountNum.value_or(0ULL) < b.mAccountNum.value_or(0ULL);
+              });
+
+    nodeIds.insert(nodeIds.end(), others.begin(), others.end());
+    query.setNodeAccountIds(nodeIds);
+  }
+  else
+  {
+    query.setNodeAccountIds({ mNodeId });
+  }
+
+  return query;
 }
 
 //-----

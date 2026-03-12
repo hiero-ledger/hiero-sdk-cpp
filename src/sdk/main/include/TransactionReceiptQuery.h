@@ -2,7 +2,6 @@
 #ifndef HIERO_SDK_CPP_TRANSACTION_RECEIPT_QUERY_H_
 #define HIERO_SDK_CPP_TRANSACTION_RECEIPT_QUERY_H_
 
-#include "AccountId.h"
 #include "Query.h"
 #include "TransactionId.h"
 
@@ -74,16 +73,6 @@ public:
    *         transactions, otherwise \c FALSE.
    */
   [[nodiscard]] inline bool getIncludeDuplicates() const { return mIncludeDuplicates; }
-
-  /**
-   * Set the account ID of the node that originally submitted the transaction. When the failover flag
-   * is enabled on the Client, this node will be tried first and others will follow in deterministic
-   * order on failure. When the flag is disabled (default), only this node will be targeted.
-   *
-   * @param nodeId The account ID of the submitting node.
-   * @return A reference to this TransactionReceiptQuery object with the newly-set submitting node ID.
-   */
-  TransactionReceiptQuery& setSubmittingNodeId(const AccountId& nodeId);
 
 private:
   /**
@@ -157,14 +146,6 @@ private:
   [[nodiscard]] inline bool isPaymentRequired() const override { return false; }
 
   /**
-   * Derived from Query. Populate node account IDs based on the submitting node and client failover
-   * settings, then delegate the rest of pre-execution setup to the base Query.
-   *
-   * @param client The Client that will execute this query.
-   */
-  void onExecute(const Client& client) override;
-
-  /**
    * The ID of the transaction of which this query should get the receipt.
    */
   std::optional<TransactionId> mTransactionId;
@@ -178,12 +159,6 @@ private:
    * Should the receipts of any duplicates transactions be retrieved as well?
    */
   bool mIncludeDuplicates = false;
-
-  /**
-   * The account ID of the node that originally submitted the transaction. Used to implement
-   * submitting-node-first ordering when failover is enabled.
-   */
-  std::optional<AccountId> mSubmittingNodeId;
 };
 
 } // namespace Hiero

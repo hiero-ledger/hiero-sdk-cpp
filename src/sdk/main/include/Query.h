@@ -180,15 +180,6 @@ protected:
    */
   [[nodiscard]] bool isCostQuery() const;
 
-  /**
-   * Derived from Executable. Perform any needed actions for this Query when it is being submitted.
-   * Protected so that derived query classes (e.g. TransactionReceiptQuery) can call back into it
-   * after performing their own pre-execution setup.
-   *
-   * @param client The Client being used to submit this Query.
-   */
-  void onExecute(const Client& client) override;
-
 private:
   /**
    * Build a Query protobuf object with this Query's data, with the input QueryHeader protobuf object.
@@ -230,6 +221,13 @@ private:
    * @return The status response code of the input Response protobuf object.
    */
   [[nodiscard]] Status mapResponseStatus(const proto::Response& response) const override;
+
+  /**
+   * Derived from Executable. Perform any needed actions for this Query when it is being submitted.
+   *
+   * @param client The Client being used to submit this Query.
+   */
+  void onExecute(const Client& client) override;
 
   /**
    * Derived from Executable. Get the ID of the payment transaction for this Query.

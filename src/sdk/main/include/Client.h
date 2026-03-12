@@ -350,41 +350,22 @@ public:
   [[nodiscard]] bool isAutoValidateChecksumsEnabled() const;
 
   /**
-   * Set whether receipt queries may fail over to other nodes when the submitting node is unavailable.
+   * Set whether receipt and record queries may fail over to other nodes when the submitting node is unavailable.
    * When enabled, queries still start with the submitting node and advance
    * to other eligible nodes in deterministic order only on failure. When
    * disabled (default), strict single-node pinning is preserved.
    *
-   * @param allow \c true to allow receipt query failover to other nodes.
-   * @return A reference to this Client with the newly-set receipt failover policy.
+   * @param allow \c true to allow receipt/record query failover to other nodes.
+   * @return A reference to this Client with the newly-set failover policy.
    */
   Client& setAllowReceiptNodeFailover(bool allow);
 
   /**
-   * Is receipt query node failover allowed for this Client?
+   * Is receipt/record query node failover allowed for this Client?
    *
-   * @return \c TRUE if node failover is allowed for receipt queries, otherwise \c FALSE.
+   * @return \c TRUE if node failover is allowed for receipt/record queries, otherwise \c FALSE.
    */
   [[nodiscard]] bool getAllowReceiptNodeFailover() const;
-
-  /**
-   * Set whether record queries may fail over to other nodes when the submitting node is unavailable.
-   * When enabled, queries still start with the submitting node and advance
-   * to other eligible nodes in deterministic order only on failure. When
-   * disabled (default), strict single-node pinning is
-   * preserved.
-   *
-   * @param allow \c true to allow record query failover to other nodes.
-   * @return A reference to this Client with the newly-set record failover policy.
-   */
-  Client& setAllowRecordNodeFailover(bool allow);
-
-  /**
-   * Is record query node failover allowed for this Client?
-   *
-   * @return \c TRUE if node failover is allowed for record queries, otherwise \c FALSE.
-   */
-  [[nodiscard]] bool getAllowRecordNodeFailover() const;
 
   /**
    * Replace the network being used by this Client with nodes contained in an address book.

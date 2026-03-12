@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "TransactionReceiptQuery.h"
-#include "Client.h"
 #include "Status.h"
 #include "TransactionReceipt.h"
 #include "impl/Node.h"
@@ -10,9 +9,6 @@
 #include <services/response.pb.h>
 #include <services/transaction_get_receipt.pb.h>
 
-#include <algorithm>
-#include <vector>
-
 namespace Hiero
 {
 //-----
@@ -20,54 +16,6 @@ TransactionReceiptQuery& TransactionReceiptQuery::setTransactionId(const Transac
 {
   mTransactionId = transactionId;
   return *this;
-}
-
-//-----
-TransactionReceiptQuery& TransactionReceiptQuery::setSubmittingNodeId(const AccountId& nodeId)
-{
-  mSubmittingNodeId = nodeId;
-  return *this;
-}
-
-//-----
-void TransactionReceiptQuery::onExecute(const Client& client)
-{
-  if (getNodeAccountIds().empty() && mSubmittingNodeId.has_value())
-  {
-    if (client.getAllowReceiptNodeFailover())
-    {
-      // node list -> sorted order
-      std::vector<AccountId> otherNodes;
-      for (const auto& [url, accountId] : client.getNetwork())
-      {
-        if (!(accountId == *mSubmittingNodeId))
-        {
-          otherNodes.push_back(accountId);
-        }
-      }
-      std::sort(otherNodes.begin(),
-                otherNodes.end(),
-                [](const AccountId& a, const AccountId& b)
-                {
-                  if (a.mShardNum != b.mShardNum)
-                    return a.mShardNum < b.mShardNum;
-                  if (a.mRealmNum != b.mRealmNum)
-                    return a.mRealmNum < b.mRealmNum;
-                  return a.mAccountNum.value_or(0ULL) < b.mAccountNum.value_or(0ULL);
-                });
-
-      std::vector<AccountId> nodeIds = { *mSubmittingNodeId };
-      nodeIds.insert(nodeIds.end(), otherNodes.begin(), otherNodes.end());
-      setNodeAccountIds(nodeIds);
-    }
-    else
-    {
-      // Default: single node pinning
-      setNodeAccountIds({ *mSubmittingNodeId });
-    }
-  }
-
-  Query<TransactionReceiptQuery, TransactionReceipt>::onExecute(client);
 }
 
 //-----
