@@ -53,54 +53,7 @@ TransactionReceiptQuery TransactionResponse::getReceiptQuery(const Client* clien
 
   if (client && client->getAllowReceiptNodeFailover())
   {
-    std::vector<AccountId> candidates;
-    if (!mTransactionNodeAccountIds.empty())
-    {
-      candidates = mTransactionNodeAccountIds;
-    }
-    else
-    {
-      std::unordered_set<std::string> seen;
-      for (const auto& [url, accountId] : client->getNetwork())
-      {
-        const std::string key = accountId.toString();
-        if (seen.find(key) == seen.end())
-        {
-          seen.insert(key);
-          candidates.push_back(accountId);
-        }
-      }
-    }
-
-    std::unordered_set<std::string> seen;
-    std::vector<AccountId> nodeIds;
-    nodeIds.push_back(mNodeId);
-    seen.insert(mNodeId.toString());
-
-    std::vector<AccountId> others;
-    for (const auto& node : candidates)
-    {
-      const std::string key = node.toString();
-      if (seen.find(key) == seen.end())
-      {
-        seen.insert(key);
-        others.push_back(node);
-      }
-    }
-
-    std::sort(others.begin(),
-              others.end(),
-              [](const AccountId& a, const AccountId& b)
-              {
-                if (a.mShardNum != b.mShardNum)
-                  return a.mShardNum < b.mShardNum;
-                if (a.mRealmNum != b.mRealmNum)
-                  return a.mRealmNum < b.mRealmNum;
-                return a.mAccountNum.value_or(0ULL) < b.mAccountNum.value_or(0ULL);
-              });
-
-    nodeIds.insert(nodeIds.end(), others.begin(), others.end());
-    query.setNodeAccountIds(nodeIds);
+    query.setNodeAccountIds(buildFailoverNodeList(*client));
   }
   else
   {
@@ -198,54 +151,7 @@ TransactionRecordQuery TransactionResponse::getRecordQuery(const Client* client)
 
   if (client && client->getAllowReceiptNodeFailover())
   {
-    std::vector<AccountId> candidates;
-    if (!mTransactionNodeAccountIds.empty())
-    {
-      candidates = mTransactionNodeAccountIds;
-    }
-    else
-    {
-      std::unordered_set<std::string> seen;
-      for (const auto& [url, accountId] : client->getNetwork())
-      {
-        const std::string key = accountId.toString();
-        if (seen.find(key) == seen.end())
-        {
-          seen.insert(key);
-          candidates.push_back(accountId);
-        }
-      }
-    }
-
-    std::unordered_set<std::string> seen;
-    std::vector<AccountId> nodeIds;
-    nodeIds.push_back(mNodeId);
-    seen.insert(mNodeId.toString());
-
-    std::vector<AccountId> others;
-    for (const auto& node : candidates)
-    {
-      const std::string key = node.toString();
-      if (seen.find(key) == seen.end())
-      {
-        seen.insert(key);
-        others.push_back(node);
-      }
-    }
-
-    std::sort(others.begin(),
-              others.end(),
-              [](const AccountId& a, const AccountId& b)
-              {
-                if (a.mShardNum != b.mShardNum)
-                  return a.mShardNum < b.mShardNum;
-                if (a.mRealmNum != b.mRealmNum)
-                  return a.mRealmNum < b.mRealmNum;
-                return a.mAccountNum.value_or(0ULL) < b.mAccountNum.value_or(0ULL);
-              });
-
-    nodeIds.insert(nodeIds.end(), others.begin(), others.end());
-    query.setNodeAccountIds(nodeIds);
+    query.setNodeAccountIds(buildFailoverNodeList(*client));
   }
   else
   {
@@ -253,6 +159,59 @@ TransactionRecordQuery TransactionResponse::getRecordQuery(const Client* client)
   }
 
   return query;
+}
+
+//-----
+std::vector<AccountId> TransactionResponse::buildFailoverNodeList(const Client& client) const
+{
+  std::vector<AccountId> candidates;
+  if (!mTransactionNodeAccountIds.empty())
+  {
+    candidates = mTransactionNodeAccountIds;
+  }
+  else
+  {
+    std::unordered_set<std::string> seen;
+    for (const auto& [url, accountId] : client.getNetwork())
+    {
+      const std::string key = accountId.toString();
+      if (seen.find(key) == seen.end())
+      {
+        seen.insert(key);
+        candidates.push_back(accountId);
+      }
+    }
+  }
+
+  std::unordered_set<std::string> seen;
+  std::vector<AccountId> nodeIds;
+  nodeIds.push_back(mNodeId);
+  seen.insert(mNodeId.toString());
+
+  std::vector<AccountId> others;
+  for (const auto& node : candidates)
+  {
+    const std::string key = node.toString();
+    if (seen.find(key) == seen.end())
+    {
+      seen.insert(key);
+      others.push_back(node);
+    }
+  }
+
+  std::sort(others.begin(),
+            others.end(),
+            [](const AccountId& a, const AccountId& b)
+            {
+              if (a.mShardNum != b.mShardNum)
+                return a.mShardNum < b.mShardNum;
+              if (a.mRealmNum != b.mRealmNum)
+                return a.mRealmNum < b.mRealmNum;
+              return a.mAccountNum.value_or(0ULL) < b.mAccountNum.value_or(0ULL);
+            });
+
+  nodeIds.insert(nodeIds.end(), others.begin(), others.end());
+  return nodeIds;
 }
 
 //-----

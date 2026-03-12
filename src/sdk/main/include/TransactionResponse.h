@@ -394,6 +394,15 @@ public:
 
 private:
   /**
+   * Build a deduplicated, deterministically sorted failover node list starting with the submitting
+   * node, using either the transaction's own node IDs or the client's network nodes as candidates.
+   *
+   * @param client The Client whose network is used when transaction node IDs are unavailable.
+   * @return An ordered vector of AccountId values for query node targeting.
+   */
+  [[nodiscard]] std::vector<AccountId> buildFailoverNodeList(const Client& client) const;
+
+  /**
    * Did this TransactionResponse's corresponding Transaction have a successful pre-check?
    */
   bool mValidateStatus = true;
