@@ -40,8 +40,12 @@ public:
    * @param nodeId The ID of the node account to which this TransactionResponse's corresponding Transaction was sent.
    * @param transactionId The ID of this TransactionResponse's corresponding Transaction.
    * @param hash The hash of this TransactionResponse's corresponding Transaction.
+   * @param transactionNodeAccountIds The list of node account IDs configured on the transaction at execution time.
    */
-  TransactionResponse(AccountId nodeId, TransactionId transactionId, std::vector<std::byte> hash);
+  TransactionResponse(AccountId nodeId,
+                      TransactionId transactionId,
+                      std::vector<std::byte> hash,
+                      std::vector<AccountId> transactionNodeAccountIds = {});
 
   /**
    * Get a TransactionReceipt for this TransactionResponse's corresponding Transaction.
@@ -74,10 +78,16 @@ public:
 
   /**
    * Construct a TransactionReceiptQuery for this TransactionResponse's corresponding Transaction.
+   * When a non-null Client is provided and its failover flag is
+   * enabled, the query will target the submitting node first, then
+   * other eligible nodes in deterministic order.
    *
+   * @param client Optional pointer to the Client. When null or
+   * failover is disabled, the query is pinned to the submitting
+   * node only.
    * @return The constructed TransactionReceiptQuery.
    */
-  [[nodiscard]] TransactionReceiptQuery getReceiptQuery() const;
+  [[nodiscard]] TransactionReceiptQuery getReceiptQuery(const Client* client = nullptr) const;
 
   /**
    * Get a TransactionReceipt for this TransactionResponse's corresponding Transaction asynchronously.
@@ -214,10 +224,14 @@ public:
 
   /**
    * Construct a TransactionRecordQuery for this TransactionResponse's corresponding Transaction.
+   * When a non-null Client is provided and its failover flag is enabled, the query will target
+   * the submitting node first, then other eligible nodes in deterministic order.
    *
+   * @param client Optional pointer to the Client. When null or failover is disabled, the query is
+   *               pinned to the submitting node only.
    * @return The constructed TransactionRecordQuery.
    */
-  [[nodiscard]] TransactionRecordQuery getRecordQuery() const;
+  [[nodiscard]] TransactionRecordQuery getRecordQuery(const Client* client = nullptr) const;
 
   /**
    * Get a TransactionRecord for this TransactionResponse's corresponding Transaction asynchronously.
@@ -374,6 +388,20 @@ public:
   TransactionId mTransactionId;
 
 private:
+  /**
+   * Build a deduplicated, deterministically sorted failover node list starting with the submitting
+   * node, using either the transaction's own node IDs or the client's network nodes as candidates.
+   *
+   * @param client The Client whose network is used when transaction node IDs are unavailable.
+   * @return An ordered vector of AccountId values for query node targeting.
+   */
+  [[nodiscard]] std::vector<AccountId> buildFailoverNodeList(const Client& client) const;
+
+  /**
+   * The node account IDs that were configured on the transaction during execution.
+   */
+  std::vector<AccountId> mTransactionNodeAccountIds;
+
   /**
    * Did this TransactionResponse's corresponding Transaction have a successful pre-check?
    */

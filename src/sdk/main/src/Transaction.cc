@@ -1421,15 +1421,15 @@ TransactionId Transaction<SdkRequestType>::getCurrentTransactionId() const
 template<typename SdkRequestType>
 TransactionResponse Transaction<SdkRequestType>::mapResponse(const proto::TransactionResponse&) const
 {
-  return TransactionResponse(
-    Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::getNodeAccountIds()
-      .at(mImpl->mTransactionIndex %
-          Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::
-            getNodeAccountIds()
-              .size()),
-    getCurrentTransactionId(),
-    internal::OpenSSLUtils::computeSHA384(internal::Utilities::stringToByteVector(
-      getTransactionProtobufObject(mImpl->mTransactionIndex).signedtransactionbytes())));
+  const auto& nodeAccountIds =
+    Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::
+      getNodeAccountIds();
+
+  return TransactionResponse(nodeAccountIds.at(mImpl->mTransactionIndex % nodeAccountIds.size()),
+                             getCurrentTransactionId(),
+                             internal::OpenSSLUtils::computeSHA384(internal::Utilities::stringToByteVector(
+                               getTransactionProtobufObject(mImpl->mTransactionIndex).signedtransactionbytes())),
+                             nodeAccountIds);
 }
 
 //-----
