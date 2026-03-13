@@ -387,11 +387,6 @@ public:
    */
   TransactionId mTransactionId;
 
-  /**
-   * The node account IDs that were configured on the transaction during execution.
-   */
-  std::vector<AccountId> mTransactionNodeAccountIds;
-
 private:
   /**
    * Build a deduplicated, deterministically sorted failover node list starting with the submitting
@@ -401,6 +396,11 @@ private:
    * @return An ordered vector of AccountId values for query node targeting.
    */
   [[nodiscard]] std::vector<AccountId> buildFailoverNodeList(const Client& client) const;
+
+  /**
+   * The node account IDs that were configured on the transaction during execution.
+   */
+  std::vector<AccountId> mTransactionNodeAccountIds;
 
   /**
    * Did this TransactionResponse's corresponding Transaction have a successful pre-check?

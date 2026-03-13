@@ -22,16 +22,14 @@ TEST_F(TransactionResponseUnitTests, ContructTransactionResponse)
   const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
   const TransactionId transactionId = TransactionId::withValidStart(accountId, now);
   const std::vector<std::byte> hash = { std::byte(0x00), std::byte(0x01), std::byte(0x02) };
-  const std::vector<AccountId> nodeAccountIds = { AccountId(3ULL), AccountId(4ULL) };
 
   // When
-  const TransactionResponse transactionResponse(accountId, transactionId, hash, nodeAccountIds);
+  const TransactionResponse transactionResponse(accountId, transactionId, hash);
 
   // Then
   EXPECT_EQ(transactionResponse.mNodeId, accountId);
   EXPECT_EQ(transactionResponse.mTransactionHash, hash);
   EXPECT_EQ(transactionResponse.mTransactionId, transactionId);
-  EXPECT_EQ(transactionResponse.mTransactionNodeAccountIds, nodeAccountIds);
 }
 
 //-----
