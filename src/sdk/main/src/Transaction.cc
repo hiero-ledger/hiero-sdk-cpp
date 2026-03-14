@@ -80,27 +80,21 @@ namespace Hiero
 namespace
 {
 /**
- * Helper function - Extract the raw signature bytes from a protobuf SignaturePair.
+ * Extract the raw signature bytes from a protobuf SignaturePair.
  */
 std::vector<std::byte> extractSignatureBytes(const proto::SignaturePair& pair)
 {
-  const std::string* sigStr = nullptr;
   if (pair.has_ed25519())
   {
-    sigStr = &pair.ed25519();
-  }
-  else if (pair.has_ecdsa_secp256k1())
-  {
-    sigStr = &pair.ecdsa_secp256k1();
-  }
-  else
-  {
-    throw IllegalStateException("Unknown signature type");
+    return internal::Utilities::stringToByteVector(pair.ed25519());
   }
 
-  std::vector<std::byte> sigBytes(sigStr->size());
-  std::transform(sigStr->begin(), sigStr->end(), sigBytes.begin(), [](char c) { return static_cast<std::byte>(c); });
-  return sigBytes;
+  if (pair.has_ecdsa_secp256k1())
+  {
+    return internal::Utilities::stringToByteVector(pair.ecdsa_secp256k1());
+  }
+
+  throw IllegalStateException("Unknown signature type");
 }
 } // anonymous namespace
 
