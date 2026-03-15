@@ -163,6 +163,23 @@ public:
   getSignatures() const;
 
   /**
+   * This method removes all signatures from the transaction based on the public key provided.
+   *
+   * @param publicKey The public key associated with the signature to remove.
+   * @return The removed signatures.
+   * @throws IllegalStateException if transaction is not frozen or the given key didn't sign it off.
+   */
+  std::vector<std::vector<std::byte>> removeSignature(const std::shared_ptr<PublicKey>& publicKey);
+
+  /**
+   * Remove all signatures from the transaction.
+   *
+   * @return The removed signatures grouped by their associated public key.
+   * @throws IllegalStateException if the transaction is not frozen.
+   */
+  std::map<std::shared_ptr<PublicKey>, std::vector<std::vector<std::byte>>> removeAllSignatures();
+
+  /**
    * Freeze this Transaction.
    *
    * @return A reference to this derived Transaction object, now frozen.

@@ -350,6 +350,24 @@ public:
   [[nodiscard]] bool isAutoValidateChecksumsEnabled() const;
 
   /**
+   * Set whether receipt and record queries may fail over to other nodes when the submitting node is unavailable.
+   * When enabled, queries still start with the submitting node and advance
+   * to other eligible nodes in deterministic order only on failure. When
+   * disabled (default), strict single-node pinning is preserved.
+   *
+   * @param allow \c true to allow receipt/record query failover to other nodes.
+   * @return A reference to this Client with the newly-set failover policy.
+   */
+  Client& setAllowReceiptNodeFailover(bool allow);
+
+  /**
+   * Is receipt/record query node failover allowed for this Client?
+   *
+   * @return \c TRUE if node failover is allowed for receipt/record queries, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool getAllowReceiptNodeFailover() const;
+
+  /**
    * Replace the network being used by this Client with nodes contained in an address book.
    *
    * @param addressBook The NodeAddressBook which contains the new nodes to be used by this Client's network.
