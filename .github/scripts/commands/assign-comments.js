@@ -51,6 +51,18 @@ const SKILL_PREREQUISITES = {
 };
 
 /**
+ * Difficulty Hierarchy used to track the contributor's progress and determine 
+ * whether they meet requirement for further issues.
+ * @type {Array<string>}
+ */
+const SKILL_HIERARCHY = [
+  LABELS.GOOD_FIRST_ISSUE,
+  LABELS.BEGINNER,
+  LABELS.INTERMEDIATE,
+  LABELS.ADVANCED,
+];
+
+/**
  * Builds the welcome comment posted after a successful assignment. Returns a
  * special first-timer welcome for Good First Issues (mentioning the support team),
  * or a shorter returning-contributor message for all other skill levels.
@@ -255,10 +267,10 @@ function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner
   const blockedIssuesUrl =
     blockedCount > 0
       ? buildIssuesSearchUrl(
-          owner,
-          repo,
-          `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} label:"${LABELS.BLOCKED}"`
-        )
+        owner,
+        repo,
+        `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} label:"${LABELS.BLOCKED}"`
+      )
       : null;
   return formatAssignmentLimitExceededComment(
     requesterUsername,
@@ -327,6 +339,7 @@ function buildAssignmentFailureComment(requesterUsername, error) {
 
 module.exports = {
   MAX_OPEN_ASSIGNMENTS,
+  SKILL_HIERARCHY,
   SKILL_PREREQUISITES,
   buildWelcomeComment,
   buildAlreadyAssignedComment,

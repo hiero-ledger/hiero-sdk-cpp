@@ -21,6 +21,7 @@ const {
 
 const {
   MAX_OPEN_ASSIGNMENTS,
+  SKILL_HIERARCHY,
   SKILL_PREREQUISITES,
   buildWelcomeComment,
   buildAlreadyAssignedComment,
@@ -175,6 +176,24 @@ async function checkPrerequisites(botContext, skillLevel, requesterUsername) {
   const prereq = SKILL_PREREQUISITES[skillLevel];
   if (!prereq.requiredLabel || prereq.requiredCount <= 0) return true;
 
+  // Bypass: If the user already has worked on any level or higher then bypass them.
+  const skillIndex = SKILL_HIERARCHY.indexOf(skillLevel);
+  if (skillIndex !== -1) {
+    for (let i = skillIndex; i < SKILL_HIERARCHY.length; i++) {
+      const checkCurrLevel = SKILL_HIERARCHY[i];
+      const countAtLevel = await countAssignedIssues(
+        botContext.github, botContext.owner, botContext.repo,
+        requesterUsername, ISSUE_STATE.CLOSED, checkCurrLevel
+      );
+
+      if (countAtLevel !== null && countAtLevel > 0) {
+        logger.log(`Bypassing prerequisites: user has completed ${countAtLevel} issues with label "${checkCurrLevel}"`);
+        return true;
+      }
+    }
+  }
+
+  // Normal validation
   const completedCount = await countAssignedIssues(
     botContext.github, botContext.owner, botContext.repo,
     requesterUsername, ISSUE_STATE.CLOSED, prereq.requiredLabel
