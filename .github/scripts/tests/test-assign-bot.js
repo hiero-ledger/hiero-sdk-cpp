@@ -39,6 +39,7 @@ function getGraphQLQueryKind(searchQuery) {
 function createMockGithub(options = {}) {
   const {
     completedIssueCount = 0,
+    completedIssueCounts = {},
     openAssignmentCount = 0,
     openAssignmentCountExcludingBlocked = openAssignmentCount,
     blockedIssueCount = 0,
@@ -122,8 +123,12 @@ function createMockGithub(options = {}) {
         if (graphqlShouldFail) {
           throw new Error('Simulated GraphQL failure');
         }
-        console.log(`   → Returning completed count: ${completedIssueCount}`);
-        return { search: { issueCount: completedIssueCount } };
+        const match = variables.searchQuery.match(/label:"(skill:\s*(?:good first issue|beginner|intermediate|advanced))"/);
+        const label = match ? match[1] : null;
+        const count = (label && completedIssueCounts[label] !== undefined) ? completedIssueCounts[label] : completedIssueCount;
+
+        console.log(`   -> Returning completed count for label ${label || 'unknown'}: ${count}`);
+        return { search: { issueCount: count } };
       }
 
       console.log(`   → Unknown query kind, returning 0`);
@@ -199,7 +204,7 @@ Good luck, and welcome aboard! 🚀`,
       },
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
-    githubOptions: { completedIssueCount: 2 },
+    githubOptions: { completedIssueCounts: { [LABELS.GOOD_FIRST_ISSUE]: 2 } },
     expectedAssignee: 'experienced-contributor',
     expectedComments: [
       `👋 Hi @experienced-contributor, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌
@@ -232,7 +237,7 @@ Good luck! 🚀`,
       },
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
-    githubOptions: { completedIssueCount: 3 },
+    githubOptions: { completedIssueCounts: { [LABELS.BEGINNER]: 3 } },
     expectedAssignee: 'growing-contributor',
     expectedComments: [
       `👋 Hi @growing-contributor, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Intermediate** issue. 🙌
@@ -265,7 +270,7 @@ Good luck! 🚀`,
       },
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
-    githubOptions: { completedIssueCount: 3 },
+    githubOptions: { completedIssueCounts: { [LABELS.INTERMEDIATE]: 3 } },
     expectedAssignee: 'senior-contributor',
     expectedComments: [
       `👋 Hi @senior-contributor, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Advanced** issue. 🙌
@@ -273,6 +278,69 @@ Good luck! 🚀`,
 If this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.
 
 Good luck! 🚀`,
+    ],
+  },
+
+  // ---------------------------------------------------------------------------
+  // BYPASS LOGIC TESTS
+  // ---------------------------------------------------------------------------
+
+  {
+    name: 'Bypass - Same Level Completed',
+    description: 'User with 1 Beginner can take another Beginner (bypasses 2 GFI prereq)',
+    context: {
+      eventName: 'issue_comment',
+      payload: {
+        issue: {
+          number: 200,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: beginner' },
+          ],
+        },
+        comment: { id: 2001, body: '/assign', user: { login: 'bypass-user-1', type: 'User' } },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: {
+      completedIssueCounts: {
+        [LABELS.BEGINNER]: 1,
+        [LABELS.GOOD_FIRST_ISSUE]: 1, // Only 1 (Not enough to pass normal prereq)
+      },
+    },
+    expectedAssignee: 'bypass-user-1',
+    expectedComments: [
+      `👋 Hi @bypass-user-1, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌\n\nIf this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.\n\nGood luck! 🚀`,
+    ],
+  },
+
+  {
+    name: 'Bypass - Higher Level Completed',
+    description: 'User with 1 Intermediate can take a Beginner (bypasses 2 GFI prereq)',
+    context: {
+      eventName: 'issue_comment',
+      payload: {
+        issue: {
+          number: 201,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: beginner' },
+          ],
+        },
+        comment: { id: 2002, body: '/assign', user: { login: 'bypass-user-2', type: 'User' } },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: {
+      completedIssueCounts: {
+        [LABELS.INTERMEDIATE]: 1,
+      },
+    },
+    expectedAssignee: 'bypass-user-2',
+    expectedComments: [
+      `👋 Hi @bypass-user-2, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌\n\nIf this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.\n\nGood luck! 🚀`,
     ],
   },
 
