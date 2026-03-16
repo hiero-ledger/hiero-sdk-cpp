@@ -8,7 +8,7 @@
  *
  * Essential steps:
  * - Load an operator account to pay for transactions and set it for client usage.
- * - Generate accounts for Alice (owner), Bob (spender), and Charlie (receiver), with 5Hbar each.
+ * - Generate accounts for Alice (owner), Bob (spender), and Charlie (receiver), with 5 Hbar each.
  * - Alice approves Bob to spend 2 Hbar from her account, through the allowance.
  * - Construct an approved transfer transaction of 1 Hbar, from Alice to Charlie, using Bob’s allowance.
  * - Serialize the unexecuted transaction into raw byte array.
