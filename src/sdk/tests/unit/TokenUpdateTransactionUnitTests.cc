@@ -72,13 +72,6 @@ private:
   };
 };
 
-static google::protobuf::BytesValue* bytesToProtobuf(const std::vector<std::byte>& data)
-{
-  auto val = std::make_unique<google::protobuf::BytesValue>();
-  val->set_value({ reinterpret_cast<const char*>(data.data()), data.size() });
-  return val.release();
-}
-
 //-----
 TEST_F(TokenUpdateTransactionUnitTests, ConstructTokenUpdateTransactionFromTransactionBodyProtobuf)
 {
@@ -99,7 +92,8 @@ TEST_F(TokenUpdateTransactionUnitTests, ConstructTokenUpdateTransactionFromTrans
   body->mutable_memo()->set_value(getTestTokenMemo());
   body->set_allocated_fee_schedule_key(getTestFeeScheduleKey()->toProtobufKey().release());
   body->set_allocated_pause_key(getTestPauseKey()->toProtobufKey().release());
-  body->set_allocated_metadata(bytesToProtobuf(getTestMetadata()));
+  body->mutable_metadata()->set_value(
+    { reinterpret_cast<const char*>(getTestMetadata().data()), getTestMetadata().size() });
   body->set_allocated_metadata_key(getTestMetadataKey()->toProtobufKey().release());
 
   proto::TransactionBody txBody;
@@ -560,12 +554,10 @@ TEST_F(TokenUpdateTransactionUnitTests, GetSetMetadataFrozen)
 TEST_F(TokenUpdateTransactionUnitTests, GetSetMetadataKey)
 {
   // Given
-  TokenUpdateTransaction transaction = TokenUpdateTransaction()
-                                         .setNodeAccountIds({ AccountId(1ULL) })
-                                         .setTransactionId(TransactionId::generate(AccountId(1ULL)));
+  TokenUpdateTransaction transaction;
 
   // When
-  ASSERT_NO_THROW(transaction.setMetadataKey(getTestMetadataKey()));
+  EXPECT_NO_THROW(transaction.setMetadataKey(getTestMetadataKey()));
 
   // Then
   EXPECT_EQ(transaction.getMetadataKey(), getTestMetadataKey());
