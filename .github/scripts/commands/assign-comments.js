@@ -82,6 +82,8 @@ function buildWelcomeComment(username, skillLevel) {
       '',
       'The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we\'re happy to help.',
       '',
+      'If you realize you cannot complete this issue, simply comment `/unassign` to return it to the community pool.',
+      '',
       'Good luck, and welcome aboard! 🚀',
     ].join('\n');
   }
@@ -89,6 +91,8 @@ function buildWelcomeComment(username, skillLevel) {
     `👋 Hi @${username}, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **${skillDisplayName}** issue. 🙌`,
     '',
     'If this task involves any design decisions or you\'d like early feedback, feel free to share your plan here before diving into the code.',
+    '',
+    'If you realize you cannot complete this issue, simply comment `/unassign` to return it to the pool.',
     '',
     'Good luck! 🚀',
   ].join('\n');
