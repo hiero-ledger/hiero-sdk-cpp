@@ -19,7 +19,7 @@ struct UpdateFileParams;
 /**
  * The parameters to use to append a file.
  *
- * @param params The parameters use to append a file.
+ * @param params The parameters to use to append a file.
  * @return A JSON response containing the status of the appended file.
  */
 nlohmann::json appendFile(const AppendFileParams& params);
