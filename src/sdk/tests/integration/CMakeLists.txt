@@ -33,6 +33,7 @@ add_executable(${TEST_PROJECT_NAME}
         HIP1300IntegrationTests.cc
         HttpClientIntegrationTests.cc
         JSONIntegrationTests.cc
+        HookStoreTransactionIntegrationTests.cc
         MirrorNodeContractQueryIntegrationTests.cc
         MirrorNodeGatewayIntegrationTests.cc
         NetworkVersionInfoQueryIntegrationTests.cc
@@ -80,6 +81,7 @@ add_executable(${TEST_PROJECT_NAME}
         TransactionReceiptQueryIntegrationTests.cc
         TransactionRecordIntegrationTests.cc
         TransactionRecordQueryIntegrationTests.cc
+        TransferTransactionHooksIntegrationTests.cc
         TransferTransactionIntegrationTests.cc)
 
 target_link_libraries(${TEST_PROJECT_NAME} PRIVATE GTest::gtest_main GTest::gtest ${PROJECT_NAME})
