@@ -51,10 +51,7 @@ nlohmann::json appendFile(const AppendFileParams& params)
     fileAppendTransaction.setFileId(FileId::fromString(params.mFileId.value()));
   }
 
-  if (params.mContents.has_value())
-  {
-    fileAppendTransaction.setContents(params.mContents.value());
-  }
+  fileAppendTransaction.setContents(params.mContents);
 
   if (params.mMaxChunks.has_value())
   {
@@ -154,10 +151,7 @@ nlohmann::json getFileContents(const GetFileContentsParams& params)
   FileContentsQuery query;
   query.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
 
-  if (params.mFileId.has_value())
-  {
-    query.setFileId(FileId::fromString(params.mFileId.value()));
-  }
+  query.setFileId(FileId::fromString(params.mFileId));
 
   // Parsing the tinybar string to int64_t and set the query payment
   if (params.mQueryPayment.has_value())

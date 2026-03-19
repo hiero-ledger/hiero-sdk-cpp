@@ -11,7 +11,7 @@
 namespace Hiero::TCK::FileService
 {
 /**
- * Struct to hold the arguments for a `getFileContent` JSON-RPC method call.
+ * Struct to hold the arguments for a `getFileContents` JSON-RPC method call.
  */
 struct GetFileContentsParams
 {
@@ -31,12 +31,12 @@ struct GetFileContentsParams
   std::optional<std::string> mMaxQueryPayment;
 };
 
-} // HIERO_TCK_CPP_GET_FILE_CONTENTS_PARAMS_H_
+} //  namespace Hiero::TCK::FileService
 
 namespace nlohmann
 {
 /**
- * JSON serializer template specialisation required to convert AppendFileParams argument Properly
+ * JSON serializer template specialisation required to convert GetFileContentsParams arguments properly
  */
 template<>
 struct [[maybe_unused]] adl_serializer<Hiero::TCK::FileService::GetFileContentsParams>

@@ -8,17 +8,16 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
-#include <vector>
 
 namespace Hiero::TCK::FileService
 {
 /**
- * Struct to hold the arguements for the `appenFileParams` JSON-RPC method call.
+ * Struct to hold the arguments for an `appendFile` JSON-RPC method call.
  */
 struct AppendFileParams
 {
   /**
-   * The ID of the file to query.
+   * The ID of the file to append to.
    */
   std::optional<std::string> mFileId;
 
