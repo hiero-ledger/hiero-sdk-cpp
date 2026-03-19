@@ -9,9 +9,20 @@ namespace Hiero::TCK::FileService
 /**
  * Forward declarations.
  */
+struct AppendFileParams;
 struct CreateFileParams;
 struct DeleteFileParams;
+struct GetFileContentsParams;
+struct GetFileInfoParams;
 struct UpdateFileParams;
+
+/**
+ * The parameters to use to append a file.
+ *
+ * @param params The parameters use to append a file.
+ * @return A JSON response containing the status of the appended file.
+ */
+nlohmann::json appendFile(const AppendFileParams& params);
 
 /**
  * Create a file.
@@ -22,12 +33,28 @@ struct UpdateFileParams;
 nlohmann::json createFile(const CreateFileParams& params);
 
 /**
- * delete a file.
+ * Delete a file.
  *
  * @param params The parameters to use to delete a file.
  * @return A JSON response containing the status of the file deletion.
  */
 nlohmann::json deleteFile(const DeleteFileParams& params);
+
+/**
+ * Get file contents.
+ *
+ * @param params The parameters to use to get the content of file.
+ * @return A JSON response containing the file contents.
+ */
+nlohmann::json getFileContents(const GetFileContentsParams& params);
+
+/**
+ * Get file info.
+ *
+ * @param params The parameters to use to get file info.
+ * @return A JSON response containing the file info.
+ */
+nlohmann::json getFileInfo(const GetFileInfoParams& params);
 
 /**
  * Update a file.
