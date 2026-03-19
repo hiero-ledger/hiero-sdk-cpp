@@ -178,6 +178,8 @@ You've been assigned this **Good First Issue**, and the **Good First Issue Suppo
 
 The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.
 
+If you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the community pool.
+
 Good luck, and welcome aboard! 🚀`,
     ],
   },
@@ -210,6 +212,8 @@ Good luck, and welcome aboard! 🚀`,
       `👋 Hi @experienced-contributor, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌
 
 If this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.
+
+If you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the pool.
 
 Good luck! 🚀`,
     ],
@@ -244,6 +248,8 @@ Good luck! 🚀`,
 
 If this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.
 
+If you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the pool.
+
 Good luck! 🚀`,
     ],
   },
@@ -276,6 +282,8 @@ Good luck! 🚀`,
       `👋 Hi @senior-contributor, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Advanced** issue. 🙌
 
 If this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.
+
+If you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the pool.
 
 Good luck! 🚀`,
     ],
@@ -311,7 +319,7 @@ Good luck! 🚀`,
     },
     expectedAssignee: 'bypass-user-1',
     expectedComments: [
-      `👋 Hi @bypass-user-1, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌\n\nIf this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.\n\nGood luck! 🚀`,
+      `👋 Hi @bypass-user-1, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌\n\nIf this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.\n\nIf you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the pool.\n\nGood luck! 🚀`,
     ],
   },
 
@@ -340,7 +348,7 @@ Good luck! 🚀`,
     },
     expectedAssignee: 'bypass-user-2',
     expectedComments: [
-      `👋 Hi @bypass-user-2, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌\n\nIf this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.\n\nGood luck! 🚀`,
+      `👋 Hi @bypass-user-2, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌\n\nIf this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.\n\nIf you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the pool.\n\nGood luck! 🚀`,
     ],
   },
 
@@ -749,6 +757,8 @@ You've been assigned this **Good First Issue**, and the **Good First Issue Suppo
 
 The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.
 
+If you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the community pool.
+
 Good luck, and welcome aboard! 🚀`,
     ],
   },
@@ -786,6 +796,8 @@ Good luck, and welcome aboard! 🚀`,
 You've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.
 
 The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.
+
+If you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the community pool.
 
 Good luck, and welcome aboard! 🚀`,
     ],
@@ -925,6 +937,8 @@ Error details: Simulated assignment failure`,
 You've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.
 
 The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.
+
+If you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the community pool.
 
 Good luck, and welcome aboard! 🚀`,
       `⚠️ @partially-lucky has been successfully assigned to this issue, but I encountered an error updating the labels.
