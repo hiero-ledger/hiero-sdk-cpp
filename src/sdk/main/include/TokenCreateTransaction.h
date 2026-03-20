@@ -66,7 +66,7 @@ public:
    *
    * @param name The desired name for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set token name.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setTokenName(std::string_view name);
 
