@@ -75,7 +75,7 @@ public:
    *
    * @param symbol The desired symbol for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set token symbol.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setTokenSymbol(std::string_view symbol);
 
@@ -85,7 +85,7 @@ public:
    *
    * @param decimals The desired number of decimals for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set number of decimals.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setDecimals(uint32_t decimals);
 
@@ -95,7 +95,7 @@ public:
    *
    * @param amount The desired initial supply of the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set initial supply.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setInitialSupply(const uint64_t& amount);
 
@@ -104,7 +104,7 @@ public:
    *
    * @param accountId The ID of the desired treasury account for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set treasury account ID.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setTreasuryAccountId(const AccountId& accountId);
 
@@ -113,7 +113,7 @@ public:
    *
    * @param key The desired admin key for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set admin key.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setAdminKey(const std::shared_ptr<Key>& key);
 
@@ -122,7 +122,7 @@ public:
    *
    * @param key The desired KYC key for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set KYC key.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setKycKey(const std::shared_ptr<Key>& key);
 
@@ -131,7 +131,7 @@ public:
    *
    * @param key The desired freeze key for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set freeze key.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setFreezeKey(const std::shared_ptr<Key>& key);
 
@@ -140,7 +140,7 @@ public:
    *
    * @param key The desired wipe key for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set wipe key.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setWipeKey(const std::shared_ptr<Key>& key);
 
@@ -149,7 +149,7 @@ public:
    *
    * @param key The desired supply key for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set supply key.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setSupplyKey(const std::shared_ptr<Key>& key);
 
@@ -158,7 +158,7 @@ public:
    *
    * @param freeze The desired default freeze status for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set default freeze status.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setFreezeDefault(bool freeze);
 
@@ -173,7 +173,7 @@ public:
    *
    * @param expiration The desired expiration time for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set default expiration time.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setExpirationTime(const std::chrono::system_clock::time_point& expiration);
 
@@ -182,7 +182,7 @@ public:
    *
    * @param accountId The ID of the desired auto-renew account for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set auto-renew account ID.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setAutoRenewAccountId(const AccountId& accountId);
 
@@ -194,7 +194,7 @@ public:
    *
    * @param period The desired auto-renew period for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set auto-renew period.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setAutoRenewPeriod(const std::chrono::system_clock::duration& period);
 
@@ -203,7 +203,7 @@ public:
    *
    * @param memo The desired memo for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set memo.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setTokenMemo(std::string_view memo);
 
@@ -212,7 +212,7 @@ public:
    *
    * @param type The desired type for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set token type.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setTokenType(TokenType type);
 
@@ -221,7 +221,7 @@ public:
    *
    * @param type The desired supply type for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set supply type.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setSupplyType(TokenSupplyType type);
 
@@ -230,7 +230,7 @@ public:
    *
    * @param max The desired maximum supply for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set maximum supply.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setMaxSupply(const uint64_t& max);
 
@@ -239,7 +239,7 @@ public:
    *
    * @param key The desired fee schedule key for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set fee schedule key.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setFeeScheduleKey(const std::shared_ptr<Key>& key);
 
@@ -249,7 +249,7 @@ public:
    * @param fees The desired custom fees to be assessed during a TransferTransaction that transfers units of the new
    *             token.
    * @return A reference to this TokenCreateTransaction with the newly-set fee custom fees.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setCustomFees(const std::vector<std::shared_ptr<CustomFee>>& fees);
 
@@ -258,7 +258,7 @@ public:
    *
    * @param key The desired pause key for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set pause key.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setPauseKey(const std::shared_ptr<Key>& key);
 
@@ -267,7 +267,7 @@ public:
    *
    * @param metadata The desired metadata for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set metadata.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setMetadata(const std::vector<std::byte>& metadata);
 
@@ -276,7 +276,7 @@ public:
    *
    * @param key The desired metadata key for the new token.
    * @return A reference to this TokenCreateTransaction with the newly-set metadata key.
-   * @throws IllegalStateException If this AccountUpdateTransaction is frozen.
+   * @throws IllegalStateException If this TokenCreateTransaction is frozen.
    */
   TokenCreateTransaction& setMetadataKey(const std::shared_ptr<Key>& metadataKey);
 
