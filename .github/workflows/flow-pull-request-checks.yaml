@@ -40,7 +40,7 @@ jobs:
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Check Markdown links
-      uses: step-security/github-action-markdown-link-check@0525eb58b3547a8abc4c5f68b05c07ff017b4079 # v1.0.17
+      uses: step-security/github-action-markdown-link-check@d952f9c54968d30422678f866a3482759f7c8214 # v1.0.18
       with:
         check-modified-files-only: 'yes'
         config-file: '.mlc_config.json'

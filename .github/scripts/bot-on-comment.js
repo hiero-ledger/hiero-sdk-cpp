@@ -3,12 +3,14 @@
 // bot-on-comment.js
 //
 // Handles issue comment events: reads the comment body, parses commands, and dispatches
-// to the appropriate handler. Implemented commands: /assign (more may be added later).
+// to the appropriate handler. Implemented commands: /assign, /unassign.
 //
 // /assign: see commands/assign.js (skill levels, assignment limits, required labels).
+// /unassign: see commands/unassign.js (authorization, label reversion).
 
 const { createLogger, buildBotContext } = require('./helpers');
 const { handleAssign } = require('./commands/assign');
+const { handleUnassign } = require('./commands/unassign'); 
 
 let logger = createLogger('on-comment');
 
@@ -30,6 +32,10 @@ function parseComment(body) {
   if (/^\s*\/assign\s*$/i.test(body)) {
     logger.log('parseComment: detected /assign');
     return { commands: ['assign'] };
+  }
+  if (/^\s*\/unassign\s*$/i.test(body)) { 
+    logger.log('parseComment: detected /unassign');
+    return { commands: ['unassign'] };
   }
   logger.log('parseComment: no known command', { body: body.substring(0, 80) });
   return { commands: [] };
@@ -70,6 +76,8 @@ module.exports = async ({ github, context }) => {
 
       if (command === 'assign') {
         await handleAssign(botContext);
+      } else if (command === 'unassign') {
+        await handleUnassign(botContext);
       } else {
         logger.log('Unknown command:', command);
       }

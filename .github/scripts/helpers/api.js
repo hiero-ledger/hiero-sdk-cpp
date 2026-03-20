@@ -188,6 +188,38 @@ async function addAssignees(botContext, assignees) {
 }
 
 /**
+ * Safely removes assignees from an issue or PR.
+ * @param {object} botContext - Bot context (github, owner, repo, number).
+ * @param {string[]} assignees - Array of usernames to remove.
+ * @returns {Promise<{success: boolean, error?: string}>} - Result object.
+ */
+async function removeAssignees(botContext, assignees) {
+  if (!Array.isArray(assignees)) {
+    return { success: false, error: 'assignees must be an array' };
+  }
+
+  try {
+    for (let i = 0; i < assignees.length; i++) {
+      requireSafeUsername(assignees[i], `assignees[${i}]`);
+    }
+
+    await botContext.github.rest.issues.removeAssignees({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      issue_number: botContext.number,
+      assignees,
+    });
+
+    getLogger().log(`Removed assignees: ${assignees.join(', ')}`);
+    return { success: true };
+  } catch (error) {
+    getLogger().error(`Could not remove assignees "${assignees.join(', ')}": ${error.message}`);
+    return { success: false, error: error.message };
+  }
+}
+
+
+/**
  * Safely posts a comment on an issue or PR.
  * @param {object} botContext - Bot context (github, owner, repo, number).
  * @param {string} body - The comment body.
@@ -437,6 +469,7 @@ module.exports = {
   addLabels,
   removeLabel,
   addAssignees,
+  removeAssignees,
   postComment,
   hasLabel,
   postOrUpdateComment,

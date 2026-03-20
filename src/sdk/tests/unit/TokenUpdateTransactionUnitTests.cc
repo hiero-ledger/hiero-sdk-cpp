@@ -45,6 +45,7 @@ protected:
   [[nodiscard]] inline const std::string& getTestTokenMemo() const { return mTestTokenMemo; }
   [[nodiscard]] inline const std::shared_ptr<PublicKey>& getTestFeeScheduleKey() const { return mTestFeeScheduleKey; }
   [[nodiscard]] inline const std::shared_ptr<PublicKey>& getTestPauseKey() const { return mTestPauseKey; }
+  [[nodiscard]] inline const std::shared_ptr<PublicKey>& getTestMetadataKey() const { return mTestMetadataKey; }
   [[nodiscard]] inline const std::vector<std::byte>& getTestMetadata() const { return mTestMetadata; }
 
 private:
@@ -63,6 +64,7 @@ private:
   const std::string mTestTokenMemo = "test memo";
   const std::shared_ptr<PublicKey> mTestFeeScheduleKey = ECDSAsecp256k1PrivateKey::generatePrivateKey()->getPublicKey();
   const std::shared_ptr<PublicKey> mTestPauseKey = ECDSAsecp256k1PrivateKey::generatePrivateKey()->getPublicKey();
+  const std::shared_ptr<PublicKey> mTestMetadataKey = ECDSAsecp256k1PrivateKey::generatePrivateKey()->getPublicKey();
   const std::vector<std::byte> mTestMetadata = {
     std::byte(0x01),
     std::byte(0x02),
@@ -90,6 +92,9 @@ TEST_F(TokenUpdateTransactionUnitTests, ConstructTokenUpdateTransactionFromTrans
   body->mutable_memo()->set_value(getTestTokenMemo());
   body->set_allocated_fee_schedule_key(getTestFeeScheduleKey()->toProtobufKey().release());
   body->set_allocated_pause_key(getTestPauseKey()->toProtobufKey().release());
+  body->mutable_metadata()->set_value(
+    { reinterpret_cast<const char*>(getTestMetadata().data()), getTestMetadata().size() });
+  body->set_allocated_metadata_key(getTestMetadataKey()->toProtobufKey().release());
 
   proto::TransactionBody txBody;
   txBody.set_allocated_tokenupdate(body.release());
@@ -113,6 +118,8 @@ TEST_F(TokenUpdateTransactionUnitTests, ConstructTokenUpdateTransactionFromTrans
   EXPECT_EQ(tokenUpdateTransaction.getTokenMemo(), getTestTokenMemo());
   EXPECT_EQ(tokenUpdateTransaction.getFeeScheduleKey()->toBytes(), getTestFeeScheduleKey()->toBytes());
   EXPECT_EQ(tokenUpdateTransaction.getPauseKey()->toBytes(), getTestPauseKey()->toBytes());
+  EXPECT_EQ(tokenUpdateTransaction.getMetadata(), getTestMetadata());
+  EXPECT_EQ(tokenUpdateTransaction.getMetadataKey()->toBytes(), getTestMetadataKey()->toBytes());
 }
 
 //-----
@@ -528,4 +535,44 @@ TEST_F(TokenUpdateTransactionUnitTests, GetSetMetadata)
 
   // Then
   EXPECT_EQ(transaction.getMetadata(), getTestMetadata());
+}
+
+//-----
+TEST_F(TokenUpdateTransactionUnitTests, GetSetMetadataFrozen)
+{
+  // Given
+  TokenUpdateTransaction transaction = TokenUpdateTransaction()
+                                         .setNodeAccountIds({ AccountId(1ULL) })
+                                         .setTransactionId(TransactionId::generate(AccountId(1ULL)));
+  ASSERT_NO_THROW(transaction.freeze());
+
+  // When / Then
+  EXPECT_THROW(transaction.setMetadata(getTestMetadata()), IllegalStateException);
+}
+
+//-----
+TEST_F(TokenUpdateTransactionUnitTests, GetSetMetadataKey)
+{
+  // Given
+  TokenUpdateTransaction transaction;
+
+  // When
+  EXPECT_NO_THROW(transaction.setMetadataKey(getTestMetadataKey()));
+
+  // Then
+  EXPECT_EQ(transaction.getMetadataKey(), getTestMetadataKey());
+}
+
+//-----
+TEST_F(TokenUpdateTransactionUnitTests, GetSetMetadataKeyFrozen)
+{
+  // Given
+  TokenUpdateTransaction transaction = TokenUpdateTransaction()
+                                         .setNodeAccountIds({ AccountId(1ULL) })
+                                         .setTransactionId(TransactionId::generate(AccountId(1ULL)));
+
+  ASSERT_NO_THROW(transaction.freeze());
+
+  // When / Then
+  EXPECT_THROW(transaction.setMetadataKey(getTestMetadataKey()), IllegalStateException);
 }

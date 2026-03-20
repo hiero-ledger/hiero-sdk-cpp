@@ -50,8 +50,7 @@ const logger = {
  * @returns {string|null} The matching LABELS constant (e.g. LABELS.BEGINNER), or null.
  */
 function getIssueSkillLevel(issue) {
-  const skillLevels = [LABELS.GOOD_FIRST_ISSUE, LABELS.BEGINNER, LABELS.INTERMEDIATE, LABELS.ADVANCED];
-  for (const level of skillLevels) {
+  for (const level of SKILL_HIERARCHY) {
     if (hasLabel(issue, level)) return level;
   }
   return null;
