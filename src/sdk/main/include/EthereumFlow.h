@@ -18,10 +18,13 @@ class TransactionResponse;
 namespace Hiero
 {
 /**
+ * @deprecated use EthereumTransaction instead. With the introduction of Jumbo transactions,
+ * it should always be less cost and more efficient to use EthereumTransaction instead.
+ *
  * A helper class to execute an EthereumTransaction. This will use FileCreateTransaction and FileAppendTransaction as
  * necessary to create a file with the call data followed by an EthereumTransaction to execute the EthereumData.
  */
-class EthereumFlow
+class [[deprecated("Use EthereumTransaction instead")]] EthereumFlow
 {
 public:
   /**
