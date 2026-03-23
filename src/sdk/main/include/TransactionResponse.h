@@ -78,13 +78,11 @@ public:
 
   /**
    * Construct a TransactionReceiptQuery for this TransactionResponse's corresponding Transaction.
-   * When a non-null Client is provided and its failover flag is
-   * enabled, the query will target the submitting node first, then
-   * other eligible nodes in deterministic order.
+   * When a non-null Client is provided and its failover flag is enabled, the query will target the submitting node
+   * first, then other eligible nodes in deterministic order.
    *
-   * @param client Optional pointer to the Client. When null or
-   * failover is disabled, the query is pinned to the submitting
-   * node only.
+   * @param client Optional pointer to the Client. When null or failover is disabled, the query is pinned to the
+   *               submitting node only.
    * @return The constructed TransactionReceiptQuery.
    */
   [[nodiscard]] TransactionReceiptQuery getReceiptQuery(const Client* client = nullptr) const;
