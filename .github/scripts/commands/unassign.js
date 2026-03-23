@@ -10,7 +10,6 @@ const {
   LABELS,
   ISSUE_STATE,
   getLogger,
-  hasLabel,
   addLabels,
   removeLabel,
   removeAssignees,
