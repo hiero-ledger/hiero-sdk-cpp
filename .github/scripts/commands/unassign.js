@@ -31,11 +31,34 @@ const logger = {
 };
 
 /**
+ * Adds a thumbs-up (+1) reaction to the triggering /unassign comment as visual
+ * acknowledgement. Failures are silently logged (non-critical).
+ *
+ * @param {object} botContext - Bot context from buildBotContext (github, owner, repo).
+ * @param {number} commentId - The ID of the comment to react to.
+ * @returns {Promise<void>}
+ */
+async function acknowledgeComment(botContext, commentId) {
+  try {
+    await botContext.github.rest.reactions.createForIssueComment({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      comment_id: commentId,
+      content: '+1',
+    });
+    logger.log('Added thumbs-up reaction to comment');
+  } catch (error) {
+    logger.log('Could not add reaction:', error.message);
+  }
+}
+
+/**
  * Main handler for the /unassign command. Runs the following gates in order:
  *
- * 1. Is the issue already closed? -> issue-closed comment.
- * 2. Does the issue have no assignees? -> no-assignee comment.
- * 3. Is the commenter not the current assignee? -> unauthorized comment.
+ * 1. Acknowledge the comment with a thumbs-up reaction.
+ * 2. Is the issue already closed? -> issue-closed comment.
+ * 3. Does the issue have no assignees? -> no-assignee comment.
+ * 4. Is the commenter not the current assignee? -> unauthorized comment.
  *
  * On success: removes the user as an assignee, reverts the "in progress"
  * label to "ready for dev", and posts an acknowledgment comment.
@@ -47,6 +70,8 @@ const logger = {
 async function handleUnassign(botContext) {
   const requesterUsername = botContext.comment.user.login;
   const issue = botContext.issue;
+
+  await acknowledgeComment(botContext, botContext.comment.id);
 
   // GATE 1: Issue is closed
   if (issue.state === ISSUE_STATE.CLOSED) {
