@@ -54,6 +54,13 @@ NftId NftId::fromProtobuf(const proto::NftID& proto)
 }
 
 //-----
+NftId NftId::fromBytes(const std::vector<std::byte>& bytes) {
+  proto::NftID proto;
+  proto.ParseFromArray(bytes.data(), static_cast<int>(bytes.size()));
+  return fromProtobuf(proto);
+}
+
+//-----
 std::unique_ptr<proto::NftID> NftId::toProtobuf() const
 {
   auto nftId = std::make_unique<proto::NftID>();
@@ -67,5 +74,12 @@ std::string NftId::toString() const
 {
   return mTokenId.toString() + '/' + std::to_string(mSerialNum);
 }
+
+//-----
+std::vector<std::byte> NftId::toBytes() const
+{
+  return internal::Utilities::stringToByteVector(toProtobuf()->SerializeAsString());
+}
+
 
 } // namespace Hiero

@@ -57,11 +57,27 @@ public:
   [[nodiscard]] static NftId fromProtobuf(const proto::NftID& proto);
 
   /**
+   * Construct an NftId object from a representative byte array.
+   * 
+   * @param bytes The byte array from which to construct a NftID object.
+   * @returns The constructed NftID object.
+   */
+  [[nodiscard]] static NftId fromBytes(const std::vector<std::byte>& bytes);
+
+  
+  /**
    * Construct an NftID protobuf object from this NftId object.
    *
    * @return A pointer to the created NftID protobuf object filled with this NftId object's data.
    */
   [[nodiscard]] std::unique_ptr<proto::NftID> toProtobuf() const;
+
+  /**
+   * Get a byte array representation of this NftID object.
+   * 
+   * @returns A byte array representation of this NftID object.
+   */
+  [[nodiscard]] std::vector<std::byte> toBytes() const;
 
   /**
    * Get the string representation of this NftId object with the form "<shard>.<realm>.<num>/<serialNum>".
