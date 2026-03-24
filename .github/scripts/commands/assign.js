@@ -17,6 +17,7 @@ const {
   removeLabel,
   addAssignees,
   postComment,
+  acknowledgeComment,
 } = require('../helpers');
 
 const {
@@ -117,28 +118,6 @@ async function countAssignedIssues(github, owner, repo, username, state, label =
     const message = error instanceof Error ? error.message : String(error);
     logger.log(`[assign] Failed to count ${state} issues for ${username}: ${message}`);
     return null;
-  }
-}
-
-/**
- * Adds a thumbs-up (+1) reaction to the triggering /assign comment as visual
- * acknowledgement. Failures are silently logged (non-critical).
- *
- * @param {object} botContext - Bot context from buildBotContext (github, owner, repo).
- * @param {number} commentId - The ID of the comment to react to.
- * @returns {Promise<void>}
- */
-async function acknowledgeComment(botContext, commentId) {
-  try {
-    await botContext.github.rest.reactions.createForIssueComment({
-      owner: botContext.owner,
-      repo: botContext.repo,
-      comment_id: commentId,
-      content: '+1',
-    });
-    logger.log('Added thumbs-up reaction to comment');
-  } catch (error) {
-    logger.log('Could not add reaction:', error.message);
   }
 }
 

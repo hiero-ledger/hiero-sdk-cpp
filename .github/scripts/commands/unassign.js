@@ -14,6 +14,7 @@ const {
   removeLabel,
   removeAssignees,
   postComment,
+  acknowledgeComment,
 } = require('../helpers');
 
 const {
@@ -29,28 +30,6 @@ const logger = {
   log: (...args) => getLogger().log(...args),
   error: (...args) => getLogger().error(...args),
 };
-
-/**
- * Adds a thumbs-up (+1) reaction to the triggering /unassign comment as visual
- * acknowledgement. Failures are silently logged (non-critical).
- *
- * @param {object} botContext - Bot context from buildBotContext (github, owner, repo).
- * @param {number} commentId - The ID of the comment to react to.
- * @returns {Promise<void>}
- */
-async function acknowledgeComment(botContext, commentId) {
-  try {
-    await botContext.github.rest.reactions.createForIssueComment({
-      owner: botContext.owner,
-      repo: botContext.repo,
-      comment_id: commentId,
-      content: '+1',
-    });
-    logger.log('Added thumbs-up reaction to comment');
-  } catch (error) {
-    logger.log('Could not add reaction:', error.message);
-  }
-}
 
 /**
  * Main handler for the /unassign command. Runs the following gates in order:
