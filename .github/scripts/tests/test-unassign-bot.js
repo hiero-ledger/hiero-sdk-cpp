@@ -107,6 +107,7 @@ const scenarios = [
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
     githubOptions:           {},
+    expectReaction:          true,
     expectedAssigneeRemoved: 'active-contributor',
     expectedLabelRemoved:    LABELS.IN_PROGRESS,
     expectedLabelAdded:      LABELS.READY_FOR_DEV,
@@ -135,6 +136,7 @@ const scenarios = [
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
     githubOptions:           {},
+    expectReaction:          true,
     expectedAssigneeRemoved: 'active-contributor',
     expectedLabelRemoved:    LABELS.IN_PROGRESS,
     expectedLabelAdded:      LABELS.READY_FOR_DEV,
@@ -163,6 +165,7 @@ const scenarios = [
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
     githubOptions:           {},
+    expectReaction:          true,
     expectedAssigneeRemoved: 'active-contributor',
     expectedLabelRemoved:    LABELS.IN_PROGRESS,
     expectedLabelAdded:      LABELS.READY_FOR_DEV,
@@ -191,6 +194,7 @@ const scenarios = [
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
     githubOptions:           {},
+    expectReaction:          true,
     expectedAssigneeRemoved: 'active-contributor',
     expectedLabelRemoved:    LABELS.IN_PROGRESS, 
     expectedLabelAdded:      LABELS.READY_FOR_DEV,
@@ -223,6 +227,7 @@ const scenarios = [
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
     githubOptions:           {},
+    expectReaction:          true,
     expectedAssigneeRemoved: null,
     expectedLabelRemoved:    null,
     expectedLabelAdded:      null,
@@ -251,6 +256,7 @@ const scenarios = [
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
     githubOptions:           {},
+    expectReaction:          true,
     expectedAssigneeRemoved: null,
     expectedLabelRemoved:    null,
     expectedLabelAdded:      null,
@@ -279,6 +285,7 @@ const scenarios = [
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
     githubOptions:           {},
+    expectReaction:          true,
     expectedAssigneeRemoved: null,
     expectedLabelRemoved:    null,
     expectedLabelAdded:      null,
@@ -311,6 +318,7 @@ const scenarios = [
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
     githubOptions:           {},
+    expectReaction:          false,
     expectedAssigneeRemoved: null,
     expectedLabelRemoved:    null,
     expectedLabelAdded:      null,
@@ -337,6 +345,7 @@ const scenarios = [
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
     githubOptions:           {},
+    expectReaction:          false,
     expectedAssigneeRemoved: null,
     expectedLabelRemoved:    null,
     expectedLabelAdded:      null,
@@ -367,6 +376,7 @@ const scenarios = [
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
     githubOptions:           { removeAssigneesShouldFail: true },
+    expectReaction:          true,
     expectedAssigneeRemoved: null,
     expectedLabelRemoved:    null,
     expectedLabelAdded:      null,
@@ -395,6 +405,7 @@ const scenarios = [
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
     githubOptions:           { removeLabelShouldFail: true, addLabelShouldFail: true },
+    expectReaction:          true,
     expectedAssigneeRemoved: 'active-contributor',
     expectedLabelRemoved:    null,  
     expectedLabelAdded:      null, 
@@ -490,6 +501,24 @@ async function runTest(scenario, index) {
   const commentResult = verifyComments(scenario.expectedComments || [], mockGithub.calls.comments);
   if (!commentResult.passed) results.passed = false;
   results.details.push(...commentResult.details);
+
+  // Verify: reaction
+  if (scenario.expectReaction) {
+    const reacted = mockGithub.calls.reactions.some(r => r.content === '+1');
+    if (reacted) {
+      results.details.push('✅ Correctly added thumbs-up reaction');
+    } else {
+      results.passed = false;
+      results.details.push('❌ Expected thumbs-up reaction but none was added');
+    }
+  } else {
+    if (mockGithub.calls.reactions.length === 0) {
+      results.details.push('✅ Correctly did not add any reactions');
+    } else {
+      results.passed = false;
+      results.details.push(`❌ Expected NO reactions, but added: ${mockGithub.calls.reactions.map(r => r.content).join(', ')}`);
+    }
+  }
 
   console.log('\n📊 RESULT:');
   results.details.forEach((d) => console.log(`   ${d}`));
