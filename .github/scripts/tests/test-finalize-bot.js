@@ -10,6 +10,11 @@
 
 const { LABELS } = require('../helpers');
 const script = require('../bot-on-comment.js');
+const { runTestSuite, verifyComments } = require('./test-utils');
+const {
+  parseSections,
+  isMeaningfulContent,
+} = require('../commands/finalize-comments');
 
 // =============================================================================
 // MOCK GITHUB API
@@ -132,9 +137,9 @@ function makeContext(issue, commentBody = '/finalize', commenter = 'maintainer')
   };
 }
 
-async function runScenario(scenario) {
+async function runScenario(scenario, index) {
   console.log('\n' + '='.repeat(70));
-  console.log(`TEST: ${scenario.name}`);
+  console.log(`TEST ${index + 1}: ${scenario.name}`);
   console.log(`DESC: ${scenario.description}`);
   console.log('='.repeat(70));
 
@@ -148,10 +153,19 @@ async function runScenario(scenario) {
     threw = e;
   }
 
-  // Run assertions
   let passed = true;
   const failures = [];
 
+  // Snapshot verification for comment text
+  if (scenario.expectedComments !== undefined) {
+    const commentResult = verifyComments(scenario.expectedComments, github.calls.comments);
+    if (!commentResult.passed) {
+      passed = false;
+      failures.push(...commentResult.details.filter((d) => d.startsWith('❌')));
+    }
+  }
+
+  // Other behavioural assertions (labels, reactions, issue updates, body content)
   for (const assertion of scenario.assertions || []) {
     const result = assertion(github.calls, threw);
     if (result !== true) {
@@ -195,8 +209,99 @@ const assert = {
     const found = calls.issueUpdates.some((u) => u.body && u.body.includes(text));
     return found || `Expected updated body to contain: "${text}"`;
   },
+  bodyNotContains: (text) => (calls) => {
+    const found = calls.issueUpdates.some((u) => u.body && u.body.includes(text));
+    return !found || `Expected updated body NOT to contain: "${text}"`;
+  },
   reactionAdded: () => (calls) => calls.reactions.length > 0 || 'Expected thumbs-up reaction to be added',
 };
+
+// =============================================================================
+// SCENARIOS
+// =============================================================================
+
+// =============================================================================
+// EXPECTED COMMENT SNAPSHOTS
+// =============================================================================
+// Defined as constants so the same text can be reused across scenarios that
+// produce the same comment (e.g. both unauthorized scenarios).
+
+const COMMENT_UNAUTHORIZED = `👋 Hi @maintainer! The \`/finalize\` command is reserved for maintainers and contributors with **triage** (or higher) repository permissions.
+
+If you believe you should have access, please reach out to a maintainer.`;
+
+const COMMENT_PERMISSION_ERROR = `👋 Hi @maintainer! I encountered an error while trying to verify your permissions.
+
+@hiero-ledger/hiero-sdk-cpp-maintainers — could you please verify @maintainer's permissions and complete the finalization manually if appropriate?
+
+Sorry for the inconvenience!`;
+
+const COMMENT_UPDATE_FAILURE = `⚠️ Hi @maintainer! I encountered an error while trying to update the issue title or body.
+
+@hiero-ledger/hiero-sdk-cpp-maintainers — could you please complete the finalization manually?
+
+Error details: Simulated issue update failure`;
+
+const COMMENT_SWAP_FAILURE_REMOVE = `⚠️ The issue was updated successfully, but I encountered an error swapping the status labels.
+
+@hiero-ledger/hiero-sdk-cpp-maintainers — please manually:
+- Remove the \`status: awaiting triage\` label
+- Add the \`status: ready for dev\` label
+
+Error details: Failed to remove 'status: awaiting triage': Simulated remove label failure`;
+
+const COMMENT_SWAP_FAILURE_ADD = `⚠️ The issue was updated successfully, but I encountered an error swapping the status labels.
+
+@hiero-ledger/hiero-sdk-cpp-maintainers — please manually:
+- Remove the \`status: awaiting triage\` label
+- Add the \`status: ready for dev\` label
+
+Error details: Failed to add 'status: ready for dev': Simulated add label failure`;
+
+const COMMENT_SUCCESS_GFI_LOW = `✅ Issue finalized by @maintainer!
+
+**Skill level:** \`Good First Issue\`
+**Priority:** \`priority: low\`
+
+The issue body has been updated with the appropriate skill-level context and contribution guide. This issue is now ready for contributors to pick up via \`/assign\`.`;
+
+const COMMENT_SUCCESS_BEGINNER_MEDIUM = `✅ Issue finalized by @maintainer!
+
+**Skill level:** \`Beginner\`
+**Priority:** \`priority: medium\`
+
+The issue body has been updated with the appropriate skill-level context and contribution guide. This issue is now ready for contributors to pick up via \`/assign\`.`;
+
+const COMMENT_SUCCESS_INTERMEDIATE_HIGH = `✅ Issue finalized by @maintainer!
+
+**Skill level:** \`Intermediate\`
+**Priority:** \`priority: high\`
+
+The issue body has been updated with the appropriate skill-level context and contribution guide. This issue is now ready for contributors to pick up via \`/assign\`.`;
+
+const COMMENT_SUCCESS_ADVANCED_MEDIUM = `✅ Issue finalized by @maintainer!
+
+**Skill level:** \`Advanced\`
+**Priority:** \`priority: medium\`
+
+The issue body has been updated with the appropriate skill-level context and contribution guide. This issue is now ready for contributors to pick up via \`/assign\`.`;
+
+/** Builds the standard validation-error comment for one or more violations. */
+function validationComment(...errors) {
+  const errorList = errors.map((e) => `- ${e}`).join('\n');
+  return `👋 Hi @maintainer! The issue isn't quite ready to finalize yet. Please fix the following labeling issue(s) and then comment \`/finalize\` again:\n\n${errorList}\n\nIf you have questions about which labels to apply, see the maintainer documentation or ask in the team channel.`;
+}
+
+// Pre-built validation error strings matching the exact output of collectLabelViolations.
+const ERR_MISSING_TRIAGE = `The \`status: awaiting triage\` label must be present to run \`/finalize\`. Current status label(s): \`status: ready for dev\`.`;
+const ERR_NO_SKILL = `Exactly one \`skill:\` label is required (e.g. \`skill: beginner\`). None found. Choose from: \`skill: good first issue\`, \`skill: beginner\`, \`skill: intermediate\`, \`skill: advanced\`.`;
+const ERR_MULTIPLE_SKILLS = `Exactly one \`skill:\` label is required. Found 2: \`skill: beginner\`, \`skill: intermediate\`. Please remove all but one.`;
+const ERR_NO_PRIORITY = `Exactly one \`priority:\` label is required (e.g. \`priority: medium\`). None found.`;
+const ERR_TASK_NO_KIND = `Task issues require exactly one \`kind:\` label (e.g. \`kind: maintenance\`). None found.`;
+const ERR_BUG_NO_KIND = `Bug issues require exactly one \`kind:\` label (e.g. \`kind: maintenance\`). None found.`;
+const ERR_FEATURE_WITH_KIND_ENHANCEMENT = `Feature issues should not have a \`kind:\` label. Found: \`kind: enhancement\`. Please remove it.`;
+const ERR_FEATURE_WITH_KIND_MAINTENANCE = `Feature issues should not have a \`kind:\` label. Found: \`kind: maintenance\`. Please remove it.`;
+const ERR_UNKNOWN_TYPE = `The issue type (Bug, Feature, or Task) could not be determined. Ensure the issue was submitted using one of the official issue templates.`;
 
 // =============================================================================
 // SCENARIOS
@@ -212,9 +317,9 @@ const scenarios = [
     description: 'A collaborator with "read" role is rejected',
     context: makeContext(makeIssue()),
     githubOptions: { roleName: 'read' },
+    expectedComments: [COMMENT_UNAUTHORIZED],
     assertions: [
       assert.reactionAdded(),
-      assert.commentContains('reserved for maintainers'),
       assert.noIssueUpdate(),
       assert.noLabelsAdded(),
     ],
@@ -225,9 +330,9 @@ const scenarios = [
     description: 'A user who is not a repo collaborator is rejected',
     context: makeContext(makeIssue()),
     githubOptions: { permissionNotFound: true },
+    expectedComments: [COMMENT_UNAUTHORIZED],
     assertions: [
       assert.reactionAdded(),
-      assert.commentContains('reserved for maintainers'),
       assert.noIssueUpdate(),
     ],
   },
@@ -237,9 +342,9 @@ const scenarios = [
     description: 'When the permission API fails, posts an error comment and tags maintainers',
     context: makeContext(makeIssue()),
     githubOptions: { permissionShouldFail: true },
+    expectedComments: [COMMENT_PERMISSION_ERROR],
     assertions: [
       assert.reactionAdded(),
-      assert.commentContains('encountered an error while trying to verify your permissions'),
       assert.noIssueUpdate(),
     ],
   },
@@ -261,8 +366,8 @@ const scenarios = [
       type: { name: 'Task' },
     })),
     githubOptions: { roleName: 'triage' },
+    expectedComments: [validationComment(ERR_MISSING_TRIAGE)],
     assertions: [
-      assert.commentContains('status: awaiting triage'),
       assert.noIssueUpdate(),
       assert.noLabelsAdded(),
     ],
@@ -280,8 +385,8 @@ const scenarios = [
       type: { name: 'Task' },
     })),
     githubOptions: { roleName: 'triage' },
+    expectedComments: [validationComment(ERR_NO_SKILL)],
     assertions: [
-      assert.commentContains('skill:'),
       assert.noIssueUpdate(),
     ],
   },
@@ -300,8 +405,8 @@ const scenarios = [
       type: { name: 'Task' },
     })),
     githubOptions: { roleName: 'triage' },
+    expectedComments: [validationComment(ERR_MULTIPLE_SKILLS)],
     assertions: [
-      assert.commentContains('skill:'),
       assert.noIssueUpdate(),
     ],
   },
@@ -318,8 +423,8 @@ const scenarios = [
       type: { name: 'Task' },
     })),
     githubOptions: { roleName: 'triage' },
+    expectedComments: [validationComment(ERR_NO_PRIORITY)],
     assertions: [
-      assert.commentContains('priority:'),
       assert.noIssueUpdate(),
     ],
   },
@@ -336,8 +441,8 @@ const scenarios = [
       type: { name: 'Task' },
     })),
     githubOptions: { roleName: 'triage' },
+    expectedComments: [validationComment(ERR_TASK_NO_KIND)],
     assertions: [
-      assert.commentContains('kind:'),
       assert.noIssueUpdate(),
     ],
   },
@@ -354,8 +459,8 @@ const scenarios = [
       type: { name: 'Bug' },
     })),
     githubOptions: { roleName: 'triage' },
+    expectedComments: [validationComment(ERR_BUG_NO_KIND)],
     assertions: [
-      assert.commentContains('kind:'),
       assert.noIssueUpdate(),
     ],
   },
@@ -373,8 +478,8 @@ const scenarios = [
       type: { name: 'Feature' },
     })),
     githubOptions: { roleName: 'triage' },
+    expectedComments: [validationComment(ERR_FEATURE_WITH_KIND_ENHANCEMENT)],
     assertions: [
-      assert.commentContains('Feature issues should not have a `kind:`'),
       assert.noIssueUpdate(),
     ],
   },
@@ -390,10 +495,8 @@ const scenarios = [
       type: { name: 'Feature' },
     })),
     githubOptions: { roleName: 'admin' },
+    expectedComments: [validationComment(ERR_NO_SKILL, ERR_NO_PRIORITY, ERR_FEATURE_WITH_KIND_MAINTENANCE)],
     assertions: [
-      assert.commentContains('skill:'),
-      assert.commentContains('priority:'),
-      assert.commentContains('Feature issues should not'),
       assert.noIssueUpdate(),
     ],
   },
@@ -403,8 +506,8 @@ const scenarios = [
     description: 'Issue created without a recognized type triggers a validation error',
     context: makeContext(makeIssue({ type: null })),
     githubOptions: { roleName: 'triage' },
+    expectedComments: [validationComment(ERR_UNKNOWN_TYPE)],
     assertions: [
-      assert.commentContains('issue type'),
       assert.noIssueUpdate(),
     ],
   },
@@ -426,6 +529,7 @@ const scenarios = [
       type: { name: 'Feature' },
     })),
     githubOptions: { roleName: 'triage' },
+    expectedComments: [COMMENT_SUCCESS_GFI_LOW],
     assertions: [
       assert.reactionAdded(),
       assert.issueUpdated(),
@@ -435,7 +539,6 @@ const scenarios = [
       assert.bodyContains('Step-by-Step Contribution Guide'),
       assert.labelAdded(LABELS.READY_FOR_DEV),
       assert.labelRemoved(LABELS.AWAITING_TRIAGE),
-      assert.commentContains('finalized by @maintainer'),
     ],
   },
 
@@ -444,6 +547,7 @@ const scenarios = [
     description: 'Valid beginner task is finalized; title prefix added, body reconstructed',
     context: makeContext(makeIssue()),
     githubOptions: { roleName: 'triage' },
+    expectedComments: [COMMENT_SUCCESS_BEGINNER_MEDIUM],
     assertions: [
       assert.reactionAdded(),
       assert.issueUpdated(),
@@ -453,7 +557,6 @@ const scenarios = [
       assert.bodyContains('Step-by-Step Contribution Guide'),
       assert.labelAdded(LABELS.READY_FOR_DEV),
       assert.labelRemoved(LABELS.AWAITING_TRIAGE),
-      assert.commentContains('finalized by @maintainer'),
     ],
   },
 
@@ -471,6 +574,7 @@ const scenarios = [
       type: { name: 'Bug' },
     })),
     githubOptions: { roleName: 'write' },
+    expectedComments: [COMMENT_SUCCESS_INTERMEDIATE_HIGH],
     assertions: [
       assert.issueUpdated(),
       assert.titleContains('[Intermediate]:'),
@@ -478,7 +582,6 @@ const scenarios = [
       assert.bodyContains('About Intermediate Issues'),
       assert.bodyContains('Step-by-Step Contribution Guide'),
       assert.labelAdded(LABELS.READY_FOR_DEV),
-      assert.commentContains('finalized by @maintainer'),
     ],
   },
 
@@ -497,6 +600,7 @@ const scenarios = [
       type: { name: 'Task' },
     })),
     githubOptions: { roleName: 'admin' },
+    expectedComments: [COMMENT_SUCCESS_ADVANCED_MEDIUM],
     assertions: [
       assert.issueUpdated(),
       assert.titleContains('[Advanced]:'),
@@ -504,7 +608,6 @@ const scenarios = [
       assert.bodyContains('About Advanced Issues'),
       assert.bodyContains('Step-by-Step Contribution Guide'),
       assert.labelAdded(LABELS.READY_FOR_DEV),
-      assert.commentContains('finalized by @maintainer'),
     ],
   },
 
@@ -522,9 +625,10 @@ const scenarios = [
       type: { name: 'Task' },
     })),
     githubOptions: { roleName: 'maintain' },
+    expectedComments: [COMMENT_SUCCESS_ADVANCED_MEDIUM],
     assertions: [
-      assert.titleContains('[Advanced]: Fix something'),
       assert.issueUpdated(),
+      assert.titleContains('[Advanced]: Fix something'),
     ],
   },
 
@@ -537,42 +641,138 @@ const scenarios = [
     description: 'When issues.update throws, a failure comment is posted and labels are NOT swapped',
     context: makeContext(makeIssue()),
     githubOptions: { roleName: 'triage', updateShouldFail: true },
+    expectedComments: [COMMENT_UPDATE_FAILURE],
     assertions: [
-      assert.commentContains('encountered an error while trying to update'),
       assert.noLabelsAdded(),
       assert.noLabelsRemoved(),
     ],
   },
 
   {
-    name: 'API failure — label swap fails after successful update',
-    description: 'When removeLabel throws after a successful update, maintainers are tagged',
+    name: 'API failure — remove label fails after successful update',
+    description: 'When removeLabel throws, the swap failure comment and success comment are both posted',
     context: makeContext(makeIssue()),
     githubOptions: { roleName: 'triage', removeLabelShouldFail: true },
+    expectedComments: [COMMENT_SWAP_FAILURE_REMOVE, COMMENT_SUCCESS_BEGINNER_MEDIUM],
     assertions: [
       assert.issueUpdated(),
-      assert.commentContains('encountered an error swapping the status labels'),
+      assert.labelAdded(LABELS.READY_FOR_DEV),   // add still runs and succeeds
+      assert.noLabelsRemoved(),                   // remove failed
+    ],
+  },
+
+  {
+    name: 'API failure — add label fails after successful update and remove',
+    description: 'When addLabels throws, the swap failure comment and success comment are both posted',
+    context: makeContext(makeIssue()),
+    githubOptions: { roleName: 'triage', addLabelShouldFail: true },
+    expectedComments: [COMMENT_SWAP_FAILURE_ADD, COMMENT_SUCCESS_BEGINNER_MEDIUM],
+    assertions: [
+      assert.issueUpdated(),
+      assert.labelRemoved(LABELS.AWAITING_TRIAGE), // remove succeeded
+      assert.noLabelsAdded(),                       // add failed
+    ],
+  },
+
+  {
+    name: 'Body reconstruction — user-provided Additional Information is preserved',
+    description: 'When the Additional Information section has real user content it should not be replaced with the default Discord link text',
+    context: makeContext(makeIssue({
+      body: [
+        '### 👾 Description of the Issue\n\nSome bug.\n\n',
+        '### ✔️ Acceptance Criteria\n\n- [ ] Fixed\n\n',
+        '### 🤔 Additional Information\n\nSee the internal bug tracker for full repro steps.',
+      ].join(''),
+      labels: [
+        { name: LABELS.AWAITING_TRIAGE },
+        { name: LABELS.BEGINNER },
+        { name: 'priority: medium' },
+        { name: 'kind: maintenance' },
+      ],
+      type: { name: 'Task' },
+    })),
+    githubOptions: { roleName: 'triage' },
+    expectedComments: [COMMENT_SUCCESS_BEGINNER_MEDIUM],
+    assertions: [
+      assert.issueUpdated(),
+      assert.bodyContains('See the internal bug tracker for full repro steps.'),
+      assert.bodyNotContains('If you have questions while working on this issue'),
     ],
   },
 ];
 
 // =============================================================================
-// RUNNER
+// UNIT TESTS — pure functions from finalize-comments.js
 // =============================================================================
 
-(async () => {
+async function runUnitTests() {
+  let total = 0;
   let passed = 0;
   let failed = 0;
 
-  for (const scenario of scenarios) {
-    const ok = await runScenario(scenario);
-    if (ok) passed++;
-    else failed++;
+  function check(name, actual, expected) {
+    total++;
+    const ok = JSON.stringify(actual) === JSON.stringify(expected);
+    if (ok) {
+      passed++;
+      console.log(`  ✅ ${name}`);
+    } else {
+      failed++;
+      console.log(`  ❌ ${name}`);
+      console.log(`     expected: ${JSON.stringify(expected)}`);
+      console.log(`     actual:   ${JSON.stringify(actual)}`);
+    }
   }
 
-  console.log('\n' + '='.repeat(70));
-  console.log(`RESULTS: ${passed} passed, ${failed} failed`);
-  console.log('='.repeat(70) + '\n');
+  console.log('\n📐 UNIT TESTS — parseSections / isMeaningfulContent');
+  console.log('─'.repeat(60));
 
-  if (failed > 0) process.exit(1);
-})();
+  // parseSections
+  check('parseSections: null → []', parseSections(null), []);
+  check('parseSections: empty string → []', parseSections(''), []);
+  check('parseSections: no headers → single null-header entry',
+    parseSections('just some text'),
+    [{ header: null, content: 'just some text' }]
+  );
+  check('parseSections: single section',
+    parseSections('### My Header\n\nsome content'),
+    [{ header: 'My Header', content: 'some content' }]
+  );
+  check('parseSections: two sections',
+    parseSections('### First\n\ncontent one\n\n### Second\n\ncontent two'),
+    [
+      { header: 'First', content: 'content one' },
+      { header: 'Second', content: 'content two' },
+    ]
+  );
+  check('parseSections: section with no content',
+    parseSections('### Header\n'),
+    [{ header: 'Header', content: '' }]
+  );
+  check('parseSections: leading content then a header',
+    parseSections('preamble\n### Section\n\nbody'),
+    [
+      { header: null, content: 'preamble' },
+      { header: 'Section', content: 'body' },
+    ]
+  );
+
+  // isMeaningfulContent
+  check('isMeaningfulContent: null → false', isMeaningfulContent(null), false);
+  check('isMeaningfulContent: empty string → false', isMeaningfulContent(''), false);
+  check('isMeaningfulContent: whitespace only → false', isMeaningfulContent('   '), false);
+  check('isMeaningfulContent: "Optional." → false', isMeaningfulContent('Optional.'), false);
+  check('isMeaningfulContent: "_No response_" → false', isMeaningfulContent('_No response_'), false);
+  check('isMeaningfulContent: real content → true', isMeaningfulContent('Some real text here.'), true);
+  check('isMeaningfulContent: whitespace-padded real content → true', isMeaningfulContent('  Real content  '), true);
+
+  return { total, passed, failed };
+}
+
+// =============================================================================
+// RUNNER
+// =============================================================================
+
+runTestSuite('FINALIZE COMMAND TEST SUITE', scenarios, runScenario, [
+  { label: 'Unit Tests', run: runUnitTests },
+]);

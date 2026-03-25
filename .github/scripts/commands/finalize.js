@@ -11,17 +11,16 @@
 
 const {
   LABELS,
-  getLogger,
+  createDelegatingLogger,
   hasLabel,
-  addLabels,
-  removeLabel,
+  getLabelsByPrefix,
+  swapLabels,
   postComment,
   acknowledgeComment,
 } = require('../helpers');
 
 const {
   SKILL_TITLE_PREFIXES,
-  SKILL_BOILERPLATE,
   reconstructBody,
   buildUnauthorizedComment,
   buildValidationErrorComment,
@@ -32,10 +31,7 @@ const {
 } = require('./finalize-comments');
 
 // Delegate to the active logger set by the dispatcher (bot-on-comment.js).
-const logger = {
-  log: (...args) => getLogger().log(...args),
-  error: (...args) => getLogger().error(...args),
-};
+const logger = createDelegatingLogger();
 
 // Permission levels that are allowed to run /finalize (triage and above).
 const ALLOWED_ROLE_NAMES = new Set(['triage', 'write', 'maintain', 'admin']);
@@ -65,16 +61,16 @@ async function checkPermission(botContext, username) {
       username,
     });
     const roleName = data?.role_name;
-    logger.log(`[finalize] Permission check for @${username}: role_name="${roleName}"`);
+    logger.log(`Permission check for @${username}: role_name="${roleName}"`);
     if (ALLOWED_ROLE_NAMES.has(roleName)) return 'authorized';
     return 'unauthorized';
   } catch (error) {
     const status = error?.status ?? error?.response?.status;
     if (status === 404) {
-      logger.log(`[finalize] @${username} is not a collaborator (404) — unauthorized`);
+      logger.log(`@${username} is not a collaborator (404) — unauthorized`);
       return 'unauthorized';
     }
-    logger.error(`[finalize] Permission check failed for @${username}:`, error.message);
+    logger.error(`Permission check failed for @${username}:`, error.message);
     return 'error';
   }
 }
@@ -94,19 +90,6 @@ function getIssueTypeName(issue) {
   const name = issue?.type?.name;
   if (typeof name === 'string' && KNOWN_ISSUE_TYPES.has(name)) return name;
   return null;
-}
-
-/**
- * Returns all label names on the issue that start with the given prefix.
- *
- * @param {object} issue - The issue object.
- * @param {string} prefix - Label group prefix (e.g. 'skill:').
- * @returns {string[]}
- */
-function getLabelsByPrefix(issue, prefix) {
-  return (issue.labels || [])
-    .map((l) => (typeof l === 'string' ? l : l?.name || ''))
-    .filter((name) => name.toLowerCase().startsWith(prefix.toLowerCase()));
 }
 
 /**
@@ -211,41 +194,6 @@ function buildNewTitle(currentTitle, skillLevel) {
 }
 
 // =============================================================================
-// LABEL SWAP
-// =============================================================================
-
-/**
- * Swaps `status: awaiting triage` → `status: ready for dev` after a successful
- * issue update. If either label operation fails, posts a comment tagging
- * maintainers with manual instructions.
- *
- * @param {object} botContext - Bot context from buildBotContext.
- * @param {string} finalizerUsername - Username who ran /finalize (for the failure comment).
- * @returns {Promise<void>}
- */
-async function swapTriageLabels(botContext, finalizerUsername) {
-  let failed = false;
-  let errorDetails = '';
-
-  const removeResult = await removeLabel(botContext, LABELS.AWAITING_TRIAGE);
-  if (!removeResult.success) {
-    failed = true;
-    errorDetails += `Failed to remove \`${LABELS.AWAITING_TRIAGE}\`: ${removeResult.error}`;
-  }
-
-  const addResult = await addLabels(botContext, [LABELS.READY_FOR_DEV]);
-  if (!addResult.success) {
-    failed = true;
-    errorDetails += (errorDetails ? '; ' : '') + `Failed to add \`${LABELS.READY_FOR_DEV}\`: ${addResult.error}`;
-  }
-
-  if (failed) {
-    await postComment(botContext, buildLabelSwapFailureComment(finalizerUsername, errorDetails));
-    logger.log('[finalize] Posted label swap failure comment, tagged maintainers');
-  }
-}
-
-// =============================================================================
 // MAIN HANDLER
 // =============================================================================
 
@@ -275,12 +223,12 @@ async function handleFinalize(botContext) {
   // STEP 2: Permission check
   const permResult = await checkPermission(botContext, finalizerUsername);
   if (permResult === 'error') {
-    logger.log('[finalize] Exit: permission check API error');
+    logger.log('Exit: permission check API error');
     await postComment(botContext, buildPermissionCheckErrorComment(finalizerUsername));
     return;
   }
   if (permResult === 'unauthorized') {
-    logger.log(`[finalize] Exit: @${finalizerUsername} is not authorized`);
+    logger.log(`Exit: @${finalizerUsername} is not authorized`);
     await postComment(botContext, buildUnauthorizedComment(finalizerUsername));
     return;
   }
@@ -288,7 +236,7 @@ async function handleFinalize(botContext) {
   // STEP 3: Label validation — collect ALL violations before posting
   const violations = collectLabelViolations(botContext.issue);
   if (violations.length > 0) {
-    logger.log(`[finalize] Exit: ${violations.length} label violation(s) found`);
+    logger.log(`Exit: ${violations.length} label violation(s) found`);
     await postComment(botContext, buildValidationErrorComment(finalizerUsername, violations));
     return;
   }
@@ -300,7 +248,7 @@ async function handleFinalize(botContext) {
   const newTitle = buildNewTitle(botContext.issue.title, skillLevel);
   const newBody = reconstructBody(botContext.issue.body || '', skillLevel);
 
-  logger.log(`[finalize] Updating issue #${botContext.number}: title="${newTitle}", skillLevel="${skillLevel}"`);
+  logger.log(`Updating issue #${botContext.number}: title="${newTitle}", skillLevel="${skillLevel}"`);
 
   // STEP 5: Update issue title and body
   let updateError = null;
@@ -312,10 +260,10 @@ async function handleFinalize(botContext) {
       title: newTitle,
       body: newBody,
     });
-    logger.log('[finalize] Issue updated successfully');
+    logger.log('Issue updated successfully');
   } catch (error) {
     updateError = error instanceof Error ? error.message : String(error);
-    logger.error('[finalize] Issue update failed:', updateError);
+    logger.error('Issue update failed:', updateError);
   }
 
   if (updateError) {
@@ -323,13 +271,17 @@ async function handleFinalize(botContext) {
     return;
   }
 
-  // STEP 6: Swap status labels
-  await swapTriageLabels(botContext, finalizerUsername);
+  // STEP 6: Swap status labels: awaiting triage → ready for dev
+  const swapResult = await swapLabels(botContext, LABELS.AWAITING_TRIAGE, LABELS.READY_FOR_DEV);
+  if (!swapResult.success) {
+    await postComment(botContext, buildLabelSwapFailureComment(finalizerUsername, swapResult.errorDetails));
+    logger.log('Posted label swap failure comment, tagged maintainers');
+  }
 
   // STEP 7: Post success comment
   const priorityLabel = getLabelsByPrefix(botContext.issue, 'priority:')[0];
   await postComment(botContext, buildSuccessComment(finalizerUsername, skillLevel, priorityLabel));
-  logger.log('[finalize] Finalize flow completed successfully');
+  logger.log('Finalize flow completed successfully');
 }
 
 module.exports = { handleFinalize };

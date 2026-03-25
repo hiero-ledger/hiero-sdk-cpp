@@ -431,7 +431,6 @@ function buildSuccessComment(username, skillLevel, priorityLabel) {
 
 module.exports = {
   SKILL_TITLE_PREFIXES,
-  SKILL_BOILERPLATE,
   CONTRIBUTION_GUIDE_LABEL,
   CONTRIBUTION_GUIDE_CONTENT,
   DEFAULT_ADDITIONAL_INFO_LABEL,
