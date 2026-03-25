@@ -218,12 +218,16 @@ function parseSections(body) {
   let currentHeader = null;
   let currentLines = [];
 
+  function flush() {
+    if (currentHeader !== null || currentLines.some((l) => l.trim())) {
+      sections.push({ header: currentHeader, content: currentLines.join('\n').trim() });
+    }
+  }
+
   for (const line of lines) {
     const match = line.match(/^### (.+)$/);
     if (match) {
-      if (currentHeader !== null || currentLines.some((l) => l.trim())) {
-        sections.push({ header: currentHeader, content: currentLines.join('\n').trim() });
-      }
+      flush();
       currentHeader = match[1].trim();
       currentLines = [];
     } else {
@@ -231,11 +235,7 @@ function parseSections(body) {
     }
   }
 
-  // Flush last section
-  if (currentHeader !== null || currentLines.some((l) => l.trim())) {
-    sections.push({ header: currentHeader, content: currentLines.join('\n').trim() });
-  }
-
+  flush();
   return sections;
 }
 

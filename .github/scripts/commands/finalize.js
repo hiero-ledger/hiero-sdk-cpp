@@ -36,6 +36,16 @@ const logger = createDelegatingLogger();
 // Permission levels that are allowed to run /finalize (triage and above).
 const ALLOWED_ROLE_NAMES = new Set(['triage', 'write', 'maintain', 'admin']);
 
+// Regex that strips any existing skill-level title prefix (e.g. "[Beginner]: ").
+// Built from SKILL_TITLE_PREFIXES so it stays in sync if new levels are added.
+const EXISTING_PREFIX_RE = new RegExp(
+  `^\\[(${Object.values(SKILL_TITLE_PREFIXES)
+    .map((p) => p.match(/^\[(.+)\]:/)?.[1])
+    .filter(Boolean)
+    .join('|')})\\]:\\s*`,
+  'i'
+);
+
 // Recognized GitHub issue type names set by our three templates.
 const KNOWN_ISSUE_TYPES = new Set(['Bug', 'Feature', 'Task']);
 
@@ -93,6 +103,15 @@ function getIssueTypeName(issue) {
 }
 
 /**
+ * Formats an array of label names as a comma-separated inline code list.
+ * @param {string[]} labels
+ * @returns {string} e.g. "`skill: beginner`, `skill: intermediate`"
+ */
+function formatLabelList(labels) {
+  return labels.map((l) => `\`${l}\``).join(', ');
+}
+
+/**
  * Collects all label validation violations for /finalize. Returns an empty
  * array when everything is valid.
  *
@@ -118,7 +137,7 @@ function collectLabelViolations(issue) {
   // 1. status: awaiting triage must be present
   if (!hasLabel(issue, LABELS.AWAITING_TRIAGE)) {
     const statusLabels = getLabelsByPrefix(issue, 'status:');
-    const currentStatus = statusLabels.length > 0 ? statusLabels.map((l) => `\`${l}\``).join(', ') : 'none';
+    const currentStatus = statusLabels.length > 0 ? formatLabelList(statusLabels) : 'none';
     errors.push(
       `The \`${LABELS.AWAITING_TRIAGE}\` label must be present to run \`/finalize\`. Current status label(s): ${currentStatus}.`
     );
@@ -131,7 +150,7 @@ function collectLabelViolations(issue) {
     );
   } else if (skillLabels.length > 1) {
     errors.push(
-      `Exactly one \`skill:\` label is required. Found ${skillLabels.length}: ${skillLabels.map((l) => `\`${l}\``).join(', ')}. Please remove all but one.`
+      `Exactly one \`skill:\` label is required. Found ${skillLabels.length}: ${formatLabelList(skillLabels)}. Please remove all but one.`
     );
   }
 
@@ -142,7 +161,7 @@ function collectLabelViolations(issue) {
     );
   } else if (priorityLabels.length > 1) {
     errors.push(
-      `Exactly one \`priority:\` label is required. Found ${priorityLabels.length}: ${priorityLabels.map((l) => `\`${l}\``).join(', ')}. Please remove all but one.`
+      `Exactly one \`priority:\` label is required. Found ${priorityLabels.length}: ${formatLabelList(priorityLabels)}. Please remove all but one.`
     );
   }
 
@@ -154,7 +173,7 @@ function collectLabelViolations(issue) {
   } else if (issueTypeName === 'Feature') {
     if (kindLabels.length > 0) {
       errors.push(
-        `Feature issues should not have a \`kind:\` label. Found: ${kindLabels.map((l) => `\`${l}\``).join(', ')}. Please remove it.`
+        `Feature issues should not have a \`kind:\` label. Found: ${formatLabelList(kindLabels)}. Please remove it.`
       );
     }
   } else {
@@ -165,7 +184,7 @@ function collectLabelViolations(issue) {
       );
     } else if (kindLabels.length > 1) {
       errors.push(
-        `${issueTypeName} issues require exactly one \`kind:\` label. Found ${kindLabels.length}: ${kindLabels.map((l) => `\`${l}\``).join(', ')}. Please remove all but one.`
+        `${issueTypeName} issues require exactly one \`kind:\` label. Found ${kindLabels.length}: ${formatLabelList(kindLabels)}. Please remove all but one.`
       );
     }
   }
@@ -186,9 +205,7 @@ function collectLabelViolations(issue) {
  * @returns {string} The updated title.
  */
 function buildNewTitle(currentTitle, skillLevel) {
-  const strippedTitle = currentTitle
-    .replace(/^\[(Good First Issue|Beginner|Intermediate|Advanced)\]:\s*/i, '')
-    .trim();
+  const strippedTitle = currentTitle.replace(EXISTING_PREFIX_RE, '').trim();
   const prefix = SKILL_TITLE_PREFIXES[skillLevel] || '';
   return `${prefix}${strippedTitle}`;
 }
