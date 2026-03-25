@@ -3174,3 +3174,195 @@ TEST_F(TransactionUnitTests, RemoveSignatureFromMultiNodeTransaction)
   // Verify that all internal signatory tracking and protobuf signature maps are completely clear
   EXPECT_EQ(finalRemoval.size(), 0);
 }
+
+//-----
+// Security Test: Prevent transaction smuggling attacks (CVE fix)
+// This test verifies that fromBytes() rejects TransactionLists containing entries
+// with different transaction types, which could be used to smuggle a malicious
+// transaction that gets signed but not displayed to the user.
+TEST_F(TransactionUnitTests, FromBytesRejectsTransactionListWithMixedTransactionTypes)
+{
+  // Given
+  // Entry 1: A benign TransferTransaction (CryptoTransfer)
+  proto::TransactionBody benignBody;
+  benignBody.set_memo("Benign transfer");
+  benignBody.set_allocated_cryptotransfer(new proto::CryptoTransferTransactionBody);
+
+  proto::SignedTransaction signedTx1;
+  signedTx1.set_bodybytes(benignBody.SerializeAsString());
+  proto::Transaction tx1;
+  tx1.set_signedtransactionbytes(signedTx1.SerializeAsString());
+
+  // Entry 2: A different transaction type (AccountCreate) - this simulates
+  // an attacker trying to smuggle a different transaction type
+  proto::TransactionBody maliciousBody;
+  maliciousBody.set_memo("Hidden transaction");
+  maliciousBody.set_allocated_cryptocreateaccount(new proto::CryptoCreateTransactionBody);
+
+  proto::SignedTransaction signedTx2;
+  signedTx2.set_bodybytes(maliciousBody.SerializeAsString());
+  proto::Transaction tx2;
+  tx2.set_signedtransactionbytes(signedTx2.SerializeAsString());
+
+  // Create a TransactionList with mixed types
+  proto::TransactionList txList;
+  *txList.add_transaction_list() = tx1;
+  *txList.add_transaction_list() = tx2;
+
+  // When / Then
+  // This should throw because entries have different transaction types
+  EXPECT_THROW(
+    Transaction<TransferTransaction>::fromBytes(internal::Utilities::stringToByteVector(txList.SerializeAsString())),
+    std::invalid_argument);
+}
+
+//-----
+// Security Test: Prevent transaction smuggling via multiple transactionIds
+// For non-chunked transaction types, multiple transactionIds are not allowed
+// as they could be used to hide malicious transactions.
+TEST_F(TransactionUnitTests, FromBytesRejectsNonChunkedTransactionWithMultipleTransactionIds)
+{
+  // Given
+  // Entry 1: TransferTransaction with TransactionId A
+  proto::TransactionBody txBody1;
+  txBody1.set_memo("Transaction 1");
+  txBody1.set_allocated_cryptotransfer(new proto::CryptoTransferTransactionBody);
+
+  proto::TransactionID txId1;
+  txId1.mutable_accountid()->set_accountnum(201);
+  txId1.mutable_transactionvalidstart()->set_seconds(1700000010);
+  txId1.mutable_transactionvalidstart()->set_nanos(1);
+  txBody1.set_allocated_transactionid(new proto::TransactionID(txId1));
+
+  proto::SignedTransaction signedTx1;
+  signedTx1.set_bodybytes(txBody1.SerializeAsString());
+  proto::Transaction tx1;
+  tx1.set_signedtransactionbytes(signedTx1.SerializeAsString());
+
+  // Entry 2: Same type but different TransactionId (different timestamp)
+  // This simulates an attacker hiding a second transaction
+  proto::TransactionBody txBody2;
+  txBody2.set_memo("Transaction 1"); // Same memo to look identical
+  txBody2.set_allocated_cryptotransfer(new proto::CryptoTransferTransactionBody);
+
+  proto::TransactionID txId2;
+  txId2.mutable_accountid()->set_accountnum(201);
+  txId2.mutable_transactionvalidstart()->set_seconds(1700000011); // Different timestamp!
+  txId2.mutable_transactionvalidstart()->set_nanos(1);
+  txBody2.set_allocated_transactionid(new proto::TransactionID(txId2));
+
+  proto::SignedTransaction signedTx2;
+  signedTx2.set_bodybytes(txBody2.SerializeAsString());
+  proto::Transaction tx2;
+  tx2.set_signedtransactionbytes(signedTx2.SerializeAsString());
+
+  // Create a TransactionList with two different transactionIds
+  proto::TransactionList txList;
+  *txList.add_transaction_list() = tx1;
+  *txList.add_transaction_list() = tx2;
+
+  // When / Then
+  // This should throw because TransferTransaction (non-chunked) cannot have multiple transactionIds
+  EXPECT_THROW(
+    Transaction<TransferTransaction>::fromBytes(internal::Utilities::stringToByteVector(txList.SerializeAsString())),
+    std::invalid_argument);
+}
+
+//-----
+// Security Test: FileAppend (chunked transaction) can have multiple transactionIds
+// but they must all have the same transaction type.
+TEST_F(TransactionUnitTests, FromBytesAllowsChunkedTransactionWithMultipleTransactionIdsOfSameType)
+{
+  // Given
+  // Entry 1: FileAppend chunk 1
+  proto::TransactionBody txBody1;
+  txBody1.set_memo("FileAppend chunk 1");
+  txBody1.set_allocated_fileappend(new proto::FileAppendTransactionBody);
+
+  proto::TransactionID txId1;
+  txId1.mutable_accountid()->set_accountnum(201);
+  txId1.mutable_transactionvalidstart()->set_seconds(1700000010);
+  txId1.mutable_transactionvalidstart()->set_nanos(1);
+  txBody1.set_allocated_transactionid(new proto::TransactionID(txId1));
+
+  proto::SignedTransaction signedTx1;
+  signedTx1.set_bodybytes(txBody1.SerializeAsString());
+  proto::Transaction tx1;
+  tx1.set_signedtransactionbytes(signedTx1.SerializeAsString());
+
+  // Entry 2: FileAppend chunk 2 (same type, different transactionId - this is valid for chunks)
+  proto::TransactionBody txBody2;
+  txBody2.set_memo("FileAppend chunk 2");
+  txBody2.set_allocated_fileappend(new proto::FileAppendTransactionBody);
+
+  proto::TransactionID txId2;
+  txId2.mutable_accountid()->set_accountnum(201);
+  txId2.mutable_transactionvalidstart()->set_seconds(1700000011); // Different timestamp for chunk 2
+  txId2.mutable_transactionvalidstart()->set_nanos(1);
+  txBody2.set_allocated_transactionid(new proto::TransactionID(txId2));
+
+  proto::SignedTransaction signedTx2;
+  signedTx2.set_bodybytes(txBody2.SerializeAsString());
+  proto::Transaction tx2;
+  tx2.set_signedtransactionbytes(signedTx2.SerializeAsString());
+
+  // Create a TransactionList
+  proto::TransactionList txList;
+  *txList.add_transaction_list() = tx1;
+  *txList.add_transaction_list() = tx2;
+
+  // When / Then
+  // FileAppend is a chunked transaction type, so multiple transactionIds are allowed
+  // as long as they all have the same transaction type
+  EXPECT_NO_THROW(
+    Transaction<FileAppendTransaction>::fromBytes(internal::Utilities::stringToByteVector(txList.SerializeAsString())));
+}
+
+//-----
+// Security Test: Even FileAppend (chunked) must reject mixed transaction types
+TEST_F(TransactionUnitTests, FromBytesRejectsChunkedTransactionWithMixedTypes)
+{
+  // Given
+  // Entry 1: FileAppend
+  proto::TransactionBody txBody1;
+  txBody1.set_memo("FileAppend");
+  txBody1.set_allocated_fileappend(new proto::FileAppendTransactionBody);
+
+  proto::TransactionID txId1;
+  txId1.mutable_accountid()->set_accountnum(201);
+  txId1.mutable_transactionvalidstart()->set_seconds(1700000010);
+  txId1.mutable_transactionvalidstart()->set_nanos(1);
+  txBody1.set_allocated_transactionid(new proto::TransactionID(txId1));
+
+  proto::SignedTransaction signedTx1;
+  signedTx1.set_bodybytes(txBody1.SerializeAsString());
+  proto::Transaction tx1;
+  tx1.set_signedtransactionbytes(signedTx1.SerializeAsString());
+
+  // Entry 2: Malicious CryptoTransfer hidden as "chunk 2"
+  proto::TransactionBody txBody2;
+  txBody2.set_memo("Hidden drain");
+  txBody2.set_allocated_cryptotransfer(new proto::CryptoTransferTransactionBody); // Different type!
+
+  proto::TransactionID txId2;
+  txId2.mutable_accountid()->set_accountnum(201);
+  txId2.mutable_transactionvalidstart()->set_seconds(1700000011);
+  txId2.mutable_transactionvalidstart()->set_nanos(1);
+  txBody2.set_allocated_transactionid(new proto::TransactionID(txId2));
+
+  proto::SignedTransaction signedTx2;
+  signedTx2.set_bodybytes(txBody2.SerializeAsString());
+  proto::Transaction tx2;
+  tx2.set_signedtransactionbytes(signedTx2.SerializeAsString());
+
+  // Create a TransactionList
+  proto::TransactionList txList;
+  *txList.add_transaction_list() = tx1;
+  *txList.add_transaction_list() = tx2;
+
+  // When / Then
+  // Even for FileAppend, mixed transaction types must be rejected
+  EXPECT_THROW(
+    Transaction<FileAppendTransaction>::fromBytes(internal::Utilities::stringToByteVector(txList.SerializeAsString())),
+    std::invalid_argument);
+}

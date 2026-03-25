@@ -221,12 +221,33 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
     {
       std::string currentGroupRefBodyBytes;
       std::string currentGroupTxIdBytes;
+
+      // Security: Track the first transaction's type to prevent transaction smuggling attacks.
+      // All entries in a TransactionList MUST have the same transaction type (data_case).
+      // This prevents an attacker from hiding a malicious transaction (e.g., CryptoTransfer drain)
+      // inside what appears to be a benign transaction list.
+      proto::TransactionBody::DataCase expectedDataCase = proto::TransactionBody::DATA_NOT_SET;
+
       for (int i = 0; i < txList.transaction_list_size(); ++i)
       {
         tx = txList.transaction_list(i);
         signedTx.ParseFromArray(tx.signedtransactionbytes().data(),
                                 static_cast<int>(tx.signedtransactionbytes().size()));
         txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
+
+        // Security: Validate that all entries have the same transaction type.
+        // This is critical to prevent transaction smuggling where an attacker injects
+        // a hidden malicious transaction with a different type that gets signed but not displayed.
+        if (i == 0)
+        {
+          expectedDataCase = txBody.data_case();
+        }
+        else if (txBody.data_case() != expectedDataCase)
+        {
+          throw std::invalid_argument(
+            "Transaction list contains entries with inconsistent transaction types. "
+            "All entries must have the same transaction type to prevent transaction smuggling attacks.");
+        }
 
         std::string thisTxIdBytes = txBody.transactionid().SerializeAsString();
 
@@ -290,6 +311,21 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
     {
       throw std::invalid_argument("Unable to construct Transaction from input bytes.");
     }
+  }
+
+  // Security: For non-chunked transaction types, reject if there are multiple transactionIds.
+  // Only FileAppend and TopicMessageSubmit (chunked transactions) legitimately have multiple transactionIds.
+  // This prevents an attacker from smuggling hidden transactions with different transactionIds
+  // that would get signed but not displayed to the user.
+  const bool isChunkedTransactionType = (txBody.data_case() == proto::TransactionBody::kFileAppend ||
+                                         txBody.data_case() == proto::TransactionBody::kConsensusSubmitMessage);
+
+  if (!isChunkedTransactionType && transactions.size() > 1)
+  {
+    throw std::invalid_argument(
+      "Non-chunked transaction types cannot have multiple transaction IDs. "
+      "This may indicate an attempt to smuggle hidden transactions. "
+      "Only FileAppend and TopicMessageSubmit support multiple transaction IDs for chunking.");
   }
 
   switch (txBody.data_case())
