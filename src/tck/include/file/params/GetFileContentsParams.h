@@ -31,7 +31,7 @@ struct GetFileContentsParams
   std::optional<std::string> mMaxQueryPayment;
 };
 
-} //  namespace Hiero::TCK::FileService
+} // namespace Hiero::TCK::FileService
 
 namespace nlohmann
 {
