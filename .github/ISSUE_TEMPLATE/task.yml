@@ -1,0 +1,132 @@
+name: Task
+description: Propose a maintenance, improvement, or operational task for the Hiero C++ SDK
+labels: ['status: awaiting triage']
+type: Task
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## Thanks for contributing! 🔧
+
+        Tasks cover maintenance, quality, tooling, and improvement work that keeps the
+        Hiero C++ SDK healthy and easy to contribute to.
+
+        Examples of tasks:
+        - Refactoring or improving existing code
+        - Updating dependencies or build tooling
+        - Improving test coverage or CI pipelines
+        - Clarifying documentation or code comments
+        - Enhancements to existing features (without adding new public API)
+
+        Before submitting, search [existing issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues)
+        to avoid duplicating work in progress.
+        ---
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 👾 Description of the Task
+      description: |
+        What needs to be done and why? Describe the current state and what should change.
+        Include relevant file paths, class names, or modules if you know them.
+      value: |
+        Describe the task here.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example for Description (hidden in submission) -->
+        ## 👾 Description — Example (C++)
+
+        The `vcpkg.json` manifest currently pins `nlohmann-json` to version `3.10.5`. Version
+        `3.11.3` is now available and includes important bug fixes for edge cases in JSON
+        serialization that affect how we handle network node address book responses.
+
+        Updating to `3.11.3` will improve correctness and keep our dependencies current.
+
+        Relevant files:
+        ```
+        vcpkg.json
+        ```
+
+  - type: textarea
+    id: approach
+    attributes:
+      label: 💡 Proposed Approach
+      description: |
+        How should this task be accomplished? Describe the intended strategy and any
+        constraints or tradeoffs to be aware of.
+      value: |
+        Describe the proposed approach here.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example for Approach (hidden in submission) -->
+        ## 💡 Proposed Approach — Example
+
+        Update the `nlohmann-json` version constraint in `vcpkg.json` from `3.10.5` to `3.11.3`,
+        rebuild the SDK, and verify that all existing tests continue to pass. Review the library's
+        changelog for any breaking changes that might require code updates.
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: 👩‍💻 Implementation Steps
+      description: |
+        Walk through how to complete this task step by step.
+        Use checkboxes for actionable items.
+      value: |
+        - [ ] Step 1
+        - [ ] Step 2
+        - [ ] Step 3
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        <!-- Example for Implementation Steps (hidden in submission) -->
+        ## 👩‍💻 Implementation Steps — Example
+
+        - [ ] Review the [nlohmann-json changelog](https://github.com/nlohmann/json/releases) for v3.10.5 → v3.11.3
+        - [ ] Update the `nlohmann-json` version in `vcpkg.json`
+        - [ ] Rebuild the SDK:
+              ```bash
+              cmake --preset linux-x64-debug && cmake --build --preset linux-x64-debug
+              ```
+        - [ ] Run the full test suite:
+              ```bash
+              ctest -j6 -C Debug --test-dir build/linux-x64-debug
+              ```
+        - [ ] Address any compilation or test failures caused by the update
+        - [ ] Open a pull request with the change
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ✔️ Acceptance Criteria
+      description: What does "done" look like for this task?
+      value: |
+        - [ ] The task is completed as described
+        - [ ] All existing tests continue to pass
+        - [ ] No unrelated behavior or API changes are introduced
+        - [ ] Relevant documentation is updated if applicable
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 🤔 Additional Information
+      description: |
+        Links to changelogs, related issues, PRs, or any other relevant context.
+      value: |
+        Optional.
+    validations:
+      required: false

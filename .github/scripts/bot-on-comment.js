@@ -3,14 +3,17 @@
 // bot-on-comment.js
 //
 // Handles issue comment events: reads the comment body, parses commands, and dispatches
-// to the appropriate handler. Implemented commands: /assign, /unassign.
+// to the appropriate handler. Implemented commands: /assign, /unassign, /finalize.
 //
-// /assign: see commands/assign.js (skill levels, assignment limits, required labels).
+// /assign:   see commands/assign.js (skill levels, assignment limits, required labels).
 // /unassign: see commands/unassign.js (authorization, label reversion).
+// /finalize: see commands/finalize.js (triage permission required; validates labels,
+//            updates issue title/body with skill-level format, swaps status labels).
 
 const { createLogger, buildBotContext } = require('./helpers');
 const { handleAssign } = require('./commands/assign');
-const { handleUnassign } = require('./commands/unassign'); 
+const { handleUnassign } = require('./commands/unassign');
+const { handleFinalize } = require('./commands/finalize');
 
 let logger = createLogger('on-comment');
 
@@ -33,9 +36,13 @@ function parseComment(body) {
     logger.log('parseComment: detected /assign');
     return { commands: ['assign'] };
   }
-  if (/^\s*\/unassign\s*$/i.test(body)) { 
+  if (/^\s*\/unassign\s*$/i.test(body)) {
     logger.log('parseComment: detected /unassign');
     return { commands: ['unassign'] };
+  }
+  if (/^\s*\/finalize\s*$/i.test(body)) {
+    logger.log('parseComment: detected /finalize');
+    return { commands: ['finalize'] };
   }
   logger.log('parseComment: no known command', { body: body.substring(0, 80) });
   return { commands: [] };
@@ -78,6 +85,8 @@ module.exports = async ({ github, context }) => {
         await handleAssign(botContext);
       } else if (command === 'unassign') {
         await handleUnassign(botContext);
+      } else if (command === 'finalize') {
+        await handleFinalize(botContext);
       } else {
         logger.log('Unknown command:', command);
       }
