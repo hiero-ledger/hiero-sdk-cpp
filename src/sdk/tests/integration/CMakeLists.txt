@@ -35,6 +35,7 @@ add_executable(${TEST_PROJECT_NAME}
         JSONIntegrationTests.cc
         MirrorNodeContractQueryIntegrationTests.cc
         MirrorNodeGatewayIntegrationTests.cc
+        NetworkIntegrationTests.cc
         NetworkVersionInfoQueryIntegrationTests.cc
         NodeCreateTransactionIntegrationTests.cc
         NodeDeleteTransactionIntegrationTests.cc
