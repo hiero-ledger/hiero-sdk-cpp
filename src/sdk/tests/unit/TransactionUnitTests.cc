@@ -3366,3 +3366,50 @@ TEST_F(TransactionUnitTests, FromBytesRejectsChunkedTransactionWithMixedTypes)
     Transaction<FileAppendTransaction>::fromBytes(internal::Utilities::stringToByteVector(txList.SerializeAsString())),
     std::invalid_argument);
 }
+
+//-----
+// Security Test: Directly exercise ChunkedTransaction constructor validation.
+// Build a mixed-type transactions map and ensure chunked constructor rejects it.
+TEST_F(TransactionUnitTests, ChunkedTransactionConstructorRejectsMixedTypes)
+{
+  // Given
+  // Entry 1: FileAppend (expected chunked type)
+  proto::TransactionBody txBody1;
+  txBody1.set_memo("FileAppend chunk 1");
+  txBody1.set_allocated_fileappend(new proto::FileAppendTransactionBody);
+
+  proto::TransactionID txId1;
+  txId1.mutable_accountid()->set_accountnum(201);
+  txId1.mutable_transactionvalidstart()->set_seconds(1700000020);
+  txId1.mutable_transactionvalidstart()->set_nanos(1);
+  txBody1.set_allocated_transactionid(new proto::TransactionID(txId1));
+
+  proto::SignedTransaction signedTx1;
+  signedTx1.set_bodybytes(txBody1.SerializeAsString());
+  proto::Transaction tx1;
+  tx1.set_signedtransactionbytes(signedTx1.SerializeAsString());
+
+  // Entry 2: Different TransactionId and different type (CryptoTransfer)
+  // This simulates a smuggled chunk that should be rejected by ChunkedTransaction.
+  proto::TransactionBody txBody2;
+  txBody2.set_memo("Smuggled transfer");
+  txBody2.set_allocated_cryptotransfer(new proto::CryptoTransferTransactionBody);
+
+  proto::TransactionID txId2;
+  txId2.mutable_accountid()->set_accountnum(201);
+  txId2.mutable_transactionvalidstart()->set_seconds(1700000021);
+  txId2.mutable_transactionvalidstart()->set_nanos(1);
+  txBody2.set_allocated_transactionid(new proto::TransactionID(txId2));
+
+  proto::SignedTransaction signedTx2;
+  signedTx2.set_bodybytes(txBody2.SerializeAsString());
+  proto::Transaction tx2;
+  tx2.set_signedtransactionbytes(signedTx2.SerializeAsString());
+
+  std::map<TransactionId, std::map<AccountId, proto::Transaction>> transactions;
+  transactions[TransactionId::fromProtobuf(txId1)][AccountId(3)] = tx1;
+  transactions[TransactionId::fromProtobuf(txId2)][AccountId(3)] = tx2;
+
+  // When / Then
+  EXPECT_THROW(FileAppendTransaction(transactions), std::invalid_argument);
+}

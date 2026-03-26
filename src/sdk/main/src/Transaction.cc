@@ -198,6 +198,7 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
   proto::Transaction tx;
   proto::SignedTransaction signedTx;
   proto::TransactionBody txBody;
+  proto::TransactionBody::DataCase expectedDataCase = proto::TransactionBody::DATA_NOT_SET;
 
   bool batchified = false;
 
@@ -221,12 +222,6 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
     {
       std::string currentGroupRefBodyBytes;
       std::string currentGroupTxIdBytes;
-
-      // Security: Track the first transaction's type to prevent transaction smuggling attacks.
-      // All entries in a TransactionList MUST have the same transaction type (data_case).
-      // This prevents an attacker from hiding a malicious transaction (e.g., CryptoTransfer drain)
-      // inside what appears to be a benign transaction list.
-      proto::TransactionBody::DataCase expectedDataCase = proto::TransactionBody::DATA_NOT_SET;
 
       for (int i = 0; i < txList.transaction_list_size(); ++i)
       {
@@ -317,8 +312,10 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
   // Only FileAppend and TopicMessageSubmit (chunked transactions) legitimately have multiple transactionIds.
   // This prevents an attacker from smuggling hidden transactions with different transactionIds
   // that would get signed but not displayed to the user.
-  const bool isChunkedTransactionType = (txBody.data_case() == proto::TransactionBody::kFileAppend ||
-                                         txBody.data_case() == proto::TransactionBody::kConsensusSubmitMessage);
+  const auto transactionType = (expectedDataCase != proto::TransactionBody::DATA_NOT_SET) ? expectedDataCase
+                                                                                            : txBody.data_case();
+  const bool isChunkedTransactionType = (transactionType == proto::TransactionBody::kFileAppend ||
+                                         transactionType == proto::TransactionBody::kConsensusSubmitMessage);
 
   if (!isChunkedTransactionType && transactions.size() > 1)
   {
