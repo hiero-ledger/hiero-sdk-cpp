@@ -84,7 +84,7 @@ body:
     id: expected
     attributes:
       label: ✅ Expected Behavior
-      description: What should have happened?
+      description: What should have happened? Even a simple "I expected no error / no crash / the function to return a value" is helpful.
       value: |
         Describe the expected behavior here.
     validations:
@@ -143,7 +143,7 @@ body:
     id: acceptance-criteria
     attributes:
       label: ✔️ Acceptance Criteria
-      description: What needs to be true for this bug to be considered fixed?
+      description: These are the standard acceptance criteria for a bug fix. You can leave them as-is — a maintainer will refine them during triage if needed.
       value: |
         - [ ] The described behavior is no longer reproducible
         - [ ] A regression test is added that fails before the fix and passes after

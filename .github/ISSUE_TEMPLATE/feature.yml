@@ -15,7 +15,7 @@ body:
         - Search [existing issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues) to see if this has been proposed before
         - For large or protocol-level changes, consider opening a [Hiero Improvement Proposal](https://github.com/hiero-ledger/hiero-improvement-proposals) or starting a [GitHub Discussion](https://github.com/hiero-ledger/hiero-sdk-cpp/discussions) first
 
-        A well-described feature request makes it much easier for maintainers to evaluate, plan, and implement.
+        A well-described feature request makes it much easier for maintainers and the project team to evaluate, plan, and implement.
         ---
 
   - type: textarea
@@ -25,6 +25,7 @@ body:
       description: |
         What problem are you trying to solve? Describe the need or gap clearly.
         Focus on the problem itself — the proposed solution comes next.
+        If you already have a specific solution in mind, describe it under "Proposed Solution" — just include a brief summary of the need here.
       value: |
         Describe the problem here.
     validations:

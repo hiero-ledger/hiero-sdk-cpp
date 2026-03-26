@@ -19,6 +19,13 @@ body:
         - Clarifying documentation or code comments
         - Enhancements to existing features (without adding new public API)
 
+        **Not sure if this is a Task?**
+        - Adding new public API or behavior → use the **Feature Request** template
+        - Reporting incorrect behavior → use the **Bug Report** template
+        - Everything else (maintenance, tooling, quality, enhancements) → you're in the right place!
+
+        Not sure which to pick? See the [Issue Types Guide](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/docs/contributing/issue-types.md).
+
         Before submitting, search [existing issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues)
         to avoid duplicating work in progress.
         ---
