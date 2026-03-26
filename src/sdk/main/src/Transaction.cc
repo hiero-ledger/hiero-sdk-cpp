@@ -198,6 +198,7 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
   proto::Transaction tx;
   proto::SignedTransaction signedTx;
   proto::TransactionBody txBody;
+  proto::TransactionBody::DataCase firstDataCase = proto::TransactionBody::DataCase::DATA_NOT_SET;
 
   bool batchified = false;
 
@@ -227,6 +228,11 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
         signedTx.ParseFromArray(tx.signedtransactionbytes().data(),
                                 static_cast<int>(tx.signedtransactionbytes().size()));
         txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
+
+        if (i == 0)
+        {
+          firstDataCase = txBody.data_case();
+        }
 
         std::string thisTxIdBytes = txBody.transactionid().SerializeAsString();
 
@@ -292,7 +298,97 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
     }
   }
 
-  switch (txBody.data_case())
+  // Determine the effective data_case for dispatch. If we parsed a TransactionList,
+  // firstDataCase holds the first entry's type (Group 1). Otherwise (single Transaction
+  // or TransactionBody), firstDataCase is DATA_NOT_SET and we fall back to txBody.
+  const proto::TransactionBody::DataCase effectiveDataCase =
+    (firstDataCase != proto::TransactionBody::DataCase::DATA_NOT_SET) ? firstDataCase : txBody.data_case();
+
+  // SECURITY: Reject multi-group TransactionLists for non-chunked transaction types.
+  // Only FileAppendTransaction and TopicMessageSubmitTransaction legitimately use multiple
+  // TransactionId groups (for chunked data). All other types with multiple groups indicate
+  // a cross-group transaction body forgery attempt (Immunefi #70093).
+  if (transactions.size() > 1 &&
+      effectiveDataCase != proto::TransactionBody::kFileAppend &&
+      effectiveDataCase != proto::TransactionBody::kConsensusSubmitMessage)
+  {
+    throw std::invalid_argument(
+      "Non-chunked transaction types must not have multiple transaction ID groups. "
+      "Found " + std::to_string(transactions.size()) + " groups.");
+  }
+
+  // SECURITY: For chunked types with multiple groups, validate that cross-group bodies
+  // are consistent. Bodies must be identical except for fields that legitimately vary
+  // per chunk: TransactionID, NodeAccountID, and chunk-specific payload data.
+  if (transactions.size() > 1)
+  {
+    const auto& firstGroupTxs = transactions.cbegin()->second;
+    if (!firstGroupTxs.empty())
+    {
+      proto::SignedTransaction refSignedTx;
+      refSignedTx.ParseFromString(firstGroupTxs.cbegin()->second.signedtransactionbytes());
+
+      proto::TransactionBody refBody;
+      refBody.ParseFromString(refSignedTx.bodybytes());
+
+      // Normalize: clear fields that legitimately vary across chunks
+      refBody.clear_transactionid();
+      refBody.clear_nodeaccountid();
+      if (effectiveDataCase == proto::TransactionBody::kFileAppend && refBody.has_fileappend())
+      {
+        refBody.mutable_fileappend()->clear_contents();
+      }
+      else if (effectiveDataCase == proto::TransactionBody::kConsensusSubmitMessage &&
+               refBody.has_consensussubmitmessage())
+      {
+        refBody.mutable_consensussubmitmessage()->clear_message();
+        if (refBody.consensussubmitmessage().has_chunkinfo())
+        {
+          refBody.mutable_consensussubmitmessage()->mutable_chunkinfo()->clear_number();
+        }
+      }
+      const std::string normalizedRefBytes = refBody.SerializeAsString();
+
+      // Compare each subsequent group's first entry against the reference
+      for (auto groupIt = std::next(transactions.cbegin()); groupIt != transactions.cend(); ++groupIt)
+      {
+        if (groupIt->second.empty())
+        {
+          continue;
+        }
+
+        proto::SignedTransaction grpSignedTx;
+        grpSignedTx.ParseFromString(groupIt->second.cbegin()->second.signedtransactionbytes());
+
+        proto::TransactionBody grpBody;
+        grpBody.ParseFromString(grpSignedTx.bodybytes());
+
+        grpBody.clear_transactionid();
+        grpBody.clear_nodeaccountid();
+        if (effectiveDataCase == proto::TransactionBody::kFileAppend && grpBody.has_fileappend())
+        {
+          grpBody.mutable_fileappend()->clear_contents();
+        }
+        else if (effectiveDataCase == proto::TransactionBody::kConsensusSubmitMessage &&
+                 grpBody.has_consensussubmitmessage())
+        {
+          grpBody.mutable_consensussubmitmessage()->clear_message();
+          if (grpBody.consensussubmitmessage().has_chunkinfo())
+          {
+            grpBody.mutable_consensussubmitmessage()->mutable_chunkinfo()->clear_number();
+          }
+        }
+
+        if (grpBody.SerializeAsString() != normalizedRefBytes)
+        {
+          throw std::invalid_argument(
+            "Chunked transaction groups have inconsistent body fields beyond expected chunk differences");
+        }
+      }
+    }
+  }
+
+  switch (effectiveDataCase)
   {
     case proto::TransactionBody::kCryptoApproveAllowance:
       return WrappedTransaction(AccountAllowanceApproveTransaction(transactions));
