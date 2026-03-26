@@ -202,10 +202,10 @@ nlohmann::json getFileInfo(const GetFileInfoParams& params)
   // Handle the keys
   response["keys"] = nlohmann::json::array();
   if (!info.mAdminKeys.empty())
-{
+  {
   response["keys"].push_back(
     internal::HexConverter::bytesToHex(info.mAdminKeys.toBytes()));
-}
+  }
   return response;
 }
 
