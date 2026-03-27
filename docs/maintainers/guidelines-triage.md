@@ -51,16 +51,18 @@ See the skill level guidelines for detailed guidance:
 
 As a quick reference:
 
-| Level | Scope | Expected time | Who it's for |
-|---|---|---|---|
-| `skill: good first issue` | Single file, step-by-step | 1–4 hours | First-time contributors |
-| `skill: beginner` | 1–3 related files | 4–8 hours | Contributors with 2 completed GFIs |
-| `skill: intermediate` | Multiple modules | 1–3 days | Contributors familiar with the codebase |
-| `skill: advanced` | Repository-wide | 3+ days | Experienced contributors |
+| Level | Expected time | Who it's for |
+|---|---|---|
+| `skill: good first issue` | 1–4 hours | First-time contributors |
+| `skill: beginner` | 4–8 hours | Contributors with 2 completed GFIs |
+| `skill: intermediate` | 1–3 days | Contributors familiar with the codebase |
+| `skill: advanced` | 3+ days | Experienced contributors |
+
+> **Note:** Time estimates are rough orientation guides, not hard targets — a change's true complexity depends on the contributor's familiarity and the specifics of the issue. See the linked guidelines above for the full criteria used to assign each level.
 
 #### Choosing a kind label (for bugs and tasks)
 
-| Label | When to use |
+| Kind | When to use |
 |---|---|
 | `kind: enhancement` | Improving existing functionality without adding new public API |
 | `kind: documentation` | README, guides, API doc comments |
