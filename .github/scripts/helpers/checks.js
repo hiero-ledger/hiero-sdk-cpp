@@ -221,5 +221,6 @@ module.exports = {
   checkDCO,
   checkGPG,
   checkMergeConflict,
+  parseIssueNumbers,
   checkIssueLink,
 };
