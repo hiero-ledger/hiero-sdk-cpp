@@ -97,17 +97,39 @@ AccountId createReceiverAccount(Client& client, const HookCreationDetails& hookD
   return txReceipt.mAccountId.value();
 }
 
-std::pair<TokenId, NftId> createTokensAndNft(Client& client,
-                                             const std::shared_ptr<PrivateKey>& senderKey,
-                                             const AccountId& senderAccountId)
+TokenId createFungibleToken(Client& client,
+                            const std::shared_ptr<PrivateKey>& senderKey,
+                            const AccountId& senderAccountId)
 {
   std::cout << "Creating fungible token..." << std::endl;
+  const TransactionReceipt txReceipt = TokenCreateTransaction()
+                                         .setTokenName("Example Fungible Token")
+                                         .setTokenSymbol("EFT")
+                                         .setTokenType(TokenType::FUNGIBLE_COMMON)
+                                         .setDecimals(2)
+                                         .setInitialSupply(10000)
+                                         .setTreasuryAccountId(senderAccountId)
+                                         .setAdminKey(senderKey->getPublicKey())
+                                         .setSupplyKey(senderKey->getPublicKey())
+                                         .freezeWith(&client)
+                                         .sign(senderKey)
+                                         .execute(client)
+                                         .getReceipt(client);
+  if (!txReceipt.mTokenId.has_value())
+  {
+    throw std::runtime_error("Failed to create fungible token!");
+  }
+  std::cout << "Created fungible token with ID: " << txReceipt.mTokenId.value().toString() << std::endl;
+  return txReceipt.mTokenId.value();
+}
+
+NftId mintNft(Client& client, const std::shared_ptr<PrivateKey>& senderKey, const AccountId& senderAccountId)
+{
+  std::cout << "Creating NFT token..." << std::endl;
   TransactionReceipt txReceipt = TokenCreateTransaction()
-                                   .setTokenName("Example Fungible Token")
-                                   .setTokenSymbol("EFT")
-                                   .setTokenType(TokenType::FUNGIBLE_COMMON)
-                                   .setDecimals(2)
-                                   .setInitialSupply(10000)
+                                   .setTokenName("Example NFT Token")
+                                   .setTokenSymbol("ENT")
+                                   .setTokenType(TokenType::NON_FUNGIBLE_UNIQUE)
                                    .setTreasuryAccountId(senderAccountId)
                                    .setAdminKey(senderKey->getPublicKey())
                                    .setSupplyKey(senderKey->getPublicKey())
@@ -117,30 +139,10 @@ std::pair<TokenId, NftId> createTokensAndNft(Client& client,
                                    .getReceipt(client);
   if (!txReceipt.mTokenId.has_value())
   {
-    throw std::runtime_error("Failed to create fungible token!");
-  }
-  const TokenId fungibleTokenId = txReceipt.mTokenId.value();
-  std::cout << "Created fungible token with ID: " << fungibleTokenId.toString() << std::endl;
-
-  std::cout << "Creating NFT token..." << std::endl;
-  txReceipt = TokenCreateTransaction()
-                .setTokenName("Example NFT Token")
-                .setTokenSymbol("ENT")
-                .setTokenType(TokenType::NON_FUNGIBLE_UNIQUE)
-                .setTreasuryAccountId(senderAccountId)
-                .setAdminKey(senderKey->getPublicKey())
-                .setSupplyKey(senderKey->getPublicKey())
-                .freezeWith(&client)
-                .sign(senderKey)
-                .execute(client)
-                .getReceipt(client);
-  if (!txReceipt.mTokenId.has_value())
-  {
     throw std::runtime_error("Failed to create NFT token!");
   }
   const TokenId nftTokenId = txReceipt.mTokenId.value();
   std::cout << "Created NFT token with ID: " << nftTokenId.toString() << std::endl;
-
   std::cout << "Minting NFT..." << std::endl;
   txReceipt = TokenMintTransaction()
                 .setTokenId(nftTokenId)
@@ -155,7 +157,14 @@ std::pair<TokenId, NftId> createTokensAndNft(Client& client,
   }
   const NftId nftId(nftTokenId, txReceipt.mSerialNumbers.front());
   std::cout << "Minted NFT with ID: " << nftId.toString() << std::endl;
-  return { fungibleTokenId, nftId };
+  return nftId;
+}
+
+std::pair<TokenId, NftId> createTokensAndNft(Client& client,
+                                             const std::shared_ptr<PrivateKey>& senderKey,
+                                             const AccountId& senderAccountId)
+{
+  return { createFungibleToken(client, senderKey, senderAccountId), mintNft(client, senderKey, senderAccountId) };
 }
 
 Prerequisites setupPrerequisites(Client& client, const std::shared_ptr<PrivateKey>& operatorKey)
