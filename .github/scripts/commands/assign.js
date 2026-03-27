@@ -17,10 +17,12 @@ const {
   removeLabel,
   addAssignees,
   postComment,
+  acknowledgeComment,
 } = require('../helpers');
 
 const {
   MAX_OPEN_ASSIGNMENTS,
+  MAX_GFI_COMPLETIONS,
   SKILL_HIERARCHY,
   SKILL_PREREQUISITES,
   buildWelcomeComment,
@@ -29,6 +31,7 @@ const {
   buildPrerequisiteNotMetComment,
   buildNoSkillLevelComment,
   buildAssignmentLimitExceededComment,
+  buildGfiLimitExceededComment,
   buildApiErrorComment,
   buildLabelUpdateFailureComment,
   buildAssignmentFailureComment,
@@ -117,28 +120,6 @@ async function countAssignedIssues(github, owner, repo, username, state, label =
     const message = error instanceof Error ? error.message : String(error);
     logger.log(`[assign] Failed to count ${state} issues for ${username}: ${message}`);
     return null;
-  }
-}
-
-/**
- * Adds a thumbs-up (+1) reaction to the triggering /assign comment as visual
- * acknowledgement. Failures are silently logged (non-critical).
- *
- * @param {object} botContext - Bot context from buildBotContext (github, owner, repo).
- * @param {number} commentId - The ID of the comment to react to.
- * @returns {Promise<void>}
- */
-async function acknowledgeComment(botContext, commentId) {
-  try {
-    await botContext.github.rest.reactions.createForIssueComment({
-      owner: botContext.owner,
-      repo: botContext.repo,
-      comment_id: commentId,
-      content: '+1',
-    });
-    logger.log('Added thumbs-up reaction to comment');
-  } catch (error) {
-    logger.log('Could not add reaction:', error.message);
   }
 }
 
@@ -240,6 +221,42 @@ async function updateLabels(botContext, requesterUsername) {
     await postComment(botContext, buildLabelUpdateFailureComment(requesterUsername, labelUpdateError));
     logger.log('Posted label update failure comment, tagged maintainers');
   }
+}
+
+/**
+ * Checks whether the requester has reached the GFI completion cap. Only applies
+ * when skillLevel is LABELS.GOOD_FIRST_ISSUE. Posts an encouraging comment and
+ * returns false when the cap is reached; returns true otherwise.
+ *
+ * @param {object} botContext - Bot context from buildBotContext.
+ * @param {string} skillLevel - The skill-level label on the issue (a LABELS constant).
+ * @param {string} requesterUsername - GitHub username requesting assignment.
+ * @returns {Promise<boolean>} True if under the cap or not a GFI; false otherwise.
+ */
+async function enforceGfiCompletionLimit(botContext, skillLevel, requesterUsername) {
+  if (skillLevel !== LABELS.GOOD_FIRST_ISSUE) return true;
+
+  const completedCount = await countAssignedIssues(
+    botContext.github, botContext.owner, botContext.repo,
+    requesterUsername, ISSUE_STATE.CLOSED, LABELS.GOOD_FIRST_ISSUE
+  );
+  if (completedCount === null) {
+    logger.log('Exit: could not verify GFI completion count due to API error');
+    await postComment(botContext, buildApiErrorComment(requesterUsername));
+    logger.log('Posted API error comment, tagged maintainers');
+    return false;
+  }
+  if (completedCount >= MAX_GFI_COMPLETIONS) {
+    logger.log('Exit: contributor has reached GFI completion cap', {
+      maxAllowed: MAX_GFI_COMPLETIONS, completedCount,
+    });
+    await postComment(botContext,
+      buildGfiLimitExceededComment(requesterUsername, completedCount, botContext.owner, botContext.repo));
+    logger.log('Posted GFI-limit-exceeded comment');
+    return false;
+  }
+  logger.log('GFI completion count OK:', { maxAllowed: MAX_GFI_COMPLETIONS, completedCount });
+  return true;
 }
 
 /**
@@ -348,6 +365,7 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
  *   4. No skill-level label? -> no-skill-level comment (tags maintainers).
  *   5. Open-assignment count API error? -> API-error comment (tags maintainers).
  *   6. At or above MAX_OPEN_ASSIGNMENTS? -> limit-exceeded comment.
+ *   6b. GFI cap reached (skill: good first issue only)? -> GFI-limit-exceeded comment.
  *   7. Skill prerequisites not met? -> prerequisite-not-met comment.
  *   8. Assignment API failure? -> assignment-failure comment (tags maintainers).
  *
@@ -369,6 +387,9 @@ async function handleAssign(botContext) {
 
   const withinLimit = await enforceAssignmentLimit(botContext, requesterUsername);
   if (!withinLimit) return;
+
+  const withinGfiCap = await enforceGfiCompletionLimit(botContext, skillLevel, requesterUsername);
+  if (!withinGfiCap) return;
 
   const prereqsPassed = await checkPrerequisites(botContext, skillLevel, requesterUsername);
   if (!prereqsPassed) return;
