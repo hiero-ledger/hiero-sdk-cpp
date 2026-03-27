@@ -45,132 +45,120 @@ ContractId deployContract(Client& client,
               .setBytecode(bytecode)
               .freezeWith(&client)
               .sign(signerKey);
-
   for (const auto& hook : hooks)
   {
     tx.addHook(hook);
   }
-
   const TransactionReceipt txReceipt = tx.execute(client).getReceipt(client);
-
   if (!txReceipt.mContractId.has_value())
   {
     throw std::runtime_error("Failed to deploy contract!");
   }
-
   return txReceipt.mContractId.value();
+}
+
+void addHookToContract(Client& client,
+                       const std::shared_ptr<PrivateKey>& operatorKey,
+                       const ContractId& contractId,
+                       const HookCreationDetails& hook)
+{
+  std::cout << "\n=== Adding Hooks to Existing Contract ===" << std::endl;
+  try
+  {
+    ContractUpdateTransaction()
+      .setContractId(contractId)
+      .addHookToCreate(hook)
+      .freezeWith(&client)
+      .sign(operatorKey)
+      .execute(client)
+      .getReceipt(client);
+    std::cout << "Successfully added hooks to contract!" << std::endl;
+  }
+  catch (const std::exception& error)
+  {
+    std::cerr << "Failed to execute hook transaction: " << error.what() << std::endl;
+  }
+}
+
+void deleteHooksFromContract(Client& client,
+                             const std::shared_ptr<PrivateKey>& operatorKey,
+                             const ContractId& contractId)
+{
+  std::cout << "\n=== Deleting Hooks from Contract ===" << std::endl;
+  try
+  {
+    ContractUpdateTransaction()
+      .setContractId(contractId)
+      .addHookToDelete(1LL)
+      .addHookToDelete(3LL)
+      .freezeWith(&client)
+      .sign(operatorKey)
+      .execute(client)
+      .getReceipt(client);
+    std::cout << "Successfully deleted hooks with IDs: 1 and 3" << std::endl;
+  }
+  catch (const std::exception& error)
+  {
+    std::cerr << "Failed to execute hook deletion: " << error.what() << std::endl;
+  }
+}
+
+void run(Client& client, const std::shared_ptr<PrivateKey>& operatorKey)
+{
+  std::cout << "Contract Hooks Example Start!" << std::endl;
+  const std::vector<std::byte> bytecode = internal::HexConverter::hexToBytes(kHookBytecodeHex);
+
+  std::cout << "Creating hook contract..." << std::endl;
+  const ContractId hookContractId = deployContract(client, operatorKey, 500000ULL, bytecode);
+  std::cout << "Hook contract created with ID: " << hookContractId.toString() << std::endl;
+
+  std::cout << "\n=== Creating Contract with Hooks ===" << std::endl;
+  EvmHookSpec evmHookSpec;
+  evmHookSpec.setContractId(hookContractId);
+  EvmHook evmHook;
+  evmHook.setEvmHookSpec(evmHookSpec);
+  HookCreationDetails hookWithId1;
+  hookWithId1.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
+  hookWithId1.setHookId(1LL);
+  hookWithId1.setEvmHook(evmHook);
+  const ContractId contractWithHooksId = deployContract(client, operatorKey, 400000ULL, bytecode, { hookWithId1 });
+  std::cout << "Created contract with ID: " << contractWithHooksId.toString() << std::endl;
+  std::cout << "Successfully created contract with basic hook!" << std::endl;
+
+  EvmHook basicHook;
+  basicHook.setEvmHookSpec(evmHookSpec);
+  HookCreationDetails hookWithId3;
+  hookWithId3.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
+  hookWithId3.setHookId(3LL);
+  hookWithId3.setEvmHook(basicHook);
+  hookWithId3.setAdminKey(client.getOperatorPublicKey());
+  addHookToContract(client, operatorKey, contractWithHooksId, hookWithId3);
+  deleteHooksFromContract(client, operatorKey, contractWithHooksId);
+
+  std::cout << "Contract Hooks Example Complete!" << std::endl;
 }
 
 int main(int argc, char** argv)
 {
   dotenv::init();
-
   if (std::getenv("OPERATOR_ID") == nullptr || std::getenv("OPERATOR_KEY") == nullptr ||
       std::getenv("NETWORK_NAME") == nullptr)
   {
     std::cerr << "Environment variables OPERATOR_ID, NETWORK_NAME, and OPERATOR_KEY are required." << std::endl;
     return 1;
   }
-
-  const AccountId operatorAccountId = AccountId::fromString(std::getenv("OPERATOR_ID"));
-  const std::shared_ptr<PrivateKey> operatorPrivateKey = ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
-  const std::string network = std::getenv("NETWORK_NAME");
-
-  Client client = Client::forName(network);
-  client.setOperator(operatorAccountId, operatorPrivateKey);
-
+  Client client = Client::forName(std::getenv("NETWORK_NAME"));
+  client.setOperator(AccountId::fromString(std::getenv("OPERATOR_ID")),
+                     ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY")));
   try
   {
-    std::cout << "Contract Hooks Example Start!" << std::endl;
-
-    const std::vector<std::byte> bytecode = internal::HexConverter::hexToBytes(kHookBytecodeHex);
-
-    /*
-     * Step 1: Create the hook contract.
-     */
-    std::cout << "Creating hook contract..." << std::endl;
-    const ContractId hookContractId = deployContract(client, operatorPrivateKey, 500000ULL, bytecode);
-    std::cout << "Hook contract created with ID: " << hookContractId.toString() << std::endl;
-
-    /*
-     * Step 2: Demonstrate creating a contract with hooks.
-     */
-    std::cout << "\n=== Creating Contract with Hooks ===" << std::endl;
-
-    EvmHookSpec evmHookSpec;
-    evmHookSpec.setContractId(hookContractId);
-    EvmHook evmHook;
-    evmHook.setEvmHookSpec(evmHookSpec);
-
-    HookCreationDetails hookWithId1;
-    hookWithId1.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
-    hookWithId1.setHookId(1LL);
-    hookWithId1.setEvmHook(evmHook);
-
-    const ContractId contractWithHooksId =
-      deployContract(client, operatorPrivateKey, 400000ULL, bytecode, { hookWithId1 });
-    std::cout << "Created contract with ID: " << contractWithHooksId.toString() << std::endl;
-    std::cout << "Successfully created contract with basic hook!" << std::endl;
-
-    /*
-     * Step 3: Demonstrate adding hooks to an existing contract.
-     */
-    std::cout << "\n=== Adding Hooks to Existing Contract ===" << std::endl;
-
-    EvmHook basicHook;
-    basicHook.setEvmHookSpec(evmHookSpec);
-    HookCreationDetails hookWithId3;
-    hookWithId3.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK);
-    hookWithId3.setHookId(3LL);
-    hookWithId3.setEvmHook(basicHook);
-    hookWithId3.setAdminKey(client.getOperatorPublicKey());
-
-    try
-    {
-      ContractUpdateTransaction()
-        .setContractId(contractWithHooksId)
-        .addHookToCreate(hookWithId3)
-        .freezeWith(&client)
-        .sign(operatorPrivateKey)
-        .execute(client)
-        .getReceipt(client);
-      std::cout << "Successfully added hooks to contract!" << std::endl;
-    }
-    catch (const std::exception& error)
-    {
-      std::cerr << "Failed to execute hook transaction: " << error.what() << std::endl;
-    }
-
-    /*
-     * Step 4: Demonstrate hook deletion.
-     */
-    std::cout << "\n=== Deleting Hooks from Contract ===" << std::endl;
-
-    try
-    {
-      ContractUpdateTransaction()
-        .setContractId(contractWithHooksId)
-        .addHookToDelete(1LL)
-        .addHookToDelete(3LL)
-        .freezeWith(&client)
-        .sign(operatorPrivateKey)
-        .execute(client)
-        .getReceipt(client);
-      std::cout << "Successfully deleted hooks with IDs: 1 and 3" << std::endl;
-    }
-    catch (const std::exception& error)
-    {
-      std::cerr << "Failed to execute hook deletion: " << error.what() << std::endl;
-    }
-
-    std::cout << "Contract Hooks Example Complete!" << std::endl;
+    run(client, ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY")));
   }
   catch (const std::exception& error)
   {
     std::cerr << "Error occurred: " << error.what() << std::endl;
     return 1;
   }
-
   client.close();
   return 0;
 }
