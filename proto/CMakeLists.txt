@@ -66,6 +66,10 @@ set(PROTO_FILES
         services/node_delete.proto
         services/node_stake_update.proto
         services/node_update.proto
+        services/registered_node_create.proto
+        services/registered_node_delete.proto
+        services/registered_node_update.proto
+        services/registered_service_endpoint.proto
         services/query.proto
         services/query_header.proto
         services/response.proto
