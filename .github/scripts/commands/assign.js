@@ -22,6 +22,7 @@ const {
 
 const {
   MAX_OPEN_ASSIGNMENTS,
+  MAX_GFI_COMPLETIONS,
   SKILL_HIERARCHY,
   SKILL_PREREQUISITES,
   buildWelcomeComment,
@@ -30,6 +31,7 @@ const {
   buildPrerequisiteNotMetComment,
   buildNoSkillLevelComment,
   buildAssignmentLimitExceededComment,
+  buildGfiLimitExceededComment,
   buildApiErrorComment,
   buildLabelUpdateFailureComment,
   buildAssignmentFailureComment,
@@ -222,6 +224,42 @@ async function updateLabels(botContext, requesterUsername) {
 }
 
 /**
+ * Checks whether the requester has reached the GFI completion cap. Only applies
+ * when skillLevel is LABELS.GOOD_FIRST_ISSUE. Posts an encouraging comment and
+ * returns false when the cap is reached; returns true otherwise.
+ *
+ * @param {object} botContext - Bot context from buildBotContext.
+ * @param {string} skillLevel - The skill-level label on the issue (a LABELS constant).
+ * @param {string} requesterUsername - GitHub username requesting assignment.
+ * @returns {Promise<boolean>} True if under the cap or not a GFI; false otherwise.
+ */
+async function enforceGfiCompletionLimit(botContext, skillLevel, requesterUsername) {
+  if (skillLevel !== LABELS.GOOD_FIRST_ISSUE) return true;
+
+  const completedCount = await countAssignedIssues(
+    botContext.github, botContext.owner, botContext.repo,
+    requesterUsername, ISSUE_STATE.CLOSED, LABELS.GOOD_FIRST_ISSUE
+  );
+  if (completedCount === null) {
+    logger.log('Exit: could not verify GFI completion count due to API error');
+    await postComment(botContext, buildApiErrorComment(requesterUsername));
+    logger.log('Posted API error comment, tagged maintainers');
+    return false;
+  }
+  if (completedCount >= MAX_GFI_COMPLETIONS) {
+    logger.log('Exit: contributor has reached GFI completion cap', {
+      maxAllowed: MAX_GFI_COMPLETIONS, completedCount,
+    });
+    await postComment(botContext,
+      buildGfiLimitExceededComment(requesterUsername, completedCount, botContext.owner, botContext.repo));
+    logger.log('Posted GFI-limit-exceeded comment');
+    return false;
+  }
+  logger.log('GFI completion count OK:', { maxAllowed: MAX_GFI_COMPLETIONS, completedCount });
+  return true;
+}
+
+/**
  * Validates that the issue is in a state that allows assignment. Checks three
  * gates in order: no existing assignees, "status: ready for dev" label present,
  * and a skill-level label present. Posts an informative comment and returns null
@@ -327,6 +365,7 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
  *   4. No skill-level label? -> no-skill-level comment (tags maintainers).
  *   5. Open-assignment count API error? -> API-error comment (tags maintainers).
  *   6. At or above MAX_OPEN_ASSIGNMENTS? -> limit-exceeded comment.
+ *   6b. GFI cap reached (skill: good first issue only)? -> GFI-limit-exceeded comment.
  *   7. Skill prerequisites not met? -> prerequisite-not-met comment.
  *   8. Assignment API failure? -> assignment-failure comment (tags maintainers).
  *
@@ -348,6 +387,9 @@ async function handleAssign(botContext) {
 
   const withinLimit = await enforceAssignmentLimit(botContext, requesterUsername);
   if (!withinLimit) return;
+
+  const withinGfiCap = await enforceGfiCompletionLimit(botContext, skillLevel, requesterUsername);
+  if (!withinGfiCap) return;
 
   const prereqsPassed = await checkPrerequisites(botContext, skillLevel, requesterUsername);
   if (!prereqsPassed) return;
