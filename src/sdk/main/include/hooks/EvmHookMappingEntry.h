@@ -26,7 +26,8 @@ public:
    * @param proto The EvmHookMappingEntry protobuf object from which to create a EvmHookMappingEntry object.
    * @return The constructed EvmHookMappingEntry object.
    */
-  [[nodiscard]] static EvmHookMappingEntry fromProtobuf(const com::hedera::hapi::node::hooks::EvmHookMappingEntry& proto);
+  [[nodiscard]] static EvmHookMappingEntry fromProtobuf(
+    const com::hedera::hapi::node::hooks::EvmHookMappingEntry& proto);
 
   /**
    * Construct a EvmHookMappingEntry protobuf object from this EvmHookMappingEntry object.

@@ -3,8 +3,8 @@
 #define HIERO_SDK_CPP_HOOK_CREATION_DETAILS_H_
 
 #include "Key.h"
-#include "hooks/HookExtensionPoint.h"
 #include "hooks/EvmHook.h"
+#include "hooks/HookExtensionPoint.h"
 
 #include <cstdint>
 #include <memory>

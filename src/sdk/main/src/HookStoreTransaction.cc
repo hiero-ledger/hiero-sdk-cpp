@@ -39,8 +39,7 @@ HookStoreTransaction& HookStoreTransaction::addStorageUpdate(const EvmHookStorag
 }
 
 //-----
-HookStoreTransaction& HookStoreTransaction::setStorageUpdates(
-  const std::vector<EvmHookStorageUpdate>& storageUpdates)
+HookStoreTransaction& HookStoreTransaction::setStorageUpdates(const std::vector<EvmHookStorageUpdate>& storageUpdates)
 {
   requireNotFrozen();
   mStorageUpdates = storageUpdates;
@@ -57,9 +56,9 @@ HookStoreTransaction& HookStoreTransaction::clearStorageUpdates()
 
 //-----
 grpc::Status HookStoreTransaction::submitRequest(const proto::Transaction& request,
-                                                    const std::shared_ptr<internal::Node>& node,
-                                                    const std::chrono::system_clock::time_point& deadline,
-                                                    proto::TransactionResponse* response) const
+                                                 const std::shared_ptr<internal::Node>& node,
+                                                 const std::chrono::system_clock::time_point& deadline,
+                                                 proto::TransactionResponse* response) const
 {
   return node->submitTransaction(proto::TransactionBody::DataCase::kHookStore, request, deadline, response);
 }

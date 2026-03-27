@@ -6,7 +6,8 @@
 namespace Hiero
 {
 //-----
-EvmHookStorageUpdate EvmHookStorageUpdate::fromProtobuf(const com::hedera::hapi::node::hooks::EvmHookStorageUpdate& proto)
+EvmHookStorageUpdate EvmHookStorageUpdate::fromProtobuf(
+  const com::hedera::hapi::node::hooks::EvmHookStorageUpdate& proto)
 {
   EvmHookStorageUpdate evmHookStorageUpdate;
 

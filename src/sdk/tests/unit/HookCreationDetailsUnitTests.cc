@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "ED25519PrivateKey.h"
+#include "hooks/EvmHook.h"
 #include "hooks/HookCreationDetails.h"
 #include "hooks/HookExtensionPoint.h"
-#include "hooks/EvmHook.h"
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
@@ -91,8 +91,7 @@ TEST_F(HookCreationDetailsUnitTests, GetSetEvmHook)
 
   // Then
   EXPECT_TRUE(hookCreationDetails.getEvmHook().has_value());
-  EXPECT_EQ(hookCreationDetails.getEvmHook()->getStorageUpdates().size(),
-            getTestEvmHook().getStorageUpdates().size());
+  EXPECT_EQ(hookCreationDetails.getEvmHook()->getStorageUpdates().size(), getTestEvmHook().getStorageUpdates().size());
 }
 
 //-----

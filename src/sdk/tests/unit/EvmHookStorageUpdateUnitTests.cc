@@ -43,7 +43,10 @@ protected:
   [[nodiscard]] inline const EvmHookMappingEntry& getTestEvmHookMappingEntry2() const { return mEvmHookMappingEntry2; }
   [[nodiscard]] inline const EvmHookMappingEntry& getTestEvmHookMappingEntry3() const { return mEvmHookMappingEntry3; }
 
-  [[nodiscard]] inline const EvmHookMappingEntries& getTestEvmHookMappingEntries() const { return mEvmHookMappingEntries; }
+  [[nodiscard]] inline const EvmHookMappingEntries& getTestEvmHookMappingEntries() const
+  {
+    return mEvmHookMappingEntries;
+  }
 
   [[nodiscard]] inline const EvmHookStorageSlot& getTestEvmHookStorageSlot() const { return mEvmHookStorageSlot; }
 

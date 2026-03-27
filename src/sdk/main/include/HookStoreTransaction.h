@@ -3,8 +3,8 @@
 #define HIERO_SDK_CPP_HOOK_STORE_TRANSACTION_H_
 
 #include "Transaction.h"
-#include "hooks/HookId.h"
 #include "hooks/EvmHookStorageUpdate.h"
+#include "hooks/HookId.h"
 
 #include <cstdint>
 #include <vector>
@@ -50,8 +50,7 @@ public:
    * @param transactions The map of TransactionIds to node account IDs and their respective Transaction protobuf
    *                     objects.
    */
-  explicit HookStoreTransaction(
-    const std::map<TransactionId, std::map<AccountId, proto::Transaction>>& transactions);
+  explicit HookStoreTransaction(const std::map<TransactionId, std::map<AccountId, proto::Transaction>>& transactions);
 
   /**
    * Set the ID of the EVM hook whose storage is to be updated.

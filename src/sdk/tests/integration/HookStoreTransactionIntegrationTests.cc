@@ -14,13 +14,13 @@
 #include "TransactionRecord.h"
 #include "TransactionResponse.h"
 #include "exceptions/ReceiptStatusException.h"
+#include "hooks/EvmHook.h"
+#include "hooks/EvmHookStorageSlot.h"
+#include "hooks/EvmHookStorageUpdate.h"
 #include "hooks/HookCreationDetails.h"
 #include "hooks/HookEntityId.h"
 #include "hooks/HookExtensionPoint.h"
 #include "hooks/HookId.h"
-#include "hooks/EvmHook.h"
-#include "hooks/EvmHookStorageSlot.h"
-#include "hooks/EvmHookStorageUpdate.h"
 #include "impl/HexConverter.h"
 #include "impl/Utilities.h"
 
@@ -35,13 +35,12 @@ protected:
   {
     BaseIntegrationTest::SetUp();
 
-    mContractId =
-      ContractCreateTransaction()
-        .setBytecode(internal::HexConverter::hexToBytes(mHookBytecode))
-        .setGas(300000ULL)
-        .execute(getTestClient())
-        .getReceipt(getTestClient())
-        .mContractId.value();
+    mContractId = ContractCreateTransaction()
+                    .setBytecode(internal::HexConverter::hexToBytes(mHookBytecode))
+                    .setGas(300000ULL)
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient())
+                    .mContractId.value();
 
     mPrivateKey = ED25519PrivateKey::generatePrivateKey();
     mAccountId = createAccountWithHookAndStorage();

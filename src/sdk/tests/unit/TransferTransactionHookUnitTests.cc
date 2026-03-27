@@ -34,13 +34,15 @@ private:
   const TokenId mTokenId = TokenId(30ULL);
   const NftId mNftId = NftId(mTokenId, 40ULL);
   const Hbar mAmount = Hbar(50ULL);
-  const FungibleHookCall mFungibleHookCall = []() {
+  const FungibleHookCall mFungibleHookCall = []()
+  {
     FungibleHookCall hookCall;
     hookCall.setHookType(FungibleHookType::PRE_TX_ALLOWANCE_HOOK);
     hookCall.setHookId(123LL);
     return hookCall;
   }();
-  const NftHookCall mNftHookCall = []() {
+  const NftHookCall mNftHookCall = []()
+  {
     NftHookCall hookCall;
     hookCall.setHookType(NftHookType::PRE_HOOK);
     hookCall.setHookId(456LL);

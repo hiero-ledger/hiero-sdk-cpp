@@ -21,6 +21,7 @@
 #include "TransferTransaction.h"
 #include "exceptions/PrecheckStatusException.h"
 #include "exceptions/ReceiptStatusException.h"
+#include "hooks/EvmHook.h"
 #include "hooks/EvmHookCall.h"
 #include "hooks/EvmHookSpec.h"
 #include "hooks/FungibleHookCall.h"
@@ -28,7 +29,6 @@
 #include "hooks/HookCreationDetails.h"
 #include "hooks/HookExtensionPoint.h"
 #include "hooks/HookId.h"
-#include "hooks/EvmHook.h"
 #include "hooks/NftHookCall.h"
 #include "hooks/NftHookType.h"
 #include "impl/HexConverter.h"
@@ -63,9 +63,7 @@ protected:
     evmHook.setEvmHookSpec(EvmHookSpec().setContractId(contractId));
 
     HookCreationDetails hookDetails;
-    hookDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK)
-      .setHookId(hookId)
-      .setEvmHook(evmHook);
+    hookDetails.setExtensionPoint(HookExtensionPoint::ACCOUNT_ALLOWANCE_HOOK).setHookId(hookId).setEvmHook(evmHook);
 
     return AccountCreateTransaction()
       .setKeyWithoutAlias(key->getPublicKey())
@@ -374,11 +372,12 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldTransferNftWithSenderAndR
 
   // When
   TransactionResponse txResponse;
-  EXPECT_NO_THROW(txResponse = TransferTransaction()
-                                 .addNftTransferWithHook(NftId(tokenId, 1), senderId, receiverId, senderCall, receiverCall)
-                                 .freezeWith(&getTestClient())
-                                 .sign(senderKey)
-                                 .execute(getTestClient()));
+  EXPECT_NO_THROW(txResponse =
+                    TransferTransaction()
+                      .addNftTransferWithHook(NftId(tokenId, 1), senderId, receiverId, senderCall, receiverCall)
+                      .freezeWith(&getTestClient())
+                      .sign(senderKey)
+                      .execute(getTestClient()));
 
   // Then
   TransactionReceipt txReceipt;
