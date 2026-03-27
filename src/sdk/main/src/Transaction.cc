@@ -77,6 +77,28 @@
 
 namespace Hiero
 {
+
+namespace
+{
+/**
+ * Extract the raw signature bytes from a protobuf SignaturePair.
+ */
+std::vector<std::byte> extractSignatureBytes(const proto::SignaturePair& pair)
+{
+  if (pair.has_ed25519())
+  {
+    return internal::Utilities::stringToByteVector(pair.ed25519());
+  }
+
+  if (pair.has_ecdsa_secp256k1())
+  {
+    return internal::Utilities::stringToByteVector(pair.ecdsa_secp256k1());
+  }
+
+  throw IllegalStateException("Unknown signature type");
+}
+} // anonymous namespace
+
 //-----
 template<typename SdkRequestType>
 struct Transaction<SdkRequestType>::TransactionImpl
@@ -557,6 +579,137 @@ Transaction<SdkRequestType>::getSignatures() const
   // each key.
   buildAllTransactions();
   return getSignaturesInternal();
+}
+
+//-----
+template<typename SdkRequestType>
+std::vector<std::vector<std::byte>> Transaction<SdkRequestType>::removeSignature(
+  const std::shared_ptr<PublicKey>& publicKey)
+{
+  if (!isFrozen())
+  {
+    throw IllegalStateException("Removing a signature from a Transaction requires "
+                                "the Transaction to be frozen");
+  }
+
+  if (!keyAlreadySigned(publicKey))
+  {
+    throw IllegalStateException("The public key has not signed this transaction");
+  }
+
+  std::vector<std::vector<std::byte>> removedSignatures;
+
+  // Build the prefix string, exactly as protobuf stores it (raw bytes as string)
+  const std::string pubKeyPrefixStr = internal::Utilities::byteVectorToString(publicKey->toBytesRaw());
+
+  // Identify external signatures to be kept in the protobuf
+  std::unordered_set<std::string> externalPrefixesToKeep;
+  for (const auto& [key, signer] : mImpl->mSignatories)
+  {
+    // If it's not the given public key and it has no signer function (!signer)
+    if (key->toBytesDer() != publicKey->toBytesDer() && !signer)
+    {
+      externalPrefixesToKeep.insert(internal::Utilities::byteVectorToString(key->toBytesRaw()));
+    }
+  }
+
+  // Remove the target signature from the compiled Protobuf messages
+  for (auto& signedTransaction : mImpl->mSignedTransactions)
+  {
+    auto* sigPairs = signedTransaction.mutable_sigmap()->mutable_sigpair();
+
+    // Iterate backwards so we can safely erase elements in-place without shifting indices
+    for (int i = sigPairs->size() - 1; i >= 0; --i)
+    {
+      const auto& pair = sigPairs->at(i);
+
+      if (pair.pubkeyprefix() == pubKeyPrefixStr)
+      {
+        removedSignatures.push_back(extractSignatureBytes(pair));
+        // Erase the signature directly from the Protobuf array
+        sigPairs->erase(sigPairs->begin() + i);
+      }
+      else if (externalPrefixesToKeep.find(pair.pubkeyprefix()) == externalPrefixesToKeep.end())
+      {
+        // This is a "stale" auto-generated signature.
+        // Erase it so it can be cleanly regenerated without duplication.
+        sigPairs->erase(sigPairs->begin() + i);
+      }
+    }
+
+    if (sigPairs->empty())
+    {
+      signedTransaction.clear_sigmap();
+    }
+  }
+
+  // Remove the key from the SDK's internal tracking lists
+  for (auto it = mImpl->mSignatories.begin(); it != mImpl->mSignatories.end(); ++it)
+  {
+    if (it->first->toBytesDer() == publicKey->toBytesDer())
+    {
+      mImpl->mPrivateKeys.erase(it->first);
+      mImpl->mSignatories.erase(it);
+      break;
+    }
+  }
+
+  // Clear and resize the raw transactions array to match the updated signed state
+  mImpl->mTransactions.clear();
+  mImpl->mTransactions.resize(mImpl->mSignedTransactions.size());
+
+  return removedSignatures;
+}
+
+//-----
+template<typename SdkRequestType>
+std::map<std::shared_ptr<PublicKey>, std::vector<std::vector<std::byte>>>
+Transaction<SdkRequestType>::removeAllSignatures()
+{
+  if (!isFrozen())
+  {
+    throw IllegalStateException("Removing signatures from a Transaction requires "
+                                "the Transaction to be frozen");
+  }
+
+  std::map<std::shared_ptr<PublicKey>, std::vector<std::vector<std::byte>>> removedByKey;
+
+  // Create a lookup map mapping string prefixes to tracked PublicKey objects
+  std::unordered_map<std::string, std::shared_ptr<PublicKey>> prefixToKey;
+  for (const auto& [key, signer] : mImpl->mSignatories)
+  {
+    prefixToKey.emplace(internal::Utilities::byteVectorToString(key->toBytesRaw()), key);
+  }
+
+  // Extract signatures and clear them from the compiled protobuf messages
+  for (auto& signedTransaction : mImpl->mSignedTransactions)
+  {
+    auto* sigMap = signedTransaction.mutable_sigmap();
+    auto* sigPairs = sigMap->mutable_sigpair();
+
+    for (const auto& pair : *sigPairs)
+    {
+      auto it = prefixToKey.find(pair.pubkeyprefix());
+      if (it != prefixToKey.end())
+      {
+        std::vector<std::byte> sigBytes = extractSignatureBytes(pair);
+        removedByKey[it->second].push_back(std::move(sigBytes));
+      }
+    }
+
+    // Wipe out all signatures on this specific node's transaction
+    signedTransaction.clear_sigmap();
+  }
+
+  // Wipe all internal SDK tracking states
+  mImpl->mSignatories.clear();
+  mImpl->mPrivateKeys.clear();
+
+  // Clear and resize the raw transactions array to match the updated signed state
+  mImpl->mTransactions.clear();
+  mImpl->mTransactions.resize(mImpl->mSignedTransactions.size());
+
+  return removedByKey;
 }
 
 //-----
@@ -1265,15 +1418,15 @@ TransactionId Transaction<SdkRequestType>::getCurrentTransactionId() const
 template<typename SdkRequestType>
 TransactionResponse Transaction<SdkRequestType>::mapResponse(const proto::TransactionResponse&) const
 {
-  return TransactionResponse(
-    Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::getNodeAccountIds()
-      .at(mImpl->mTransactionIndex %
-          Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::
-            getNodeAccountIds()
-              .size()),
-    getCurrentTransactionId(),
-    internal::OpenSSLUtils::computeSHA384(internal::Utilities::stringToByteVector(
-      getTransactionProtobufObject(mImpl->mTransactionIndex).signedtransactionbytes())));
+  const auto& nodeAccountIds =
+    Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::
+      getNodeAccountIds();
+
+  return TransactionResponse(nodeAccountIds.at(mImpl->mTransactionIndex % nodeAccountIds.size()),
+                             getCurrentTransactionId(),
+                             internal::OpenSSLUtils::computeSHA384(internal::Utilities::stringToByteVector(
+                               getTransactionProtobufObject(mImpl->mTransactionIndex).signedtransactionbytes())),
+                             nodeAccountIds);
 }
 
 //-----

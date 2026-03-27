@@ -13,7 +13,11 @@
 #include "account/params/TransferCryptoParams.h"
 #include "account/params/UpdateAccountParams.h"
 #include "file/FileService.h"
+#include "file/params/AppendFileParams.h"
 #include "file/params/CreateFileParams.h"
+#include "file/params/DeleteFileParams.h"
+#include "file/params/GetFileContentsParams.h"
+#include "file/params/GetFileInfoParams.h"
 #include "file/params/UpdateFileParams.h"
 #include "key/KeyService.h"
 #include "key/params/GenerateKeyParams.h"
@@ -94,7 +98,11 @@ TckServer::TckServer(int port)
   mJsonRpcParser.addMethod("wipeToken", getHandle(TokenService::wipeToken));
 
   // Add the FileService functions.
+  mJsonRpcParser.addMethod("appendFile", getHandle(FileService::appendFile));
   mJsonRpcParser.addMethod("createFile", getHandle(FileService::createFile));
+  mJsonRpcParser.addMethod("deleteFile", getHandle(FileService::deleteFile));
+  mJsonRpcParser.addMethod("getFileContents", getHandle(FileService::getFileContents));
+  mJsonRpcParser.addMethod("getFileInfo", getHandle(FileService::getFileInfo));
   mJsonRpcParser.addMethod("updateFile", getHandle(FileService::updateFile));
 
   setupHttpHandler();
@@ -205,8 +213,16 @@ template TckServer::MethodHandle TckServer::getHandle<TokenService::CancelAirdro
   nlohmann::json (*method)(const TokenService::CancelAirdropParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::ClaimAirdropParams>(
   nlohmann::json (*method)(const TokenService::ClaimAirdropParams&));
+template TckServer::MethodHandle TckServer::getHandle<FileService::AppendFileParams>(
+  nlohmann::json (*method)(const FileService::AppendFileParams&));
 template TckServer::MethodHandle TckServer::getHandle<FileService::CreateFileParams>(
   nlohmann::json (*method)(const FileService::CreateFileParams&));
+template TckServer::MethodHandle TckServer::getHandle<FileService::DeleteFileParams>(
+  nlohmann::json (*method)(const FileService::DeleteFileParams&));
+template TckServer::MethodHandle TckServer::getHandle<FileService::GetFileContentsParams>(
+  nlohmann::json (*method)(const FileService::GetFileContentsParams&));
+template TckServer::MethodHandle TckServer::getHandle<FileService::GetFileInfoParams>(
+  nlohmann::json (*method)(const FileService::GetFileInfoParams&));
 template TckServer::MethodHandle TckServer::getHandle<FileService::UpdateFileParams>(
   nlohmann::json (*method)(const FileService::UpdateFileParams&));
 
