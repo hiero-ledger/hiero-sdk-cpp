@@ -97,7 +97,7 @@ function getFallbackLevel(currentLevel) {
  * @param {string} owner - Repository owner.
  * @param {string} repo - Repository name.
  * @param {string} level - Skill-level label used for filtering.
- * @returns {Promise<Array|null>} List of issues or null on failure.
+ * @returns {Promise<Array<{ title: string, html_url: string }>|null>} List of issues or null on failure.
  */
 async function fetchIssuesByLevel(github, owner, repo, level) {
     try {
@@ -128,22 +128,22 @@ async function fetchIssuesByLevel(github, owner, repo, level) {
 /**
  * Safely fetches issues for a given difficulty level with centralized error handling.
  *
- * Wraps fetchIssuesByLevel to:
- *   - Detect API failures (null response)
- *   - Post a single error comment tagging maintainers
- *   - Prevent duplicate error comments using errorState.hasErrored
- *   - Signal failure to caller by returning null
+ * Behavior:
+ *   - Calls GitHub search API via fetchIssuesByLevel
+ *   - Returns [] if no issues are found (valid case)
+ *   - Returns null if API fails (error case)
+ *   - Posts a single error comment (once per execution) on failure
  *
- * Important distinction:
- *   - []   → valid response, but no issues found
- *   - null → API failure, caller should stop execution
+ * Important:
+ *   - []   → valid response, no issues found
+ *   - null → API failure, caller should abort execution
  *
  * @param {object} botContext - Bot execution context (GitHub client, repo info, etc.).
  * @param {string} username - GitHub username to mention in error comment.
- * @param {string} level - Skill-level label used for fetching issues.
- * @param {{ hasErrored: boolean }} errorState - Mutable state to avoid duplicate error comments.
+ * @param {string} level - Skill-level label used for filtering.
+ * @param {{ hasErrored: boolean }} errorState - Tracks whether error comment has been posted.
  *
- * @returns {Promise<Array|null>} Issues array, or null if API failed.
+ * @returns {Promise<Array<{ title: string, html_url: string }>|null>} List of issues, or null if API failed.
  */
 async function safeFetchIssues(botContext, username, level, errorState) {
     const issues = await fetchIssuesByLevel(
@@ -168,13 +168,60 @@ async function safeFetchIssues(botContext, username, level, errorState) {
 }
 
 /**
+ * Resolves a list of recommended issues based on skill progression.
+ *
+ * Strategy (sequential fallback):
+ *   1. Try next difficulty level (progression)
+ *   2. Fallback to same level
+ *   3. Fallback to lower level (except Beginner → Good First Issue)
+ *
+ * Stops at the first non-empty result set.
+ *
+ * Behavior:
+ *   - Returns first non-empty issues array based on fallback strategy
+ *   - Returns null if any API call fails (caller must abort)
+ *
+ * @param {object} botContext - Bot execution context.
+ * @param {string} username - GitHub username.
+ * @param {string} skillLevel - Current difficulty level.
+ * @param {{ hasErrored: boolean }} errorState - Shared error state across fetch calls.
+ *
+ * @returns {Promise<Array<{ title: string, html_url: string }>|null>} Recommended issues, [] if none found, or null on failure.
+ */
+async function getRecommendedIssues(botContext, username, skillLevel, errorState) {
+    const nextLevel = getNextLevel(skillLevel);
+
+    // Step 1: next level
+    if (nextLevel) {
+        const issues = await safeFetchIssues(botContext, username, nextLevel, errorState);
+        if (issues === null) return null;
+        if (issues.length > 0) return issues;
+    }
+
+    // Step 2: same level
+    const sameLevelIssues = await safeFetchIssues(botContext, username, skillLevel, errorState);
+    if (sameLevelIssues === null) return null;
+    if (sameLevelIssues.length > 0) return sameLevelIssues;
+
+    // Step 3: fallback level
+    const fallback = getFallbackLevel(skillLevel);
+    if (fallback && skillLevel !== LABELS.BEGINNER) {
+        const fallbackIssues = await safeFetchIssues(botContext, username, fallback, errorState);
+        if (fallbackIssues === null) return null;
+        return fallbackIssues;
+    }
+
+    return [];
+}
+
+/**
  * Builds the recommendation comment posted after a successful PR completion.
  *
  * Formats a list of suggested issues as clickable links for easy navigation.
  * Designed to be concise, readable, and actionable within a PR discussion thread.
  *
  * @param {string} username - GitHub username to mention.
- * @param {Array} issues - List of recommended issues.
+ * @param {Array<{ title: string, html_url: string }>} issues - List of recommended issues.
  * @returns {string} Markdown-formatted comment body.
  */
 function buildRecommendationComment(username, issues) {
@@ -215,21 +262,24 @@ function buildRecommendationErrorComment(username) {
 }
 
 /**
- * Main handler for issue recommendation workflow.
+ * Main entry point for issue recommendation workflow.
  *
- * Triggered after a PR is closed (typically merged). Executes the following steps:
+ * Trigger:
+ *   - Invoked after a PR is merged
  *
- *   1. Determine the skill level of the completed issue
- *   2. Attempt to fetch issues at the next higher level
- *   3. If none found, fallback to same level
- *   4. If still none, fallback to lower level (except Beginner → Good First Issue)
- *   5. If API failure occurs at any stage, post a single error comment and exit
- *   6. If suitable issues are found, post a recommendation comment
+ * Flow:
+ *   1. Validate context (sender, linked issue)
+ *   2. Determine skill level from issue labels
+ *   3. Resolve recommended issues via getRecommendedIssues
+ *   4. Post recommendation comment if issues are found
  *
  * Behavior:
- *   - No comment is posted if no issues are available (avoids noise)
- *   - API failures are handled gracefully with maintainer notification
- *   - Ensures contributors are guided progressively without overwhelming them
+ *   - Skips silently if:
+ *       - sender is missing
+ *       - issue is missing
+ *       - no skill label is found
+ *       - no recommendations are available
+ *   - Stops execution if API failure occurs (error comment handled upstream)
  *
  * @param {{
  *   github: object,
@@ -237,7 +287,7 @@ function buildRecommendationErrorComment(username) {
  *   repo: string,
  *   issue: object,
  *   sender: { login: string }
- * }} botContext - Bot execution context from GitHub event payload.
+ * }} botContext - Bot execution context.
  *
  * @returns {Promise<void>}
  */
@@ -254,8 +304,6 @@ async function handleRecommendIssues(botContext) {
     }
 
     const skillLevel = getIssueSkillLevel(botContext.issue);
-
-    // If no skill label is present, skip recommendation entirely
     if (!skillLevel) {
         logger.log('No skill level found, skipping recommendation', {
             issueNumber: botContext.issue?.number,
@@ -268,59 +316,22 @@ async function handleRecommendIssues(botContext) {
         level: skillLevel,
     });
 
-    const nextLevel = getNextLevel(skillLevel);
     const errorState = { hasErrored: false };
 
-    let issues = [];
+    const issues = await getRecommendedIssues(
+        botContext,
+        username,
+        skillLevel,
+        errorState
+    );
 
-    // ─────────────────────────────────────────────────────────────
-    // Step 1: Try next-level recommendations (progression path)
-    // ─────────────────────────────────────────────────────────────
-    if (nextLevel) {
-        issues = await safeFetchIssues(botContext, username, nextLevel, errorState);
-        if (issues === null) return;
-    }
+    if (issues === null) return;
 
-    // ─────────────────────────────────────────────────────────────
-    // Step 2: Fallback to same-level recommendations
-    // (ensures contributors still get relevant work if progression is unavailable)
-    // ─────────────────────────────────────────────────────────────
-    if (issues.length === 0) {
-        logger.log('No issues at next level, trying same level');
-
-        issues = await safeFetchIssues(botContext, username, skillLevel, errorState);
-        if (issues === null) return;
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Step 3: Fallback to lower-level recommendations
-    // (used as last resort to avoid leaving contributor without guidance)
-    //
-    // Special case:
-    //   - Skip fallback for Beginner → Good First Issue
-    //     since GFI is intended only for first-time contributors
-    // ─────────────────────────────────────────────────────────────
-    if (issues.length === 0) {
-        const fallback = getFallbackLevel(skillLevel);
-
-        if (fallback && skillLevel !== LABELS.BEGINNER) {
-            logger.log('Falling back to lower level:', fallback);
-
-            issues = await safeFetchIssues(botContext, username, fallback, errorState);
-            if (issues === null) return;
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Step 4: No recommendations found
-    // (intentionally silent to avoid unnecessary bot noise)
-    // ─────────────────────────────────────────────────────────────
     if (issues.length === 0) {
         logger.log('No recommendations available for user:', username);
         return;
     }
 
-    //Build and post recommendation comment
     const comment = buildRecommendationComment(username, issues);
     await postComment(botContext, comment);
     logger.log('Posted recommendation comment');
