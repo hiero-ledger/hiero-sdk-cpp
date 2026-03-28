@@ -29,14 +29,18 @@ const logger = {
 };
 
 /**
- * Determines the skill-level label applied to an issue/PR.
+ * Determines the difficulty level of an issue/PR based on its labels.
  *
- * Iterates through SKILL_HIERARCHY in ascending order and returns the
- * first matching label found on the issue. This ensures consistent
- * detection even if multiple labels are present (lower levels take precedence).
+ * Strategy:
+ *   - Checks labels against SKILL_HIERARCHY in order
+ *   - Returns the first matching level (lowest takes precedence)
  *
- * @param {{ labels: Array<string|{ name: string }> }} issue - Issue or PR object from GitHub payload.
- * @returns {string|null} Matching LABELS constant (e.g. LABELS.BEGINNER), or null if none found.
+ * Behavior:
+ *   - Returns matching LABELS constant if found
+ *   - Returns null if no difficulty label is present
+ *
+ * @param {{ labels: Array<string|{ name: string }> }} issue - Issue or PR object.
+ * @returns {string|null} Detected difficulty level or null if none found.
  */
 function getIssueSkillLevel(issue) {
     for (const level of SKILL_HIERARCHY) {
@@ -46,14 +50,19 @@ function getIssueSkillLevel(issue) {
 }
 
 /**
- * Computes the next recommended difficulty level based on progression.
+ * Computes the next difficulty level for progression.
  *
  * Strategy:
  *   - Move one level higher in SKILL_HIERARCHY
- *   - If already at highest level, return the same level (no upward progression possible)
+ *   - If already at highest level, return the same level
  *
- * @param {string} currentLevel - Current skill-level label.
- * @returns {string|null} Next level label, or null if currentLevel is invalid.
+ * Behavior:
+ *   - Returns next level if available
+ *   - Returns same level if already at maximum
+ *   - Returns null if input is invalid
+ * 
+ * @param {string} currentLevel
+ * @returns {string|null}
  */
 function getNextLevel(currentLevel) {
     const index = SKILL_HIERARCHY.indexOf(currentLevel);
@@ -67,10 +76,15 @@ function getNextLevel(currentLevel) {
  *
  * Strategy:
  *   - Move one level lower in SKILL_HIERARCHY
- *   - Used as a last resort when both next-level and same-level issues are unavailable
+ *   - Used as a last resort when higher and same-level issues are unavailable
  *
- * @param {string} currentLevel - Current skill-level label.
- * @returns {string|null} Lower level label, or null if already at lowest level.
+ * Behavior:
+ *   - Returns the previous level in the hierarchy
+ *   - Returns null if already at the lowest level
+ *   - Returns null if input level is invalid
+ *
+ * @param {string} currentLevel - Current difficulty level.
+ * @returns {string|null} Fallback level or null if none exists.
  */
 function getFallbackLevel(currentLevel) {
     const index = SKILL_HIERARCHY.indexOf(currentLevel);
@@ -80,24 +94,27 @@ function getFallbackLevel(currentLevel) {
 }
 
 /**
- * Fetches open, unassigned issues for a given difficulty level using GitHub search API.
+ * Fetches open, unassigned issues for a given difficulty level using the GitHub search API.
  *
- * Filters applied:
- *   - Only issues (no PRs)
- *   - Open state
- *   - No assignee (available to contributors)
- *   - Matching skill-level label
- *   - Must be "status: ready for dev"
+ * Strategy:
+ *   - Query issues within the target repository
+ *   - Filter by:
+ *       - Open state
+ *       - No assignee
+ *       - Matching difficulty label
+ *       - "ready for dev" status label
+ *   - Limit results to a small, relevant set
  *
- * Returns:
- *   - Array of issues if successful (possibly empty)
- *   - null if API call fails (caller must handle failure explicitly)
+ * Behavior:
+ *   - Returns an array of issues (may be empty if none found)
+ *   - Returns null if the API request fails
  *
  * @param {object} github - Octokit GitHub API client.
  * @param {string} owner - Repository owner.
  * @param {string} repo - Repository name.
- * @param {string} level - Skill-level label used for filtering.
- * @returns {Promise<Array<{ title: string, html_url: string }>|null>} List of issues or null on failure.
+ * @param {string} level - Difficulty level used for filtering.
+ * @returns {Promise<Array<{ title: string, html_url: string }>|null>}
+ *   List of issues, [] if none found, or null on failure.
  */
 async function fetchIssuesByLevel(github, owner, repo, level) {
     try {
@@ -140,7 +157,7 @@ async function fetchIssuesByLevel(github, owner, repo, level) {
  *
  * @param {object} botContext - Bot execution context (GitHub client, repo info, etc.).
  * @param {string} username - GitHub username to mention in error comment.
- * @param {string} level - Skill-level label used for filtering.
+ * @param {string} level - Difficulty label used for filtering.
  * @param {{ hasErrored: boolean }} errorState - Tracks whether error comment has been posted.
  *
  * @returns {Promise<Array<{ title: string, html_url: string }>|null>} List of issues, or null if API failed.
