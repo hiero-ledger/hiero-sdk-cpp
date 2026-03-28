@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "NftId.h"
-#include "Client.h"
 #include "impl/Utilities.h"
 
 #include <services/token_get_nft_info.pb.h>
@@ -56,7 +55,8 @@ NftId NftId::fromProtobuf(const proto::NftID& proto)
 }
 
 //-----
-NftId NftId::fromBytes(const std::vector<std::byte>& bytes) {
+NftId NftId::fromBytes(const std::vector<std::byte>& bytes) 
+{
   proto::NftID proto;
   proto.ParseFromArray(bytes.data(), static_cast<int>(bytes.size()));
   return fromProtobuf(proto);
@@ -82,6 +82,5 @@ std::vector<std::byte> NftId::toBytes() const
 {
   return internal::Utilities::stringToByteVector(toProtobuf()->SerializeAsString());
 }
-
 
 } // namespace Hiero

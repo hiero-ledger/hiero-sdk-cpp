@@ -60,11 +60,10 @@ public:
    * Construct an NftId object from a representative byte array.
    * 
    * @param bytes The byte array from which to construct a NftID object.
-   * @returns The constructed NftID object.
+   * @return The constructed NftID object.
    */
   [[nodiscard]] static NftId fromBytes(const std::vector<std::byte>& bytes);
 
-  
   /**
    * Construct an NftID protobuf object from this NftId object.
    *
@@ -75,7 +74,7 @@ public:
   /**
    * Get a byte array representation of this NftID object.
    * 
-   * @returns A byte array representation of this NftID object.
+   * @return A byte array representation of this NftID object.
    */
   [[nodiscard]] std::vector<std::byte> toBytes() const;
 

@@ -111,7 +111,7 @@ TEST_F(NftIdUnitTests, FromBytes)
 }
 
 //-----
-TEST_F(NftIdUnitTests, ToBytes) 
+TEST_F(NftIdUnitTests, ToBytes)
 {
   // Given
   proto::NftID protoNftId;
