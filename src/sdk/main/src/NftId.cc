@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "NftId.h"
+#include "Client.h"
+#include "impl/Utilities.h"
 
 #include <services/token_get_nft_info.pb.h>
 

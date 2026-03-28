@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "NftId.h"
+#include "Client.h"
+#include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
 #include <limits>
