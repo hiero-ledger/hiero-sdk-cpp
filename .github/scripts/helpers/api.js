@@ -423,6 +423,28 @@ async function swapStatusLabel(botContext, allPassed, { force = false } = {}) {
 }
 
 /**
+ * Adds a thumbs-up (+1) reaction to a comment as visual acknowledgement that
+ * a bot command was received. Failures are silently logged (non-critical).
+ *
+ * @param {object} botContext - Bot context from buildBotContext (github, owner, repo).
+ * @param {number} commentId - The ID of the comment to react to.
+ * @returns {Promise<void>}
+ */
+async function acknowledgeComment(botContext, commentId) {
+  try {
+    await botContext.github.rest.reactions.createForIssueComment({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      comment_id: commentId,
+      content: '+1',
+    });
+    getLogger().log('Added thumbs-up reaction to comment');
+  } catch (error) {
+    getLogger().log('Could not add reaction:', error.message);
+  }
+}
+
+/**
  * Runs all 4 PR checks (DCO, GPG, merge conflict, issue link) with error
  * resilience, builds the unified dashboard comment, and posts/updates it.
  * Returns { allPassed } so callers can decide on label handling.
@@ -532,4 +554,5 @@ module.exports = {
   swapStatusLabel,
   runAllChecksAndComment,
   resolveLinkedIssue,
+  acknowledgeComment,
 };

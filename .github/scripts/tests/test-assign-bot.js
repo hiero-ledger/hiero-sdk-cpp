@@ -353,6 +353,107 @@ Good luck! 🚀`,
   },
 
   // ---------------------------------------------------------------------------
+  // GFI COMPLETION CAP TESTS (3 tests)
+  // Gate added in enforceGfiCompletionLimit
+  // ---------------------------------------------------------------------------
+
+  {
+    name: 'GFI Cap - Exactly At Limit (5 Completed)',
+    description: 'Contributor with 5 completed GFIs is rejected with encouraging redirect',
+    context: {
+      eventName: 'issue_comment',
+      payload: {
+        issue: {
+          number: 300,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: good first issue' },
+          ],
+        },
+        comment: { id: 3001, body: '/assign', user: { login: 'veteran-gfi-user', type: 'User' } },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: { completedIssueCounts: { [LABELS.GOOD_FIRST_ISSUE]: 5 } },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @veteran-gfi-user! You've completed **5 Good First Issues** — that's a fantastic achievement, and it shows you know the workflow inside and out. 🎉
+
+Good First Issues are designed to help new contributors get comfortable with the process, and you've clearly mastered it. We believe you're more than ready to take on bigger challenges!
+
+👉 **Find Beginner and higher issues to work on:**
+[Browse available Beginner issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20no%3Aassignee%20label%3A%22skill%3A%20beginner%22%20label%3A%22status%3A%20ready%20for%20dev%22)
+
+Come take on something more challenging — we're excited to see what you'll build next! 🚀`,
+    ],
+  },
+
+  {
+    name: 'GFI Cap - Below Limit (4 Completed)',
+    description: 'Contributor with 4 completed GFIs is still allowed to take another GFI',
+    context: {
+      eventName: 'issue_comment',
+      payload: {
+        issue: {
+          number: 301,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: good first issue' },
+          ],
+        },
+        comment: { id: 3002, body: '/assign', user: { login: 'almost-capped-user', type: 'User' } },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: { completedIssueCounts: { [LABELS.GOOD_FIRST_ISSUE]: 4 } },
+    expectedAssignee: 'almost-capped-user',
+    expectedComments: [
+      `👋 Hi @almost-capped-user, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉
+
+You've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.
+
+The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.
+
+If you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the community pool.
+
+Good luck, and welcome aboard! 🚀`,
+    ],
+  },
+
+  {
+    name: 'GFI Cap - Does Not Apply to Beginner Issues',
+    description: 'Contributor with 5 completed GFIs can still take a Beginner issue',
+    context: {
+      eventName: 'issue_comment',
+      payload: {
+        issue: {
+          number: 302,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: beginner' },
+          ],
+        },
+        comment: { id: 3003, body: '/assign', user: { login: 'gfi-graduated-user', type: 'User' } },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: { completedIssueCounts: { [LABELS.GOOD_FIRST_ISSUE]: 5 } },
+    expectedAssignee: 'gfi-graduated-user',
+    expectedComments: [
+      `👋 Hi @gfi-graduated-user, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌
+
+If this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.
+
+If you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the pool.
+
+Good luck! 🚀`,
+    ],
+  },
+
+  // ---------------------------------------------------------------------------
   // VALIDATION FAILURES (9 tests)
   // Bot rejects assignment with helpful message
   // ---------------------------------------------------------------------------

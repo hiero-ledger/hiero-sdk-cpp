@@ -15,6 +15,13 @@ const { MAINTAINER_TEAM, LABELS, ISSUE_STATE } = require('../helpers');
 const MAX_OPEN_ASSIGNMENTS = 2;
 
 /**
+ * Maximum number of Good First Issues a contributor may complete before being
+ * redirected to Beginner and higher-level issues. Enforced by handleAssign in assign.js.
+ * @type {number}
+ */
+const MAX_GFI_COMPLETIONS = 5;
+
+/**
  * Skill-level prerequisite map. Each key is a LABELS skill-level constant.
  * - requiredLabel: the prerequisite skill label the user must have completed, or null if none.
  * - requiredCount: how many closed issues with requiredLabel the user needs.
@@ -324,6 +331,32 @@ function buildLabelUpdateFailureComment(username, error) {
 }
 
 /**
+ * Builds the comment posted when a contributor has already completed the maximum
+ * number of Good First Issues (MAX_GFI_COMPLETIONS). Rejects the assignment
+ * warmly and redirects them toward Beginner and higher-level issues.
+ *
+ * @param {string} requesterUsername - The GitHub username who commented /assign.
+ * @param {number} completedCount - How many Good First Issues the user has completed.
+ * @param {string} owner - Repository owner (for the search URL).
+ * @param {string} repo - Repository name (for the search URL).
+ * @returns {string} The formatted Markdown comment body.
+ */
+function buildGfiLimitExceededComment(requesterUsername, completedCount, owner, repo) {
+  const searchQuery = `is:issue is:open no:assignee label:"${LABELS.BEGINNER}" label:"${LABELS.READY_FOR_DEV}"`;
+  const searchUrl = buildIssuesSearchUrl(owner, repo, searchQuery);
+  return [
+    `👋 Hi @${requesterUsername}! You've completed **${completedCount} Good First Issues** — that's a fantastic achievement, and it shows you know the workflow inside and out. 🎉`,
+    '',
+    'Good First Issues are designed to help new contributors get comfortable with the process, and you\'ve clearly mastered it. We believe you\'re more than ready to take on bigger challenges!',
+    '',
+    '👉 **Find Beginner and higher issues to work on:**',
+    `[Browse available Beginner issues](${searchUrl})`,
+    '',
+    'Come take on something more challenging — we\'re excited to see what you\'ll build next! 🚀',
+  ].join('\n');
+}
+
+/**
  * Builds the comment posted when the addAssignees API call itself fails.
  * Tags the maintainer team to manually assign the user and includes the error details.
  *
@@ -343,6 +376,7 @@ function buildAssignmentFailureComment(requesterUsername, error) {
 
 module.exports = {
   MAX_OPEN_ASSIGNMENTS,
+  MAX_GFI_COMPLETIONS,
   SKILL_HIERARCHY,
   SKILL_PREREQUISITES,
   buildWelcomeComment,
@@ -351,6 +385,7 @@ module.exports = {
   buildPrerequisiteNotMetComment,
   buildNoSkillLevelComment,
   buildAssignmentLimitExceededComment,
+  buildGfiLimitExceededComment,
   buildApiErrorComment,
   buildLabelUpdateFailureComment,
   buildAssignmentFailureComment,
