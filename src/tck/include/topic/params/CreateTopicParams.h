@@ -5,6 +5,8 @@
 #include "common/CommonTransactionParams.h"
 #include "nlohmann/json.hpp"
 
+#include "token/CustomFeeSerializer.h"
+
 #include "json/JsonUtils.h"
 #include <optional>
 #include <string>
@@ -13,7 +15,7 @@
 namespace Hiero::TCK::TopicService
 {
 /**
- * Struct to hold the arguments for a `createFile` JSON-RPC method call.
+ * Struct to hold the arguments for a `createTopic` JSON-RPC method call.
  */
 struct CreateTopicParams
 {

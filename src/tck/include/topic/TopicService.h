@@ -39,7 +39,7 @@ nlohmann::json deleteTopic(const DeleteTopicParams& params);
 nlohmann::json getTopicInfo(const GetTopicInfoQueryParams& params);
 
 /**
- * Sumbit a topic message.
+ * Submit a topic message.
  *
  * @param params The parameters to use to submit a topic message.
  * @return A JSON response containing the status of the submission of the topic message.

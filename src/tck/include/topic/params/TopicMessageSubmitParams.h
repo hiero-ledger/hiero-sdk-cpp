@@ -19,12 +19,12 @@ struct TopicMessageSubmitParams
   /**
    * The ID of the topic to submit the message to.
    */
-  std::string mTopicId;
+  std::optional<std::string> mTopicId;
 
   /**
    * The message content to submit. UTF-8 encoding. Will be automatically chunked if the message exceeds the chunk size.
    */
-  std::string mMessage;
+  std::optional<std::string> mMessage;
 
   /**
    * The maximum number of chunks the message can be split into. Default: 20. Used when message size exceeds chunk size.
@@ -55,9 +55,9 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::TopicService::TopicMessageSub
    */
   static void from_json(const json& jsonFrom, Hiero::TCK::TopicService::TopicMessageSubmitParams& params)
   {
-    params.mTopicId = Hiero::TCK::getRequiredJsonParameter<std::string>(jsonFrom, "topicId");
+    params.mTopicId = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "topicId");
 
-    params.mMessage = Hiero::TCK::getRequiredJsonParameter<std::string>(jsonFrom, "message");
+    params.mMessage = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "message");
 
     params.mMaxChunks = Hiero::TCK::getOptionalJsonParameter<int>(jsonFrom, "maxChunks");
 

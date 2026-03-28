@@ -18,11 +18,11 @@
 #include <TopicId.h>
 #include <TopicInfo.h>
 #include <TopicInfoQuery.h>
-#include <TopicMessage.h>
-#include <TopicMessageChunk.h>
 #include <TopicMessageSubmitTransaction.h>
 #include <TransactionReceipt.h>
+#include <TransactionResponse.h>
 #include <impl/EntityIdHelper.h>
+#include <impl/HexConverter.h>
 
 #include <algorithm>
 #include <chrono>
@@ -161,7 +161,11 @@ nlohmann::json getTopicInfo(const GetTopicInfoQueryParams& params)
     std::chrono::duration_cast<std::chrono::seconds>(info.mExpirationTime.time_since_epoch()).count();
   response["expirationTime"] = std::to_string(expirySeconds);
 
-  response["autoRenewPeriod"] = std::to_string(info.mAutoRenewPeriod.value().count());
+  if (info.mAutoRenewPeriod.has_value())
+  {
+    response["autoRenewPeriod"] =
+      std::to_string(std::chrono::duration_cast<std::chrono::seconds>(info.mAutoRenewPeriod.value()).count());
+  }
 
   if (info.mAutoRenewAccountId.has_value())
   {
@@ -170,23 +174,23 @@ nlohmann::json getTopicInfo(const GetTopicInfoQueryParams& params)
 
   if (info.mAdminKey)
   {
-    response["adminKey"] = info.mAdminKey->toStringRaw();
+    response["adminKey"] = internal::HexConverter::bytesToHex(info.mAdminKey->toBytes());
   }
 
   if (info.mSubmitKey)
   {
-    response["submitKey"] = info.mSubmitKey->toStringRaw();
+    response["submitKey"] = internal::HexConverter::bytesToHex(info.mSubmitKey->toBytes());
   }
 
   if (info.mFeeScheduleKey)
   {
-    response["feeScheduleKey"] = info.mFeeScheduleKey->toStringRaw();
+    response["feeScheduleKey"] = internal::HexConverter::bytesToHex(info.mFeeScheduleKey->toBytes());
   }
 
   response["feeExemptKeys"] = nlohmann::json::array();
   for (const auto& key : info.mFeeExemptKeys)
   {
-    response["feeExemptKeys"].push_back(key->toStringRaw());
+    response["feeExemptKeys"].push_back(internal::HexConverter::bytesToHex(key->toBytes()));
   }
 
   response["customFees"] = nlohmann::json::array();
@@ -194,13 +198,13 @@ nlohmann::json getTopicInfo(const GetTopicInfoQueryParams& params)
   {
     nlohmann::json customFeeItem;
     customFeeItem["amount"] = std::to_string(fee.getAmount());
-    if (fee.getDenominatingTokenId())
+    if (fee.getDenominatingTokenId().has_value())
     {
-      customFeeItem["denominatingTokenId"] = fee.getDenominatingTokenId()->toString();
+      customFeeItem["denominatingTokenId"] = fee.getDenominatingTokenId().value().toString();
     }
-    if (fee.getFeeCollectorAccountId())
+    if (!(fee.getFeeCollectorAccountId() == AccountId()))
     {
-      customFeeItem["feeCollectorAccountId"] = fee.getFeeCollectorAccountId()->toString();
+      customFeeItem["feeCollectorAccountId"] = fee.getFeeCollectorAccountId().toString();
     }
     response["customFees"].push_back(customFeeItem);
   }
@@ -217,14 +221,14 @@ nlohmann::json submitTopicMessage(const TopicMessageSubmitParams& params)
 
   topicMessageSubmitTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
 
-  if (!params.mTopicId.empty())
+  if (params.mTopicId.has_value())
   {
-    topicMessageSubmitTransaction.setTopicId(TopicId::fromString(params.mTopicId));
+    topicMessageSubmitTransaction.setTopicId(TopicId::fromString(params.mTopicId.value()));
   }
 
-  if (!params.mMessage.empty())
+  if (params.mMessage.has_value())
   {
-    topicMessageSubmitTransaction.setMessage(params.mMessage);
+    topicMessageSubmitTransaction.setMessage(params.mMessage.value());
   }
 
   if (params.mMaxChunks.has_value())

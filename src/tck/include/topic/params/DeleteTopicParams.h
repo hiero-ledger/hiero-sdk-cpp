@@ -12,7 +12,7 @@
 namespace Hiero::TCK::TopicService
 {
 /**
- * Struct to hold the arguments for a `deleteFile` Json-RPC method call.
+ * Struct to hold the arguments for a `deleteTopic` Json-RPC method call.
  */
 struct DeleteTopicParams
 {
@@ -47,11 +47,11 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::TopicService::DeleteTopicPara
   {
     params.mTopicId = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "topicId");
 
-    params.mCommonTxParams = params.mCommonTxParams =
+    params.mCommonTxParams =
       Hiero::TCK::getOptionalJsonParameter<Hiero::TCK::CommonTransactionParams>(jsonFrom, "commonTransactionParams");
   }
 };
 
-} // namespace nlohamann
+} // namespace nlohmann
 
 #endif // HIERO_TCK_CPP_DELETE_TOPIC_PARAMS_H_
