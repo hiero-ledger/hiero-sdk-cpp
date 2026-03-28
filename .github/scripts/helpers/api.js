@@ -464,6 +464,59 @@ async function runAllChecksAndComment(botContext) {
   return { allPassed };
 }
 
+/**
+ * Resolves the primary issue linked to a PR.
+ *
+ * Strategy:
+ *   - Fetch closing issue references via GraphQL
+ *   - Return the first linked issue (if multiple exist)
+ *   - Return null if no linked issues found
+ *
+ * Notes:
+ *   - Logs informational messages for traceability
+ *   - Does NOT throw — failures are handled gracefully
+ *
+ * @param {object} botContext
+ * @param {object} logger
+ * @returns {Promise<object|null>}
+ */
+async function resolveLinkedIssue(botContext) {
+    try {
+        const issueNumbers = await fetchClosingIssueNumbers(botContext);
+
+        if (!issueNumbers.length) {
+            getLogger().log('No linked issue found', {
+              prNumber: botContext.number,
+            });
+            return null;
+        }
+
+        if (issueNumbers.length > 1) {
+            getLogger().log('Multiple linked issues found (using first)', {
+                issueNumbers,
+                selected: issueNumbers[0],
+            });
+        }
+
+        const issue = await fetchIssue(botContext, issueNumbers[0]);
+
+        if (!issue) {
+            getLogger().log('Linked issue fetch returned empty', {
+                issueNumber: issueNumbers[0],
+            });
+            return null;
+        }
+
+        return issue;
+
+    } catch (error) {
+        getLogger().error('Failed to resolve linked issue:', {
+            message: error.message,
+        });
+        return null;
+    }
+}
+
 module.exports = {
   buildBotContext,
   addLabels,
@@ -478,4 +531,5 @@ module.exports = {
   fetchClosingIssueNumbers,
   swapStatusLabel,
   runAllChecksAndComment,
+  resolveLinkedIssue,
 };
