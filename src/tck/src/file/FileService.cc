@@ -69,9 +69,9 @@ nlohmann::json appendFile(const AppendFileParams& params)
   }
 
   return {
-    {"status",
+    { "status",
      gStatusToString.at(
-        fileAppendTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+        fileAppendTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
   };
 }
 
@@ -117,8 +117,8 @@ nlohmann::json createFile(const CreateFileParams& params)
     fileCreateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
 
   return {
-    {"fileId",  txReceipt.mFileId.value().toString() },
-    { "status", gStatusToString.at(txReceipt.mStatus)}
+    { "fileId", txReceipt.mFileId.value().toString()  },
+    { "status", gStatusToString.at(txReceipt.mStatus) }
   };
 }
 
@@ -139,9 +139,9 @@ nlohmann::json deleteFile(const DeleteFileParams& params)
   }
 
   return {
-    {"status",
+    { "status",
      gStatusToString.at(
-        fileDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+        fileDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
   };
 }
 
@@ -169,7 +169,7 @@ nlohmann::json getFileContents(const GetFileContentsParams& params)
   const std::vector<std::byte> contents = query.execute(SdkClient::getClient());
 
   return {
-    {"contents", internal::Utilities::byteVectorToString(contents)}
+    { "contents", internal::Utilities::byteVectorToString(contents) }
   };
 }
 
@@ -203,8 +203,7 @@ nlohmann::json getFileInfo(const GetFileInfoParams& params)
   response["keys"] = nlohmann::json::array();
   if (!info.mAdminKeys.empty())
   {
-    response["keys"].push_back(
-      internal::HexConverter::bytesToHex(info.mAdminKeys.toBytes()));
+    response["keys"].push_back(internal::HexConverter::bytesToHex(info.mAdminKeys.toBytes()));
   }
   return response;
 }
@@ -257,7 +256,7 @@ nlohmann::json updateFile(const UpdateFileParams& params)
     fileUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
 
   return {
-    {"status", gStatusToString.at(txReceipt.mStatus)}
+    { "status", gStatusToString.at(txReceipt.mStatus) }
   };
 }
 
