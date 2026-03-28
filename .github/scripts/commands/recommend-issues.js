@@ -168,47 +168,65 @@ async function safeFetchIssues(botContext, username, level, errorState) {
 }
 
 /**
- * Resolves a list of recommended issues based on skill progression.
+ * Attempts to fetch issues for a given difficulty level.
  *
- * Strategy (sequential fallback):
+ * Behavior:
+ *   - Skips if level is null/undefined
+ *   - Returns [] if no issues found (valid case)
+ *   - Returns null if API fails (error case)
+ *
+ * @param {object} botContext - Bot execution context.
+ * @param {string} username - GitHub username (used for error reporting).
+ * @param {string|null} level - Difficulty level to query.
+ * @param {{ hasErrored: boolean }} errorState - Tracks if error comment was posted.
+ *
+ * @returns {Promise<Array<{ title: string, html_url: string }>|null>}
+ *   List of issues, [] if none found, or null if API failed.
+ */
+async function tryLevel(botContext, username, level, errorState) {
+    if (!level) return [];
+
+    const issues = await safeFetchIssues(botContext, username, level, errorState);
+    if (issues === null) return null;
+
+    return issues;
+}
+
+/**
+ * Resolves recommended issues using a progressive fallback strategy.
+ *
+ * Strategy:
  *   1. Try next difficulty level (progression)
- *   2. Fallback to same level
- *   3. Fallback to lower level (except Beginner → Good First Issue)
+ *   2. Try same level
+ *   3. Try lower level (fallback), except for Beginner → Good First Issue
  *
  * Stops at the first non-empty result set.
  *
  * Behavior:
- *   - Returns first non-empty issues array based on fallback strategy
- *   - Returns null if any API call fails (caller must abort)
+ *   - Returns first non-empty list of issues
+ *   - Returns [] if no issues found across all levels
+ *   - Returns null if any API call fails (caller should abort)
  *
  * @param {object} botContext - Bot execution context.
  * @param {string} username - GitHub username.
  * @param {string} skillLevel - Current difficulty level.
  * @param {{ hasErrored: boolean }} errorState - Shared error state across fetch calls.
  *
- * @returns {Promise<Array<{ title: string, html_url: string }>|null>} Recommended issues, [] if none found, or null on failure.
+ * @returns {Promise<Array<{ title: string, html_url: string }>|null>}
+ *   Recommended issues, [] if none found, or null on failure.
  */
 async function getRecommendedIssues(botContext, username, skillLevel, errorState) {
-    const nextLevel = getNextLevel(skillLevel);
+    const levelsToTry = [
+        getNextLevel(skillLevel),
+        skillLevel,
+        skillLevel !== LABELS.BEGINNER ? getFallbackLevel(skillLevel) : null,
+    ];
 
-    // Step 1: next level
-    if (nextLevel) {
-        const issues = await safeFetchIssues(botContext, username, nextLevel, errorState);
-        if (issues === null) return null;
-        if (issues.length > 0) return issues;
-    }
+    for (const level of levelsToTry) {
+        const issues = await tryLevel(botContext, username, level, errorState);
 
-    // Step 2: same level
-    const sameLevelIssues = await safeFetchIssues(botContext, username, skillLevel, errorState);
-    if (sameLevelIssues === null) return null;
-    if (sameLevelIssues.length > 0) return sameLevelIssues;
-
-    // Step 3: fallback level
-    const fallback = getFallbackLevel(skillLevel);
-    if (fallback && skillLevel !== LABELS.BEGINNER) {
-        const fallbackIssues = await safeFetchIssues(botContext, username, fallback, errorState);
-        if (fallbackIssues === null) return null;
-        return fallbackIssues;
+        if (issues === null) return null;     // API failure
+        if (issues.length > 0) return issues; // first valid result
     }
 
     return [];
