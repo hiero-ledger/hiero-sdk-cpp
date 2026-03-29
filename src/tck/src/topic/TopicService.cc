@@ -3,6 +3,7 @@
 #include "common/CommonTransactionParams.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
+#include "token/CustomFeeSerializer.h"
 #include "topic/params/CreateTopicParams.h"
 #include "topic/params/DeleteTopicParams.h"
 #include "topic/params/GetTopicInfoQueryParams.h"
@@ -196,17 +197,8 @@ nlohmann::json getTopicInfo(const GetTopicInfoQueryParams& params)
   response["customFees"] = nlohmann::json::array();
   for (const auto& fee : info.mCustomFixedFees)
   {
-    nlohmann::json customFeeItem;
-    customFeeItem["amount"] = std::to_string(fee.getAmount());
-    if (fee.getDenominatingTokenId().has_value())
-    {
-      customFeeItem["denominatingTokenId"] = fee.getDenominatingTokenId().value().toString();
-    }
-    if (!(fee.getFeeCollectorAccountId() == AccountId()))
-    {
-      customFeeItem["feeCollectorAccountId"] = fee.getFeeCollectorAccountId().toString();
-    }
-    response["customFees"].push_back(customFeeItem);
+    std::shared_ptr<CustomFee> feePtr = std::make_shared<CustomFixedFee>(fee);
+    response["customFees"].push_back(feePtr);
   }
 
   response["ledgerId"] = info.mLedgerId.toString();
