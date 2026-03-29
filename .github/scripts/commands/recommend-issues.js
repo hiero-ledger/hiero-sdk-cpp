@@ -368,8 +368,29 @@ async function handleRecommendIssues(botContext) {
     }
 
     const comment = buildRecommendationComment(username, issues);
-    await postComment(botContext, comment);
-    logger.log('Posted recommendation comment');
+    logger.log('Attempting to post comment', {
+        repo: botContext.repo,
+        owner: botContext.owner,
+        issueNumber: botContext.number,
+    });
+
+    const result = await postComment(botContext, comment);
+
+    if (!result.success) {
+        logger.error('Failed to post recommendation comment', {
+            error: result.error,
+            repo: botContext.repo,
+            owner: botContext.owner,
+            issueNumber: botContext.issue?.number,
+        });
+        return;
+    }
+    
+    logger.log('Posted recommendation comment', {
+        repo: botContext.repo,
+        owner: botContext.owner,
+        issueNumber: botContext.issue?.number,
+    });
 }
 
 module.exports = { handleRecommendIssues };
