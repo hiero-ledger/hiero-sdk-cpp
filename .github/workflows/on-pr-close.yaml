@@ -4,10 +4,11 @@ name: Bot - On PR Close
 # determines completed issue difficulty, finds next/same/fallback issues,
 # and posts a recommendation comment via bot-on-pr-close.js.
 on:
-  pull_request:
+  pull_request_target:
     types: [closed]
 
 permissions:
+  pull-requests: write
   issues: write
   contents: read
 
