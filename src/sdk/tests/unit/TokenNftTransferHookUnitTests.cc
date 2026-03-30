@@ -27,8 +27,6 @@ protected:
   [[nodiscard]] inline int64_t getTestHookId8() const { return mHookId8; }
   [[nodiscard]] inline int64_t getTestHookId9() const { return mHookId9; }
   [[nodiscard]] inline int64_t getTestHookId10() const { return mHookId10; }
-  [[nodiscard]] inline int64_t getTestHookId11() const { return mHookId11; }
-  [[nodiscard]] inline int64_t getTestHookId12() const { return mHookId12; }
   [[nodiscard]] inline int64_t getTestZeroHookId() const { return mZeroHookId; }
 
 private:
@@ -37,19 +35,17 @@ private:
   const AccountId mSenderAccountId = AccountId(5ULL, 6ULL, 7ULL);
   const AccountId mReceiverAccountId = AccountId(8ULL, 9ULL, 10ULL);
   const bool mApproval = true;
-  const int64_t mHookId1 = 123LL;
-  const int64_t mHookId2 = 456LL;
-  const int64_t mHookId3 = 789LL;
-  const int64_t mHookId4 = getTestHookId4();
-  const int64_t mHookId5 = getTestHookId5();
-  const int64_t mHookId6 = getTestHookId6();
-  const int64_t mHookId7 = getTestHookId7();
-  const int64_t mHookId8 = getTestHookId8();
-  const int64_t mHookId9 = getTestHookId9();
-  const int64_t mHookId10 = getTestHookId10();
-  const int64_t mHookId11 = getTestHookId11();
-  const int64_t mHookId12 = getTestHookId12();
-  const int64_t mZeroHookId = getTestZeroHookId();
+  const int64_t mHookId1 = 789LL;
+  const int64_t mHookId2 = 100LL;
+  const int64_t mHookId3 = 200LL;
+  const int64_t mHookId4 = 300LL;
+  const int64_t mHookId5 = 400LL;
+  const int64_t mHookId6 = 500LL;
+  const int64_t mHookId7 = 600LL;
+  const int64_t mHookId8 = 700LL;
+  const int64_t mHookId9 = 800LL;
+  const int64_t mHookId10 = 900LL;
+  const int64_t mZeroHookId = 0LL;
   const NftHookCall mSenderHookCall = []()
   {
     NftHookCall hookCall;
@@ -117,7 +113,7 @@ TEST_F(TokenNftTransferHookUnitTests, FromProtobufWithSenderPreTxAllowanceHook)
   proto.set_is_approval(getTestApproval());
 
   proto::HookCall* hookCallProto = new proto::HookCall();
-  hookCallProto->set_hook_id(getTestHookId3());
+  hookCallProto->set_hook_id(getTestHookId1());
   proto.set_allocated_pre_tx_sender_allowance_hook(hookCallProto);
 
   // When
@@ -129,7 +125,7 @@ TEST_F(TokenNftTransferHookUnitTests, FromProtobufWithSenderPreTxAllowanceHook)
   EXPECT_EQ(transfer.mReceiverAccountId, getTestReceiverAccountId());
   EXPECT_EQ(transfer.mIsApproval, getTestApproval());
   EXPECT_EQ(transfer.mSenderHookCall.getHookType(), NftHookType::PRE_HOOK);
-  EXPECT_EQ(transfer.mSenderHookCall.getHookId(), getTestHookId3());
+  EXPECT_EQ(transfer.mSenderHookCall.getHookId(), getTestHookId1());
   EXPECT_EQ(transfer.mReceiverHookCall.getHookType(), NftHookType::UNINITIALIZED);
   EXPECT_EQ(transfer.mReceiverHookCall.getHookId(), getTestZeroHookId());
 }
@@ -145,7 +141,7 @@ TEST_F(TokenNftTransferHookUnitTests, FromProtobufWithSenderPrePostTxAllowanceHo
   proto.set_is_approval(getTestApproval());
 
   proto::HookCall* hookCallProto = new proto::HookCall();
-  hookCallProto->set_hook_id(getTestHookId4());
+  hookCallProto->set_hook_id(getTestHookId2());
   proto.set_allocated_pre_post_tx_sender_allowance_hook(hookCallProto);
 
   // When
@@ -157,7 +153,7 @@ TEST_F(TokenNftTransferHookUnitTests, FromProtobufWithSenderPrePostTxAllowanceHo
   EXPECT_EQ(transfer.mReceiverAccountId, getTestReceiverAccountId());
   EXPECT_EQ(transfer.mIsApproval, getTestApproval());
   EXPECT_EQ(transfer.mSenderHookCall.getHookType(), NftHookType::PRE_POST_HOOK);
-  EXPECT_EQ(transfer.mSenderHookCall.getHookId(), getTestHookId4());
+  EXPECT_EQ(transfer.mSenderHookCall.getHookId(), getTestHookId2());
   EXPECT_EQ(transfer.mReceiverHookCall.getHookType(), NftHookType::UNINITIALIZED);
   EXPECT_EQ(transfer.mReceiverHookCall.getHookId(), getTestZeroHookId());
 }
@@ -173,7 +169,7 @@ TEST_F(TokenNftTransferHookUnitTests, FromProtobufWithReceiverPreTxAllowanceHook
   proto.set_is_approval(getTestApproval());
 
   proto::HookCall* hookCallProto = new proto::HookCall();
-  hookCallProto->set_hook_id(getTestHookId5());
+  hookCallProto->set_hook_id(getTestHookId3());
   proto.set_allocated_pre_tx_receiver_allowance_hook(hookCallProto);
 
   // When
@@ -187,7 +183,7 @@ TEST_F(TokenNftTransferHookUnitTests, FromProtobufWithReceiverPreTxAllowanceHook
   EXPECT_EQ(transfer.mSenderHookCall.getHookType(), NftHookType::UNINITIALIZED);
   EXPECT_EQ(transfer.mSenderHookCall.getHookId(), getTestZeroHookId());
   EXPECT_EQ(transfer.mReceiverHookCall.getHookType(), NftHookType::PRE_HOOK);
-  EXPECT_EQ(transfer.mReceiverHookCall.getHookId(), getTestHookId5());
+  EXPECT_EQ(transfer.mReceiverHookCall.getHookId(), getTestHookId3());
 }
 
 //-----
@@ -201,7 +197,7 @@ TEST_F(TokenNftTransferHookUnitTests, FromProtobufWithReceiverPrePostTxAllowance
   proto.set_is_approval(getTestApproval());
 
   proto::HookCall* hookCallProto = new proto::HookCall();
-  hookCallProto->set_hook_id(getTestHookId6());
+  hookCallProto->set_hook_id(getTestHookId4());
   proto.set_allocated_pre_post_tx_receiver_allowance_hook(hookCallProto);
 
   // When
@@ -215,7 +211,7 @@ TEST_F(TokenNftTransferHookUnitTests, FromProtobufWithReceiverPrePostTxAllowance
   EXPECT_EQ(transfer.mSenderHookCall.getHookType(), NftHookType::UNINITIALIZED);
   EXPECT_EQ(transfer.mSenderHookCall.getHookId(), getTestZeroHookId());
   EXPECT_EQ(transfer.mReceiverHookCall.getHookType(), NftHookType::PRE_POST_HOOK);
-  EXPECT_EQ(transfer.mReceiverHookCall.getHookId(), getTestHookId6());
+  EXPECT_EQ(transfer.mReceiverHookCall.getHookId(), getTestHookId4());
 }
 
 //-----
@@ -224,7 +220,7 @@ TEST_F(TokenNftTransferHookUnitTests, ToProtobufWithSenderPreHook)
   // Given
   NftHookCall senderHookCall;
   senderHookCall.setHookType(NftHookType::PRE_HOOK);
-  senderHookCall.setHookId(getTestHookId7());
+  senderHookCall.setHookId(getTestHookId5());
   NftHookCall receiverHookCall;
   receiverHookCall.setHookType(NftHookType::UNINITIALIZED);
   receiverHookCall.setHookId(getTestZeroHookId());
@@ -248,7 +244,7 @@ TEST_F(TokenNftTransferHookUnitTests, ToProtobufWithSenderPreHook)
   EXPECT_EQ(proto->serialnumber(), static_cast<int64_t>(getTestNftId().mSerialNum));
   EXPECT_EQ(proto->is_approval(), getTestApproval());
   EXPECT_TRUE(proto->has_pre_tx_sender_allowance_hook());
-  EXPECT_EQ(proto->pre_tx_sender_allowance_hook().hook_id(), getTestHookId7());
+  EXPECT_EQ(proto->pre_tx_sender_allowance_hook().hook_id(), getTestHookId5());
   EXPECT_FALSE(proto->has_pre_post_tx_sender_allowance_hook());
   EXPECT_FALSE(proto->has_pre_tx_receiver_allowance_hook());
   EXPECT_FALSE(proto->has_pre_post_tx_receiver_allowance_hook());
@@ -260,7 +256,7 @@ TEST_F(TokenNftTransferHookUnitTests, ToProtobufWithSenderPrePostHook)
   // Given
   NftHookCall senderHookCall;
   senderHookCall.setHookType(NftHookType::PRE_POST_HOOK);
-  senderHookCall.setHookId(getTestHookId8());
+  senderHookCall.setHookId(getTestHookId6());
   NftHookCall receiverHookCall;
   receiverHookCall.setHookType(NftHookType::UNINITIALIZED);
   receiverHookCall.setHookId(getTestZeroHookId());
@@ -276,7 +272,7 @@ TEST_F(TokenNftTransferHookUnitTests, ToProtobufWithSenderPrePostHook)
 
   // Then
   EXPECT_TRUE(proto->has_pre_post_tx_sender_allowance_hook());
-  EXPECT_EQ(proto->pre_post_tx_sender_allowance_hook().hook_id(), getTestHookId8());
+  EXPECT_EQ(proto->pre_post_tx_sender_allowance_hook().hook_id(), getTestHookId6());
   EXPECT_FALSE(proto->has_pre_tx_sender_allowance_hook());
   EXPECT_FALSE(proto->has_pre_tx_receiver_allowance_hook());
   EXPECT_FALSE(proto->has_pre_post_tx_receiver_allowance_hook());
@@ -291,7 +287,7 @@ TEST_F(TokenNftTransferHookUnitTests, ToProtobufWithReceiverPreHook)
   senderHookCall.setHookId(getTestZeroHookId());
   NftHookCall receiverHookCall;
   receiverHookCall.setHookType(NftHookType::PRE_HOOK);
-  receiverHookCall.setHookId(getTestHookId9());
+  receiverHookCall.setHookId(getTestHookId7());
   const TokenNftTransfer transfer(getTestNftId(),
                                   getTestSenderAccountId(),
                                   getTestReceiverAccountId(),
@@ -304,7 +300,7 @@ TEST_F(TokenNftTransferHookUnitTests, ToProtobufWithReceiverPreHook)
 
   // Then
   EXPECT_TRUE(proto->has_pre_tx_receiver_allowance_hook());
-  EXPECT_EQ(proto->pre_tx_receiver_allowance_hook().hook_id(), getTestHookId9());
+  EXPECT_EQ(proto->pre_tx_receiver_allowance_hook().hook_id(), getTestHookId7());
   EXPECT_FALSE(proto->has_pre_tx_sender_allowance_hook());
   EXPECT_FALSE(proto->has_pre_post_tx_sender_allowance_hook());
   EXPECT_FALSE(proto->has_pre_post_tx_receiver_allowance_hook());
@@ -319,7 +315,7 @@ TEST_F(TokenNftTransferHookUnitTests, ToProtobufWithReceiverPrePostHook)
   senderHookCall.setHookId(getTestZeroHookId());
   NftHookCall receiverHookCall;
   receiverHookCall.setHookType(NftHookType::PRE_POST_HOOK);
-  receiverHookCall.setHookId(getTestHookId10());
+  receiverHookCall.setHookId(getTestHookId8());
   const TokenNftTransfer transfer(getTestNftId(),
                                   getTestSenderAccountId(),
                                   getTestReceiverAccountId(),
@@ -332,7 +328,7 @@ TEST_F(TokenNftTransferHookUnitTests, ToProtobufWithReceiverPrePostHook)
 
   // Then
   EXPECT_TRUE(proto->has_pre_post_tx_receiver_allowance_hook());
-  EXPECT_EQ(proto->pre_post_tx_receiver_allowance_hook().hook_id(), getTestHookId10());
+  EXPECT_EQ(proto->pre_post_tx_receiver_allowance_hook().hook_id(), getTestHookId8());
   EXPECT_FALSE(proto->has_pre_tx_sender_allowance_hook());
   EXPECT_FALSE(proto->has_pre_post_tx_sender_allowance_hook());
   EXPECT_FALSE(proto->has_pre_tx_receiver_allowance_hook());
@@ -344,10 +340,10 @@ TEST_F(TokenNftTransferHookUnitTests, ToStringWithBothHookCalls)
   // Given
   NftHookCall senderHookCall;
   senderHookCall.setHookType(NftHookType::PRE_HOOK);
-  senderHookCall.setHookId(getTestHookId11());
+  senderHookCall.setHookId(getTestHookId9());
   NftHookCall receiverHookCall;
   receiverHookCall.setHookType(NftHookType::PRE_POST_HOOK);
-  receiverHookCall.setHookId(getTestHookId12());
+  receiverHookCall.setHookId(getTestHookId10());
   const TokenNftTransfer transfer(getTestNftId(),
                                   getTestSenderAccountId(),
                                   getTestReceiverAccountId(),
