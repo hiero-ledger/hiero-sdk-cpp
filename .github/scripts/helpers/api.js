@@ -13,7 +13,7 @@ const {
   requirePositiveInt,
   requireSafeUsername,
 } = require('./validation');
-const { LABELS } = require('./constants');
+const { LABELS, SKILL_HIERARCHY} = require('./constants');
 const { checkDCO, checkGPG, checkMergeConflict, checkIssueLink } = require('./checks');
 const { buildBotComment } = require('./comments');
 
@@ -508,28 +508,37 @@ async function resolveLinkedIssue(botContext) {
 
         if (!issueNumbers.length) {
             getLogger().log('No linked issue found', {
-              prNumber: botContext.number,
+                prNumber: botContext.number,
             });
             return null;
         }
 
-        if (issueNumbers.length > 1) {
-            getLogger().log('Multiple linked issues found (using first)', {
-                issueNumbers,
-                selected: issueNumbers[0],
-            });
+        if (issueNumbers.length === 1) {
+            return await fetchIssue(botContext, issueNumbers[0]) || null;
         }
 
-        const issue = await fetchIssue(botContext, issueNumbers[0]);
+        const issues = await Promise.all(
+            issueNumbers.map(n => fetchIssue(botContext, n))
+        );
+        const valid = issues.filter(Boolean);
 
-        if (!issue) {
-            getLogger().log('Linked issue fetch returned empty', {
-                issueNumber: issueNumbers[0],
-            });
+        if (!valid.length) {
+            getLogger().log('All linked issue fetches returned empty', { issueNumbers });
             return null;
         }
 
-        return issue;
+        const selected = valid.reduce((best, issue) => {
+            const bestIndex = SKILL_HIERARCHY.findIndex(level => hasLabel(best, level));
+            const currIndex = SKILL_HIERARCHY.findIndex(level => hasLabel(issue, level));
+            return currIndex > bestIndex ? issue : best;
+        });
+
+        getLogger().log('Multiple linked issues found (using highest level)', {
+            issueNumbers,
+            selected: selected.number,
+        });
+
+        return selected;
 
     } catch (error) {
         getLogger().error('Failed to resolve linked issue:', {
