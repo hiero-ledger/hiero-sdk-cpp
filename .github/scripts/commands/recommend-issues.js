@@ -9,18 +9,11 @@
 const {
     MAINTAINER_TEAM,
     LABELS,
+    SKILL_HIERARCHY,
     hasLabel,
     postComment,
     getLogger,
 } = require('../helpers');
-
-// Difficulty hierarchy used to determine progression for recommendations
-const SKILL_HIERARCHY = [
-    LABELS.GOOD_FIRST_ISSUE,
-    LABELS.BEGINNER,
-    LABELS.INTERMEDIATE,
-    LABELS.ADVANCED,
-];
 
 // Logger delegation 
 const logger = {
@@ -29,40 +22,25 @@ const logger = {
 };
 
 /**
- * Determines the difficulty level of an issue/PR based on its labels.
+ * Returns the highest difficulty level of an issue based on its labels.
  *
- * Strategy:
- *   - Checks labels against SKILL_HIERARCHY in order
- *   - Returns the first matching level (lowest takes precedence)
+ * Checks labels against SKILL_HIERARCHY in descending order and returns the first match.
  *
- * Behavior:
- *   - Returns matching LABELS constant if found
- *   - Returns null if no difficulty label is present
- *
- * @param {{ labels: Array<string|{ name: string }> }} issue - Issue or PR object.
- * @returns {string|null} Detected difficulty level or null if none found.
+ * @param {{ labels: Array<string|{ name: string }> }} issue
+ * @returns {string|null} Matching level or null if none found.
  */
 function getIssueSkillLevel(issue) {
-    for (const level of SKILL_HIERARCHY) {
+    for (const level of [...SKILL_HIERARCHY].reverse()) {
         if (hasLabel(issue, level)) return level;
     }
     return null;
 }
 
 /**
- * Computes the next difficulty level for progression.
+ * Returns the next difficulty level in the hierarchy.
  *
- * Strategy:
- *   - Move one level higher in SKILL_HIERARCHY
- *   - If already at highest level, return the same level
- *
- * Behavior:
- *   - Returns next level if available
- *   - Returns same level if already at maximum
- *   - Returns null if input is invalid
- * 
  * @param {string} currentLevel
- * @returns {string|null}
+ * @returns {string|null} Next level, same level if max, or null if invalid.
  */
 function getNextLevel(currentLevel) {
     const index = SKILL_HIERARCHY.indexOf(currentLevel);
@@ -72,19 +50,10 @@ function getNextLevel(currentLevel) {
 }
 
 /**
- * Computes the fallback difficulty level when no suitable issues are found.
+ * Returns the previous (fallback) difficulty level.
  *
- * Strategy:
- *   - Move one level lower in SKILL_HIERARCHY
- *   - Used as a last resort when higher and same-level issues are unavailable
- *
- * Behavior:
- *   - Returns the previous level in the hierarchy
- *   - Returns null if already at the lowest level
- *   - Returns null if input level is invalid
- *
- * @param {string} currentLevel - Current difficulty level.
- * @returns {string|null} Fallback level or null if none exists.
+ * @param {string} currentLevel
+ * @returns {string|null} Lower level or null if none.
  */
 function getFallbackLevel(currentLevel) {
     const index = SKILL_HIERARCHY.indexOf(currentLevel);
@@ -94,42 +63,67 @@ function getFallbackLevel(currentLevel) {
 }
 
 /**
- * Fetches open, unassigned issues for a given difficulty level using the GitHub search API.
+ * Groups issues by their matching difficulty level.
  *
- * Strategy:
- *   - Query issues within the target repository
- *   - Filter by:
- *       - Open state
- *       - No assignee
- *       - Matching difficulty label
- *       - "ready for dev" status label
- *   - Limit results to a small, relevant set
+ * Each issue is assigned to the first matching level in levelsPriority.
  *
- * Behavior:
- *   - Returns an array of issues (may be empty if none found)
- *   - Returns null if the API request fails
- *
- * @param {object} github - Octokit GitHub API client.
- * @param {string} owner - Repository owner.
- * @param {string} repo - Repository name.
- * @param {string} level - Difficulty level used for filtering.
- * @returns {Promise<Array<{ title: string, html_url: string }>|null>}
- *   List of issues, [] if none found, or null on failure.
+ * @param {Array<object>} issues
+ * @param {string[]} levelsPriority
+ * @returns {Object<string, Array<object>>} Issues grouped by level.
  */
-async function fetchIssuesByLevel(github, owner, repo, level) {
+function groupIssuesByLevel(issues, levelsPriority) {
+    const grouped = Object.fromEntries(
+        levelsPriority.map(level => [level, []])
+    );
+
+    for (const issue of issues) {
+        const level = levelsPriority.find(l => hasLabel(issue, l));
+        if (level) grouped[level].push(issue);
+    }
+
+    return grouped;
+}
+
+/**
+ * Returns issues from the highest-priority level with results.
+ *
+ * Limits output to 5 issues.
+ *
+ * @param {Object<string, Array<object>>} grouped
+ * @param {string[]} levelsPriority
+ * @returns {Array<object>} Selected issues or empty array.
+ */
+function pickFirstAvailableLevel(grouped, levelsPriority) {
+    for (const level of levelsPriority) {
+        if (grouped[level].length > 0) {
+            return grouped[level].slice(0, 5);
+        }
+    }
+    return [];
+}
+
+/**
+ * Fetches issues for multiple levels in a single query.
+ *
+ * @param {object} github
+ * @param {string} owner
+ * @param {string} repo
+ * @returns {Promise<Array<{ title: string, html_url: string, labels: Array }> | null>}
+ */
+async function fetchIssuesBatch(github, owner, repo) {
     try {
+
         const query = [
             `repo:${owner}/${repo}`,
             'is:issue',
             'is:open',
             'no:assignee',
-            `label:"${level}"`,
             `label:"${LABELS.READY_FOR_DEV}"`
         ].join(' ');
 
         const result = await github.rest.search.issuesAndPullRequests({
-        q: query,
-        per_page: 5,
+            q: query,
+            per_page: 50,
         });
 
         return result.data.items || [];
@@ -143,127 +137,16 @@ async function fetchIssuesByLevel(github, owner, repo, level) {
 }
 
 /**
- * Safely fetches issues for a given difficulty level with centralized error handling.
+ * Builds the success comment listing recommended issues.
  *
- * Behavior:
- *   - Calls GitHub search API via fetchIssuesByLevel
- *   - Returns [] if no issues are found (valid case)
- *   - Returns null if API fails (error case)
- *   - Posts a single error comment (once per execution) on failure
- *
- * Important:
- *   - []   → valid response, no issues found
- *   - null → API failure, caller should abort execution
- *
- * @param {object} botContext - Bot execution context (GitHub client, repo info, etc.).
- * @param {string} username - GitHub username to mention in error comment.
- * @param {string} level - Difficulty label used for filtering.
- * @param {{ hasErrored: boolean }} errorState - Tracks whether error comment has been posted.
- *
- * @returns {Promise<Array<{ title: string, html_url: string }>|null>} List of issues, or null if API failed.
- */
-async function safeFetchIssues(botContext, username, level, errorState) {
-    const issues = await fetchIssuesByLevel(
-        botContext.github,
-        botContext.owner,
-        botContext.repo,
-        level
-    );
-
-    if (issues === null) {
-        if (!errorState.hasErrored) {
-            await postComment(
-                botContext,
-                buildRecommendationErrorComment(username)
-            );
-            errorState.hasErrored = true;
-        }
-        return null;
-    }
-
-    return issues;
-}
-
-/**
- * Attempts to fetch issues for a given difficulty level.
- *
- * Behavior:
- *   - Skips if level is null/undefined
- *   - Returns [] if no issues found (valid case)
- *   - Returns null if API fails (error case)
- *
- * @param {object} botContext - Bot execution context.
- * @param {string} username - GitHub username (used for error reporting).
- * @param {string|null} level - Difficulty level to query.
- * @param {{ hasErrored: boolean }} errorState - Tracks if error comment was posted.
- *
- * @returns {Promise<Array<{ title: string, html_url: string }>|null>}
- *   List of issues, [] if none found, or null if API failed.
- */
-async function tryLevel(botContext, username, level, errorState) {
-    if (!level) return [];
-
-    const issues = await safeFetchIssues(botContext, username, level, errorState);
-    if (issues === null) return null;
-
-    return issues;
-}
-
-/**
- * Resolves recommended issues using a progressive fallback strategy.
- *
- * Strategy:
- *   1. Try next difficulty level (progression)
- *   2. Try same level
- *   3. Try lower level (fallback), except for Beginner → Good First Issue
- *
- * Stops at the first non-empty result set.
- *
- * Behavior:
- *   - Returns first non-empty list of issues
- *   - Returns [] if no issues found across all levels
- *   - Returns null if any API call fails (caller should abort)
- *
- * @param {object} botContext - Bot execution context.
- * @param {string} username - GitHub username.
- * @param {string} skillLevel - Current difficulty level.
- * @param {{ hasErrored: boolean }} errorState - Shared error state across fetch calls.
- *
- * @returns {Promise<Array<{ title: string, html_url: string }>|null>}
- *   Recommended issues, [] if none found, or null on failure.
- */
-async function getRecommendedIssues(botContext, username, skillLevel, errorState) {
-    const levelsToTry = [
-        getNextLevel(skillLevel),
-        skillLevel,
-        skillLevel !== LABELS.BEGINNER ? getFallbackLevel(skillLevel) : null,
-    ];
-
-    for (const level of levelsToTry) {
-        const issues = await tryLevel(botContext, username, level, errorState);
-
-        if (issues === null) return null;     // API failure
-        if (issues.length > 0) return issues; // first valid result
-    }
-
-    return [];
-}
-
-/**
- * Builds the recommendation comment posted after a successful PR completion.
- *
- * Formats a list of suggested issues as clickable links for easy navigation.
- * Designed to be concise, readable, and actionable within a PR discussion thread.
- *
- * @param {string} username - GitHub username to mention.
- * @param {Array<{ title: string, html_url: string }>} issues - List of recommended issues.
- * @returns {string} Markdown-formatted comment body.
+ * @param {string} username
+ * @param {Array<{ title: string, html_url: string }>} issues
+ * @returns {string}
  */
 function buildRecommendationComment(username, issues) {
     const list = issues.map(
         (issue) => `- [${issue.title}](${issue.html_url})`
     );
-
     return [
         `👋 Hi @${username}! Great work on your recent contribution! 🎉`,
         '',
@@ -276,13 +159,10 @@ function buildRecommendationComment(username, issues) {
 }
 
 /**
- * Builds the error comment posted when issue recommendation fails due to API errors.
+ * Builds an error comment when recommendations fail.
  *
- * Notifies the contributor and tags the maintainer team for manual intervention.
- * This is only posted once per execution to avoid spam.
- *
- * @param {string} username - GitHub username to mention.
- * @returns {string} Markdown-formatted error message.
+ * @param {string} username
+ * @returns {string}
  */
 function buildRecommendationErrorComment(username) {
     return [
@@ -297,24 +177,53 @@ function buildRecommendationErrorComment(username) {
 }
 
 /**
- * Main entry point for issue recommendation workflow.
+ * Returns recommended issues based on priority:
+ * next → same → fallback.
  *
- * Trigger:
- *   - Invoked after a PR is merged
+ * Uses a single API call and filters results locally.
  *
- * Flow:
- *   1. Validate context (sender, linked issue)
- *   2. Determine skill level from issue labels
- *   3. Resolve recommended issues via getRecommendedIssues
- *   4. Post recommendation comment if issues are found
+ * @param {object} botContext
+ * @param {string} username
+ * @param {string} skillLevel
+ * @returns {Promise<Array<{ title: string, html_url: string }>|null>}
+ */
+async function getRecommendedIssues(botContext, username, skillLevel) {
+    const fallback = getFallbackLevel(skillLevel);
+    const nextLevel = getNextLevel(skillLevel);
+
+    const levelsPriority = [
+        nextLevel !== skillLevel ? nextLevel : null,
+        skillLevel,
+        skillLevel !== LABELS.BEGINNER ? fallback : null,
+    ].filter(Boolean);
+
+    const issues = await fetchIssuesBatch(
+        botContext.github,
+        botContext.owner,
+        botContext.repo,
+    );
+
+    if (issues === null) {
+        await postComment(
+            botContext,
+            buildRecommendationErrorComment(username)
+        );
+        return null;
+    }
+
+    const grouped = groupIssuesByLevel(issues, levelsPriority);
+    return pickFirstAvailableLevel(grouped, levelsPriority);
+}
+
+/**
+ * Main handler for issue recommendations after a PR is merged.
  *
- * Behavior:
- *   - Skips silently if:
- *       - sender is missing
- *       - issue is missing
- *       - no skill label is found
- *       - no recommendations are available
- *   - Stops execution if API failure occurs (error comment handled upstream)
+ * - Determines skill level
+ * - Fetches recommended issues
+ * - Posts a comment if results exist
+ *
+ * Skips silently if context is incomplete or no results found.
+ * Returns early on API failure .
  *
  * @param {{
  *   github: object,
@@ -322,8 +231,7 @@ function buildRecommendationErrorComment(username) {
  *   repo: string,
  *   issue: object,
  *   sender: { login: string }
- * }} botContext - Bot execution context.
- *
+ * }} botContext
  * @returns {Promise<void>}
  */
 async function handleRecommendIssues(botContext) {
@@ -346,51 +254,41 @@ async function handleRecommendIssues(botContext) {
         return;
     }
 
-    logger.log('Recommendation context:', {
+    logger.log('recommendation.context', {
         user: username,
         level: skillLevel,
+        issue: botContext.issue?.number,
     });
-
-    const errorState = { hasErrored: false };
 
     const issues = await getRecommendedIssues(
         botContext,
         username,
         skillLevel,
-        errorState
     );
 
     if (issues === null) return;
 
     if (issues.length === 0) {
-        logger.log('No recommendations available for user:', username);
+        logger.log('recommendation.empty', { user: username });
         return;
     }
 
     const comment = buildRecommendationComment(username, issues);
-    logger.log('Attempting to post comment', {
-        repo: botContext.repo,
-        owner: botContext.owner,
-        issueNumber: botContext.number,
+    logger.log('recommendation.postComment', {
+        target: botContext.number,
+        issueSource: botContext.issue?.number,
+        recommendations: issues.length,
     });
-
     const result = await postComment(botContext, comment);
 
     if (!result.success) {
-        logger.error('Failed to post recommendation comment', {
+        logger.error('recommendation.postCommentFailed', {
             error: result.error,
-            repo: botContext.repo,
-            owner: botContext.owner,
-            issueNumber: botContext.issue?.number,
         });
         return;
     }
-    
-    logger.log('Posted recommendation comment', {
-        repo: botContext.repo,
-        owner: botContext.owner,
-        issueNumber: botContext.issue?.number,
-    });
+
+    logger.log('recommendation.posted');
 }
 
 module.exports = { handleRecommendIssues };
