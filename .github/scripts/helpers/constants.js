@@ -30,12 +30,12 @@ const LABELS = Object.freeze({
 /**
  * Skill hierarchy used to determine progression for recommendations.
  */
-const SKILL_HIERARCHY = [
+const SKILL_HIERARCHY = Object.freeze([
     LABELS.GOOD_FIRST_ISSUE,
     LABELS.BEGINNER,
     LABELS.INTERMEDIATE,
     LABELS.ADVANCED,
-];
+]);
 
 /**
  * Issue state values for GitHub search queries.

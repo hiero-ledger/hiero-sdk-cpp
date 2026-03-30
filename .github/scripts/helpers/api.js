@@ -13,7 +13,7 @@ const {
   requirePositiveInt,
   requireSafeUsername,
 } = require('./validation');
-const { LABELS, SKILL_HIERARCHY} = require('./constants');
+const { LABELS, SKILL_HIERARCHY } = require('./constants');
 const { checkDCO, checkGPG, checkMergeConflict, checkIssueLink } = require('./checks');
 const { buildBotComment } = require('./comments');
 
@@ -491,7 +491,7 @@ async function runAllChecksAndComment(botContext) {
  *
  * Strategy:
  *   - Fetch closing issue references via GraphQL
- *   - Return the first linked issue (if multiple exist)
+ *   - If multiple issues, return the one with the highest skill level
  *   - Return null if no linked issues found
  *
  * Notes:
@@ -499,7 +499,6 @@ async function runAllChecksAndComment(botContext) {
  *   - Does NOT throw — failures are handled gracefully
  *
  * @param {object} botContext
- * @param {object} logger
  * @returns {Promise<object|null>}
  */
 async function resolveLinkedIssue(botContext) {
