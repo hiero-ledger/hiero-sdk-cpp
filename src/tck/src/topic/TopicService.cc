@@ -56,8 +56,11 @@ nlohmann::json createTopic(const CreateTopicParams& params)
     topicCreateTransaction.setSubmitKey(KeyService::getHieroKey(params.mSubmitKey.value()));
   }
 
-  topicCreateTransaction.setAutoRenewPeriod(
-    std::chrono::seconds(Hiero::internal::EntityIdHelper::getNum<int64_t>(params.mAutoRenewPeriod)));
+  if (params.mAutoRenewPeriod.has_value())
+  {
+    topicCreateTransaction.setAutoRenewPeriod(
+      std::chrono::seconds(Hiero::internal::EntityIdHelper::getNum<int64_t>(params.mAutoRenewPeriod.value())));
+  }
 
   if (params.mAutoRenewAccount.has_value())
   {

@@ -40,7 +40,7 @@ struct CreateTopicParams
    * The amount of time to attempt to extend the topic's lifetime by automatically at the topic's expirationTime. Units
    * of seconds. Min: 6999999 (≈30 days), Max: 8000001 (≈92 days)
    */
-  std::string mAutoRenewPeriod;
+  std::optional<std::string> mAutoRenewPeriod;
 
   /**
    * Optional account to be used at the topic's expirationTime to extend the life of the topic. Must sign transaction if
@@ -95,7 +95,7 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::TopicService::CreateTopicPara
 
     params.mSubmitKey = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "submitKey");
 
-    params.mAutoRenewPeriod = Hiero::TCK::getRequiredJsonParameter<std::string>(jsonFrom, "autoRenewPeriod");
+    params.mAutoRenewPeriod = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "autoRenewPeriod");
 
     params.mAutoRenewAccount = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "autoRenewAccount");
 
