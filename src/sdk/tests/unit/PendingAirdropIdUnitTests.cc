@@ -83,6 +83,90 @@ TEST_F(PendingAirdropIdUnitTests, FromProtobuf)
 }
 
 //-----
+TEST_F(PendingAirdropIdUnitTests, FromProtobufNft)
+{
+  // Given
+  proto::PendingAirdropId proto;
+  proto.mutable_sender_id()->set_shardnum(1);
+  proto.mutable_sender_id()->set_realmnum(2);
+  proto.mutable_sender_id()->set_accountnum(3);
+
+  proto.mutable_receiver_id()->set_shardnum(4);
+  proto.mutable_receiver_id()->set_realmnum(5);
+  proto.mutable_receiver_id()->set_accountnum(6);
+
+  proto.mutable_non_fungible_token()->mutable_token_id()->set_shardnum(7);
+  proto.mutable_non_fungible_token()->mutable_token_id()->set_realmnum(8);
+  proto.mutable_non_fungible_token()->mutable_token_id()->set_tokennum(9);
+  proto.mutable_non_fungible_token()->set_serial_number(10);
+
+  // When
+  PendingAirdropId pendingAirdrop = PendingAirdropId::fromProtobuf(proto);
+
+  // Then
+  EXPECT_EQ(pendingAirdrop.mSender, AccountId(1, 2, 3));
+  EXPECT_EQ(pendingAirdrop.mReceiver, AccountId(4, 5, 6));
+  EXPECT_FALSE(pendingAirdrop.mFt.has_value());
+  EXPECT_TRUE(pendingAirdrop.mNft.has_value());
+  EXPECT_EQ(pendingAirdrop.mNft.value(), NftId(TokenId(7, 8, 9), 10));
+}
+
+//-----
+TEST_F(PendingAirdropIdUnitTests, OperatorEqualsFt)
+{
+  // Given
+  PendingAirdropId lhs(AccountId(1, 2, 3), AccountId(4, 5, 6), TokenId(7, 8, 9));
+  PendingAirdropId rhs(AccountId(1, 2, 3), AccountId(4, 5, 6), TokenId(7, 8, 9));
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(PendingAirdropIdUnitTests, OperatorEqualsNft)
+{
+  // Given
+  PendingAirdropId lhs(AccountId(1, 2, 3), AccountId(4, 5, 6), NftId(TokenId(7, 8, 9), 10));
+  PendingAirdropId rhs(AccountId(1, 2, 3), AccountId(4, 5, 6), NftId(TokenId(7, 8, 9), 10));
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(PendingAirdropIdUnitTests, OperatorNotEqualsDifferentSender)
+{
+  // Given
+  PendingAirdropId lhs(AccountId(1, 2, 3), AccountId(4, 5, 6), TokenId(7, 8, 9));
+  PendingAirdropId rhs(AccountId(10, 2, 3), AccountId(4, 5, 6), TokenId(7, 8, 9));
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(PendingAirdropIdUnitTests, OperatorNotEqualsDifferentReceiver)
+{
+  // Given
+  PendingAirdropId lhs(AccountId(1, 2, 3), AccountId(4, 5, 6), TokenId(7, 8, 9));
+  PendingAirdropId rhs(AccountId(1, 2, 3), AccountId(4, 5, 10), TokenId(7, 8, 9));
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(PendingAirdropIdUnitTests, OperatorNotEqualsDifferentToken)
+{
+  // Given
+  PendingAirdropId lhs(AccountId(1, 2, 3), AccountId(4, 5, 6), TokenId(7, 8, 9));
+  PendingAirdropId rhs(AccountId(1, 2, 3), AccountId(4, 5, 6), TokenId(7, 8, 10));
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
 TEST_F(PendingAirdropIdUnitTests, ToProtobuf)
 {
   // Given
