@@ -44,6 +44,11 @@
 #include "token/params/UpdateTokenFeeScheduleParams.h"
 #include "token/params/UpdateTokenParams.h"
 #include "token/params/WipeTokenParams.h"
+#include "topic/TopicService.h"
+#include "topic/params/CreateTopicParams.h"
+#include "topic/params/DeleteTopicParams.h"
+#include "topic/params/GetTopicInfoQueryParams.h"
+#include "topic/params/TopicMessageSubmitParams.h"
 #include "json/JsonUtils.h"
 
 namespace Hiero::TCK
@@ -96,6 +101,12 @@ TckServer::TckServer(int port)
   mJsonRpcParser.addMethod("updateToken", getHandle(TokenService::updateToken));
   mJsonRpcParser.addMethod("updateTokenFeeSchedule", getHandle(TokenService::updateTokenFeeSchedule));
   mJsonRpcParser.addMethod("wipeToken", getHandle(TokenService::wipeToken));
+
+  // Topic Service
+  mJsonRpcParser.addMethod("createTopic", getHandle(TopicService::createTopic));
+  mJsonRpcParser.addMethod("deleteTopic", getHandle(TopicService::deleteTopic));
+  mJsonRpcParser.addMethod("getTopicInfo", getHandle(TopicService::getTopicInfo));
+  mJsonRpcParser.addMethod("submitTopicMessage", getHandle(TopicService::submitTopicMessage));
 
   // Add the FileService functions.
   mJsonRpcParser.addMethod("appendFile", getHandle(FileService::appendFile));
@@ -225,5 +236,13 @@ template TckServer::MethodHandle TckServer::getHandle<FileService::GetFileInfoPa
   nlohmann::json (*method)(const FileService::GetFileInfoParams&));
 template TckServer::MethodHandle TckServer::getHandle<FileService::UpdateFileParams>(
   nlohmann::json (*method)(const FileService::UpdateFileParams&));
+template TckServer::MethodHandle TckServer::getHandle<TopicService::CreateTopicParams>(
+  nlohmann::json (*method)(const TopicService::CreateTopicParams&));
+template TckServer::MethodHandle TckServer::getHandle<TopicService::DeleteTopicParams>(
+  nlohmann::json (*method)(const TopicService::DeleteTopicParams&));
+template TckServer::MethodHandle TckServer::getHandle<TopicService::GetTopicInfoQueryParams>(
+  nlohmann::json (*method)(const TopicService::GetTopicInfoQueryParams&));
+template TckServer::MethodHandle TckServer::getHandle<TopicService::TopicMessageSubmitParams>(
+  nlohmann::json (*method)(const TopicService::TopicMessageSubmitParams&));
 
 } // namespace Hiero::TCK
