@@ -71,7 +71,7 @@ public:
   /**
    * Construct a DelegateContractId object from a DelegateContractId protobuf object.
    *
-   * @param proto The DelegateContractId protobuf object from which to create an DelegateContractId object.
+   * @param proto The DelegateContractId protobuf object from which to create a DelegateContractId object.
    * @return The constructed DelegateContractId object.
    */
   [[nodiscard]] static DelegateContractId fromProtobuf(const proto::ContractID& id);
