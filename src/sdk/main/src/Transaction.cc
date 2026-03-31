@@ -312,8 +312,8 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
   // Only FileAppend and TopicMessageSubmit (chunked transactions) legitimately have multiple transactionIds.
   // This prevents an attacker from smuggling hidden transactions with different transactionIds
   // that would get signed but not displayed to the user.
-  const auto transactionType = (expectedDataCase != proto::TransactionBody::DATA_NOT_SET) ? expectedDataCase
-                                                                                            : txBody.data_case();
+  const auto transactionType =
+    (expectedDataCase != proto::TransactionBody::DATA_NOT_SET) ? expectedDataCase : txBody.data_case();
   const bool isChunkedTransactionType = (transactionType == proto::TransactionBody::kFileAppend ||
                                          transactionType == proto::TransactionBody::kConsensusSubmitMessage);
 
