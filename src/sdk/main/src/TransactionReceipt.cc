@@ -104,6 +104,11 @@ TransactionReceipt TransactionReceipt::fromProtobuf(const proto::TransactionRece
 
   receipt.mNodeId = proto.node_id();
 
+  if (proto.registered_node_id() != 0ULL)
+  {
+    receipt.mRegisteredNodeId = proto.registered_node_id();
+  }
+
   return receipt;
 }
 
@@ -183,6 +188,11 @@ std::unique_ptr<proto::TransactionReceipt> TransactionReceipt::toProtobuf() cons
   if (mNodeId.has_value())
   {
     proto->set_node_id(mNodeId.value());
+  }
+
+  if (mRegisteredNodeId.has_value())
+  {
+    proto->set_registered_node_id(mRegisteredNodeId.value());
   }
 
   return proto;
@@ -271,6 +281,11 @@ std::string TransactionReceipt::toString() const
   if (mNodeId.has_value())
   {
     json["mNodeId"] = mNodeId.value();
+  }
+
+  if (mRegisteredNodeId.has_value())
+  {
+    json["mRegisteredNodeId"] = mRegisteredNodeId.value();
   }
 
   return json.dump();
