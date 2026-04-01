@@ -55,7 +55,7 @@ NftId NftId::fromProtobuf(const proto::NftID& proto)
 }
 
 //-----
-NftId NftId::fromBytes(const std::vector<std::byte>& bytes) 
+NftId NftId::fromBytes(const std::vector<std::byte>& bytes)
 {
   proto::NftID proto;
   proto.ParseFromArray(bytes.data(), static_cast<int>(bytes.size()));

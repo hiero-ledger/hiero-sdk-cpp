@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "NftId.h"
-#include "Client.h"
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
@@ -102,8 +101,7 @@ TEST_F(NftIdUnitTests, FromBytes)
   protoNftId.set_serial_number(static_cast<int64_t>(getTestSerialNum()));
 
   // When
-  const NftId nftId =
-    NftId::fromBytes(internal::Utilities::stringToByteVector(protoNftId.SerializeAsString()));
+  const NftId nftId = NftId::fromBytes(internal::Utilities::stringToByteVector(protoNftId.SerializeAsString()));
 
   // Then
   EXPECT_EQ(nftId.mSerialNum, getTestSerialNum());
@@ -118,8 +116,7 @@ TEST_F(NftIdUnitTests, ToBytes)
   protoNftId.set_allocated_token_id(getTestTokenId().toProtobuf().release());
   protoNftId.set_serial_number(static_cast<int64_t>(getTestSerialNum()));
 
-  const std::vector<std::byte> protoBytes =
-    internal::Utilities::stringToByteVector(protoNftId.SerializeAsString());
+  const std::vector<std::byte> protoBytes = internal::Utilities::stringToByteVector(protoNftId.SerializeAsString());
   const NftId nftId(getTestTokenId(), getTestSerialNum());
 
   // When
