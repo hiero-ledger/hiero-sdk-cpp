@@ -15,6 +15,7 @@ const {
   hasLabel,
 } = require('../helpers/api');
 const { LABELS } = require('../helpers/constants');
+const { isSafeSearchToken } = require('../helpers/validation');
 
 // =============================================================================
 // MOCK FACTORY
@@ -456,6 +457,34 @@ const unitTests = [
       await swapStatusLabel(botContext, false);
       return calls.labelsRemoved.length === 0 && calls.labelsAdded.length === 0;
     },
+  },
+
+  // ---------------------------------------------------------------------------
+  // SafeSearchToken
+  // ---------------------------------------------------------------------------
+  {
+    name: 'isSafeSearchToken: dependabot[bot] → true',
+    test: () => isSafeSearchToken('dependabot[bot]') === true,
+  },
+  {
+    name: 'isSafeSearchToken: string with spaces → false',
+    test: () => isSafeSearchToken('bad username') === false,
+  },
+  {
+    name: 'isSafeSearchToken: string with bad characters → false',
+    test: () => isSafeSearchToken('bad<username>') === false,
+  },
+  {
+    name: 'isSafeSearchToken: string with bad characters → false',
+    test: () => isSafeSearchToken('bad;username') === false,
+  },
+  {
+    name: 'isSafeSearchToken: string with brackets but not bot inside → false',
+    test: () => isSafeSearchToken('bad[admin]') === false,
+  },
+  {
+    name: 'isSafeSearchToken: string with multiple brackets → false',
+    test: () => isSafeSearchToken('bad[[admin]') === false,
   },
 ];
 
