@@ -9,6 +9,7 @@
 #include "TransactionReceipt.h"
 #include "TransactionResponse.h"
 #include "exceptions/PrecheckStatusException.h"
+#include "exceptions/ReceiptStatusException.h"
 
 #include <gtest/gtest.h>
 
@@ -82,7 +83,7 @@ TEST_F(RegisteredNodeDeleteTransactionIntegrationTests,
                  .sign(adminKey)
                  .execute(getTestClient())
                  .getReceipt(getTestClient()),
-               PrecheckStatusException);
+               ReceiptStatusException);
 }
 
 //-----
@@ -100,7 +101,7 @@ TEST_F(RegisteredNodeDeleteTransactionIntegrationTests,
                  .sign(adminKey)
                  .execute(getTestClient())
                  .getReceipt(getTestClient()),
-               PrecheckStatusException);
+               ReceiptStatusException);
 }
 
 //-----
