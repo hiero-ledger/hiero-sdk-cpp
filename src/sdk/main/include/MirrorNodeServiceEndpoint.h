@@ -27,16 +27,16 @@ public:
    * @param proto The RegisteredServiceEndpoint protobuf object from which to construct.
    * @return The constructed MirrorNodeServiceEndpoint.
    */
-  [[nodiscard]] static MirrorNodeServiceEndpoint
-  fromProtobuf(const com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint& proto);
+  [[nodiscard]] static MirrorNodeServiceEndpoint fromProtobuf(
+    const com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint& proto);
 
   /**
    * Construct a RegisteredServiceEndpoint protobuf object from this MirrorNodeServiceEndpoint.
    *
    * @return A unique_ptr to the constructed RegisteredServiceEndpoint protobuf object.
    */
-  [[nodiscard]] std::unique_ptr<com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint>
-  toProtobuf() const override;
+  [[nodiscard]] std::unique_ptr<com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint> toProtobuf()
+    const override;
 
   /**
    * Construct a string representation of this MirrorNodeServiceEndpoint.

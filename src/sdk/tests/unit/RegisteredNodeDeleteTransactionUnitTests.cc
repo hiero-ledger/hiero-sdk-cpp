@@ -13,12 +13,11 @@ protected:
 };
 
 //-----
-TEST_F(RegisteredNodeDeleteTransactionUnitTests,
-       ConstructRegisteredNodeDeleteTransactionFromTransactionBodyProtobuf)
+TEST_F(RegisteredNodeDeleteTransactionUnitTests, ConstructRegisteredNodeDeleteTransactionFromTransactionBodyProtobuf)
 {
   // Given
   proto::TransactionBody transactionBody;
-  aproto::RegisteredNodeDeleteTransactionBody* body = transactionBody.mutable_registerednodedelete();
+  auto* body = transactionBody.mutable_registerednodedelete();
   body->set_registered_node_id(42ULL);
 
   // When

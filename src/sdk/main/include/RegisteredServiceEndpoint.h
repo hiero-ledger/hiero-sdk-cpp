@@ -36,16 +36,16 @@ public:
    * @return A unique_ptr to the constructed RegisteredServiceEndpoint subtype.
    * @throws std::invalid_argument If the endpoint_type oneof is not set.
    */
-  [[nodiscard]] static std::unique_ptr<RegisteredServiceEndpoint>
-  fromProtobuf(const com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint& proto);
+  [[nodiscard]] static std::unique_ptr<RegisteredServiceEndpoint> fromProtobuf(
+    const com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint& proto);
 
   /**
    * Construct a RegisteredServiceEndpoint protobuf object from this RegisteredServiceEndpoint object.
    *
    * @return A unique_ptr to the constructed RegisteredServiceEndpoint protobuf object.
    */
-  [[nodiscard]] virtual std::unique_ptr<com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint>
-  toProtobuf() const = 0;
+  [[nodiscard]] virtual std::unique_ptr<com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint> toProtobuf()
+    const = 0;
 
   /**
    * Construct a string representation of this RegisteredServiceEndpoint object.

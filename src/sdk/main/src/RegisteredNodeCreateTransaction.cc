@@ -68,14 +68,7 @@ grpc::Status RegisteredNodeCreateTransaction::submitRequest(const proto::Transac
                                                             const std::chrono::system_clock::time_point& deadline,
                                                             proto::TransactionResponse* response) const
 {
-  return node->submitTransaction(
-    proto::TransactionBody::DataCase::kRegisteredNodeCreate, request, deadline, response);
-}
-
-//-----
-void RegisteredNodeCreateTransaction::validateChecksums(const Client& /*client*/) const
-{
-  // No entity IDs to validate.
+  return node->submitTransaction(proto::TransactionBody::DataCase::kRegisteredNodeCreate, request, deadline, response);
 }
 
 //-----
@@ -94,7 +87,7 @@ void RegisteredNodeCreateTransaction::initFromSourceTransactionBody()
     throw std::invalid_argument("Transaction body doesn't contain RegisteredNodeCreate data");
   }
 
-  const aproto::RegisteredNodeCreateTransactionBody& body = transactionBody.registerednodecreate();
+  const auto& body = transactionBody.registerednodecreate();
 
   if (body.has_admin_key())
   {
@@ -110,9 +103,10 @@ void RegisteredNodeCreateTransaction::initFromSourceTransactionBody()
 }
 
 //-----
-aproto::RegisteredNodeCreateTransactionBody* RegisteredNodeCreateTransaction::build() const
+com::hedera::hapi::node::addressbook::RegisteredNodeCreateTransactionBody* RegisteredNodeCreateTransaction::build()
+  const
 {
-  auto body = std::make_unique<aproto::RegisteredNodeCreateTransactionBody>();
+  auto body = std::make_unique<com::hedera::hapi::node::addressbook::RegisteredNodeCreateTransactionBody>();
 
   if (mAdminKey != nullptr)
   {

@@ -24,12 +24,11 @@ protected:
 };
 
 //-----
-TEST_F(RegisteredNodeUpdateTransactionUnitTests,
-       ConstructRegisteredNodeUpdateTransactionFromTransactionBodyProtobuf)
+TEST_F(RegisteredNodeUpdateTransactionUnitTests, ConstructRegisteredNodeUpdateTransactionFromTransactionBodyProtobuf)
 {
   // Given
   proto::TransactionBody transactionBody;
-  aproto::RegisteredNodeUpdateTransactionBody* body = transactionBody.mutable_registerednodeupdate();
+  auto* body = transactionBody.mutable_registerednodeupdate();
   body->set_registered_node_id(5ULL);
   body->mutable_description()->set_value("Updated Description");
 
@@ -50,12 +49,11 @@ TEST_F(RegisteredNodeUpdateTransactionUnitTests,
 }
 
 //-----
-TEST_F(RegisteredNodeUpdateTransactionUnitTests,
-       ConstructFromTransactionBodyWithNoOptionalFields)
+TEST_F(RegisteredNodeUpdateTransactionUnitTests, ConstructFromTransactionBodyWithNoOptionalFields)
 {
   // Given: only required field set
   proto::TransactionBody transactionBody;
-  aproto::RegisteredNodeUpdateTransactionBody* body = transactionBody.mutable_registerednodeupdate();
+  auto* body = transactionBody.mutable_registerednodeupdate();
   body->set_registered_node_id(3ULL);
 
   // When

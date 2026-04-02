@@ -40,8 +40,7 @@ protected:
 };
 
 //-----
-TEST_F(RegisteredNodeUpdateTransactionIntegrationTests,
-       DISABLED_CanUpdateRegisteredNodeDescription)
+TEST_F(RegisteredNodeUpdateTransactionIntegrationTests, CanUpdateRegisteredNodeDescription)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
@@ -61,8 +60,7 @@ TEST_F(RegisteredNodeUpdateTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(RegisteredNodeUpdateTransactionIntegrationTests,
-       DISABLED_CanReplaceRegisteredNodeServiceEndpoints)
+TEST_F(RegisteredNodeUpdateTransactionIntegrationTests, CanReplaceRegisteredNodeServiceEndpoints)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
@@ -85,8 +83,7 @@ TEST_F(RegisteredNodeUpdateTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(RegisteredNodeUpdateTransactionIntegrationTests,
-       DISABLED_CanChangeAdminKeyWhenSignedByBothKeys)
+TEST_F(RegisteredNodeUpdateTransactionIntegrationTests, CanChangeAdminKeyWhenSignedByBothKeys)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> oldAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -108,8 +105,7 @@ TEST_F(RegisteredNodeUpdateTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(RegisteredNodeUpdateTransactionIntegrationTests,
-       DISABLED_FailsToChangeAdminKeyWhenOnlyOldKeySign)
+TEST_F(RegisteredNodeUpdateTransactionIntegrationTests, FailsToChangeAdminKeyWhenOnlyOldKeySign)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> oldAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -128,8 +124,7 @@ TEST_F(RegisteredNodeUpdateTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(RegisteredNodeUpdateTransactionIntegrationTests,
-       DISABLED_FailsToUpdateNonExistentRegisteredNode)
+TEST_F(RegisteredNodeUpdateTransactionIntegrationTests, FailsToUpdateNonExistentRegisteredNode)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();

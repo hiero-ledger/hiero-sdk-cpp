@@ -28,13 +28,12 @@ protected:
 };
 
 //-----
-TEST_F(RegisteredNodeCreateTransactionUnitTests,
-       ConstructRegisteredNodeCreateTransactionFromTransactionBodyProtobuf)
+TEST_F(RegisteredNodeCreateTransactionUnitTests, ConstructRegisteredNodeCreateTransactionFromTransactionBodyProtobuf)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
   proto::TransactionBody transactionBody;
-  aproto::RegisteredNodeCreateTransactionBody* body = transactionBody.mutable_registerednodecreate();
+  auto* body = transactionBody.mutable_registerednodecreate();
 
   body->set_allocated_admin_key(adminKey->toProtobufKey().release());
   body->set_description("Test Node");
@@ -44,8 +43,7 @@ TEST_F(RegisteredNodeCreateTransactionUnitTests,
   ep->set_port(8080);
   ep->set_requires_tls(true);
   ep->mutable_block_node()->set_endpoint_api(
-    com::hedera::hapi::node::addressbook::
-      RegisteredServiceEndpoint_BlockNodeEndpoint_BlockNodeApi_SUBSCRIBE_STREAM);
+    com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint_BlockNodeEndpoint_BlockNodeApi_SUBSCRIBE_STREAM);
 
   // When
   RegisteredNodeCreateTransaction tx(transactionBody);
@@ -147,8 +145,7 @@ TEST_F(RegisteredNodeCreateTransactionUnitTests, SerializeDeserializeRoundTrip)
   ep->set_port(8080);
   ep->set_requires_tls(true);
   ep->mutable_block_node()->set_endpoint_api(
-    com::hedera::hapi::node::addressbook::
-      RegisteredServiceEndpoint_BlockNodeEndpoint_BlockNodeApi_SUBSCRIBE_STREAM);
+    com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint_BlockNodeEndpoint_BlockNodeApi_SUBSCRIBE_STREAM);
 
   RegisteredNodeCreateTransaction tx2(txBody);
 

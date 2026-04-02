@@ -665,9 +665,18 @@ template class Executable<NodeCreateTransaction, proto::Transaction, proto::Tran
 template class Executable<NodeDeleteTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 template class Executable<NodeUpdateTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 template class Executable<PrngTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
-template class Executable<RegisteredNodeCreateTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
-template class Executable<RegisteredNodeDeleteTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
-template class Executable<RegisteredNodeUpdateTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
+template class Executable<RegisteredNodeCreateTransaction,
+                          proto::Transaction,
+                          proto::TransactionResponse,
+                          TransactionResponse>;
+template class Executable<RegisteredNodeDeleteTransaction,
+                          proto::Transaction,
+                          proto::TransactionResponse,
+                          TransactionResponse>;
+template class Executable<RegisteredNodeUpdateTransaction,
+                          proto::Transaction,
+                          proto::TransactionResponse,
+                          TransactionResponse>;
 template class Executable<ScheduleCreateTransaction,
                           proto::Transaction,
                           proto::TransactionResponse,

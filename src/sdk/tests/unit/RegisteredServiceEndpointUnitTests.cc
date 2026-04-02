@@ -66,9 +66,11 @@ TEST_F(RegisteredServiceEndpointUnitTests, BlockNodeServiceEndpointRoundTripWith
 //-----
 TEST_F(RegisteredServiceEndpointUnitTests, BlockNodeServiceEndpointAllApiValues)
 {
-  for (auto api :
-       { BlockNodeApi::OTHER, BlockNodeApi::STATUS, BlockNodeApi::PUBLISH, BlockNodeApi::SUBSCRIBE_STREAM,
-         BlockNodeApi::STATE_PROOF })
+  for (auto api : { BlockNodeApi::OTHER,
+                    BlockNodeApi::STATUS,
+                    BlockNodeApi::PUBLISH,
+                    BlockNodeApi::SUBSCRIBE_STREAM,
+                    BlockNodeApi::STATE_PROOF })
   {
     BlockNodeServiceEndpoint ep;
     ep.setDomainName("test.example.com");

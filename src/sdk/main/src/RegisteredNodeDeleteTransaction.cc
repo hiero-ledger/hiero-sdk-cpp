@@ -40,14 +40,7 @@ grpc::Status RegisteredNodeDeleteTransaction::submitRequest(const proto::Transac
                                                             const std::chrono::system_clock::time_point& deadline,
                                                             proto::TransactionResponse* response) const
 {
-  return node->submitTransaction(
-    proto::TransactionBody::DataCase::kRegisteredNodeDelete, request, deadline, response);
-}
-
-//-----
-void RegisteredNodeDeleteTransaction::validateChecksums(const Client& /*client*/) const
-{
-  // No entity IDs to validate.
+  return node->submitTransaction(proto::TransactionBody::DataCase::kRegisteredNodeDelete, request, deadline, response);
 }
 
 //-----
@@ -70,9 +63,10 @@ void RegisteredNodeDeleteTransaction::initFromSourceTransactionBody()
 }
 
 //-----
-aproto::RegisteredNodeDeleteTransactionBody* RegisteredNodeDeleteTransaction::build() const
+com::hedera::hapi::node::addressbook::RegisteredNodeDeleteTransactionBody* RegisteredNodeDeleteTransaction::build()
+  const
 {
-  auto body = std::make_unique<aproto::RegisteredNodeDeleteTransactionBody>();
+  auto body = std::make_unique<com::hedera::hapi::node::addressbook::RegisteredNodeDeleteTransactionBody>();
   body->set_registered_node_id(mRegisteredNodeId);
   return body.release();
 }

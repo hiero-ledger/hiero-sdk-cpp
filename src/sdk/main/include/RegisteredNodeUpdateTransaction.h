@@ -22,8 +22,6 @@ namespace com::hedera::hapi::node::addressbook
 class RegisteredNodeUpdateTransactionBody;
 }
 
-namespace aproto = com::hedera::hapi::node::addressbook;
-
 namespace Hiero
 {
 class Key;
@@ -161,11 +159,9 @@ private:
 
   /**
    * Derived from Transaction. Verify that all the checksums in this RegisteredNodeUpdateTransaction are valid.
-   *
-   * @param client The Client that should be used to validate the checksums.
-   * @throws BadEntityException This RegisteredNodeUpdateTransaction's checksums are not valid.
+   * This transaction has no entity IDs to validate.
    */
-  void validateChecksums(const Client& client) const override;
+  void validateChecksums(const Client& /*client*/) const override{};
 
   /**
    * Derived from Transaction. Build and add the RegisteredNodeUpdateTransaction protobuf representation to the
@@ -186,7 +182,7 @@ private:
    * @return A pointer to a RegisteredNodeUpdateTransactionBody protobuf object filled with this
    *         RegisteredNodeUpdateTransaction object's data.
    */
-  [[nodiscard]] aproto::RegisteredNodeUpdateTransactionBody* build() const;
+  [[nodiscard]] com::hedera::hapi::node::addressbook::RegisteredNodeUpdateTransactionBody* build() const;
 
   /**
    * The identifier of the registered node to update.

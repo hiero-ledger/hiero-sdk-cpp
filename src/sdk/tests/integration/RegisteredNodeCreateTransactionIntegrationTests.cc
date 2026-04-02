@@ -28,8 +28,7 @@ protected:
 };
 
 //-----
-TEST_F(RegisteredNodeCreateTransactionIntegrationTests,
-       DISABLED_CanCreateRegisteredNodeWithBlockNodeEndpoint)
+TEST_F(RegisteredNodeCreateTransactionIntegrationTests, CanCreateRegisteredNodeWithBlockNodeEndpoint)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
@@ -52,8 +51,7 @@ TEST_F(RegisteredNodeCreateTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(RegisteredNodeCreateTransactionIntegrationTests,
-       DISABLED_CanCreateRegisteredNodeWithMirrorNodeEndpoint)
+TEST_F(RegisteredNodeCreateTransactionIntegrationTests, CanCreateRegisteredNodeWithMirrorNodeEndpoint)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
@@ -76,8 +74,7 @@ TEST_F(RegisteredNodeCreateTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(RegisteredNodeCreateTransactionIntegrationTests,
-       DISABLED_CanCreateRegisteredNodeWithRpcRelayEndpoint)
+TEST_F(RegisteredNodeCreateTransactionIntegrationTests, CanCreateRegisteredNodeWithRpcRelayEndpoint)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
@@ -100,8 +97,7 @@ TEST_F(RegisteredNodeCreateTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(RegisteredNodeCreateTransactionIntegrationTests,
-       DISABLED_CanCreateRegisteredNodeWithMixedEndpoints)
+TEST_F(RegisteredNodeCreateTransactionIntegrationTests, CanCreateRegisteredNodeWithMixedEndpoints)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
@@ -128,8 +124,7 @@ TEST_F(RegisteredNodeCreateTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(RegisteredNodeCreateTransactionIntegrationTests,
-       DISABLED_CanCreateRegisteredNodeWithDescription)
+TEST_F(RegisteredNodeCreateTransactionIntegrationTests, CanCreateRegisteredNodeWithDescription)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();

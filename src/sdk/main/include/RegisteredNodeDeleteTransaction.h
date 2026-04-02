@@ -16,8 +16,6 @@ namespace com::hedera::hapi::node::addressbook
 class RegisteredNodeDeleteTransactionBody;
 }
 
-namespace aproto = com::hedera::hapi::node::addressbook;
-
 namespace Hiero
 {
 /**
@@ -84,11 +82,9 @@ private:
 
   /**
    * Derived from Transaction. Verify that all the checksums in this RegisteredNodeDeleteTransaction are valid.
-   *
-   * @param client The Client that should be used to validate the checksums.
-   * @throws BadEntityException This RegisteredNodeDeleteTransaction's checksums are not valid.
+   * This transaction has no entity IDs to validate.
    */
-  void validateChecksums(const Client& client) const override;
+  void validateChecksums(const Client& /*client*/) const override{};
 
   /**
    * Derived from Transaction. Build and add the RegisteredNodeDeleteTransaction protobuf representation to the
@@ -109,7 +105,7 @@ private:
    * @return A pointer to a RegisteredNodeDeleteTransactionBody protobuf object filled with this
    *         RegisteredNodeDeleteTransaction object's data.
    */
-  [[nodiscard]] aproto::RegisteredNodeDeleteTransactionBody* build() const;
+  [[nodiscard]] com::hedera::hapi::node::addressbook::RegisteredNodeDeleteTransactionBody* build() const;
 
   /**
    * The identifier of the registered node to delete.

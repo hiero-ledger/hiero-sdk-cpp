@@ -20,8 +20,8 @@ BlockNodeServiceEndpoint BlockNodeServiceEndpoint::fromProtobuf(
 }
 
 //-----
-std::unique_ptr<com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint>
-BlockNodeServiceEndpoint::toProtobuf() const
+std::unique_ptr<com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint> BlockNodeServiceEndpoint::toProtobuf()
+  const
 {
   auto proto = std::make_unique<com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint>();
   fillCommonFields(*proto);

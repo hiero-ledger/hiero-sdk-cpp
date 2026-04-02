@@ -82,14 +82,7 @@ grpc::Status RegisteredNodeUpdateTransaction::submitRequest(const proto::Transac
                                                             const std::chrono::system_clock::time_point& deadline,
                                                             proto::TransactionResponse* response) const
 {
-  return node->submitTransaction(
-    proto::TransactionBody::DataCase::kRegisteredNodeUpdate, request, deadline, response);
-}
-
-//-----
-void RegisteredNodeUpdateTransaction::validateChecksums(const Client& /*client*/) const
-{
-  // No entity IDs to validate.
+  return node->submitTransaction(proto::TransactionBody::DataCase::kRegisteredNodeUpdate, request, deadline, response);
 }
 
 //-----
@@ -108,7 +101,7 @@ void RegisteredNodeUpdateTransaction::initFromSourceTransactionBody()
     throw std::invalid_argument("Transaction body doesn't contain RegisteredNodeUpdate data");
   }
 
-  const aproto::RegisteredNodeUpdateTransactionBody& body = transactionBody.registerednodeupdate();
+  const auto& body = transactionBody.registerednodeupdate();
 
   mRegisteredNodeId = body.registered_node_id();
 
@@ -129,9 +122,10 @@ void RegisteredNodeUpdateTransaction::initFromSourceTransactionBody()
 }
 
 //-----
-aproto::RegisteredNodeUpdateTransactionBody* RegisteredNodeUpdateTransaction::build() const
+com::hedera::hapi::node::addressbook::RegisteredNodeUpdateTransactionBody* RegisteredNodeUpdateTransaction::build()
+  const
 {
-  auto body = std::make_unique<aproto::RegisteredNodeUpdateTransactionBody>();
+  auto body = std::make_unique<com::hedera::hapi::node::addressbook::RegisteredNodeUpdateTransactionBody>();
 
   body->set_registered_node_id(mRegisteredNodeId);
 

@@ -41,8 +41,7 @@ protected:
 };
 
 //-----
-TEST_F(RegisteredNodeDeleteTransactionIntegrationTests,
-       DISABLED_CanDeleteRegisteredNode)
+TEST_F(RegisteredNodeDeleteTransactionIntegrationTests, CanDeleteRegisteredNode)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
@@ -61,8 +60,7 @@ TEST_F(RegisteredNodeDeleteTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(RegisteredNodeDeleteTransactionIntegrationTests,
-       DISABLED_FailsToDeleteAlreadyDeletedNode)
+TEST_F(RegisteredNodeDeleteTransactionIntegrationTests, FailsToDeleteAlreadyDeletedNode)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
@@ -87,8 +85,7 @@ TEST_F(RegisteredNodeDeleteTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(RegisteredNodeDeleteTransactionIntegrationTests,
-       DISABLED_FailsToDeleteNonExistentNode)
+TEST_F(RegisteredNodeDeleteTransactionIntegrationTests, FailsToDeleteNonExistentNode)
 {
   // Given
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
@@ -105,8 +102,7 @@ TEST_F(RegisteredNodeDeleteTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(RegisteredNodeDeleteTransactionIntegrationTests,
-       DISABLED_CanCreateConsensusNodeWithAssociatedRegisteredNodes)
+TEST_F(RegisteredNodeDeleteTransactionIntegrationTests, CanCreateConsensusNodeWithAssociatedRegisteredNodes)
 {
   // Given: create a registered node first
   const std::shared_ptr<ED25519PrivateKey> regNodeAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -131,8 +127,7 @@ TEST_F(RegisteredNodeDeleteTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(RegisteredNodeDeleteTransactionIntegrationTests,
-       DISABLED_CanUpdateConsensusNodeWithAssociatedRegisteredNodes)
+TEST_F(RegisteredNodeDeleteTransactionIntegrationTests, CanUpdateConsensusNodeWithAssociatedRegisteredNodes)
 {
   // Given: create a registered node
   const std::shared_ptr<ED25519PrivateKey> regNodeAdminKey = ED25519PrivateKey::generatePrivateKey();
