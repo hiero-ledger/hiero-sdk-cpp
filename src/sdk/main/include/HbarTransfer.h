@@ -4,6 +4,7 @@
 
 #include "AccountId.h"
 #include "Hbar.h"
+#include "hooks/FungibleHookCall.h"
 
 #include <cstddef>
 #include <memory>
@@ -31,6 +32,16 @@ public:
    * @param approval  \c TRUE if this is an approved allowance transfer, otherwise \c FALSE.
    */
   explicit HbarTransfer(AccountId accountId, const Hbar& amount, bool approval);
+
+  /**
+   * Construct with an account ID, amount, approval, and hook call.
+   *
+   * @param accountId The ID of the account doing the transfer.
+   * @param amount    The amount to transfer.
+   * @param approval  \c TRUE if this is an approved allowance transfer, otherwise \c FALSE.
+   * @param hookCall  A hook call associated with this Hbar transfer.
+   */
+  explicit HbarTransfer(AccountId accountId, const Hbar& amount, bool approval, const FungibleHookCall& hookCall);
 
   /**
    * Construct an HbarTransfer object from an AccountAmount protobuf object.
@@ -92,6 +103,11 @@ public:
    * Is this transfer approved or not?
    */
   bool mIsApproved = false;
+
+  /**
+   * A hook call associated with this Hbar transfer.
+   */
+  FungibleHookCall mHookCall;
 };
 
 } // namespace Hiero

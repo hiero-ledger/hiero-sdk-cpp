@@ -20,7 +20,7 @@ namespace Hiero
 enum class Status
 {
   /**
-   * The transaction passed the pre-check validations.
+   * The transaction passed the precheck validations.
    */
   OK,
 
@@ -1507,83 +1507,9 @@ enum class Status
   MISSING_SERIAL_NUMBERS,
 
   /**
-   * The maximum automatic associations value is not valid. The most common cause for this error is a value less than
-   * `-1`.
+   * Admin key is not set on token
    */
-  INVALID_MAX_AUTO_ASSOCIATIONS,
-
-  /**
-   * The transaction attempted to use duplicate `TokenReference`.<br/>
-   * This affects `TokenReject` attempting to reject same token reference more than once.
-   */
-  TOKEN_REFERENCE_REPEATED,
-
-  /**
-   * The account id specified as the owner in `TokenReject` is invalid or does not exist.
-   */
-  INVALID_OWNER_ID,
-
-  /**
-   * The transaction attempted to use empty `TokenReference` list.
-   */
-  EMPTY_TOKEN_REFERENCE_LIST,
-
-  /**
-   * The transaction attempted to the use an empty List of `PendingAirdropId`.
-   */
-  EMPTY_PENDING_AIRDROP_ID_LIST,
-
-  /**
-   * The transaction attempted to the same `PendingAirdropId` twice.
-   */
-  PENDING_AIRDROP_ID_REPEATED,
-
-  /**
-   * The transaction attempted to use more than the allowed number of `PendingAirdropId`.
-   */
-  PENDING_AIRDROP_ID_LIST_TOO_LONG,
-
-  /**
-   * A pending airdrop already exists for the specified NFT.
-   */
-  PENDING_NFT_AIRDROP_ALREADY_EXISTS,
-
-  /**
-   * The identified account is sender for one or more pending airdrop(s)
-   * and cannot be deleted.
-   * Requester should cancel all pending airdrops before resending
-   * this transaction.
-   */
-  ACCOUNT_HAS_PENDING_AIRDROPS,
-
-  /**
-   * Consensus throttle did not allow execution of this transaction.
-   * The transaction should be retried after a modest delay.
-   */
-  THROTTLED_AT_CONSENSUS,
-
-  /**
-   * The provided pending airdrop id is invalid.
-   * This pending airdrop MAY already be claimed or cancelled.
-   * The client SHOULD query a mirror node to determine the current status of
-   * the pending airdrop.
-   */
-  INVALID_PENDING_AIRDROP_ID,
-
-  /**
-   * The token to be airdropped has a fallback royalty fee and cannot be
-   * sent or claimed via an airdrop transaction.
-   */
-  TOKEN_AIRDROP_WITH_FALLBACK_ROYALTY,
-
-  /**
-   * This airdrop claim is for a pending airdrop with an invalid token.
-   * The token might be deleted, or the sender may not have enough tokens
-   * to fulfill the offer.
-   * The client SHOULD query mirror node to determine the status of the pending
-   * airdrop and whether the sender can fulfill the offer.
-   */
-  INVALID_TOKEN_IN_PENDING_AIRDROP,
+  TOKEN_HAS_NO_ADMIN_KEY,
 
   /**
    * A transaction failed because the consensus node identified is
@@ -1650,6 +1576,12 @@ enum class Status
   INVALID_GRPC_CERTIFICATE,
 
   /**
+   * The maximum automatic associations value is not valid. The most common cause for this error is a value less than
+   * `-1`.
+   */
+  INVALID_MAX_AUTO_ASSOCIATIONS,
+
+  /**
    * The maximum number of nodes allowed in the address book have been created.
    */
   MAX_NODES_CREATED,
@@ -1680,18 +1612,102 @@ enum class Status
   GOSSIP_ENDPOINTS_EXCEEDED_LIMIT,
 
   /**
-   * A scheduled transaction configured to wait for expiry to execute was given
-   * an expiry time not strictly after the time at which its creation reached
-   * consensus.
+   * The transaction attempted to use duplicate `TokenReference`.<br/>
+   * This affects `TokenReject` attempting to reject same token reference more than once.
    */
-  SCHEDULE_EXPIRY_MUST_BE_FUTURE,
+  TOKEN_REFERENCE_REPEATED,
 
   /**
-   * A scheduled transaction configured to wait for expiry to execute was given
-   * an expiry time too far in the future after the time at which its creation
-   * reached consensus.
+   * The account id specified as the owner in `TokenReject` is invalid or does not exist.
    */
-  SCHEDULE_EXPIRY_TOO_LONG,
+  INVALID_OWNER_ID,
+
+  /**
+   * The transaction attempted to use more than the allowed number of `TokenReference`.
+   */
+  TOKEN_REFERENCE_LIST_SIZE_LIMIT_EXCEEDED,
+
+  /**
+   * The number of service endpoints exceeds the limit
+   */
+  SERVICE_ENDPOINTS_EXCEEDED_LIMIT,
+
+  /**
+   * The IPv4 address is invalid
+   */
+  INVALID_IPV4_ADDRESS,
+
+  /**
+   * The transaction attempted to use empty `TokenReference` list.
+   */
+  EMPTY_TOKEN_REFERENCE_LIST,
+
+  /**
+   * The node account is not allowed to be updated
+   */
+  UPDATE_NODE_ACCOUNT_NOT_ALLOWED,
+
+  /**
+   * The token has no metadata or supply key
+   */
+  TOKEN_HAS_NO_METADATA_OR_SUPPLY_KEY,
+
+  /**
+   * The list of `PendingAirdropId`s is empty and MUST NOT be empty.
+   */
+  EMPTY_PENDING_AIRDROP_ID_LIST,
+
+  /**
+   * A `PendingAirdropId` is repeated in a `claim` or `cancel` transaction.
+   */
+  PENDING_AIRDROP_ID_REPEATED,
+
+  /**
+   * The number of `PendingAirdropId` values in the list exceeds the maximum allowable number.
+   */
+  PENDING_AIRDROP_ID_LIST_TOO_LONG,
+
+  /**
+   * A pending airdrop already exists for the specified NFT.
+   */
+  PENDING_NFT_AIRDROP_ALREADY_EXISTS,
+
+  /**
+   * The identified account is sender for one or more pending airdrop(s)
+   * and cannot be deleted.
+   * Requester should cancel all pending airdrops before resending
+   * this transaction.
+   */
+  ACCOUNT_HAS_PENDING_AIRDROPS,
+
+  /**
+   * Consensus throttle did not allow execution of this transaction.
+   * The transaction should be retried after a modest delay.
+   */
+  THROTTLED_AT_CONSENSUS,
+
+  /**
+   * The provided pending airdrop id is invalid.
+   * This pending airdrop MAY already be claimed or cancelled.
+   * The client SHOULD query a mirror node to determine the current status of
+   * the pending airdrop.
+   */
+  INVALID_PENDING_AIRDROP_ID,
+
+  /**
+   * The token to be airdropped has a fallback royalty fee and cannot be
+   * sent or claimed via an airdrop transaction.
+   */
+  TOKEN_AIRDROP_WITH_FALLBACK_ROYALTY,
+
+  /**
+   * This airdrop claim is for a pending airdrop with an invalid token.
+   * The token might be deleted, or the sender may not have enough tokens
+   * to fulfill the offer.
+   * The client SHOULD query mirror node to determine the status of the pending
+   * airdrop and whether the sender can fulfill the offer.
+   */
+  INVALID_TOKEN_IN_PENDING_AIRDROP,
 
   /**
    * A scheduled transaction configured to wait for expiry to execute was given
@@ -1699,6 +1715,11 @@ enum class Status
    * expire; its creation must be retried with a different expiry.
    */
   SCHEDULE_EXPIRY_IS_BUSY,
+
+  /**
+   * The provided gRPC certificate hash is invalid.
+   */
+  INVALID_GRPC_CERTIFICATE_HASH,
 
   /**
    * A scheduled transaction configured to wait for expiry to execute was not
@@ -1858,9 +1879,167 @@ enum class Status
   NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE,
 
   /**
-   * The node account has a zero balance.
+   * A HAPI client cannot set the SignedTransaction#use_serialized_tx_message_hash_algorithm field.
+   */
+  INVALID_SERIALIZED_TX_MESSAGE_HASH_ALGORITHM,
+
+  /**
+   * A HookStore referenced a valid entity number but with the wrong entity type.
+   */
+  WRONG_HOOK_ENTITY_TYPE,
+
+  /**
+   * An EVM hook execution was throttled due to high network gas utilization.
+   */
+  EVM_HOOK_GAS_THROTTLED,
+
+  /**
+   * A user tried to create a hook with an id already in use.
+   */
+  HOOK_ID_IN_USE,
+
+  /**
+   * A transaction tried to execute a hook that did not match the specified
+   * type or was malformed in some other way.
+   */
+  BAD_HOOK_REQUEST,
+
+  /**
+   * A CryptoTransfer relying on a ACCOUNT_ALLOWANCE hook was rejected.
+   */
+  REJECTED_BY_ACCOUNT_ALLOWANCE_HOOK,
+
+  /**
+   * A hook id was not found.
+   */
+  HOOK_NOT_FOUND,
+
+  /**
+   * An EVM hook mapping slot, storage key, or storage value exceeded 32 bytes.
+   */
+  EVM_HOOK_STORAGE_UPDATE_BYTES_TOO_LONG,
+
+  /**
+   * An EVM hook's mapping slot, storage key, or storage value failed to use the
+   * minimal representation (i.e., no leading zeros).
+   */
+  EVM_HOOK_STORAGE_UPDATE_BYTES_MUST_USE_MINIMAL_REPRESENTATION,
+
+  /**
+   * A hook id was invalid.
+   */
+  INVALID_HOOK_ID,
+
+  /**
+   * An EVM hook storage update had no contents.
+   */
+  EMPTY_EVM_HOOK_STORAGE_UPDATE,
+
+  /**
+   * A user repeated the same hook id in a creation details list.
+   */
+  HOOK_ID_REPEATED_IN_CREATION_DETAILS,
+
+  /**
+   * Hooks are not not enabled on the target Hiero network.
+   */
+  HOOKS_NOT_ENABLED,
+
+  /**
+   * The target hook is not an EVM hook.
+   */
+  HOOK_IS_NOT_AN_EVM_HOOK,
+
+  /**
+   * A hook was deleted.
+   */
+  HOOK_DELETED,
+
+  /**
+   * The HookStore tried to update too many storage slots in a single transaction.
+   */
+  TOO_MANY_EVM_HOOK_STORAGE_UPDATES,
+
+  /**
+   * An EVM hook mapping slot, storage key, or storage value failed to use the
+   * minimal representation (i.e., no leading zeros).
+   */
+  HOOK_CREATION_BYTES_MUST_USE_MINIMAL_REPRESENTATION,
+
+  /**
+   * A EVM hook mapping slot, storage key, or storage value exceeded 32 bytes.
+   */
+  HOOK_CREATION_BYTES_TOO_LONG,
+
+  /**
+   * A hook creation spec was not found.
+   */
+  INVALID_HOOK_CREATION_SPEC,
+
+  /**
+   * A hook extension point was empty.
+   */
+  HOOK_EXTENSION_EMPTY,
+
+  /**
+   * A hook admin key was invalid.
+   */
+  INVALID_HOOK_ADMIN_KEY,
+
+  /**
+   * The hook deletion requires the hook to have zero storage slots.
+   */
+  HOOK_DELETION_REQUIRES_ZERO_STORAGE_SLOTS,
+
+  /**
+   * Cannot set both a hook call and an approval on the same AccountAmount or NftTransfer message.
+   */
+  CANNOT_SET_HOOKS_AND_APPROVAL,
+
+  /**
+   * The attempted operation is invalid until all the target entity's hooks have been deleted.
+   */
+  TRANSACTION_REQUIRES_ZERO_HOOKS,
+
+  /**
+   * The HookCall set in the transaction is invalid
+   */
+  INVALID_HOOK_CALL,
+
+  /**
+   * Hooks are not supported to be used in TokenAirdrop transactions
+   */
+  HOOKS_ARE_NOT_SUPPORTED_IN_AIRDROPS,
+
+  /**
+   * This operation cannot be completed because the target account is a "Node Account".
+   * This account is currently in use as the "Node Account" for a consensus node, and
+   * therefore the requested change is not permitted.
+   */
+  ACCOUNT_IS_LINKED_TO_A_NODE,
+
+  /**
+   * Hooks are not supported to be used in Batch transactions and Scheduled transactions.
+   * They are only supported in a top level CryptoTransfer transaction.
+   */
+  HOOKS_EXECUTIONS_REQUIRE_TOP_LEVEL_CRYPTO_TRANSFER,
+
+  /**
+   * This operation cannot be completed because the target account has a zero balance.
+   * Node accounts require a positive balance.
    */
   NODE_ACCOUNT_HAS_ZERO_BALANCE,
+
+  /**
+   * This operation cannot be completed because the target account is a "Fee Collection Account".
+   * Any attempt to transfer to a fee collection account is not permitted.
+   */
+  TRANSFER_TO_FEE_COLLECTION_ACCOUNT_NOT_ALLOWED,
+
+  /**
+   * The number of hook invocations exceeds the maximum allowed per transaction.
+   */
+  TOO_MANY_HOOK_INVOCATIONS
 };
 
 /**
