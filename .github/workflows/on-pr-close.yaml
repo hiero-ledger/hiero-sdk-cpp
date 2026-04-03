@@ -18,8 +18,8 @@ jobs:
     if: github.event.pull_request.merged == true
 
     concurrency:
-        group: on-pr-close-${{ github.event.pull_request.number }}
-        cancel-in-progress: true
+      group: on-pr-close-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
 
     steps:
       - name: Harden Runner
