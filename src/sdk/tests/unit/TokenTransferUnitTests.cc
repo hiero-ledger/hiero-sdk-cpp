@@ -136,5 +136,5 @@ TEST_F(TokenTransferUnitTests, OperatorEqualsFt)
   // Then
   EXPECT_TRUE(defaultTokenL == defaultTokenR);
   EXPECT_TRUE(equalTokenL == equalTokenR);
-  EXPECT_TRUE(diffTokenL == diffTokenR);
+  EXPECT_FALSE(diffTokenL == diffTokenR);
 }
