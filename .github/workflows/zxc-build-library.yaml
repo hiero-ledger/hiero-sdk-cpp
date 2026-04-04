@@ -46,6 +46,8 @@ jobs:
             check-path: "src/sdk/main"
           - type: tck
             check-path: "src/tck"
+          - type: tests
+            check-path: "src/sdk/tests"
 
     steps:
       - name: Harden Runner

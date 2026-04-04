@@ -5,8 +5,8 @@
 #include "PendingAirdropRecord.h"
 #include "TokenId.h"
 
-#include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
+#include <services/basic_types.pb.h>
 #include <services/transaction_record.pb.h>
 
 using namespace Hiero;

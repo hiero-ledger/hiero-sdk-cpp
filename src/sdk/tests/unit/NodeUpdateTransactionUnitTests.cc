@@ -254,7 +254,7 @@ TEST_F(NodeUpdateTransactionUnitTests, ThrowsWhenNodeIdNotSet)
   tx.setDescription("Test node");
 
   // When / Then
-  EXPECT_THROW(tx.freeze(),IllegalStateException);
+  EXPECT_THROW(tx.freeze(), IllegalStateException);
 }
 
 //-----
@@ -285,4 +285,3 @@ TEST_F(NodeUpdateTransactionUnitTests, NodeIdSetToZeroIsValid)
   EXPECT_NO_THROW(tx.freeze());
   EXPECT_EQ(tx.getNodeId(), 0);
 }
-

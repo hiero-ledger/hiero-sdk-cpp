@@ -2,8 +2,8 @@
 #include "SemanticVersion.h"
 #include "impl/Utilities.h"
 
-#include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
+#include <services/basic_types.pb.h>
 #include <string>
 
 using namespace Hiero;
