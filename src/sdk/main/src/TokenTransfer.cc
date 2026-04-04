@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "TokenTransfer.h"
+#include "hooks/FungibleHookType.h"
 #include "impl/Utilities.h"
 
 #include <nlohmann/json.hpp>
@@ -18,6 +19,20 @@ TokenTransfer::TokenTransfer(TokenId tokenId, AccountId accountId, int64_t amoun
 }
 
 //-----
+TokenTransfer::TokenTransfer(TokenId tokenId,
+                             AccountId accountId,
+                             int64_t amount,
+                             bool isApproved,
+                             const FungibleHookCall& hookCall)
+  : mTokenId(std::move(tokenId))
+  , mAccountId(std::move(accountId))
+  , mAmount(amount)
+  , mIsApproval(isApproved)
+  , mHookCall(hookCall)
+{
+}
+
+//-----
 TokenTransfer::TokenTransfer(TokenId tokenId, AccountId accountId, int64_t amount, uint32_t decimals, bool isApproved)
   : mTokenId(std::move(tokenId))
   , mAccountId(std::move(accountId))
@@ -30,7 +45,22 @@ TokenTransfer::TokenTransfer(TokenId tokenId, AccountId accountId, int64_t amoun
 //-----
 TokenTransfer TokenTransfer::fromProtobuf(const proto::AccountAmount& proto, const TokenId& tokenId, uint32_t decimals)
 {
-  return { tokenId, AccountId::fromProtobuf(proto.accountid()), proto.amount(), decimals, proto.is_approval() };
+  TokenTransfer transfer(
+    tokenId, AccountId::fromProtobuf(proto.accountid()), proto.amount(), decimals, proto.is_approval());
+
+  if (proto.has_pre_tx_allowance_hook())
+  {
+    transfer.mHookCall =
+      FungibleHookCall::fromProtobuf(proto.pre_tx_allowance_hook(), FungibleHookType::PRE_TX_ALLOWANCE_HOOK);
+  }
+
+  if (proto.has_pre_post_tx_allowance_hook())
+  {
+    transfer.mHookCall =
+      FungibleHookCall::fromProtobuf(proto.pre_post_tx_allowance_hook(), FungibleHookType::PRE_POST_TX_ALLOWANCE_HOOK);
+  }
+
+  return transfer;
 }
 
 //-----
@@ -55,6 +85,16 @@ std::unique_ptr<proto::AccountAmount> TokenTransfer::toProtobuf() const
   accountAmount->set_allocated_accountid(mAccountId.toProtobuf().release());
   accountAmount->set_amount(mAmount);
   accountAmount->set_is_approval(mIsApproval);
+
+  if (mHookCall.getHookType() == FungibleHookType::PRE_TX_ALLOWANCE_HOOK)
+  {
+    accountAmount->set_allocated_pre_tx_allowance_hook(mHookCall.toProtobuf().release());
+  }
+  else if (mHookCall.getHookType() == FungibleHookType::PRE_POST_TX_ALLOWANCE_HOOK)
+  {
+    accountAmount->set_allocated_pre_post_tx_allowance_hook(mHookCall.toProtobuf().release());
+  }
+
   return accountAmount;
 }
 
@@ -73,6 +113,7 @@ std::string TokenTransfer::toString() const
   json["mAmount"] = mAmount;
   json["mExpectedDecimals"] = mExpectedDecimals;
   json["mIsApproval"] = mIsApproval;
+  json["mHookType"] = gFungibleHookTypeToString.at(mHookCall.getHookType());
   return json.dump();
 }
 

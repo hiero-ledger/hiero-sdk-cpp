@@ -32,7 +32,7 @@ function isNonNegativeInteger(value) {
  * @returns {boolean}
  */
 function isSafeSearchToken(value) {
-  return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
+  return typeof value === 'string' && /^[a-zA-Z0-9._/-]+(\[bot\])?$/.test(value);
 }
 
 /**

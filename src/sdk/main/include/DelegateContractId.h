@@ -55,6 +55,7 @@ public:
    *
    * @param id The contract ID string from which to construct.
    * @return The constructed DelegateContractId object.
+   * @throws std::invalid_argument If the input string is malformed or the type of <num> cannot be determined.
    */
   [[nodiscard]] static DelegateContractId fromString(std::string_view id);
 
@@ -68,9 +69,9 @@ public:
   [[nodiscard]] static DelegateContractId fromSolidityAddress(std::string_view address);
 
   /**
-   * Construct an DelegateContractId object from an DelegateContractId protobuf object.
+   * Construct a DelegateContractId object from a DelegateContractId protobuf object.
    *
-   * @param proto The DelegateContractId protobuf object from which to create an DelegateContractId object.
+   * @param proto The DelegateContractId protobuf object from which to create a DelegateContractId object.
    * @return The constructed DelegateContractId object.
    */
   [[nodiscard]] static DelegateContractId fromProtobuf(const proto::ContractID& id);
@@ -79,7 +80,7 @@ public:
    * Construct a DelegateContractId object from a representative byte array.
    *
    * @param bytes The byte array from which to construct a DelegateContractId object.
-   * @return The constructed ContractId object.
+   * @return The constructed DelegateContractId object.
    */
   [[nodiscard]] static DelegateContractId fromBytes(const std::vector<std::byte>& bytes);
 

@@ -18,6 +18,7 @@
 #include "FileDeleteTransaction.h"
 #include "FileUpdateTransaction.h"
 #include "FreezeTransaction.h"
+#include "HookStoreTransaction.h"
 #include "NodeCreateTransaction.h"
 #include "NodeDeleteTransaction.h"
 #include "NodeUpdateTransaction.h"
@@ -198,6 +199,7 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
   proto::Transaction tx;
   proto::SignedTransaction signedTx;
   proto::TransactionBody txBody;
+  proto::TransactionBody::DataCase expectedDataCase = proto::TransactionBody::DATA_NOT_SET;
 
   bool batchified = false;
 
@@ -221,12 +223,27 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
     {
       std::string currentGroupRefBodyBytes;
       std::string currentGroupTxIdBytes;
+
       for (int i = 0; i < txList.transaction_list_size(); ++i)
       {
         tx = txList.transaction_list(i);
         signedTx.ParseFromArray(tx.signedtransactionbytes().data(),
                                 static_cast<int>(tx.signedtransactionbytes().size()));
         txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
+
+        // Security: Validate that all entries have the same transaction type.
+        // This is critical to prevent transaction smuggling where an attacker injects
+        // a hidden malicious transaction with a different type that gets signed but not displayed.
+        if (i == 0)
+        {
+          expectedDataCase = txBody.data_case();
+        }
+        else if (txBody.data_case() != expectedDataCase)
+        {
+          throw std::invalid_argument(
+            "Transaction list contains entries with inconsistent transaction types. "
+            "All entries must have the same transaction type to prevent transaction smuggling attacks.");
+        }
 
         std::string thisTxIdBytes = txBody.transactionid().SerializeAsString();
 
@@ -292,6 +309,23 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
     }
   }
 
+  // Security: For non-chunked transaction types, reject if there are multiple transactionIds.
+  // Only FileAppend and TopicMessageSubmit (chunked transactions) legitimately have multiple transactionIds.
+  // This prevents an attacker from smuggling hidden transactions with different transactionIds
+  // that would get signed but not displayed to the user.
+  const auto transactionType =
+    (expectedDataCase != proto::TransactionBody::DATA_NOT_SET) ? expectedDataCase : txBody.data_case();
+  const bool isChunkedTransactionType = (transactionType == proto::TransactionBody::kFileAppend ||
+                                         transactionType == proto::TransactionBody::kConsensusSubmitMessage);
+
+  if (!isChunkedTransactionType && transactions.size() > 1)
+  {
+    throw std::invalid_argument(
+      "Non-chunked transaction types cannot have multiple transaction IDs. "
+      "This may indicate an attempt to smuggle hidden transactions. "
+      "Only FileAppend and TopicMessageSubmit support multiple transaction IDs for chunking.");
+  }
+
   switch (txBody.data_case())
   {
     case proto::TransactionBody::kCryptoApproveAllowance:
@@ -326,6 +360,8 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
       return WrappedTransaction(FileUpdateTransaction(transactions));
     case proto::TransactionBody::kFreeze:
       return WrappedTransaction(FreezeTransaction(transactions));
+    case proto::TransactionBody::kHookStore:
+      return WrappedTransaction(HookStoreTransaction(transactions));
     case proto::TransactionBody::kNodeCreate:
       return WrappedTransaction(NodeCreateTransaction(transactions));
     case proto::TransactionBody::kNodeDelete:
@@ -1606,6 +1642,7 @@ template class Transaction<FileCreateTransaction>;
 template class Transaction<FileDeleteTransaction>;
 template class Transaction<FileUpdateTransaction>;
 template class Transaction<FreezeTransaction>;
+template class Transaction<HookStoreTransaction>;
 template class Transaction<NodeCreateTransaction>;
 template class Transaction<NodeDeleteTransaction>;
 template class Transaction<NodeUpdateTransaction>;

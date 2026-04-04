@@ -10,6 +10,7 @@ add_executable(${TCK_SERVER_NAME}
         src/key/KeyService.cc
         src/sdk/SdkClient.cc
         src/token/TokenService.cc
+        src/topic/TopicService.cc
         src/main.cc
         src/TckServer.cc)
 

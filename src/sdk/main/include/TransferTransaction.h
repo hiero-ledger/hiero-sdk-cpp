@@ -6,6 +6,8 @@
 #include "TokenNftTransfer.h"
 #include "TokenTransfer.h"
 #include "Transaction.h"
+#include "hooks/FungibleHookCall.h"
+#include "hooks/NftHookCall.h"
 
 #include <unordered_map>
 #include <vector>
@@ -169,6 +171,50 @@ public:
                                                             uint32_t decimals);
 
   /**
+   * Add an Hbar transfer with a hook to be submitted as part of this TransferTransaction.
+   *
+   * @param accountId The ID of the account associated with this transfer.
+   * @param amount    The amount of Hbar to transfer.
+   * @param hookCall  The hook to call.
+   * @return A reference to this TransferTransaction object with the newly-added Hbar transfer.
+   * @throws IllegalStateException If this TransferTransaction is frozen.
+   */
+  TransferTransaction& addHbarTransferWithHook(const AccountId& accountId,
+                                               const Hbar& amount,
+                                               const FungibleHookCall& hookCall);
+
+  /**
+   * Add a fungible token transfer with a hook to be submitted as part of this TransferTransaction.
+   *
+   * @param tokenId   The ID of the token associated with this transfer.
+   * @param accountId The ID of the account associated with this transfer.
+   * @param amount    The number of tokens to transfer.
+   * @param hookCall  The hook to call.
+   * @return A reference to this TransferTransaction object with the newly-added fungible token transfer.
+   * @throws IllegalStateException If this TransferTransaction is frozen.
+   */
+  TransferTransaction& addTokenTransferWithHook(const TokenId& tokenId,
+                                                const AccountId& accountId,
+                                                const int64_t& amount,
+                                                const FungibleHookCall& hookCall);
+
+  /**
+   * Add an NFT transfer with separate sender and receiver hook calls to this TransferTransaction.
+   *
+   * @param nftId             The ID of the NFT associated with this transfer.
+   * @param senderAccountId   The ID of the account sending the NFT.
+   * @param receiverAccountId The ID of the account receiving the NFT.
+   * @param senderHookCall    The hook call for the sender.
+   * @param receiverHookCall  The hook call for the receiver.
+   * @return A reference to this TransferTransaction.
+   */
+  TransferTransaction& addNftTransferWithHook(const NftId& nftId,
+                                              const AccountId& senderAccountId,
+                                              const AccountId& receiverAccountId,
+                                              const NftHookCall& senderHookCall,
+                                              const NftHookCall& receiverHookCall);
+
+  /**
    * Get all Hbar transfers that have been added to this TransferTransaction.
    *
    * @return The map of Hbar transfers.
@@ -252,11 +298,9 @@ private:
   /**
    * Add an Hbar transfer to the Hbar transfers list.
    *
-   * @param accountId The ID of the account doing the transfer.
-   * @param amount    The amount to transfer.
-   * @param approved  \c TRUE if this is an approved allowance transfer, otherwise \c FALSE.
+   * @param transfer The Hbar transfer to add.
    */
-  void doHbarTransfer(const AccountId& accountId, const Hbar& amount, bool approved);
+  void doHbarTransfer(const HbarTransfer& transfer);
 
   /**
    * Add a token transfer to the token transfers list.
@@ -268,12 +312,9 @@ private:
   /**
    * Add an NFT transfer to the NFT transfers list.
    *
-   * @param nftId The ID of the NFT.
-   * @param sender The ID of the account sending the NFT.
-   * @param receiver The ID of the account receiving the NFT.
-   * @param approved \c TRUE if this is an approved allowance NFT transfer, otherwise \c FALSE.
+   * @param transfer The NFT transfer to add.
    */
-  void doNftTransfer(const NftId& nftId, const AccountId& sender, const AccountId& receiver, bool approved);
+  void doNftTransfer(const TokenNftTransfer& transfer);
 
   /**
    * The desired Hbar balance adjustments.
