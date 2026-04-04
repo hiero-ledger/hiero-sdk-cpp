@@ -138,4 +138,9 @@ std::ostream& operator<<(std::ostream& os, const TokenNftTransfer& transfer)
   return os;
 }
 
+bool operator==(const TokenNftTransfer& lns, const TokenNftTransfer& rhs)
+{
+  return lns.mNftId == rhs.mNftId && lns.mSenderAccountId == lns.mSenderAccountId &&
+         lns.mReceiverAccountId == rhs.mReceiverAccountId && lns.mIsApproval == rhs.mIsApproval;
+}
 } // namespace Hiero

@@ -85,6 +85,14 @@ public:
    */
   [[nodiscard]] inline TokenId getTokenId() const { return mTokenId; }
 
+ /* if Without
+    operator==, callers must compare NFT transfer objects field - by -
+                        field
+                          .Other SDK value types(e.g.NftId, AccountId, PendingAirdropId)
+                            already implement operator== as a pattern — TokenNftTransfer should follow suit.*/
+  
+  [[nodiscard]] friend bool operator==(const TokenNftTransfer&, const TokenNftTransfer&);
+
 private:
   friend class WrappedTransaction;
 
