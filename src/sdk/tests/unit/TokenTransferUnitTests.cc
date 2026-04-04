@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+  // SPDX-License-Identifier: Apache-2.0
 #include "TokenTransfer.h"
 
 #include "AccountId.h"
@@ -113,4 +113,28 @@ TEST_F(TokenTransferUnitTests, ToProtobuf)
   EXPECT_EQ(proto->accountid().accountnum(), getTestAccountId().mAccountNum);
   EXPECT_EQ(proto->amount(), getTestAmount());
   EXPECT_EQ(proto->is_approval(), getTestIsApproval());
+}
+
+//-----
+TEST_F(TokenTransferUnitTests, OperatorEqualsFt)
+{
+  // Given
+  // Defaults
+  TokenTransfer defaultTokenL;
+  TokenTransfer defaultTokenR;
+  // Identical
+  TokenTransfer equalTokenL(
+    getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
+  TokenTransfer equalTokenR(
+    getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
+  // Different
+  TokenTransfer diffTokenL(
+    getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), true);
+  TokenTransfer diffTokenR(
+    getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), false);
+
+  // Then
+  EXPECT_TRUE(defaultTokenL == defaultTokenR);
+  EXPECT_TRUE(equalTokenL == equalTokenR);
+  EXPECT_TRUE(diffTokenL == diffTokenR);
 }

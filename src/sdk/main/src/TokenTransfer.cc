@@ -78,6 +78,10 @@ void TokenTransfer::validateChecksums(const Client& client) const
   mAccountId.validateChecksum(client);
 }
 
+bool operator==(const TokenTransfer& lhs, const TokenTransfer& rhs) {
+  return (lhs.mTokenId == rhs.mTokenId) && (lhs.mAccountId == rhs.mAccountId) && (lhs.mAmount == rhs.mAmount) && (lhs.mIsApproval == rhs.mIsApproval) && (lhs.mExpectedDecimals == rhs.mExpectedDecimals);
+} 
+
 //-----
 std::unique_ptr<proto::AccountAmount> TokenTransfer::toProtobuf() const
 {
