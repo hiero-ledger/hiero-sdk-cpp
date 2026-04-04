@@ -9,9 +9,8 @@
 const {
   LABELS,
   ISSUE_STATE,
-  getLogger,
-  addLabels,
-  removeLabel,
+  createDelegatingLogger,
+  swapLabels,
   removeAssignees,
   postComment,
   acknowledgeComment,
@@ -26,10 +25,7 @@ const {
 } = require('./unassign-comments');
 
 // Delegate to the active logger set by the dispatcher.
-const logger = {
-  log: (...args) => getLogger().log(...args),
-  error: (...args) => getLogger().error(...args),
-};
+const logger = createDelegatingLogger();
 
 /**
  * Main handler for the /unassign command. Runs the following gates in order:
@@ -89,15 +85,9 @@ async function handleUnassign(botContext) {
 
   // ACTION 2: Label Swapping (Mirroring assign.js style - no stale checks)
   logger.log(`Swapping labels: removing ${LABELS.IN_PROGRESS}, adding ${LABELS.READY_FOR_DEV}`);
-  
-  const removeLabelResult = await removeLabel(botContext, LABELS.IN_PROGRESS);
-  if (!removeLabelResult.success) {
-    logger.error(`Failed to remove ${LABELS.IN_PROGRESS}: ${removeLabelResult.error}`);
-  }
-
-  const addLabelResult = await addLabels(botContext, [LABELS.READY_FOR_DEV]);
-  if (!addLabelResult.success) {
-    logger.error(`Failed to add ${LABELS.READY_FOR_DEV}: ${addLabelResult.error}`);
+  const { success: swapSuccess, errorDetails: swapError } = await swapLabels(botContext, LABELS.IN_PROGRESS, LABELS.READY_FOR_DEV);
+  if (!swapSuccess) {
+    logger.error(`Label swap failed: ${swapError}`);
   }
 
   // ACTION 3: Post success acknowledgment

@@ -261,6 +261,45 @@ function hasLabel(issueOrPr, labelName) {
 }
 
 /**
+ * Returns all label names on an issue or PR that start with the given prefix.
+ * The comparison is case-insensitive.
+ *
+ * @param {object} issueOrPr - The issue or PR object.
+ * @param {string} prefix - Label group prefix (e.g. 'skill:').
+ * @returns {string[]}
+ */
+function getLabelsByPrefix(issueOrPr, prefix) {
+  return (issueOrPr.labels || [])
+    .map((l) => (typeof l === 'string' ? l : l?.name || ''))
+    .filter((name) => name.toLowerCase().startsWith(prefix.toLowerCase()));
+}
+
+/**
+ * Removes `fromLabel` and adds `toLabel` on the issue/PR. Both operations are
+ * always attempted; errors are collected and returned rather than thrown.
+ *
+ * @param {object} botContext - Bot context (github, owner, repo, number).
+ * @param {string} fromLabel - Label to remove.
+ * @param {string} toLabel - Label to add.
+ * @returns {Promise<{ success: boolean, errorDetails: string }>}
+ */
+async function swapLabels(botContext, fromLabel, toLabel) {
+  const errors = [];
+
+  const removeResult = await removeLabel(botContext, fromLabel);
+  if (!removeResult.success) {
+    errors.push(`Failed to remove '${fromLabel}': ${removeResult.error}`);
+  }
+
+  const addResult = await addLabels(botContext, [toLabel]);
+  if (!addResult.success) {
+    errors.push(`Failed to add '${toLabel}': ${addResult.error}`);
+  }
+
+  return { success: errors.length === 0, errorDetails: errors.join('; ') };
+}
+
+/**
  * Posts a new comment or updates an existing one identified by an HTML marker.
  * Paginates through all comments to find a match.
  * @param {object} botContext
@@ -494,6 +533,8 @@ module.exports = {
   removeAssignees,
   postComment,
   hasLabel,
+  getLabelsByPrefix,
+  swapLabels,
   postOrUpdateComment,
   fetchPRCommits,
   fetchIssue,

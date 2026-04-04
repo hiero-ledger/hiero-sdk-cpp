@@ -1048,7 +1048,7 @@ Good luck, and welcome aboard! 🚀`,
 - Remove the \`status: ready for dev\` label
 - Add the \`status: in progress\` label
 
-Error details: Failed to remove "status: ready for dev" label: Simulated remove label failure; Failed to add "status: in progress" label: Simulated add label failure`,
+Error details: Failed to remove 'status: ready for dev': Simulated remove label failure; Failed to add 'status: in progress': Simulated add label failure`,
     ],
   },
 
