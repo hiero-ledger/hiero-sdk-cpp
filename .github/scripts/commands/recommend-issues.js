@@ -291,4 +291,10 @@ async function handleRecommendIssues(botContext) {
     logger.log('recommendation.posted');
 }
 
-module.exports = { handleRecommendIssues };
+module.exports = { 
+    handleRecommendIssues,
+    getIssueSkillLevel,
+    getNextLevel,
+    getFallbackLevel,
+    getRecommendedIssues,
+};
