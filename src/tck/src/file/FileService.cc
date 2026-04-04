@@ -201,13 +201,9 @@ nlohmann::json getFileInfo(const GetFileInfoParams& params)
 
   // Handle the keys
   response["keys"] = nlohmann::json::array();
-  if (info.mAdminKeys && !info.mAdminKeys->empty())
+  if (!info.mAdminKey.empty())
   {
-    auto protoKeyList = info.mAdminKeys->toProtobufKey();
-    std::string protoBytes;
-    protoKeyList->SerializeToString(&protoBytes);
-    response["keys"].push_back(
-      internal::HexConverter::bytesToHex(std::vector<std::byte>(protoBytes.begin(), protoBytes.end())));
+    response["keys"].push_back(internal::HexConverter::bytesToHex(info.mAdminKeys.toBytes()));
   }
   return response;
 }
