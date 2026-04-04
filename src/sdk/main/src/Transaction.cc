@@ -25,6 +25,9 @@
 #include "PrivateKey.h"
 #include "PrngTransaction.h"
 #include "PublicKey.h"
+#include "RegisteredNodeCreateTransaction.h"
+#include "RegisteredNodeDeleteTransaction.h"
+#include "RegisteredNodeUpdateTransaction.h"
 #include "ScheduleCreateTransaction.h"
 #include "ScheduleDeleteTransaction.h"
 #include "ScheduleSignTransaction.h"
@@ -368,6 +371,12 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
       return WrappedTransaction(NodeDeleteTransaction(transactions));
     case proto::TransactionBody::kNodeUpdate:
       return WrappedTransaction(NodeUpdateTransaction(transactions));
+    case proto::TransactionBody::kRegisteredNodeCreate:
+      return WrappedTransaction(RegisteredNodeCreateTransaction(transactions));
+    case proto::TransactionBody::kRegisteredNodeDelete:
+      return WrappedTransaction(RegisteredNodeDeleteTransaction(transactions));
+    case proto::TransactionBody::kRegisteredNodeUpdate:
+      return WrappedTransaction(RegisteredNodeUpdateTransaction(transactions));
     case proto::TransactionBody::kUtilPrng:
       return WrappedTransaction(PrngTransaction(transactions));
     case proto::TransactionBody::kScheduleCreate:
@@ -1647,6 +1656,9 @@ template class Transaction<NodeCreateTransaction>;
 template class Transaction<NodeDeleteTransaction>;
 template class Transaction<NodeUpdateTransaction>;
 template class Transaction<PrngTransaction>;
+template class Transaction<RegisteredNodeCreateTransaction>;
+template class Transaction<RegisteredNodeDeleteTransaction>;
+template class Transaction<RegisteredNodeUpdateTransaction>;
 template class Transaction<ScheduleCreateTransaction>;
 template class Transaction<ScheduleDeleteTransaction>;
 template class Transaction<ScheduleSignTransaction>;

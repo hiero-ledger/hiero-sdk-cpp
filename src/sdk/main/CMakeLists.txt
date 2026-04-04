@@ -92,6 +92,8 @@ add_library(${PROJECT_NAME} STATIC
         src/FileInfoQuery.cc
         src/FileUpdateTransaction.cc
         src/FreezeTransaction.cc
+        src/BlockNodeApi.cc
+        src/BlockNodeServiceEndpoint.cc
         src/FreezeType.cc
         src/Hbar.cc
         src/HbarAllowance.cc
@@ -115,7 +117,16 @@ add_library(${PROJECT_NAME} STATIC
         src/PendingAirdropId.cc
         src/PendingAirdropRecord.cc
         src/PrivateKey.cc
+        src/MirrorNodeServiceEndpoint.cc
         src/PrngTransaction.cc
+        src/RegisteredNode.cc
+        src/RegisteredNodeAddressBook.cc
+        src/RegisteredNodeAddressBookQuery.cc
+        src/RegisteredNodeCreateTransaction.cc
+        src/RegisteredNodeDeleteTransaction.cc
+        src/RegisteredServiceEndpoint.cc
+        src/RegisteredNodeUpdateTransaction.cc
+        src/RpcRelayServiceEndpoint.cc
         src/ProxyStaker.cc
         src/PublicKey.cc
         src/Query.cc

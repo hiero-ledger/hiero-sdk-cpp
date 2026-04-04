@@ -204,6 +204,31 @@ public:
    */
   NodeCreateTransaction& setGrpcWebProxyEndpoint(const Endpoint& endpoint);
 
+  /**
+   * Get the list of associated registered node IDs.
+   *
+   * @return A vector of uint64_t registered node IDs associated with this consensus node.
+   */
+  [[nodiscard]] const std::vector<uint64_t>& getAssociatedRegisteredNodes() const
+  {
+    return mAssociatedRegisteredNodes;
+  }
+
+  /**
+   * Add a registered node ID to the list of associated registered nodes.
+   *
+   * @param registeredNodeId The registered node ID to associate with this consensus node.
+   * @return A reference to this NodeCreateTransaction with the newly-added association.
+   */
+  NodeCreateTransaction& addAssociatedRegisteredNode(uint64_t registeredNodeId);
+
+  /**
+   * Clear all associated registered node IDs.
+   *
+   * @return A reference to this NodeCreateTransaction with all associations cleared.
+   */
+  NodeCreateTransaction& clearAssociatedRegisteredNodes();
+
 private:
   friend class WrappedTransaction;
 
@@ -352,6 +377,12 @@ private:
    * This field SHALL enable frontend clients to avoid hard-coded proxy endpoints.
    */
   std::optional<Endpoint> mGrpcWebProxyEndpoint;
+
+  /**
+   * A list of registered node IDs that this consensus node operator also operates.
+   * This field is OPTIONAL.
+   */
+  std::vector<uint64_t> mAssociatedRegisteredNodes;
 };
 
 } // namespace Hiero

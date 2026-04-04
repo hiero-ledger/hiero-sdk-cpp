@@ -23,6 +23,9 @@
 #include "NodeDeleteTransaction.h"
 #include "NodeUpdateTransaction.h"
 #include "PrngTransaction.h"
+#include "RegisteredNodeCreateTransaction.h"
+#include "RegisteredNodeDeleteTransaction.h"
+#include "RegisteredNodeUpdateTransaction.h"
 #include "ScheduleCreateTransaction.h"
 #include "ScheduleDeleteTransaction.h"
 #include "ScheduleSignTransaction.h"
@@ -95,6 +98,9 @@ public:
                                               NodeDeleteTransaction,
                                               NodeUpdateTransaction,
                                               PrngTransaction,
+                                              RegisteredNodeCreateTransaction,
+                                              RegisteredNodeDeleteTransaction,
+                                              RegisteredNodeUpdateTransaction,
                                               ScheduleCreateTransaction,
                                               ScheduleDeleteTransaction,
                                               ScheduleSignTransaction,
