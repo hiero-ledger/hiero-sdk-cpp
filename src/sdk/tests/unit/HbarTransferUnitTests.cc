@@ -245,7 +245,7 @@ TEST_F(HbarTransferUnitTests, ToStringWithHookCall)
 }
 
 //-----
-TEST_F(HbarTransferUnitTests, OperatorEqualsSame)
+TEST_F(HbarTransferUnitTests, OperatorEquals)
 {
   // Given
   const HbarTransfer transfer1(getTestAccountId(), getTestHbarAmount(), getTestApproval(), getTestHookCall());
@@ -256,13 +256,33 @@ TEST_F(HbarTransferUnitTests, OperatorEqualsSame)
 }
 
 //-----
-TEST_F(HbarTransferUnitTests, OperatorEqualsDiff)
+TEST_F(HbarTransferUnitTests, OperatorNotEqualsDifferentAccountId)
 {
   // Given
-  const AccountId differentAccountId(11ULL);
-
   const HbarTransfer transfer1(getTestAccountId(), getTestHbarAmount(), getTestApproval(), getTestHookCall());
-  const HbarTransfer transfer2(differentAccountId, getTestHbarAmount(), getTestApproval(), getTestHookCall());
+  const HbarTransfer transfer2(AccountId(11ULL), getTestHbarAmount(), getTestApproval(), getTestHookCall());
+
+  // Then
+  EXPECT_FALSE(transfer1 == transfer2);
+}
+
+//-----
+TEST_F(HbarTransferUnitTests, OperatorNotEqualsDifferentAmount)
+{
+  // Given
+  const HbarTransfer transfer1(getTestAccountId(), getTestHbarAmount(), getTestApproval(), getTestHookCall());
+  const HbarTransfer transfer2(getTestAccountId(), Hbar(999ULL), getTestApproval(), getTestHookCall());
+
+  // Then
+  EXPECT_FALSE(transfer1 == transfer2);
+}
+
+//-----
+TEST_F(HbarTransferUnitTests, OperatorNotEqualsDifferentApproval)
+{
+  // Given
+  const HbarTransfer transfer1(getTestAccountId(), getTestHbarAmount(), getTestApproval(), getTestHookCall());
+  const HbarTransfer transfer2(getTestAccountId(), getTestHbarAmount(), !getTestApproval(), getTestHookCall());
 
   // Then
   EXPECT_FALSE(transfer1 == transfer2);
