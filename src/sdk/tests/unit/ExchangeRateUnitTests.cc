@@ -138,3 +138,41 @@ TEST_F(ExchangeRateUnitTests, ExchangeRatesFromBytes)
     std::chrono::duration_cast<std::chrono::seconds>(getTestExpirationTime().time_since_epoch()));
   EXPECT_EQ(exchangeRates.mNextRate.mExchangeRateInCents, getTestCents() / getTestHbar());
 }
+
+//-----
+TEST_F(ExchangeRateUnitTests, OperatorEqualsDefaults)
+{
+  // Given
+  ExchangeRate lhs;
+  ExchangeRate rhs;
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(ExchangeRateUnitTests, OperatorEqualsSimilar)
+{
+  // Given
+  auto testExpirationTime = getTestExpirationTime();
+  ExchangeRate lhs(getTestHbar(), getTestCents(), testExpirationTime);
+  ExchangeRate rhs(getTestHbar(), getTestCents(), testExpirationTime);
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(ExchangeRateUnitTests, OperatorEqualsDiff)
+{
+  // Given
+  ExchangeRate lhs(getTestHbar(), getTestCents(), getTestExpirationTime());
+  ExchangeRate diffHbar(3, getTestCents(), getTestExpirationTime());
+  ExchangeRate diffCents(getTestHbar(), 2, getTestExpirationTime());
+  ExchangeRate diffExpirationTime(getTestHbar(), getTestCents(), getTestExpirationTime() + std::chrono::seconds(1));
+
+  // Then
+  EXPECT_FALSE(lhs == diffHbar);
+  EXPECT_FALSE(lhs == diffCents);
+  EXPECT_FALSE(lhs == diffExpirationTime);
+}
