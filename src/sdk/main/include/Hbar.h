@@ -74,7 +74,7 @@ public:
   /**
    * Add another Hbar to this Hbar.
    *
-   * @param other THe other Hbar to add to this Hbar.
+   * @param other The other Hbar to add to this Hbar.
    * @return A new Hbar object with the new value.
    */
   Hbar operator+(const Hbar& other) const { return Hbar(mValueInTinybar + other.mValueInTinybar, HbarUnit::TINYBAR()); }
