@@ -60,6 +60,13 @@ std::string ExchangeRate::toString() const
 }
 
 //-----
+bool ExchangeRate::operator==(const ExchangeRate& other) const
+{
+  return (mHbars == other.mHbars) && (mCents == other.mCents) && 
+         (mExpirationTime == other.mExpirationTime);
+}
+
+//-----
 std::ostream& operator<<(std::ostream& os, const ExchangeRate& rate)
 {
   os << rate.toString();
