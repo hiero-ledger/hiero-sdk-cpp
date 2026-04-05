@@ -468,14 +468,14 @@ const unitTests = [
   },
   {
     name: 'isSafeSearchToken: string with spaces → false',
-    test: () => isSafeSearchToken('bad username') === false,
+        test: () => isSafeSearchToken('bad username') === false,
   },
   {
-    name: 'isSafeSearchToken: string with bad characters → false',
+    name: 'isSafeSearchToken: string with angle brackets → false',
     test: () => isSafeSearchToken('bad<username>') === false,
   },
   {
-    name: 'isSafeSearchToken: string with bad characters → false',
+    name: 'isSafeSearchToken: string with semicolon → false',
     test: () => isSafeSearchToken('bad;username') === false,
   },
   {
