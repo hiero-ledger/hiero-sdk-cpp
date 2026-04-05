@@ -73,7 +73,7 @@ public:
 
   /**
    * Compare this ExchangeRate instance to another ExchangeRate instance and determine if they represent the same
-   * pending ExchangeRate.
+   * ExchangeRate.
    *
    * @param other The other ExchangeRate with which to compare this ExchangeRate to.
    * @return \c TRUE if this ExchangeRate is the same as the input ExchangeRate, otherwise \c FALSE.

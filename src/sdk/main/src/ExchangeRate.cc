@@ -62,8 +62,7 @@ std::string ExchangeRate::toString() const
 //-----
 bool ExchangeRate::operator==(const ExchangeRate& other) const
 {
-  return (mHbars == other.mHbars) && (mCents == other.mCents) && 
-         (mExpirationTime == other.mExpirationTime);
+  return (mHbars == other.mHbars) && (mCents == other.mCents) && (mExpirationTime == other.mExpirationTime);
 }
 
 //-----
