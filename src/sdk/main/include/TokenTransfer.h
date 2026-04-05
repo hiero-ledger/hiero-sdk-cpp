@@ -98,6 +98,14 @@ public:
   void validateChecksums(const Client& client) const;
 
   /**
+   * Compare this TokenTransfer instance to another TokenTransfer instance and determine if they represent the same pending TokenTransfer.
+   *
+   * @param other The other TokenTransfer with which to compare this TokenTransfer.
+   * @return \c TRUE if this TokenTransfer is the same as the input TokenTransfer, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const TokenTransfer&);
+
+  /**
    * Construct an AccountAmount protobuf object from this TokenTransfer object.
    *
    * @return A pointer to the constructed AccountAmount protobuf object.

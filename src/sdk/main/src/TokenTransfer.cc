@@ -79,6 +79,13 @@ void TokenTransfer::validateChecksums(const Client& client) const
 }
 
 //-----
+bool operator==(const TokenTransfer& other) {
+  return (mTokenId == other.mTokenId) && (mAccountId == other.mAccountId) && 
+         (mAmount == other.mAmount) && (mIsApproval == other.mIsApproval) && 
+         (mExpectedDecimals == other.mExpectedDecimals);
+}
+
+//-----
 std::unique_ptr<proto::AccountAmount> TokenTransfer::toProtobuf() const
 {
   auto accountAmount = std::make_unique<proto::AccountAmount>();

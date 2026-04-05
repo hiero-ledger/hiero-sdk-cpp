@@ -114,3 +114,41 @@ TEST_F(TokenTransferUnitTests, ToProtobuf)
   EXPECT_EQ(proto->amount(), getTestAmount());
   EXPECT_EQ(proto->is_approval(), getTestIsApproval());
 }
+
+//-----
+TEST_F(TokenTransferUnitTests, OperatorEqualsSame)
+{
+  // Given
+  // Default
+  TokenTransfer defaultTokenL;
+  TokenTransfer defaultTokenR;
+  // Identical
+  TokenTransfer equalTokenL(
+    getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
+  TokenTransfer equalTokenR(
+    getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
+
+  // Then
+  EXPECT_TRUE(defaultTokenL == defaultTokenR);
+  EXPECT_TRUE(equalTokenL == equalTokenR);
+}
+
+//-----
+TEST_F(TokenTransferUnitTests, OperatorEqualsDiff)
+{
+  // Given
+  TokenTransfer testTokenTransfer(getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), true);
+
+  TokenTransfer            diffTestToken( TokenId(505ULL),  getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
+  TokenTransfer        diffTestAccountId(getTestTokenId(), AccountId(12345ULL), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
+  TokenTransfer           diffTestAmount(getTestTokenId(),  getTestAccountId(),           500LL, getTestExpectedDecimals(), getTestIsApproval());
+  TokenTransfer diffTestExpectedDecimals(getTestTokenId(),  getTestAccountId(), getTestAmount(),                        2U, getTestIsApproval());
+  TokenTransfer       diffTestIsApproval(getTestTokenId(),  getTestAccountId(), getTestAmount(), getTestExpectedDecimals(),               false);
+
+  // Then
+  EXPECT_FALSE(testTokenTransfer == diffTestToken);
+  EXPECT_FALSE(testTokenTransfer == diffTestAccountId);
+  EXPECT_FALSE(testTokenTransfer == diffTestAmount);
+  EXPECT_FALSE(testTokenTransfer == diffTestExpectedDecimals);
+  EXPECT_FALSE(testTokenTransfer == diffTestIsApproval);
+}
