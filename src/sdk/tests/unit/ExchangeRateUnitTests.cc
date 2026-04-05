@@ -5,6 +5,7 @@
 #include "impl/Utilities.h"
 
 #include <services/exchange_rate.pb.h>
+#include <string>
 #include <gtest/gtest.h>
 
 using namespace Hiero;
@@ -104,6 +105,21 @@ TEST_F(ExchangeRateUnitTests, ExchangeRatesFromProtobuf)
     std::chrono::duration_cast<std::chrono::seconds>(exchangeRates.mNextRate.mExpirationTime.time_since_epoch()),
     std::chrono::duration_cast<std::chrono::seconds>(getTestExpirationTime().time_since_epoch()));
   EXPECT_EQ(exchangeRates.mNextRate.mExchangeRateInCents, getTestCents() / getTestHbar());
+}
+
+//-----
+TEST_F(ExchangeRateUnitTests, ToString)
+{
+  // Given
+  const ExchangeRate exchangeRate(getTestHbar(), getTestCents(), getTestExpirationTime());
+
+  // When
+  const std::string result = exchangeRate.toString();
+
+  // Then
+  EXPECT_TRUE(result.find("{\"mHbars\":" + std::to_string(getTestHbar()) + ",\"mCents\":" +
+                        std::to_string(getTestCents()) + ",\"mExchangeRateInCents\":") != std::string::npos);
+  EXPECT_TRUE(result.find("\"mExpirationTime\":") != std::string::npos);
 }
 
 //-----
