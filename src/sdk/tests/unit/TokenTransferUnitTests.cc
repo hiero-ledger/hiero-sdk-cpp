@@ -116,10 +116,10 @@ TEST_F(TokenTransferUnitTests, ToProtobuf)
 }
 
 //-----
-TEST_F(TokenTransferUnitTests, OperatorEqualsFt)
+TEST_F(TokenTransferUnitTests, OperatorEqualsSame)
 {
   // Given
-  // Defaults
+  // Default
   TokenTransfer defaultTokenL;
   TokenTransfer defaultTokenR;
   // Identical
@@ -127,14 +127,28 @@ TEST_F(TokenTransferUnitTests, OperatorEqualsFt)
     getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
   TokenTransfer equalTokenR(
     getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
-  // Different
-  TokenTransfer diffTokenL(
-    getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), true);
-  TokenTransfer diffTokenR(
-    getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), false);
 
   // Then
   EXPECT_TRUE(defaultTokenL == defaultTokenR);
   EXPECT_TRUE(equalTokenL == equalTokenR);
-  EXPECT_FALSE(diffTokenL == diffTokenR);
+}
+
+//-----
+TEST_F(TokenTransferUnitTests, OperatorEqualsDiff)
+{
+  // Given
+  TokenTransfer testTokenTransfer(getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), true);
+
+  TokenTransfer            diffTestToken( TokenId(505ULL),  getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
+  TokenTransfer        diffTestAccountId(getTestTokenId(), AccountId(12345ULL), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
+  TokenTransfer           diffTestAmount(getTestTokenId(),  getTestAccountId(),           500LL, getTestExpectedDecimals(), getTestIsApproval());
+  TokenTransfer diffTestExpectedDecimals(getTestTokenId(),  getTestAccountId(), getTestAmount(),                        2U, getTestIsApproval());
+  TokenTransfer       diffTestIsApproval(getTestTokenId(),  getTestAccountId(), getTestAmount(), getTestExpectedDecimals(),               false);
+
+  // Then
+  EXPECT_FALSE(testTokenTransfer == diffTestToken);
+  EXPECT_FALSE(testTokenTransfer == diffTestAccountId);
+  EXPECT_FALSE(testTokenTransfer == diffTestAmount);
+  EXPECT_FALSE(testTokenTransfer == diffTestExpectedDecimals);
+  EXPECT_FALSE(testTokenTransfer == diffTestIsApproval);
 }
