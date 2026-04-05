@@ -3,7 +3,8 @@
 #include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
-#include <services/custom_fees.pb.h>
+#include <services/custom_fees.pb.h> 
+#include <sstream>
 
 using namespace Hiero;
 
