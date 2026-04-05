@@ -79,10 +79,10 @@ void TokenTransfer::validateChecksums(const Client& client) const
 }
 
 //-----
-bool operator==(const TokenTransfer& other) {
-  return (mTokenId == other.mTokenId) && (mAccountId == other.mAccountId) && 
-         (mAmount == other.mAmount) && (mIsApproval == other.mIsApproval) && 
-         (mExpectedDecimals == other.mExpectedDecimals);
+bool TokenTransfer::operator==(const TokenTransfer& other) const
+{
+  return (mTokenId == other.mTokenId) && (mAccountId == other.mAccountId) && (mAmount == other.mAmount) &&
+         (mIsApproval == other.mIsApproval) && (mExpectedDecimals == other.mExpectedDecimals);
 }
 
 //-----

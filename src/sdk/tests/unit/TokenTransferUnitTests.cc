@@ -137,7 +137,7 @@ TEST_F(TokenTransferUnitTests, OperatorEqualsSame)
 TEST_F(TokenTransferUnitTests, OperatorEqualsDiff)
 {
   // Given
-  TokenTransfer testTokenTransfer(getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), true);
+  TokenTransfer testTokenTransfer(getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
 
   TokenTransfer            diffTestToken( TokenId(505ULL),  getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
   TokenTransfer        diffTestAccountId(getTestTokenId(), AccountId(12345ULL), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
