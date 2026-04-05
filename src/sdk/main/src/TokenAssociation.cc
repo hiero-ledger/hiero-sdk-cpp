@@ -4,8 +4,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include <services/custom_fees.pb.h> 
-#include <ostream>
+#include <services/custom_fees.pb.h>
 
 namespace Hiero
 {
@@ -58,6 +57,8 @@ std::string TokenAssociation::toString() const
   json["mTokenId"] = mTokenId.toString();
   return json.dump();
 }
+
+//-----
 std::ostream& operator<<(std::ostream& os, const TokenAssociation& record)
 {
   os << record.toString();

@@ -2,9 +2,9 @@
 #include "TokenAssociation.h"
 #include "impl/Utilities.h"
 
-#include <services/custom_fees.pb.h>
 #include <gtest/gtest.h>
-#include <sstream>
+#include <services/custom_fees.pb.h>
+
 using namespace Hiero;
 
 class TokenAssociationUnitTests : public ::testing::Test
@@ -85,9 +85,10 @@ TEST_F(TokenAssociationUnitTests, ToBytes)
   const std::vector<std::byte> bytes = tokenAssociation.toBytes();
 
   // Then
-  EXPECT_EQ(bytes, internal::Utilities::stringToByteVector(tokenAssociation.toProtobuf()->SerializeAsString())); 
-   
-  //-----
+  EXPECT_EQ(bytes, internal::Utilities::stringToByteVector(tokenAssociation.toProtobuf()->SerializeAsString()));
+}
+
+//-----
 TEST_F(TokenAssociationUnitTests, OutputStream)
 {
   // Given
@@ -101,5 +102,4 @@ TEST_F(TokenAssociationUnitTests, OutputStream)
 
   // Then
   EXPECT_FALSE(oss.str().empty());
-}
 }
