@@ -118,7 +118,7 @@ nlohmann::json createFile(const CreateFileParams& params)
 
   return {
     {"fileId",  txReceipt.mFileId.value().toString() },
-    {"status", gStatusToString.at(txReceipt.mStatus)}
+    { "status", gStatusToString.at(txReceipt.mStatus)}
   };
 }
 
