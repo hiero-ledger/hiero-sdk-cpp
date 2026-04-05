@@ -78,9 +78,12 @@ void TokenTransfer::validateChecksums(const Client& client) const
   mAccountId.validateChecksum(client);
 }
 
-bool operator==(const TokenTransfer& lhs, const TokenTransfer& rhs) {
-  return (lhs.mTokenId == rhs.mTokenId) && (lhs.mAccountId == rhs.mAccountId) && (lhs.mAmount == rhs.mAmount) && (lhs.mIsApproval == rhs.mIsApproval) && (lhs.mExpectedDecimals == rhs.mExpectedDecimals);
-} 
+//-----
+bool operator==(const TokenTransfer& other) {
+  return (mTokenId == other.mTokenId) && (mAccountId == other.mAccountId) && 
+         (mAmount == other.mAmount) && (mIsApproval == other.mIsApproval) && 
+         (mExpectedDecimals == other.mExpectedDecimals);
+}
 
 //-----
 std::unique_ptr<proto::AccountAmount> TokenTransfer::toProtobuf() const
