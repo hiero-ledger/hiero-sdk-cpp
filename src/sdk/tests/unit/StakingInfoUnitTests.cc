@@ -53,3 +53,16 @@ TEST_F(StakingInfoUnitTests, FromProtobuf)
   ASSERT_TRUE(stakingInfo.mStakedNodeId.has_value());
   EXPECT_EQ(*stakingInfo.mStakedNodeId, getTestStakedNodeId());
 }
+//-----
+TEST_F(StakingInfoUnitTests, ToString)
+{
+  // Given
+  StakingInfo stakingInfo;
+  stakingInfo.mDeclineRewards = getTestDeclineReward();
+
+  // When
+  const std::string result = stakingInfo.toString();
+
+  // Then
+  EXPECT_FALSE(result.empty());
+}
