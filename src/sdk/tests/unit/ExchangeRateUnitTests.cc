@@ -4,8 +4,8 @@
 #include "impl/TimestampConverter.h"
 #include "impl/Utilities.h"
 
-#include <services/exchange_rate.pb.h>
 #include <gtest/gtest.h>
+#include <services/exchange_rate.pb.h>
 
 using namespace Hiero;
 
@@ -168,7 +168,7 @@ TEST_F(ExchangeRateUnitTests, OperatorEqualsDiff)
   // Given
   ExchangeRate lhs(getTestHbar(), getTestCents(), getTestExpirationTime());
   ExchangeRate diffHbar(3, getTestCents(), getTestExpirationTime());
-  ExchangeRate diffCents(getTestHbar(), 2, getTestExpirationTime());
+  ExchangeRate diffCents(getTestHbar(), 3, getTestExpirationTime());
   ExchangeRate diffExpirationTime(getTestHbar(), getTestCents(), getTestExpirationTime() + std::chrono::seconds(1));
 
   // Then
