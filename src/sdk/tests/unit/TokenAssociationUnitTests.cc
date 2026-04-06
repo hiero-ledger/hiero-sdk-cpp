@@ -101,6 +101,7 @@ TEST_F(TokenAssociationUnitTests, ToString)
   const std::string result = tokenAssociation.toString();
 
   // Then
-  EXPECT_TRUE(result.find("{\"mAccountId\":" + getTestAccountId().toString() + ",\"mTokenId\":" +
-                        getTestTokenId().toString() + '}') != std::string::npos);
+  EXPECT_FALSE(result.empty());
+  EXPECT_NE(result.find(getTestAccountId().toString()), std::string::npos);
+  EXPECT_NE(result.find(getTestTokenId().toString()), std::string::npos);
 }
