@@ -3,6 +3,7 @@
 #include "impl/Utilities.h"
 
 #include <services/custom_fees.pb.h>
+#include <string>
 #include <gtest/gtest.h>
 
 using namespace Hiero;
@@ -86,4 +87,21 @@ TEST_F(TokenAssociationUnitTests, ToBytes)
 
   // Then
   EXPECT_EQ(bytes, internal::Utilities::stringToByteVector(tokenAssociation.toProtobuf()->SerializeAsString()));
+}
+
+//-----
+TEST_F(TokenAssociationUnitTests, ToString)
+{
+  // Given
+  TokenAssociation tokenAssociation;
+  tokenAssociation.mAccountId = getTestAccountId();
+  tokenAssociation.mTokenId = getTestTokenId();
+
+  // When
+  const std::string result = tokenAssociation.toString();
+
+  // Then
+  EXPECT_FALSE(result.empty());
+  EXPECT_NE(result.find(getTestAccountId().toString()), std::string::npos);
+  EXPECT_NE(result.find(getTestTokenId().toString()), std::string::npos);
 }
