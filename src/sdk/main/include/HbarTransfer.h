@@ -60,6 +60,14 @@ public:
   [[nodiscard]] static HbarTransfer fromBytes(const std::vector<std::byte>& bytes);
 
   /**
+   * Compare this HbarTransfer to another HbarTransfer and determine if they represent the same transfer.
+   *
+   * @param other The other HbarTransfer with which to compare this HbarTransfer.
+   * @return \c TRUE if this HbarTransfer is the same as the input HbarTransfer, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const HbarTransfer& other) const;
+
+  /**
    * Construct an AccountAmount protobuf object from this HbarTransfer object.
    *
    * @return A pointer to the created HbarTransfer protobuf object.
