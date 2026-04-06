@@ -107,4 +107,10 @@ std::ostream& operator<<(std::ostream& os, const HbarTransfer& transfer)
   return os;
 }
 
+//-----
+bool HbarTransfer::operator==(const HbarTransfer& other) const
+{
+  return (mAccountId == other.mAccountId) && (mAmount == other.mAmount) && (mIsApproved == other.mIsApproved);
+}
+
 } // namespace Hiero
