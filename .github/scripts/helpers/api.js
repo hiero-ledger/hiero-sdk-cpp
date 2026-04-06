@@ -218,7 +218,6 @@ async function removeAssignees(botContext, assignees) {
   }
 }
 
-
 /**
  * Safely posts a comment on an issue or PR.
  * @param {object} botContext - Bot context (github, owner, repo, number).
