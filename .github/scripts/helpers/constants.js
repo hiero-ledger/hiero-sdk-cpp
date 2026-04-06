@@ -14,6 +14,7 @@ const MAINTAINER_TEAM = '@hiero-ledger/hiero-sdk-cpp-maintainers';
  */
 const LABELS = Object.freeze({
   // Status labels
+  AWAITING_TRIAGE: 'status: awaiting triage',
   READY_FOR_DEV: 'status: ready for dev',
   IN_PROGRESS: 'status: in progress',
   BLOCKED: 'status: blocked',
