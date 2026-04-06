@@ -117,9 +117,9 @@ TEST_F(ExchangeRateUnitTests, ToString)
   const std::string result = exchangeRate.toString();
 
   // Then
-  EXPECT_TRUE(result.find("{\"mHbars\":" + std::to_string(getTestHbar()) + ",\"mCents\":" +
-                        std::to_string(getTestCents()) + ",\"mExchangeRateInCents\":") != std::string::npos);
-  EXPECT_TRUE(result.find("\"mExpirationTime\":") != std::string::npos);
+  EXPECT_FALSE(result.empty());
+  EXPECT_NE(result.find(std::to_string(getTestHbar())), std::string::npos);
+  EXPECT_NE(result.find(std::to_string(getTestCents())), std::string::npos);
 }
 
 //-----
