@@ -133,4 +133,5 @@ TEST_F(SemanticVersionUnitTests, ToString)
   EXPECT_NE(result.find(std::to_string(getTestMinor())), std::string::npos);
   EXPECT_NE(result.find(std::to_string(getTestPatch())), std::string::npos);
   EXPECT_NE(result.find(getTestPrerelease()), std::string::npos);
+  EXPECT_NE(result.find(getTestBuildMetadata()), std::string::npos);
 }
