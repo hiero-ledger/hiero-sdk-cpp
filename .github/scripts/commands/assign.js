@@ -9,12 +9,11 @@
 const {
   LABELS,
   ISSUE_STATE,
-  getLogger,
+  createDelegatingLogger,
   isNonNegativeInteger,
   isSafeSearchToken,
   hasLabel,
-  addLabels,
-  removeLabel,
+  swapLabels,
   addAssignees,
   postComment,
   acknowledgeComment,
@@ -39,10 +38,7 @@ const {
 
 // Delegate to the active logger set by the dispatcher (bot-on-comment.js).
 // This ensures the correct prefix is used after command parsing.
-const logger = {
-  log: (...args) => getLogger().log(...args),
-  error: (...args) => getLogger().error(...args),
-};
+const logger = createDelegatingLogger();
 
 /**
  * Returns the skill-level label on an issue, checking in ascending order:
@@ -205,20 +201,9 @@ async function checkPrerequisites(botContext, skillLevel, requesterUsername) {
  * @returns {Promise<void>}
  */
 async function updateLabels(botContext, requesterUsername) {
-  let labelUpdateFailed = false;
-  let labelUpdateError = '';
-  const removeResult = await removeLabel(botContext, LABELS.READY_FOR_DEV);
-  if (!removeResult.success) {
-    labelUpdateFailed = true;
-    labelUpdateError = `Failed to remove "${LABELS.READY_FOR_DEV}" label: ${removeResult.error}`;
-  }
-  const addResult = await addLabels(botContext, [LABELS.IN_PROGRESS]);
-  if (!addResult.success) {
-    labelUpdateFailed = true;
-    labelUpdateError += (labelUpdateError ? '; ' : '') + `Failed to add "${LABELS.IN_PROGRESS}" label: ${addResult.error}`;
-  }
-  if (labelUpdateFailed) {
-    await postComment(botContext, buildLabelUpdateFailureComment(requesterUsername, labelUpdateError));
+  const { success, errorDetails } = await swapLabels(botContext, LABELS.READY_FOR_DEV, LABELS.IN_PROGRESS);
+  if (!success) {
+    await postComment(botContext, buildLabelUpdateFailureComment(requesterUsername, errorDetails));
     logger.log('Posted label update failure comment, tagged maintainers');
   }
 }

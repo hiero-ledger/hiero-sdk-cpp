@@ -13,7 +13,7 @@ const {
   requirePositiveInt,
   requireSafeUsername,
 } = require('./validation');
-const { LABELS } = require('./constants');
+const { LABELS, SKILL_HIERARCHY } = require('./constants');
 const { checkDCO, checkGPG, checkMergeConflict, checkIssueLink } = require('./checks');
 const { buildBotComment } = require('./comments');
 
@@ -218,7 +218,6 @@ async function removeAssignees(botContext, assignees) {
   }
 }
 
-
 /**
  * Safely posts a comment on an issue or PR.
  * @param {object} botContext - Bot context (github, owner, repo, number).
@@ -258,6 +257,45 @@ function hasLabel(issueOrPr, labelName) {
     const name = typeof label === 'string' ? label : label?.name;
     return typeof name === 'string' && name.toLowerCase() === labelName.toLowerCase();
   });
+}
+
+/**
+ * Returns all label names on an issue or PR that start with the given prefix.
+ * The comparison is case-insensitive.
+ *
+ * @param {object} issueOrPr - The issue or PR object.
+ * @param {string} prefix - Label group prefix (e.g. 'skill:').
+ * @returns {string[]}
+ */
+function getLabelsByPrefix(issueOrPr, prefix) {
+  return (issueOrPr.labels || [])
+    .map((l) => (typeof l === 'string' ? l : l?.name || ''))
+    .filter((name) => name.toLowerCase().startsWith(prefix.toLowerCase()));
+}
+
+/**
+ * Removes `fromLabel` and adds `toLabel` on the issue/PR. Both operations are
+ * always attempted; errors are collected and returned rather than thrown.
+ *
+ * @param {object} botContext - Bot context (github, owner, repo, number).
+ * @param {string} fromLabel - Label to remove.
+ * @param {string} toLabel - Label to add.
+ * @returns {Promise<{ success: boolean, errorDetails: string }>}
+ */
+async function swapLabels(botContext, fromLabel, toLabel) {
+  const errors = [];
+
+  const removeResult = await removeLabel(botContext, fromLabel);
+  if (!removeResult.success) {
+    errors.push(`Failed to remove '${fromLabel}': ${removeResult.error}`);
+  }
+
+  const addResult = await addLabels(botContext, [toLabel]);
+  if (!addResult.success) {
+    errors.push(`Failed to add '${toLabel}': ${addResult.error}`);
+  }
+
+  return { success: errors.length === 0, errorDetails: errors.join('; ') };
 }
 
 /**
@@ -567,6 +605,67 @@ async function closeItem(botContext) {
   }
 }
 
+/**
+ * Resolves the primary issue linked to a PR.
+ *
+ * Strategy:
+ *   - Fetch closing issue references via GraphQL
+ *   - If multiple issues, return the one with the highest skill level
+ *   - Return null if no linked issues found
+ *
+ * Notes:
+ *   - Logs informational messages for traceability
+ *   - Does NOT throw — failures are handled gracefully
+ *
+ * @param {object} botContext
+ * @returns {Promise<object|null>}
+ */
+async function resolveLinkedIssue(botContext) {
+    try {
+        const issueNumbers = await fetchClosingIssueNumbers(botContext);
+
+        if (!issueNumbers.length) {
+            getLogger().log('No linked issue found', {
+                prNumber: botContext.number,
+            });
+            return null;
+        }
+
+        if (issueNumbers.length === 1) {
+            return await fetchIssue(botContext, issueNumbers[0]) || null;
+        }
+
+        const issues = await Promise.all(
+            issueNumbers.map(n => fetchIssue(botContext, n))
+        );
+        const valid = issues.filter(Boolean);
+
+        if (!valid.length) {
+            getLogger().log('All linked issue fetches returned empty', { issueNumbers });
+            return null;
+        }
+
+        const selected = valid.reduce((best, issue) => {
+            const bestIndex = SKILL_HIERARCHY.findIndex(level => hasLabel(best, level));
+            const currIndex = SKILL_HIERARCHY.findIndex(level => hasLabel(issue, level));
+            return currIndex > bestIndex ? issue : best;
+        });
+
+        getLogger().log('Multiple linked issues found (using highest level)', {
+            issueNumbers,
+            selected: selected.number,
+        });
+
+        return selected;
+
+    } catch (error) {
+        getLogger().error('Failed to resolve linked issue:', {
+            message: error.message,
+        });
+        return null;
+    }
+}
+
 module.exports = {
   buildBotContext,
   addLabels,
@@ -575,12 +674,15 @@ module.exports = {
   removeAssignees,
   postComment,
   hasLabel,
+  getLabelsByPrefix,
+  swapLabels,
   postOrUpdateComment,
   fetchPRCommits,
   fetchIssue,
   fetchClosingIssueNumbers,
   swapStatusLabel,
   runAllChecksAndComment,
+  resolveLinkedIssue,
   acknowledgeComment,
   fetchComments,
   fetchIssueEvents,

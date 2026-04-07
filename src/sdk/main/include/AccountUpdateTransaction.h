@@ -5,11 +5,13 @@
 #include "AccountId.h"
 #include "PublicKey.h"
 #include "Transaction.h"
+#include "hooks/HookCreationDetails.h"
 
 #include <chrono>
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace proto
 {
@@ -171,6 +173,38 @@ public:
   AccountUpdateTransaction& setDeclineStakingReward(bool declineReward);
 
   /**
+   * Add a hook to be created for the account.
+   *
+   * @param hook The details of the hook to create.
+   * @return A reference to this AccountUpdateTransaction object with the newly-added hook creation details.
+   */
+  AccountUpdateTransaction& addHookToCreate(const HookCreationDetails& hook);
+
+  /**
+   * Set the list of hooks to be created for the account.
+   *
+   * @param hooks The details of the hooks to create.
+   * @return A reference to this AccountUpdateTransaction object with the newly-set list of hook creation details.
+   */
+  AccountUpdateTransaction& setHooksToCreate(const std::vector<HookCreationDetails>& hooks);
+
+  /**
+   * Delete a hook from the account.
+   *
+   * @param hookId The ID of the hook to delete.
+   * @return A reference to this AccountUpdateTransaction object with the newly-added hook to delete.
+   */
+  AccountUpdateTransaction& addHookToDelete(int64_t hookId);
+
+  /**
+   * Deletes hooks from the account.
+   *
+   * @param hooks The IDs of the hooks to delete.
+   * @return A reference to this AccountUpdateTransaction object with the newly-set list of hooks to delete.
+   */
+  AccountUpdateTransaction& setHooksToDelete(const std::vector<int64_t>& hooks);
+
+  /**
    * Get the ID of the account to update.
    *
    * @return The ID of the account to update.
@@ -247,9 +281,23 @@ public:
   /**
    * Get the new staking rewards reception policy for the account.
    *
-   * @return \c TRUE if the new account should decline from receiving staking rewards, otherwise \c FALSE
+   * @return \c TRUE if the new account should decline from receiving staking rewards, otherwise \c FALSE.
    */
   [[nodiscard]] inline std::optional<bool> getDeclineStakingReward() const { return mDeclineStakingReward; }
+
+  /**
+   * Get the IDs of the hooks to delete from the account.
+   *
+   * @return The IDs of the hooks to delete from the account.
+   */
+  [[nodiscard]] inline std::vector<int64_t> getHooksToDelete() const { return mHooksToDelete; }
+
+  /**
+   * Get the hook creation details of the hooks to create for the account.
+   *
+   * @return The hook creation details of the hooks to create for the account.
+   */
+  [[nodiscard]] inline std::vector<HookCreationDetails> getHooksToCreate() const { return mHookCreationDetails; }
 
 private:
   friend class WrappedTransaction;
@@ -351,6 +399,16 @@ private:
    * If \c TRUE, the account will now decline receiving staking rewards.
    */
   std::optional<bool> mDeclineStakingReward;
+
+  /**
+   * The IDs of the hooks to delete from the account.
+   */
+  std::vector<int64_t> mHooksToDelete;
+
+  /**
+   * The new hooks to create for the account.
+   */
+  std::vector<HookCreationDetails> mHookCreationDetails;
 };
 
 } // namespace Hiero

@@ -32,7 +32,7 @@ jobs:
     runs-on: hiero-client-sdk-linux-large
     steps:
     - name: Harden the runner (Audit all outbound calls)
-      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+      uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
       with:
         egress-policy: audit
 
@@ -40,7 +40,7 @@ jobs:
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Check Markdown links
-      uses: step-security/github-action-markdown-link-check@d952f9c54968d30422678f866a3482759f7c8214 # v1.0.18
+      uses: tcort/github-action-markdown-link-check@e7c7a18363c842693fadde5d41a3bd3573a7a225 # v1.1.2
       with:
         check-modified-files-only: 'yes'
         config-file: '.mlc_config.json'

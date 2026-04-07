@@ -73,6 +73,14 @@ public:
   void validateChecksum(const Client& client) const;
 
   /**
+   * Compare this PendingAirdropId to another PendingAirdropId and determine if they represent the same pending airdrop.
+   *
+   * @param other The other PendingAirdropId with which to compare this PendingAirdropId.
+   * @return \c TRUE if this PendingAirdropId is the same as the input PendingAirdropId, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const PendingAirdropId& other) const;
+
+  /**
    * Construct an PendingAirdropId protobuf object from this PendingAirdropId object.
    *
    * @return A pointer to the created PendingAirdropId protobuf object filled with this PendingAirdropId object's data.
