@@ -2,6 +2,8 @@
 #include "TokenAssociation.h"
 #include "impl/Utilities.h"
 
+#include <services/custom_fees.pb.h>
+#include <string>
 #include <gtest/gtest.h>
 #include <services/custom_fees.pb.h> 
 #include <sstream>
@@ -90,7 +92,7 @@ TEST_F(TokenAssociationUnitTests, ToBytes)
 }
 
 //-----
-TEST_F(TokenAssociationUnitTests, OutputStream)
+TEST_F(TokenAssociationUnitTests, ToString)
 {
   // Given
   TokenAssociation tokenAssociation;
@@ -98,9 +100,10 @@ TEST_F(TokenAssociationUnitTests, OutputStream)
   tokenAssociation.mTokenId = getTestTokenId();
 
   // When
-  std::ostringstream oss;
-  oss << tokenAssociation;
+  const std::string result = tokenAssociation.toString();
 
   // Then
-  EXPECT_FALSE(oss.str().empty());
+  EXPECT_FALSE(result.empty());
+  EXPECT_NE(result.find(getTestAccountId().toString()), std::string::npos);
+  EXPECT_NE(result.find(getTestTokenId().toString()), std::string::npos);
 }
