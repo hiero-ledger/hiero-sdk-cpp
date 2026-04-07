@@ -13,7 +13,9 @@ SubscriptionHandle::~SubscriptionHandle()
 void SubscriptionHandle::unsubscribe() const
 {
   if (mUnsubscribeFunc)
+  {
     mUnsubscribeFunc();
+  }
 }
 
 //-----
