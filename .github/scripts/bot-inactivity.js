@@ -32,6 +32,7 @@ const {
   postOrUpdateComment,
   fetchComments,
   fetchIssueEvents,
+  fetchPRCommits,
   closeItem,
 } = require('./helpers/api');
 const { parseIssueNumbers } = require('./helpers/checks');
@@ -62,6 +63,49 @@ function buildCtx(github, owner, repo, number) {
 // ─── Activity helpers ─────────────────────────────────────────────────────────
 
 /**
+ * Returns the greater of two timestamps. If candidate is null or not later
+ * than current, returns current unchanged.
+ * @param {number} current
+ * @param {number|null} candidate
+ * @returns {number}
+ */
+function latestOf(current, candidate) {
+  if (candidate === null || candidate <= current) return current;
+  return candidate;
+}
+
+/**
+ * Builds a Set of lowercased participant logins from an issue or PR object.
+ * Includes the item's user (author) and all assignees.
+ * @param {object} item
+ * @returns {Set<string>}
+ */
+function collectParticipants(item) {
+  const logins = (item.assignees || []).map(a => a.login.toLowerCase());
+  if (item.user?.login) logins.push(item.user.login.toLowerCase());
+  return new Set(logins);
+}
+
+/**
+ * Returns true if the commit was authored by the given (lowercased) login.
+ * @param {object} commit
+ * @param {string} login - Lowercased login to match.
+ * @returns {boolean}
+ */
+function isAuthorLogin(commit, login) {
+  return commit.author?.login?.toLowerCase() === login;
+}
+
+/**
+ * Extracts the best available date string from a commit object.
+ * @param {object} commit
+ * @returns {string|null}
+ */
+function extractCommitDate(commit) {
+  return commit.commit?.committer?.date ?? commit.commit?.author?.date ?? null;
+}
+
+/**
  * Returns the timestamp (ms) of the most recent non-bot comment posted by any
  * of the given usernames, or null if none found.
  *
@@ -81,9 +125,9 @@ async function getLastRelevantCommentDate(github, owner, repo, number, relevantL
     if (!c.user || c.user.type === 'Bot') continue;
     if (!relevantLogins.has(c.user.login.toLowerCase())) continue;
     const t = new Date(c.created_at).getTime();
-    if (latest === null || t > latest) latest = t;
+    latest = latestOf(latest === null ? -Infinity : latest, t);
   }
-  return latest;
+  return latest === -Infinity ? null : latest;
 }
 
 /**
@@ -98,34 +142,17 @@ async function getLastRelevantCommentDate(github, owner, repo, number, relevantL
  * @returns {Promise<number|null>}
  */
 async function getLastAuthorCommitDate(github, owner, repo, prNumber, authorLogin) {
-  const commits = [];
-  let page = 1;
-  const perPage = 100;
-
-  while (true) {
-    const { data } = await github.rest.pulls.listCommits({
-      owner,
-      repo,
-      pull_number: prNumber,
-      per_page: perPage,
-      page,
-    });
-    commits.push(...data);
-    if (data.length < perPage) break;
-    page++;
-  }
-
+  const ctx = buildCtx(github, owner, repo, prNumber);
+  const commits = await fetchPRCommits(ctx);
   const login = authorLogin.toLowerCase();
   let latest = null;
 
   for (const c of commits) {
-    if (c.author?.login?.toLowerCase() !== login) continue;
-    const dateStr = c.commit?.committer?.date || c.commit?.author?.date;
-    if (!dateStr) continue;
-    const t = new Date(dateStr).getTime();
-    if (latest === null || t > latest) latest = t;
+    if (!isAuthorLogin(c, login)) continue;
+    const dateStr = extractCommitDate(c);
+    latest = latestOf(latest === null ? -Infinity : latest, dateStr ? new Date(dateStr).getTime() : -Infinity);
   }
-  return latest;
+  return latest === null || latest === -Infinity ? null : latest;
 }
 
 /**
@@ -144,20 +171,49 @@ async function getLastUnblockedDate(github, owner, repo, number) {
 
   let latest = null;
   for (const e of events) {
-    if (e.event === 'unlabeled' && e.label?.name === LABELS.BLOCKED) {
-      const t = new Date(e.created_at).getTime();
-      if (latest === null || t > latest) latest = t;
-    }
+    if (e.event !== 'unlabeled' || e.label?.name !== LABELS.BLOCKED) continue;
+    const t = new Date(e.created_at).getTime();
+    latest = latestOf(latest === null ? -Infinity : latest, t);
   }
-  return latest;
+  return latest === null || latest === -Infinity ? null : latest;
 }
 
 // ─── Activity computation ────────────────────────────────────────────────────
 
 /**
+ * Computes the last meaningful activity timestamp (ms) for a PR.
+ * Considers: relevant comments (by PR author/assignees), commits by the PR
+ * author, and removal of the blocked label.
+ *
+ * Also used by computeIssueLastActivity when evaluating linked open PRs.
+ *
+ * @param {object} github
+ * @param {string} owner
+ * @param {string} repo
+ * @param {object} pr - GitHub PR object.
+ * @returns {Promise<number>}
+ */
+async function computePRLastActivity(github, owner, repo, pr) {
+  let latest = new Date(pr.created_at).getTime();
+  const participants = collectParticipants(pr);
+
+  if (participants.size > 0) {
+    const d = await getLastRelevantCommentDate(github, owner, repo, pr.number, participants);
+    latest = latestOf(latest, d);
+  }
+
+  if (pr.user?.login) {
+    const d = await getLastAuthorCommitDate(github, owner, repo, pr.number, pr.user.login);
+    latest = latestOf(latest, d);
+  }
+
+  return latestOf(latest, await getLastUnblockedDate(github, owner, repo, pr.number));
+}
+
+/**
  * Computes the last meaningful activity timestamp (ms) for an issue.
  * Considers: the issue's own relevant comments, removal of the blocked label,
- * and activity on any linked open PRs (their comments and author commits).
+ * and activity on any linked open PRs.
  *
  * @param {object} github
  * @param {string} owner
@@ -168,68 +224,18 @@ async function getLastUnblockedDate(github, owner, repo, number) {
  */
 async function computeIssueLastActivity(github, owner, repo, issue, linkedOpenPRs) {
   let latest = new Date(issue.created_at).getTime();
-
   const assigneeLogins = new Set((issue.assignees || []).map(a => a.login.toLowerCase()));
 
   if (assigneeLogins.size > 0) {
-    const commentDate = await getLastRelevantCommentDate(github, owner, repo, issue.number, assigneeLogins);
-    if (commentDate !== null && commentDate > latest) latest = commentDate;
+    const d = await getLastRelevantCommentDate(github, owner, repo, issue.number, assigneeLogins);
+    latest = latestOf(latest, d);
   }
 
-  const unblockedDate = await getLastUnblockedDate(github, owner, repo, issue.number);
-  if (unblockedDate !== null && unblockedDate > latest) latest = unblockedDate;
+  latest = latestOf(latest, await getLastUnblockedDate(github, owner, repo, issue.number));
 
   for (const pr of linkedOpenPRs) {
-    const prParticipants = new Set([
-      ...(pr.user ? [pr.user.login.toLowerCase()] : []),
-      ...(pr.assignees || []).map(a => a.login.toLowerCase()),
-    ]);
-
-    if (prParticipants.size > 0) {
-      const prCommentDate = await getLastRelevantCommentDate(github, owner, repo, pr.number, prParticipants);
-      if (prCommentDate !== null && prCommentDate > latest) latest = prCommentDate;
-    }
-
-    if (pr.user?.login) {
-      const commitDate = await getLastAuthorCommitDate(github, owner, repo, pr.number, pr.user.login);
-      if (commitDate !== null && commitDate > latest) latest = commitDate;
-    }
+    latest = latestOf(latest, await computePRLastActivity(github, owner, repo, pr));
   }
-
-  return latest;
-}
-
-/**
- * Computes the last meaningful activity timestamp (ms) for a PR.
- * Considers: relevant comments (by PR author/assignees), commits by the PR
- * author, and removal of the blocked label.
- *
- * @param {object} github
- * @param {string} owner
- * @param {string} repo
- * @param {object} pr - GitHub PR object.
- * @returns {Promise<number>}
- */
-async function computePRLastActivity(github, owner, repo, pr) {
-  let latest = new Date(pr.created_at).getTime();
-
-  const participants = new Set([
-    ...(pr.user ? [pr.user.login.toLowerCase()] : []),
-    ...(pr.assignees || []).map(a => a.login.toLowerCase()),
-  ]);
-
-  if (participants.size > 0) {
-    const commentDate = await getLastRelevantCommentDate(github, owner, repo, pr.number, participants);
-    if (commentDate !== null && commentDate > latest) latest = commentDate;
-  }
-
-  if (pr.user?.login) {
-    const commitDate = await getLastAuthorCommitDate(github, owner, repo, pr.number, pr.user.login);
-    if (commitDate !== null && commitDate > latest) latest = commitDate;
-  }
-
-  const unblockedDate = await getLastUnblockedDate(github, owner, repo, pr.number);
-  if (unblockedDate !== null && unblockedDate > latest) latest = unblockedDate;
 
   return latest;
 }
