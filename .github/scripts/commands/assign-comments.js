@@ -5,7 +5,7 @@
 // Comment builders for the /assign command. Pure formatting functions
 // separated from assignment logic for readability.
 
-const { MAINTAINER_TEAM, LABELS, ISSUE_STATE } = require('../helpers');
+const { MAINTAINER_TEAM, LABELS, ISSUE_STATE, SKILL_HIERARCHY } = require('../helpers');
 
 /**
  * Maximum number of open (non-blocked) issues a contributor can be assigned to
@@ -56,18 +56,6 @@ const SKILL_PREREQUISITES = {
     prerequisiteDisplayName: 'Intermediate Issues',
   },
 };
-
-/**
- * Difficulty Hierarchy used to track the contributor's progress and determine 
- * whether they meet requirement for further issues.
- * @type {Array<string>}
- */
-const SKILL_HIERARCHY = [
-  LABELS.GOOD_FIRST_ISSUE,
-  LABELS.BEGINNER,
-  LABELS.INTERMEDIATE,
-  LABELS.ADVANCED,
-];
 
 /**
  * Builds the welcome comment posted after a successful assignment. Returns a
