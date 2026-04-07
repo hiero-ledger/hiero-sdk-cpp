@@ -101,41 +101,57 @@ function createMockGithub(options = {}) {
           calls.labelsRemoved.push(params.name);
           console.log(`\n🏷️  LABEL REMOVED: ${params.name}`);
         },
+        removeAssignees: async (params) => {
+          calls.assignees = calls.assignees.filter(a => !params.assignees.includes(a));
+          console.log(`\n❌ ASSIGNEES REMOVED: ${params.assignees.join(', ')}`);
+        },
+        listForRepo: async (params) => {
+          calls.graphqlCalls.push(`REST listForRepo: state=${params.state} assignee=${params.assignee}`);
+          console.log(`\n🔍 REST API CALL: listForRepo state=${params.state} assignee=${params.assignee}`);
+
+          if (params.state === 'open') {
+            if (graphqlOpenAssignmentsShouldFail) {
+              throw new Error('Simulated REST API failure for open assignments');
+            }
+            const issues = [];
+            for (let i = 0; i < openAssignmentCountExcludingBlocked; i++) {
+              issues.push({ labels: [{ name: 'status: ready for dev' }] });
+            }
+            const blockedToGenerate = Math.max(blockedIssueCount, openAssignmentCount - openAssignmentCountExcludingBlocked);
+            for (let i = 0; i < blockedToGenerate; i++) {
+              issues.push({ labels: [{ name: LABELS.BLOCKED }] });
+            }
+            const difference = openAssignmentCount - (openAssignmentCountExcludingBlocked + blockedToGenerate);
+            if (difference > 0) {
+              for (let i = 0; i < difference; i++) {
+                issues.push({ labels: [] });
+              }
+            }
+            return { data: issues };
+          }
+
+          if (params.state === 'closed') {
+            if (graphqlShouldFail) {
+              throw new Error('Simulated REST API failure');
+            }
+            const issues = [];
+            for (const [labelName, count] of Object.entries(completedIssueCounts)) {
+              for (let i = 0; i < count; i++) {
+                issues.push({ labels: [{ name: labelName }] });
+              }
+            }
+            for (let i = 0; i < completedIssueCount; i++) {
+              issues.push({ labels: [] });
+            }
+            return { data: issues };
+          }
+
+          return { data: [] };
+        },
       },
     },
     graphql: async (query, variables) => {
-      calls.graphqlCalls.push(variables.searchQuery);
-      console.log(`\n🔍 GRAPHQL QUERY: ${variables.searchQuery}`);
-
-      const kind = getGraphQLQueryKind(variables.searchQuery);
-
-      if (kind === 'openExcludingBlocked' || kind === 'openWithLabelBlocked' || kind === 'open') {
-        if (graphqlOpenAssignmentsShouldFail) {
-          throw new Error('Simulated GraphQL failure for open assignments');
-        }
-        const count =
-          kind === 'openExcludingBlocked'
-            ? openAssignmentCountExcludingBlocked
-            : kind === 'openWithLabelBlocked'
-              ? blockedIssueCount
-              : openAssignmentCount;
-        console.log(`   → Returning ${kind} count: ${count}`);
-        return { search: { issueCount: count } };
-      }
-
-      if (kind === 'closedWithLabel') {
-        if (graphqlShouldFail) {
-          throw new Error('Simulated GraphQL failure');
-        }
-        const match = variables.searchQuery.match(/label:"(skill:\s*(?:good first issue|beginner|intermediate|advanced))"/);
-        const label = match ? match[1] : null;
-        const count = (label && completedIssueCounts[label] !== undefined) ? completedIssueCounts[label] : completedIssueCount;
-
-        console.log(`   -> Returning completed count for label ${label || 'unknown'}: ${count}`);
-        return { search: { issueCount: count } };
-      }
-
-      console.log(`   → Unknown query kind, returning 0`);
+      // Stubbed just in case other things call it, though we rely on REST now
       return { search: { issueCount: 0 } };
     },
   };

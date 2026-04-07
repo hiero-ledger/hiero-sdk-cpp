@@ -15,6 +15,7 @@ const {
   hasLabel,
   swapLabels,
   addAssignees,
+  removeAssignees,
   postComment,
   acknowledgeComment,
 } = require('../helpers');
@@ -79,38 +80,47 @@ async function countAssignedIssues(github, owner, repo, username, state, label =
   }
 
   try {
-    const queryParts = [
-      `repo:${owner}/${repo}`,
-      'is:issue',
-      `is:${state}`,
-      `assignee:${username}`,
-    ];
+    let page = 1;
+    let allIssues = [];
+    const perPage = 100;
+    
+    logger.log(`[assign] Fetching ${state} assigned issues via REST...`);
+    while (true) {
+      const result = await github.rest.issues.listForRepo({
+        owner,
+        repo,
+        state: state.toLowerCase(),
+        assignee: username,
+        per_page: perPage,
+        page
+      });
+      allIssues = allIssues.concat(result.data);
+      if (result.data.length < perPage) break;
+      page++;
+    }
+
+    if (state === ISSUE_STATE.OPEN && !label) {
+      const count = allIssues.filter(issue => 
+        !issue.labels?.some(l => (l.name || l) === LABELS.BLOCKED)
+      ).length;
+      logger.log(`[assign] open assigned issues for ${username} (excluding blocked): ${count}`);
+      return count;
+    }
+
     if (label) {
       if (typeof label !== 'string' || !label.trim() || label.includes('"')) {
         logger.log('[assign] Invalid label parameter:', { label });
         return null;
       }
-      queryParts.push(`label:"${label}"`);
+      const count = allIssues.filter(issue =>
+        issue.labels?.some(l => (l.name || l) === label)
+      ).length;
+      logger.log(`[assign] ${state} assigned issues for ${username} with label ${label}: ${count}`);
+      return count;
     }
-    if (state === ISSUE_STATE.OPEN && !label) {
-      queryParts.push(`-label:"${LABELS.BLOCKED}"`);
-    }
-    const searchQuery = queryParts.join(' ');
-    const queryType = label
-      ? state === ISSUE_STATE.CLOSED
-        ? `completed "${label}"`
-        : `open "${label}"`
-      : `${state} assigned`;
-    logger.log(`[assign] GraphQL search (${queryType}):`, searchQuery);
 
-    const result = await github.graphql(
-      `query ($searchQuery: String!) {
-        search(type: ISSUE, query: $searchQuery) { issueCount }
-      }`,
-      { searchQuery }
-    );
-    const count = result?.search?.issueCount ?? 0;
-    logger.log(`[assign] ${queryType} issues for ${username}: ${count}`);
+    const count = allIssues.length;
+    logger.log(`[assign] ${state} assigned issues for ${username}: ${count}`);
     return count;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -331,6 +341,40 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
   if (!assignResult.success) {
     await postComment(botContext, buildAssignmentFailureComment(requesterUsername, assignResult.error));
     logger.log('Posted assignment failure comment, tagged maintainers');
+    return;
+  }
+
+  // Allow REST replica sync (GitHub's replication lag is ~50-200ms, use 500ms safety buffer)
+  logger.log('Waiting 500ms for REST replica sync...');
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Check GLOBAL open assignment count (all issues, no label filter)
+  const finalOpenCount = await countAssignedIssues(
+    botContext.github,
+    botContext.owner,
+    botContext.repo,
+    requesterUsername,
+    ISSUE_STATE.OPEN,
+    null // No label filter - count ALL open assignments globally
+  );
+
+  // Optimistic Rollback: If race condition was hit, revert the assignment
+  if (finalOpenCount === null) {
+    await postComment(botContext, buildApiErrorComment(requesterUsername));
+    logger.log('Could not verify post-assignment count due to API error');
+    return;
+  }
+
+  if (finalOpenCount > MAX_OPEN_ASSIGNMENTS) {
+    logger.error('Race condition detected: Final count exceeds limit. Rolling back.');
+    await removeAssignees(botContext, [requesterUsername]);
+    await postComment(botContext, 
+      `⚠️ @${requesterUsername}, your assignment request conflicted with concurrent requests on other issues.\n\n` +
+      `Your assignment to this issue has been automatically rolled back to maintain the **${MAX_OPEN_ASSIGNMENTS}-issue limit**.\n\n` +
+      `You currently have **${finalOpenCount - 1}** other open assignments. ` +
+      `Please try again after completing one of them!`
+    );
+    logger.log('Assignment rolled back due to limit breach');
     return;
   }
 
