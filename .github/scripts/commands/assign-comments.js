@@ -5,7 +5,12 @@
 // Comment builders for the /assign command. Pure formatting functions
 // separated from assignment logic for readability.
 
-const { MAINTAINER_TEAM, LABELS, ISSUE_STATE, SKILL_HIERARCHY } = require('../helpers');
+const {
+  MAINTAINER_TEAM,
+  LABELS,
+  ISSUE_STATE,
+  SKILL_HIERARCHY,
+} = require("../helpers");
 
 /**
  * Maximum number of open (non-blocked) issues a contributor can be assigned to
@@ -35,25 +40,25 @@ const SKILL_PREREQUISITES = {
   [LABELS.GOOD_FIRST_ISSUE]: {
     requiredLabel: null,
     requiredCount: 0,
-    displayName: 'Good First Issue',
+    displayName: "Good First Issue",
   },
   [LABELS.BEGINNER]: {
     requiredLabel: LABELS.GOOD_FIRST_ISSUE,
     requiredCount: 2,
-    displayName: 'Beginner',
-    prerequisiteDisplayName: 'Good First Issues',
+    displayName: "Beginner",
+    prerequisiteDisplayName: "Good First Issues",
   },
   [LABELS.INTERMEDIATE]: {
     requiredLabel: LABELS.BEGINNER,
     requiredCount: 3,
-    displayName: 'Intermediate',
-    prerequisiteDisplayName: 'Beginner Issues',
+    displayName: "Intermediate",
+    prerequisiteDisplayName: "Beginner Issues",
   },
   [LABELS.ADVANCED]: {
     requiredLabel: LABELS.INTERMEDIATE,
     requiredCount: 3,
-    displayName: 'Advanced',
-    prerequisiteDisplayName: 'Intermediate Issues',
+    displayName: "Advanced",
+    prerequisiteDisplayName: "Intermediate Issues",
   },
 };
 
@@ -68,29 +73,30 @@ const SKILL_PREREQUISITES = {
  */
 function buildWelcomeComment(username, skillLevel) {
   const isGoodFirstIssue = skillLevel === LABELS.GOOD_FIRST_ISSUE;
-  const skillDisplayName = SKILL_PREREQUISITES[skillLevel]?.displayName || 'issue';
+  const skillDisplayName =
+    SKILL_PREREQUISITES[skillLevel]?.displayName || "issue";
   if (isGoodFirstIssue) {
     return [
       `👋 Hi @${username}, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉`,
-      '',
-      'You\'ve been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.',
-      '',
-      'The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we\'re happy to help.',
-      '',
-      'If you realize you cannot complete this issue, simply comment `/unassign` to return it to the community pool.',
-      '',
-      'Good luck, and welcome aboard! 🚀',
-    ].join('\n');
+      "",
+      "You've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.",
+      "",
+      "The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.",
+      "",
+      "If you realize you cannot complete this issue, simply comment `/unassign` to return it to the community pool.",
+      "",
+      "Good luck, and welcome aboard! 🚀",
+    ].join("\n");
   }
   return [
     `👋 Hi @${username}, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **${skillDisplayName}** issue. 🙌`,
-    '',
-    'If this task involves any design decisions or you\'d like early feedback, feel free to share your plan here before diving into the code.',
-    '',
-    'If you realize you cannot complete this issue, simply comment `/unassign` to return it to the pool.',
-    '',
-    'Good luck! 🚀',
-  ].join('\n');
+    "",
+    "If this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.",
+    "",
+    "If you realize you cannot complete this issue, simply comment `/unassign` to return it to the pool.",
+    "",
+    "Good luck! 🚀",
+  ].join("\n");
 }
 
 /**
@@ -106,24 +112,25 @@ function buildWelcomeComment(username, skillLevel) {
  */
 function buildAlreadyAssignedComment(requesterUsername, issue, owner, repo) {
   const isAssignedToSelf = issue?.assignees?.some(
-    (a) => (a.login || '').toLowerCase() === (requesterUsername || '').toLowerCase()
+    (a) =>
+      (a.login || "").toLowerCase() === (requesterUsername || "").toLowerCase(),
   );
   if (isAssignedToSelf) {
     return [
       `👋 Hi @${requesterUsername}! You're already assigned to this issue. You're all set to start working on it!`,
-      '',
-      'If you have any questions, feel free to ask here or reach out to the team.',
-    ].join('\n');
+      "",
+      "If you have any questions, feel free to ask here or reach out to the team.",
+    ].join("\n");
   }
-  const currentAssignee = issue?.assignees?.[0]?.login ?? 'someone';
+  const currentAssignee = issue?.assignees?.[0]?.login ?? "someone";
   return [
     `👋 Hi @${requesterUsername}! This issue is already assigned to @${currentAssignee}.`,
-    '',
-    '👉 **Find another issue to work on:**',
+    "",
+    "👉 **Find another issue to work on:**",
     `[Browse unassigned issues](https://github.com/${owner}/${repo}/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)`,
-    '',
-    'Once you find one you like, comment `/assign` to get started!',
-  ].join('\n');
+    "",
+    "Once you find one you like, comment `/assign` to get started!",
+  ].join("\n");
 }
 
 /**
@@ -138,14 +145,14 @@ function buildAlreadyAssignedComment(requesterUsername, issue, owner, repo) {
 function buildNotReadyComment(requesterUsername, owner, repo) {
   return [
     `👋 Hi @${requesterUsername}! This issue is not ready for development yet.`,
-    '',
+    "",
     `Issues must have the \`${LABELS.READY_FOR_DEV}\` label before they can be assigned.`,
-    '',
-    '👉 **Find an issue that\'s ready:**',
+    "",
+    "👉 **Find an issue that's ready:**",
     `[Browse ready issues](https://github.com/${owner}/${repo}/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)`,
-    '',
-    'Once you find one you like, comment `/assign` to get started!',
-  ].join('\n');
+    "",
+    "Once you find one you like, comment `/assign` to get started!",
+  ].join("\n");
 }
 
 /**
@@ -160,23 +167,30 @@ function buildNotReadyComment(requesterUsername, owner, repo) {
  * @param {string} repo - Repository name (for the search URL).
  * @returns {string} The formatted Markdown comment body.
  */
-function buildPrerequisiteNotMetComment(requesterUsername, skillLevel, completedCount, owner, repo) {
+function buildPrerequisiteNotMetComment(
+  requesterUsername,
+  skillLevel,
+  completedCount,
+  owner,
+  repo,
+) {
   const prereq = SKILL_PREREQUISITES[skillLevel];
-  const { requiredLabel, requiredCount, prerequisiteDisplayName, displayName } = prereq;
+  const { requiredLabel, requiredCount, prerequisiteDisplayName, displayName } =
+    prereq;
   const searchQuery = `is:issue is:open no:assignee label:"${requiredLabel}" label:"${LABELS.READY_FOR_DEV}"`;
   const searchUrl = `https://github.com/${owner}/${repo}/issues?q=${encodeURIComponent(searchQuery)}`;
   return [
     `👋 Hi @${requesterUsername}! Thanks for your interest in contributing!`,
-    '',
+    "",
     `This is a **${displayName}** issue. Before taking it on, you need to complete at least **${requiredCount} ${prerequisiteDisplayName}** to build familiarity with the codebase.`,
-    '',
+    "",
     `📊 **Your Progress:** You've completed **${completedCount}** so far.`,
-    '',
+    "",
     `👉 **Find ${prerequisiteDisplayName} to work on:**`,
     `[Browse available ${prerequisiteDisplayName}](${searchUrl})`,
-    '',
+    "",
     `Once you've completed ${requiredCount}, come back and we'll be happy to assign this to you! 🎯`,
-  ].join('\n');
+  ].join("\n");
 }
 
 /**
@@ -190,15 +204,15 @@ function buildPrerequisiteNotMetComment(requesterUsername, skillLevel, completed
 function buildNoSkillLevelComment(requesterUsername) {
   return [
     `👋 Hi @${requesterUsername}! This issue doesn't have a skill level label yet.`,
-    '',
+    "",
     `${MAINTAINER_TEAM} — could you please add one of the following labels?`,
     `- \`${LABELS.GOOD_FIRST_ISSUE}\``,
     `- \`${LABELS.BEGINNER}\``,
     `- \`${LABELS.INTERMEDIATE}\``,
     `- \`${LABELS.ADVANCED}\``,
-    '',
+    "",
     `@${requesterUsername}, once a maintainer adds the label, comment \`/assign\` again to request assignment.`,
-  ].join('\n');
+  ].join("\n");
 }
 
 /**
@@ -229,23 +243,30 @@ function formatAssignmentLimitExceededComment(
   requesterUsername,
   openCount,
   assignedIssuesUrl,
-  blockedIssuesUrl
+  blockedIssuesUrl,
 ) {
   const lines = [
     `👋 Hi @${requesterUsername}! Thanks for your enthusiasm to contribute!`,
-    '',
+    "",
     `To help contributors stay focused and ensure issues remain available for others, we limit assignments to **${MAX_OPEN_ASSIGNMENTS} open issues** at a time. Issues labeled \`${LABELS.BLOCKED}\` are not counted toward this limit.`,
-    '',
+    "",
     `📊 **Your Current Assignments:** You're currently assigned to **${openCount}** open issues.`,
-    '',
-    '👉 **View your assigned issues:**',
+    "",
+    "👉 **View your assigned issues:**",
     `[Your open assignments](${assignedIssuesUrl})`,
   ];
   if (blockedIssuesUrl) {
-    lines.push('', '👉 **View your blocked issues:**', `[Your blocked issues](${blockedIssuesUrl})`);
+    lines.push(
+      "",
+      "👉 **View your blocked issues:**",
+      `[Your blocked issues](${blockedIssuesUrl})`,
+    );
   }
-  lines.push('', 'Once you complete or unassign from one of your current issues, come back and we\'ll be happy to assign this to you! 🎯');
-  return lines.join('\n');
+  lines.push(
+    "",
+    "Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯",
+  );
+  return lines.join("\n");
 }
 
 /**
@@ -260,22 +281,28 @@ function formatAssignmentLimitExceededComment(
  * @param {number} [blockedCount=0] - Number of blocked issues assigned to the user (shows link if > 0).
  * @returns {string} The formatted Markdown comment body.
  */
-function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner, repo, blockedCount = 0) {
+function buildAssignmentLimitExceededComment(
+  requesterUsername,
+  openCount,
+  owner,
+  repo,
+  blockedCount = 0,
+) {
   const assignedQuery = `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} -label:"${LABELS.BLOCKED}"`;
   const assignedIssuesUrl = buildIssuesSearchUrl(owner, repo, assignedQuery);
   const blockedIssuesUrl =
     blockedCount > 0
       ? buildIssuesSearchUrl(
-        owner,
-        repo,
-        `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} label:"${LABELS.BLOCKED}"`
-      )
+          owner,
+          repo,
+          `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} label:"${LABELS.BLOCKED}"`,
+        )
       : null;
   return formatAssignmentLimitExceededComment(
     requesterUsername,
     openCount,
     assignedIssuesUrl,
-    blockedIssuesUrl
+    blockedIssuesUrl,
   );
 }
 
@@ -290,11 +317,11 @@ function buildAssignmentLimitExceededComment(requesterUsername, openCount, owner
 function buildApiErrorComment(requesterUsername) {
   return [
     `👋 Hi @${requesterUsername}! I encountered an error while trying to verify your eligibility for this issue.`,
-    '',
+    "",
     `${MAINTAINER_TEAM} — could you please help with this assignment request?`,
-    '',
+    "",
     `@${requesterUsername}, a maintainer will review your request and assign you manually if appropriate. Sorry for the inconvenience!`,
-  ].join('\n');
+  ].join("\n");
 }
 
 /**
@@ -309,13 +336,13 @@ function buildApiErrorComment(requesterUsername) {
 function buildLabelUpdateFailureComment(username, error) {
   return [
     `⚠️ @${username} has been successfully assigned to this issue, but I encountered an error updating the labels.`,
-    '',
+    "",
     `${MAINTAINER_TEAM} — please manually:`,
     `- Remove the \`${LABELS.READY_FOR_DEV}\` label`,
     `- Add the \`${LABELS.IN_PROGRESS}\` label`,
-    '',
+    "",
     `Error details: ${error}`,
-  ].join('\n');
+  ].join("\n");
 }
 
 /**
@@ -329,19 +356,24 @@ function buildLabelUpdateFailureComment(username, error) {
  * @param {string} repo - Repository name (for the search URL).
  * @returns {string} The formatted Markdown comment body.
  */
-function buildGfiLimitExceededComment(requesterUsername, completedCount, owner, repo) {
+function buildGfiLimitExceededComment(
+  requesterUsername,
+  completedCount,
+  owner,
+  repo,
+) {
   const searchQuery = `is:issue is:open no:assignee label:"${LABELS.BEGINNER}" label:"${LABELS.READY_FOR_DEV}"`;
   const searchUrl = buildIssuesSearchUrl(owner, repo, searchQuery);
   return [
     `👋 Hi @${requesterUsername}! You've completed **${completedCount} Good First Issues** — that's a fantastic achievement, and it shows you know the workflow inside and out. 🎉`,
-    '',
-    'Good First Issues are designed to help new contributors get comfortable with the process, and you\'ve clearly mastered it. We believe you\'re more than ready to take on bigger challenges!',
-    '',
-    '👉 **Find Beginner and higher issues to work on:**',
+    "",
+    "Good First Issues are designed to help new contributors get comfortable with the process, and you've clearly mastered it. We believe you're more than ready to take on bigger challenges!",
+    "",
+    "👉 **Find Beginner and higher issues to work on:**",
     `[Browse available Beginner issues](${searchUrl})`,
-    '',
-    'Come take on something more challenging — we\'re excited to see what you\'ll build next! 🚀',
-  ].join('\n');
+    "",
+    "Come take on something more challenging — we're excited to see what you'll build next! 🚀",
+  ].join("\n");
 }
 
 /**
@@ -355,11 +387,79 @@ function buildGfiLimitExceededComment(requesterUsername, completedCount, owner, 
 function buildAssignmentFailureComment(requesterUsername, error) {
   return [
     `⚠️ Hi @${requesterUsername}! I tried to assign you to this issue, but encountered an error.`,
-    '',
+    "",
     `${MAINTAINER_TEAM} — could you please manually assign @${requesterUsername} to this issue?`,
-    '',
+    "",
     `Error details: ${error}`,
-  ].join('\n');
+  ].join("\n");
+}
+
+/**
+ * Builds the comment posted when the assignment must be rolled back because the
+ * post-write verification step could not confirm the open-assignment limit.
+ * Tags the maintainer team for manual follow-up and explains that the bot
+ * reverted the assignment to keep the limit consistent.
+ *
+ * @param {string} requesterUsername - The GitHub username whose assignment was reverted.
+ * @returns {string} The formatted Markdown comment body.
+ */
+function buildAssignmentVerificationFailureComment(requesterUsername) {
+  return [
+    `⚠️ Hi @${requesterUsername}! I assigned you to this issue, but then encountered an error while verifying your open-assignment limit.`,
+    "",
+    "To keep the limit consistent, I reverted the assignment for now.",
+    "",
+    `${MAINTAINER_TEAM} — could you please check the assignment-limit verification path?`,
+  ].join("\n");
+}
+
+/**
+ * Builds the comment posted when the rollback itself fails while enforcing the
+ * open-assignment limit.
+ *
+ * @param {string} requesterUsername - The GitHub username whose assignment should have been reverted.
+ * @param {string} error - The error message from the failed rollback operation.
+ * @returns {string} The formatted Markdown comment body.
+ */
+function buildAssignmentRollbackFailureComment(requesterUsername, error) {
+  return [
+    `⚠️ Hi @${requesterUsername}! I needed to roll back your assignment to enforce the open-assignment limit, but the unassign operation failed.`,
+    "",
+    `${MAINTAINER_TEAM} — could you please manually review @${requesterUsername}'s open assignments and unassign them if needed?`,
+    "",
+    `Error details: ${error}`,
+  ].join("\n");
+}
+
+/**
+ * Builds the comment posted when a concurrent assignment is rolled back because
+ * post-write verification detected the user exceeded MAX_OPEN_ASSIGNMENTS.
+ * This is the OCC (Optimistic Concurrency Control) rollback path.
+ *
+ * @param {string} requesterUsername - The GitHub username whose assignment was reverted.
+ * @param {number} openCount - The user's open assignment count after the write.
+ * @param {string} owner - Repository owner (for search URLs).
+ * @param {string} repo - Repository name (for search URLs).
+ * @returns {string} The formatted Markdown comment body.
+ */
+function buildAssignmentRollbackComment(
+  requesterUsername,
+  openCount,
+  owner,
+  repo,
+) {
+  const assignedQuery = `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} -label:"${LABELS.BLOCKED}"`;
+  const assignedIssuesUrl = buildIssuesSearchUrl(owner, repo, assignedQuery);
+  return [
+    `👋 Hi @${requesterUsername}! It looks like your assignment limit was reached by the time this request was processed (you now have **${openCount}** open issues, limit is **${MAX_OPEN_ASSIGNMENTS}**).`,
+    "",
+    `I've automatically unassigned you from this issue to keep things fair for everyone.`,
+    "",
+    `👉 **View your current assignments:**`,
+    `[Your open assignments](${assignedIssuesUrl})`,
+    "",
+    `Once you complete or unassign from one of your current issues, come back and comment \`/assign\` again! 🎯`,
+  ].join("\n");
 }
 
 module.exports = {
@@ -377,4 +477,7 @@ module.exports = {
   buildApiErrorComment,
   buildLabelUpdateFailureComment,
   buildAssignmentFailureComment,
+  buildAssignmentVerificationFailureComment,
+  buildAssignmentRollbackFailureComment,
+  buildAssignmentRollbackComment,
 };

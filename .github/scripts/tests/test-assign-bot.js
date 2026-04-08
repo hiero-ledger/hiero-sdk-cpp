@@ -8,9 +8,8 @@
 // This script mocks the GitHub API and runs various test scenarios
 // to verify the on-comment (assign) bot behaves correctly without making real API calls.
 
-const { LABELS } = require('../helpers');
-const script = require('../bot-on-comment.js');
-
+const { LABELS } = require("../helpers");
+const script = require("../bot-on-comment.js");
 
 // =============================================================================
 // MOCK GITHUB API
@@ -26,10 +25,12 @@ function createMockGithub(options = {}) {
     restListClosedShouldFail = false,
     restListOpenShouldFail = false,
     assignShouldFail = false,
+    removeAssigneesShouldFail = false,
     removeLabelShouldFail = false,
     addLabelShouldFail = false,
     issueGetShouldFail = false,
     postWriteOpenCount = null,
+    postWriteOpenShouldFail = false,
   } = options;
 
   const calls = {
@@ -49,96 +50,126 @@ function createMockGithub(options = {}) {
     rest: {
       reactions: {
         createForIssueComment: async (params) => {
-          if (reactionShouldFail) {
-            throw new Error('Simulated reaction failure: comment not found (404)');
-          }
-          calls.reactions.push({ commentId: params.comment_id, content: params.content });
+          calls.reactions.push({
+            commentId: params.comment_id,
+            content: params.content,
+          });
           console.log(`\n👍 REACTION ADDED: ${params.content}`);
         },
       },
       issues: {
         createComment: async (params) => {
           calls.comments.push(params.body);
-          console.log('\n📝 COMMENT POSTED:');
-          console.log('─'.repeat(60));
+          console.log("\n📝 COMMENT POSTED:");
+          console.log("─".repeat(60));
           console.log(params.body);
-          console.log('─'.repeat(60));
+          console.log("─".repeat(60));
         },
         addAssignees: async (params) => {
           if (assignShouldFail) {
-            throw new Error('Simulated assignment failure');
+            throw new Error("Simulated assignment failure");
           }
           calls.assignees.push(...params.assignees);
-          console.log(`\n✅ ASSIGNED: ${params.assignees.join(', ')}`);
+          console.log(`\n✅ ASSIGNED: ${params.assignees.join(", ")}`);
         },
         removeAssignees: async (params) => {
+          if (removeAssigneesShouldFail) {
+            throw new Error("Simulated remove assignees failure");
+          }
           calls.removedAssignees.push(...params.assignees);
-          console.log(`\n❌ UNASSIGNED: ${params.assignees.join(', ')}`);
+          console.log(`\n❌ UNASSIGNED: ${params.assignees.join(", ")}`);
         },
         addLabels: async (params) => {
           if (addLabelShouldFail) {
-            throw new Error('Simulated add label failure');
+            throw new Error("Simulated add label failure");
           }
           calls.labelsAdded.push(...params.labels);
-          console.log(`\n🏷️  LABEL ADDED: ${params.labels.join(', ')}`);
+          console.log(`\n🏷️  LABEL ADDED: ${params.labels.join(", ")}`);
         },
         removeLabel: async (params) => {
           if (removeLabelShouldFail) {
-            throw new Error('Simulated remove label failure');
+            throw new Error("Simulated remove label failure");
           }
           calls.labelsRemoved.push(params.name);
           console.log(`\n🏷️  LABEL REMOVED: ${params.name}`);
         },
         get: async (params) => {
-          console.log(`\n🔍 REST API CALL: get issue_number=${params.issue_number}`);
+          console.log(
+            `\n🔍 REST API CALL: get issue_number=${params.issue_number}`,
+          );
           if (issueGetShouldFail) {
-            throw new Error('Simulated issues.get failure');
+            throw new Error("Simulated issues.get failure");
           }
           if (options.issueAlreadyAssignedTo) {
-            return { data: { assignees: [{ login: options.issueAlreadyAssignedTo }] } };
+            return {
+              data: { assignees: [{ login: options.issueAlreadyAssignedTo }] },
+            };
           }
           return { data: { assignees: [] } };
         },
         listForRepo: async (params) => {
-          calls.restCalls.push(`REST listForRepo: state=${params.state} assignee=${params.assignee}`);
-          console.log(`\n🔍 REST API CALL: listForRepo state=${params.state} assignee=${params.assignee}`);
+          calls.restCalls.push(
+            `REST listForRepo: state=${params.state} assignee=${params.assignee}`,
+          );
+          console.log(
+            `\n🔍 REST API CALL: listForRepo state=${params.state} assignee=${params.assignee}`,
+          );
 
-          if (params.state === 'open') {
+          if (params.state === "open") {
             if (restListOpenShouldFail) {
-              throw new Error('Simulated REST API failure for open assignments');
+              throw new Error(
+                "Simulated REST API failure for open assignments",
+              );
             }
             openListCallCount++;
+            if (postWriteOpenShouldFail && openListCallCount > 1) {
+              throw new Error(
+                "Simulated REST API failure for post-write open assignments",
+              );
+            }
             // On the SECOND open-state call (post-write verification),
             // return a higher count if postWriteOpenCount is configured.
-            const effectiveCount = (postWriteOpenCount !== null && openListCallCount > 1)
-              ? postWriteOpenCount
-              : openAssignmentCountExcludingBlocked;
+            const effectiveCount =
+              postWriteOpenCount !== null && openListCallCount > 1
+                ? postWriteOpenCount
+                : openAssignmentCountExcludingBlocked;
             const issues = [];
             for (let i = 0; i < effectiveCount; i++) {
-              issues.push({ labels: [{ name: 'status: ready for dev' }] });
+              issues.push({ labels: [{ name: "status: ready for dev" }] });
             }
-            const blockedToGenerate = Math.max(blockedIssueCount, openAssignmentCount - openAssignmentCountExcludingBlocked);
+            const blockedToGenerate = Math.max(
+              blockedIssueCount,
+              openAssignmentCount - openAssignmentCountExcludingBlocked,
+            );
             for (let i = 0; i < blockedToGenerate; i++) {
               issues.push({ labels: [{ name: LABELS.BLOCKED }] });
             }
-            const difference = openAssignmentCount - (openAssignmentCountExcludingBlocked + blockedToGenerate);
+            const difference =
+              openAssignmentCount -
+              (openAssignmentCountExcludingBlocked + blockedToGenerate);
             if (difference > 0) {
               for (let i = 0; i < difference; i++) {
                 issues.push({ labels: [] });
               }
             }
             if (params.labels) {
-              return { data: issues.filter(issue => issue.labels?.some(l => l.name === params.labels)) };
+              return {
+                data: issues.filter((issue) =>
+                  issue.labels?.some((l) => l.name === params.labels),
+                ),
+              };
             }
             return { data: issues };
           }
 
-          if (params.state === 'closed') {
+          if (params.state === "closed") {
             if (restListClosedShouldFail) {
-              throw new Error('Simulated REST API failure');
+              throw new Error("Simulated REST API failure");
             }
             const issues = [];
-            for (const [labelName, count] of Object.entries(completedIssueCounts)) {
+            for (const [labelName, count] of Object.entries(
+              completedIssueCounts,
+            )) {
               for (let i = 0; i < count; i++) {
                 issues.push({ labels: [{ name: labelName }] });
               }
@@ -147,7 +178,11 @@ function createMockGithub(options = {}) {
               issues.push({ labels: [] });
             }
             if (params.labels) {
-              return { data: issues.filter(issue => issue.labels?.some(l => l.name === params.labels)) };
+              return {
+                data: issues.filter((issue) =>
+                  issue.labels?.some((l) => l.name === params.labels),
+                ),
+              };
             }
             return { data: issues };
           }
@@ -169,61 +204,92 @@ function createMockGithub(options = {}) {
 
 const scenarios = [
   {
-    name: 'Race Condition - Issue Snatched While Queued (Case 2)',
-    description: 'Fresh fetch shows another user was assigned between queue and execution',
+    name: "Race Condition - Issue Snatched While Queued (Case 2)",
+    description:
+      "Fresh fetch shows another user was assigned between queue and execution",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 120,
           assignees: [], // stale payload: appears unassigned
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1021,
-          body: '/assign',
-          user: { login: 'second-requester', type: 'User' },
+          body: "/assign",
+          user: { login: "second-requester", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
-    githubOptions: { issueAlreadyAssignedTo: 'first-requester' },
+    githubOptions: { issueAlreadyAssignedTo: "first-requester" },
     expectedAssignee: null,
     expectedComments: [
-      `👋 Hi @second-requester! This issue is already assigned to @first-requester.\n\n👉 **Find another issue to work on:**\n[Browse unassigned issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)\n\nOnce you find one you like, comment \`/assign\` to get started!`
+      `👋 Hi @second-requester! This issue is already assigned to @first-requester.\n\n👉 **Find another issue to work on:**\n[Browse unassigned issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)\n\nOnce you find one you like, comment \`/assign\` to get started!`,
     ],
   },
   {
-    name: 'Error - Fresh Issue Fetch API Failure',
+    name: "Race Condition - Requester Already Assigned In Fresh State",
+    description:
+      "Fresh fetch shows the requester is already assigned; handler must exit without addAssignees",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 122,
+          assignees: [], // stale payload: appears unassigned
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 1023,
+          body: "/assign",
+          user: { login: "already-assigned-user", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: { issueAlreadyAssignedTo: "already-assigned-user" },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @already-assigned-user! You're already assigned to this issue. You're all set to start working on it!\n\nIf you have any questions, feel free to ask here or reach out to the team.`,
+    ],
+  },
+  {
+    name: "Error - Fresh Issue Fetch API Failure",
     // Note: This failure fires from inside assignAndFinalize(), unlike the
     // other API failure tests which catch errors during precondition checks.
-    description: 'Tags maintainers when issues.get fails inside assignAndFinalize',
+    description:
+      "Tags maintainers when issues.get fails inside assignAndFinalize",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 121,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1022,
-          body: '/assign',
-          user: { login: 'unlucky-user-4', type: 'User' },
+          body: "/assign",
+          user: { login: "unlucky-user-4", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { issueGetShouldFail: true },
     expectedAssignee: null,
     expectedComments: [
-      `👋 Hi @unlucky-user-4! I encountered an error while trying to verify your eligibility for this issue.\n\n@hiero-ledger/hiero-sdk-cpp-maintainers — could you please help with this assignment request?\n\n@unlucky-user-4, a maintainer will review your request and assign you manually if appropriate. Sorry for the inconvenience!`
+      `👋 Hi @unlucky-user-4! I encountered an error while trying to verify your eligibility for this issue.\n\n@hiero-ledger/hiero-sdk-cpp-maintainers — could you please help with this assignment request?\n\n@unlucky-user-4, a maintainer will review your request and assign you manually if appropriate. Sorry for the inconvenience!`,
     ],
   },
   // ---------------------------------------------------------------------------
@@ -232,29 +298,29 @@ const scenarios = [
   // ---------------------------------------------------------------------------
 
   {
-    name: 'Happy Path - Good First Issue',
-    description: 'New contributor successfully assigned to GFI',
+    name: "Happy Path - Good First Issue",
+    description: "New contributor successfully assigned to GFI",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 100,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1001,
-          body: '/assign',
-          user: { login: 'new-contributor', type: 'User' },
+          body: "/assign",
+          user: { login: "new-contributor", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {},
-    expectedAssignee: 'new-contributor',
+    expectedAssignee: "new-contributor",
     expectedComments: [
       `👋 Hi @new-contributor, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉
 
@@ -269,29 +335,29 @@ Good luck, and welcome aboard! 🚀`,
   },
 
   {
-    name: 'Happy Path - Beginner Issue',
-    description: 'Contributor with 2 completed GFIs assigned to Beginner',
+    name: "Happy Path - Beginner Issue",
+    description: "Contributor with 2 completed GFIs assigned to Beginner",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 101,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: beginner' },
+            { name: "status: ready for dev" },
+            { name: "skill: beginner" },
           ],
         },
         comment: {
           id: 1002,
-          body: '/assign',
-          user: { login: 'experienced-contributor', type: 'User' },
+          body: "/assign",
+          user: { login: "experienced-contributor", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { completedIssueCounts: { [LABELS.GOOD_FIRST_ISSUE]: 2 } },
-    expectedAssignee: 'experienced-contributor',
+    expectedAssignee: "experienced-contributor",
     expectedComments: [
       `👋 Hi @experienced-contributor, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌
 
@@ -304,29 +370,30 @@ Good luck! 🚀`,
   },
 
   {
-    name: 'Happy Path - Intermediate Issue',
-    description: 'Contributor with 3 completed Beginners assigned to Intermediate',
+    name: "Happy Path - Intermediate Issue",
+    description:
+      "Contributor with 3 completed Beginners assigned to Intermediate",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 102,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: intermediate' },
+            { name: "status: ready for dev" },
+            { name: "skill: intermediate" },
           ],
         },
         comment: {
           id: 1003,
-          body: '/assign',
-          user: { login: 'growing-contributor', type: 'User' },
+          body: "/assign",
+          user: { login: "growing-contributor", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { completedIssueCounts: { [LABELS.BEGINNER]: 3 } },
-    expectedAssignee: 'growing-contributor',
+    expectedAssignee: "growing-contributor",
     expectedComments: [
       `👋 Hi @growing-contributor, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Intermediate** issue. 🙌
 
@@ -339,29 +406,30 @@ Good luck! 🚀`,
   },
 
   {
-    name: 'Happy Path - Advanced Issue',
-    description: 'Contributor with 3 completed Intermediates assigned to Advanced',
+    name: "Happy Path - Advanced Issue",
+    description:
+      "Contributor with 3 completed Intermediates assigned to Advanced",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 103,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: advanced' },
+            { name: "status: ready for dev" },
+            { name: "skill: advanced" },
           ],
         },
         comment: {
           id: 1004,
-          body: '/assign',
-          user: { login: 'senior-contributor', type: 'User' },
+          body: "/assign",
+          user: { login: "senior-contributor", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { completedIssueCounts: { [LABELS.INTERMEDIATE]: 3 } },
-    expectedAssignee: 'senior-contributor',
+    expectedAssignee: "senior-contributor",
     expectedComments: [
       `👋 Hi @senior-contributor, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Advanced** issue. 🙌
 
@@ -378,22 +446,27 @@ Good luck! 🚀`,
   // ---------------------------------------------------------------------------
 
   {
-    name: 'Bypass - Same Level Completed',
-    description: 'User with 1 Beginner can take another Beginner (bypasses 2 GFI prereq)',
+    name: "Bypass - Same Level Completed",
+    description:
+      "User with 1 Beginner can take another Beginner (bypasses 2 GFI prereq)",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 200,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: beginner' },
+            { name: "status: ready for dev" },
+            { name: "skill: beginner" },
           ],
         },
-        comment: { id: 2001, body: '/assign', user: { login: 'bypass-user-1', type: 'User' } },
+        comment: {
+          id: 2001,
+          body: "/assign",
+          user: { login: "bypass-user-1", type: "User" },
+        },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {
       completedIssueCounts: {
@@ -401,36 +474,41 @@ Good luck! 🚀`,
         [LABELS.GOOD_FIRST_ISSUE]: 1, // Only 1 (Not enough to pass normal prereq)
       },
     },
-    expectedAssignee: 'bypass-user-1',
+    expectedAssignee: "bypass-user-1",
     expectedComments: [
       `👋 Hi @bypass-user-1, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌\n\nIf this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.\n\nIf you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the pool.\n\nGood luck! 🚀`,
     ],
   },
 
   {
-    name: 'Bypass - Higher Level Completed',
-    description: 'User with 1 Intermediate can take a Beginner (bypasses 2 GFI prereq)',
+    name: "Bypass - Higher Level Completed",
+    description:
+      "User with 1 Intermediate can take a Beginner (bypasses 2 GFI prereq)",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 201,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: beginner' },
+            { name: "status: ready for dev" },
+            { name: "skill: beginner" },
           ],
         },
-        comment: { id: 2002, body: '/assign', user: { login: 'bypass-user-2', type: 'User' } },
+        comment: {
+          id: 2002,
+          body: "/assign",
+          user: { login: "bypass-user-2", type: "User" },
+        },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {
       completedIssueCounts: {
         [LABELS.INTERMEDIATE]: 1,
       },
     },
-    expectedAssignee: 'bypass-user-2',
+    expectedAssignee: "bypass-user-2",
     expectedComments: [
       `👋 Hi @bypass-user-2, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌\n\nIf this task involves any design decisions or you'd like early feedback, feel free to share your plan here before diving into the code.\n\nIf you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the pool.\n\nGood luck! 🚀`,
     ],
@@ -442,22 +520,27 @@ Good luck! 🚀`,
   // ---------------------------------------------------------------------------
 
   {
-    name: 'GFI Cap - Exactly At Limit (5 Completed)',
-    description: 'Contributor with 5 completed GFIs is rejected with encouraging redirect',
+    name: "GFI Cap - Exactly At Limit (5 Completed)",
+    description:
+      "Contributor with 5 completed GFIs is rejected with encouraging redirect",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 300,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
-        comment: { id: 3001, body: '/assign', user: { login: 'veteran-gfi-user', type: 'User' } },
+        comment: {
+          id: 3001,
+          body: "/assign",
+          user: { login: "veteran-gfi-user", type: "User" },
+        },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { completedIssueCounts: { [LABELS.GOOD_FIRST_ISSUE]: 5 } },
     expectedAssignee: null,
@@ -474,25 +557,30 @@ Come take on something more challenging — we're excited to see what you'll bui
   },
 
   {
-    name: 'GFI Cap - Below Limit (4 Completed)',
-    description: 'Contributor with 4 completed GFIs is still allowed to take another GFI',
+    name: "GFI Cap - Below Limit (4 Completed)",
+    description:
+      "Contributor with 4 completed GFIs is still allowed to take another GFI",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 301,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
-        comment: { id: 3002, body: '/assign', user: { login: 'almost-capped-user', type: 'User' } },
+        comment: {
+          id: 3002,
+          body: "/assign",
+          user: { login: "almost-capped-user", type: "User" },
+        },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { completedIssueCounts: { [LABELS.GOOD_FIRST_ISSUE]: 4 } },
-    expectedAssignee: 'almost-capped-user',
+    expectedAssignee: "almost-capped-user",
     expectedComments: [
       `👋 Hi @almost-capped-user, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉
 
@@ -507,25 +595,30 @@ Good luck, and welcome aboard! 🚀`,
   },
 
   {
-    name: 'GFI Cap - Does Not Apply to Beginner Issues',
-    description: 'Contributor with 5 completed GFIs can still take a Beginner issue',
+    name: "GFI Cap - Does Not Apply to Beginner Issues",
+    description:
+      "Contributor with 5 completed GFIs can still take a Beginner issue",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 302,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: beginner' },
+            { name: "status: ready for dev" },
+            { name: "skill: beginner" },
           ],
         },
-        comment: { id: 3003, body: '/assign', user: { login: 'gfi-graduated-user', type: 'User' } },
+        comment: {
+          id: 3003,
+          body: "/assign",
+          user: { login: "gfi-graduated-user", type: "User" },
+        },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { completedIssueCounts: { [LABELS.GOOD_FIRST_ISSUE]: 5 } },
-    expectedAssignee: 'gfi-graduated-user',
+    expectedAssignee: "gfi-graduated-user",
     expectedComments: [
       `👋 Hi @gfi-graduated-user, thanks for continuing to contribute to the Hiero C++ SDK! You've been assigned this **Beginner** issue. 🙌
 
@@ -543,26 +636,26 @@ Good luck! 🚀`,
   // ---------------------------------------------------------------------------
 
   {
-    name: 'Validation - Already Assigned to Someone Else',
-    description: 'Issue is taken by another contributor',
+    name: "Validation - Already Assigned to Someone Else",
+    description: "Issue is taken by another contributor",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 104,
-          assignees: [{ login: 'other-user' }],
+          assignees: [{ login: "other-user" }],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1005,
-          body: '/assign',
-          user: { login: 'late-arrival', type: 'User' },
+          body: "/assign",
+          user: { login: "late-arrival", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {},
     expectedAssignee: null,
@@ -577,26 +670,26 @@ Once you find one you like, comment \`/assign\` to get started!`,
   },
 
   {
-    name: 'Validation - Already Assigned to Self',
-    description: 'Contributor already owns the issue',
+    name: "Validation - Already Assigned to Self",
+    description: "Contributor already owns the issue",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 105,
-          assignees: [{ login: 'forgetful-user' }],
+          assignees: [{ login: "forgetful-user" }],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1006,
-          body: '/assign',
-          user: { login: 'forgetful-user', type: 'User' },
+          body: "/assign",
+          user: { login: "forgetful-user", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {},
     expectedAssignee: null,
@@ -608,25 +701,23 @@ If you have any questions, feel free to ask here or reach out to the team.`,
   },
 
   {
-    name: 'Validation - Not Ready for Dev',
-    description: 'Issue missing status: ready for dev label',
+    name: "Validation - Not Ready for Dev",
+    description: "Issue missing status: ready for dev label",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 106,
           assignees: [],
-          labels: [
-            { name: 'skill: good first issue' },
-          ],
+          labels: [{ name: "skill: good first issue" }],
         },
         comment: {
           id: 1007,
-          body: '/assign',
-          user: { login: 'eager-user', type: 'User' },
+          body: "/assign",
+          user: { login: "eager-user", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {},
     expectedAssignee: null,
@@ -643,10 +734,10 @@ Once you find one you like, comment \`/assign\` to get started!`,
   },
 
   {
-    name: 'Validation - No Labels At All',
-    description: 'Issue has no labels',
+    name: "Validation - No Labels At All",
+    description: "Issue has no labels",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 107,
@@ -655,11 +746,11 @@ Once you find one you like, comment \`/assign\` to get started!`,
         },
         comment: {
           id: 1007,
-          body: '/assign',
-          user: { login: 'eager-user', type: 'User' },
+          body: "/assign",
+          user: { login: "eager-user", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {},
     expectedAssignee: null,
@@ -676,25 +767,23 @@ Once you find one you like, comment \`/assign\` to get started!`,
   },
 
   {
-    name: 'Validation - No Skill Level Label',
-    description: 'Issue missing skill level label',
+    name: "Validation - No Skill Level Label",
+    description: "Issue missing skill level label",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 107,
           assignees: [],
-          labels: [
-            { name: 'status: ready for dev' },
-          ],
+          labels: [{ name: "status: ready for dev" }],
         },
         comment: {
           id: 1008,
-          body: '/assign',
-          user: { login: 'confused-user', type: 'User' },
+          body: "/assign",
+          user: { login: "confused-user", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {},
     expectedAssignee: null,
@@ -712,26 +801,26 @@ Once you find one you like, comment \`/assign\` to get started!`,
   },
 
   {
-    name: 'Validation - Prerequisites Not Met',
-    description: 'Contributor lacks required experience',
+    name: "Validation - Prerequisites Not Met",
+    description: "Contributor lacks required experience",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 108,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: beginner' },
+            { name: "status: ready for dev" },
+            { name: "skill: beginner" },
           ],
         },
         comment: {
           id: 1009,
-          body: '/assign',
-          user: { login: 'eager-newbie', type: 'User' },
+          body: "/assign",
+          user: { login: "eager-newbie", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { completedIssueCount: 0, openAssignmentCount: 0 },
     expectedAssignee: null,
@@ -750,26 +839,26 @@ Once you've completed 2, come back and we'll be happy to assign this to you! �
   },
 
   {
-    name: 'Validation - Too Many Open Assignments (at limit)',
-    description: 'Contributor already has 2 open issues assigned',
+    name: "Validation - Too Many Open Assignments (at limit)",
+    description: "Contributor already has 2 open issues assigned",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 114,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1015,
-          body: '/assign',
-          user: { login: 'busy-contributor', type: 'User' },
+          body: "/assign",
+          user: { login: "busy-contributor", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { openAssignmentCount: 2 },
     expectedAssignee: null,
@@ -788,26 +877,26 @@ Once you complete or unassign from one of your current issues, come back and we'
   },
 
   {
-    name: 'Validation - Too Many Open Assignments (over limit)',
-    description: 'Contributor has more than 2 open issues assigned',
+    name: "Validation - Too Many Open Assignments (over limit)",
+    description: "Contributor has more than 2 open issues assigned",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 115,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1016,
-          body: '/assign',
-          user: { login: 'very-busy-contributor', type: 'User' },
+          body: "/assign",
+          user: { login: "very-busy-contributor", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { openAssignmentCount: 5 },
     expectedAssignee: null,
@@ -826,26 +915,27 @@ Once you complete or unassign from one of your current issues, come back and we'
   },
 
   {
-    name: 'Validation - Over Limit After Issues Unblocked',
-    description: 'User has 3 open issues; some were blocked when they got the third. Now 3 count (excluding blocked), so over limit and cannot be assigned',
+    name: "Validation - Over Limit After Issues Unblocked",
+    description:
+      "User has 3 open issues; some were blocked when they got the third. Now 3 count (excluding blocked), so over limit and cannot be assigned",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 118,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1019,
-          body: '/assign',
-          user: { login: 'now-over-limit-user', type: 'User' },
+          body: "/assign",
+          user: { login: "now-over-limit-user", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {
       openAssignmentCount: 3,
@@ -867,26 +957,27 @@ Once you complete or unassign from one of your current issues, come back and we'
   },
 
   {
-    name: 'Validation - At Limit With Blocked Issues (shows blocked link)',
-    description: 'User at 2 open (excluding blocked) and has 1 blocked issue; comment includes link to blocked issues',
+    name: "Validation - At Limit With Blocked Issues (shows blocked link)",
+    description:
+      "User at 2 open (excluding blocked) and has 1 blocked issue; comment includes link to blocked issues",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 119,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1020,
-          body: '/assign',
-          user: { login: 'at-limit-with-blocked', type: 'User' },
+          body: "/assign",
+          user: { login: "at-limit-with-blocked", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {
       openAssignmentCount: 2,
@@ -912,29 +1003,29 @@ Once you complete or unassign from one of your current issues, come back and we'
   },
 
   {
-    name: 'Validation - Under Assignment Limit (1 open issue)',
-    description: 'Contributor with 1 open issue can take another',
+    name: "Validation - Under Assignment Limit (1 open issue)",
+    description: "Contributor with 1 open issue can take another",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 116,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1017,
-          body: '/assign',
-          user: { login: 'active-contributor', type: 'User' },
+          body: "/assign",
+          user: { login: "active-contributor", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { openAssignmentCount: 1 },
-    expectedAssignee: 'active-contributor',
+    expectedAssignee: "active-contributor",
     expectedComments: [
       `👋 Hi @active-contributor, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉
 
@@ -949,32 +1040,33 @@ Good luck, and welcome aboard! 🚀`,
   },
 
   {
-    name: 'Validation - Open Assignments Exclude Blocked',
-    description: 'Contributor with 2 open issues both status: blocked can be assigned (blocked not counted)',
+    name: "Validation - Open Assignments Exclude Blocked",
+    description:
+      "Contributor with 2 open issues both status: blocked can be assigned (blocked not counted)",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 117,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1018,
-          body: '/assign',
-          user: { login: 'blocked-contributor', type: 'User' },
+          body: "/assign",
+          user: { login: "blocked-contributor", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {
       openAssignmentCount: 2,
       openAssignmentCountExcludingBlocked: 0,
     },
-    expectedAssignee: 'blocked-contributor',
+    expectedAssignee: "blocked-contributor",
     expectedComments: [
       `👋 Hi @blocked-contributor, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉
 
@@ -994,26 +1086,26 @@ Good luck, and welcome aboard! 🚀`,
   // ---------------------------------------------------------------------------
 
   {
-    name: 'Error - Open Assignments API Failure',
-    description: 'Tags maintainers when open assignments check fails',
+    name: "Error - Open Assignments API Failure",
+    description: "Tags maintainers when open assignments check fails",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 117,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1018,
-          body: '/assign',
-          user: { login: 'unlucky-user-3', type: 'User' },
+          body: "/assign",
+          user: { login: "unlucky-user-3", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { restListOpenShouldFail: true },
     expectedAssignee: null,
@@ -1027,26 +1119,26 @@ Good luck, and welcome aboard! 🚀`,
   },
 
   {
-    name: 'Error - Prerequisite Check API Failure',
-    description: 'Tags maintainers when prerequisite check fails',
+    name: "Error - Prerequisite Check API Failure",
+    description: "Tags maintainers when prerequisite check fails",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 109,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: beginner' },
+            { name: "status: ready for dev" },
+            { name: "skill: beginner" },
           ],
         },
         comment: {
           id: 1010,
-          body: '/assign',
-          user: { login: 'unlucky-user', type: 'User' },
+          body: "/assign",
+          user: { login: "unlucky-user", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { restListClosedShouldFail: true },
     expectedAssignee: null,
@@ -1060,26 +1152,26 @@ Good luck, and welcome aboard! 🚀`,
   },
 
   {
-    name: 'Error - Assignment API Failure',
-    description: 'Tags maintainers when assignment fails',
+    name: "Error - Assignment API Failure",
+    description: "Tags maintainers when assignment fails",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 110,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1011,
-          body: '/assign',
-          user: { login: 'unlucky-user-2', type: 'User' },
+          body: "/assign",
+          user: { login: "unlucky-user-2", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { assignShouldFail: true },
     expectedAssignee: null,
@@ -1093,29 +1185,29 @@ Error details: Simulated assignment failure`,
   },
 
   {
-    name: 'Error - Label Update Failure',
-    description: 'Tags maintainers when labels cannot be updated',
+    name: "Error - Label Update Failure",
+    description: "Tags maintainers when labels cannot be updated",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 111,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1012,
-          body: '/assign',
-          user: { login: 'partially-lucky', type: 'User' },
+          body: "/assign",
+          user: { login: "partially-lucky", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { removeLabelShouldFail: true, addLabelShouldFail: true },
-    expectedAssignee: 'partially-lucky',
+    expectedAssignee: "partially-lucky",
     expectedComments: [
       `👋 Hi @partially-lucky, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉
 
@@ -1137,10 +1229,11 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
   },
 
   {
-    name: 'OCC Rollback - Concurrent Multi-Issue Limit Breach',
-    description: 'User assigned on 2 different issues concurrently; post-write verification detects limit breach and rolls back',
+    name: "OCC Rollback - Concurrent Multi-Issue Limit Breach",
+    description:
+      "User assigned on 2 different issues concurrently; post-write verification detects limit breach and rolls back",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 500,
@@ -1152,15 +1245,15 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
         },
         comment: {
           id: 5001,
-          body: '/assign',
-          user: { login: 'concurrent-spammer', type: 'User' },
+          body: "/assign",
+          user: { login: "concurrent-spammer", type: "User" },
         },
         repository: {
-          owner: { login: 'hiero-ledger' },
-          name: 'hiero-sdk-cpp',
+          owner: { login: "hiero-ledger" },
+          name: "hiero-sdk-cpp",
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {
       openAssignmentCount: 0,
@@ -1168,10 +1261,76 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
       // After the write, the user now has 3 open (over the limit of 2)
       postWriteOpenCount: 3,
     },
-    expectedAssignee: 'concurrent-spammer',
-    expectedRemovedAssignee: 'concurrent-spammer',
+    expectedAssignee: "concurrent-spammer",
+    expectedRemovedAssignee: "concurrent-spammer",
     expectedComments: [
       `👋 Hi @concurrent-spammer! It looks like your assignment limit was reached by the time this request was processed (you now have **3** open issues, limit is **2**).\n\nI've automatically unassigned you from this issue to keep things fair for everyone.\n\n👉 **View your current assignments:**\n[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Aconcurrent-spammer%20-label%3A%22status%3A%20blocked%22)\n\nOnce you complete or unassign from one of your current issues, come back and comment \`/assign\` again! 🎯`,
+    ],
+  },
+
+  {
+    name: "Error - Post-Write Verification API Failure",
+    description:
+      "Assignment is rolled back if the limit verification call fails after the write",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 501,
+          assignees: [],
+          labels: [
+            { name: LABELS.READY_FOR_DEV },
+            { name: LABELS.GOOD_FIRST_ISSUE },
+          ],
+        },
+        comment: {
+          id: 5002,
+          body: "/assign",
+          user: { login: "verification-failure-user", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: {
+      postWriteOpenShouldFail: true,
+    },
+    expectedAssignee: "verification-failure-user",
+    expectedRemovedAssignee: "verification-failure-user",
+    expectedComments: [
+      `⚠️ Hi @verification-failure-user! I assigned you to this issue, but then encountered an error while verifying your open-assignment limit.\n\nTo keep the limit consistent, I reverted the assignment for now.\n\n@hiero-ledger/hiero-sdk-cpp-maintainers — could you please check the assignment-limit verification path?`,
+    ],
+  },
+
+  {
+    name: "Error - Rollback Failure After Limit Breach",
+    description:
+      "If rollback fails, the bot should report the failure instead of pretending success",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 502,
+          assignees: [],
+          labels: [
+            { name: LABELS.READY_FOR_DEV },
+            { name: LABELS.GOOD_FIRST_ISSUE },
+          ],
+        },
+        comment: {
+          id: 5003,
+          body: "/assign",
+          user: { login: "rollback-failure-user", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: {
+      postWriteOpenCount: 3,
+      removeAssigneesShouldFail: true,
+    },
+    expectedAssignee: "rollback-failure-user",
+    expectedComments: [
+      `⚠️ Hi @rollback-failure-user! I needed to roll back your assignment to enforce the open-assignment limit, but the unassign operation failed.\n\n@hiero-ledger/hiero-sdk-cpp-maintainers — could you please manually review @rollback-failure-user's open assignments and unassign them if needed?\n\nError details: Simulated remove assignees failure`,
     ],
   },
 
@@ -1214,26 +1373,26 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
   // ---------------------------------------------------------------------------
 
   {
-    name: 'No Action - Comment Without /assign',
-    description: 'Regular comment ignored',
+    name: "No Action - Comment Without /assign",
+    description: "Regular comment ignored",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 112,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1013,
-          body: 'This looks interesting, can someone help me understand it?',
-          user: { login: 'curious-user', type: 'User' },
+          body: "This looks interesting, can someone help me understand it?",
+          user: { login: "curious-user", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {},
     expectedAssignee: null,
@@ -1241,26 +1400,26 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
   },
 
   {
-    name: 'No Action - Bot Comment',
-    description: 'Bot users ignored to prevent loops',
+    name: "No Action - Bot Comment",
+    description: "Bot users ignored to prevent loops",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 113,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 1014,
-          body: '/assign',
-          user: { login: 'github-actions[bot]', type: 'Bot' },
+          body: "/assign",
+          user: { login: "github-actions[bot]", type: "Bot" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: {},
     expectedAssignee: null,
@@ -1272,13 +1431,13 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
 // TEST RUNNER
 // =============================================================================
 
-const { verifyComments, runTestSuite } = require('./test-utils');
+const { verifyComments, runTestSuite } = require("./test-utils");
 
 async function runTest(scenario, index) {
-  console.log('\n' + '='.repeat(70));
+  console.log("\n" + "=".repeat(70));
   console.log(`TEST ${index + 1}: ${scenario.name}`);
   console.log(`Description: ${scenario.description}`);
-  console.log('='.repeat(70));
+  console.log("=".repeat(70));
 
   const mockGithub = createMockGithub(scenario.githubOptions);
 
@@ -1295,52 +1454,54 @@ async function runTest(scenario, index) {
 
   if (scenario.expectedAssignee) {
     if (mockGithub.calls.assignees.includes(scenario.expectedAssignee)) {
-      results.details.push(`✅ Correctly assigned to ${scenario.expectedAssignee}`);
+      results.details.push(
+        `✅ Correctly assigned to ${scenario.expectedAssignee}`,
+      );
     } else {
       results.passed = false;
-      results.details.push(`❌ Expected assignee ${scenario.expectedAssignee}, got: ${mockGithub.calls.assignees.join(', ') || 'none'}`);
+      results.details.push(
+        `❌ Expected assignee ${scenario.expectedAssignee}, got: ${mockGithub.calls.assignees.join(", ") || "none"}`,
+      );
     }
   } else {
     if (mockGithub.calls.assignees.length === 0) {
-      results.details.push('✅ Correctly did not assign anyone');
+      results.details.push("✅ Correctly did not assign anyone");
     } else {
       results.passed = false;
-      results.details.push(`❌ Should not have assigned, but assigned: ${mockGithub.calls.assignees.join(', ')}`);
+      results.details.push(
+        `❌ Should not have assigned, but assigned: ${mockGithub.calls.assignees.join(", ")}`,
+      );
     }
   }
 
   if (scenario.expectedRemovedAssignee) {
-    if (mockGithub.calls.removedAssignees.includes(scenario.expectedRemovedAssignee)) {
-      results.details.push(`✅ Correctly rolled back assignment for ${scenario.expectedRemovedAssignee}`);
+    if (
+      mockGithub.calls.removedAssignees.includes(
+        scenario.expectedRemovedAssignee,
+      )
+    ) {
+      results.details.push(
+        `✅ Correctly rolled back assignment for ${scenario.expectedRemovedAssignee}`,
+      );
     } else {
       results.passed = false;
-      results.details.push(`❌ Expected rollback for ${scenario.expectedRemovedAssignee}, but removedAssignees: ${mockGithub.calls.removedAssignees.join(', ') || 'none'}`);
+      results.details.push(
+        `❌ Expected rollback for ${scenario.expectedRemovedAssignee}, but removedAssignees: ${mockGithub.calls.removedAssignees.join(", ") || "none"}`,
+      );
     }
   }
 
-  const commentResult = verifyComments(scenario.expectedComments || [], mockGithub.calls.comments);
+  const commentResult = verifyComments(
+    scenario.expectedComments || [],
+    mockGithub.calls.comments,
+  );
   if (!commentResult.passed) results.passed = false;
   results.details.push(...commentResult.details);
 
-  if (scenario.expectedNoSideEffects) {
-    if (mockGithub.calls.labelsAdded.length === 0) {
-      results.details.push('✅ Correctly did not add any labels');
-    } else {
-      results.passed = false;
-      results.details.push(`❌ Should not have added labels, but added: ${mockGithub.calls.labelsAdded.join(', ')}`);
-    }
-    if (mockGithub.calls.labelsRemoved.length === 0) {
-      results.details.push('✅ Correctly did not remove any labels');
-    } else {
-      results.passed = false;
-      results.details.push(`❌ Should not have removed labels, but removed: ${mockGithub.calls.labelsRemoved.join(', ')}`);
-    }
-  }
-
-  console.log('\n📊 RESULT:');
-  results.details.forEach(d => console.log(`   ${d}`));
+  console.log("\n📊 RESULT:");
+  results.details.forEach((d) => console.log(`   ${d}`));
 
   return results.passed;
 }
 
-runTestSuite('BOT-ASSIGN-ON-COMMENT TEST SUITE', scenarios, runTest);
+runTestSuite("BOT-ASSIGN-ON-COMMENT TEST SUITE", scenarios, runTest);
