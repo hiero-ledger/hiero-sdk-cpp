@@ -61,7 +61,7 @@ public:
    * @param unit The unit to convert to from Hbar.
    * @return An int64_t representing the converted value.
    */
-  inline int64_t to(const HbarUnit& unit) const { return mValueInTinybar / unit.getTinybars(); }
+  [[nodiscard]] inline int64_t to(const HbarUnit& unit) const { return mValueInTinybar / unit.getTinybars(); }
 
   /**
    * Compare this Hbar to another Hbar and determine if they represent the same amount.
@@ -121,7 +121,7 @@ public:
    *
    * @return A string representing the Hbar value.
    */
-  std::string toString() const;
+  [[nodiscard]] std::string toString() const;
 
   /**
    * Returns an Hbar whose value is negative this Hbar.

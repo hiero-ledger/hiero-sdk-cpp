@@ -29,6 +29,16 @@ const LABELS = Object.freeze({
 });
 
 /**
+ * Skill hierarchy used to determine progression for recommendations.
+ */
+const SKILL_HIERARCHY = Object.freeze([
+    LABELS.GOOD_FIRST_ISSUE,
+    LABELS.BEGINNER,
+    LABELS.INTERMEDIATE,
+    LABELS.ADVANCED,
+]);
+
+/**
  * Issue state values for GitHub search queries.
  */
 const ISSUE_STATE = Object.freeze({
@@ -40,4 +50,5 @@ module.exports = {
   MAINTAINER_TEAM,
   LABELS,
   ISSUE_STATE,
+  SKILL_HIERARCHY,
 };
