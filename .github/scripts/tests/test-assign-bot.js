@@ -101,9 +101,12 @@ function createMockGithub(options = {}) {
           calls.labelsRemoved.push(params.name);
           console.log(`\n🏷️  LABEL REMOVED: ${params.name}`);
         },
-        removeAssignees: async (params) => {
-          calls.assignees = calls.assignees.filter(a => !params.assignees.includes(a));
-          console.log(`\n❌ ASSIGNEES REMOVED: ${params.assignees.join(', ')}`);
+        get: async (params) => {
+          console.log(`\n🔍 REST API CALL: get issue_number=${params.issue_number}`);
+          if (options.issueAlreadyAssignedTo) {
+            return { data: { assignees: [{ login: options.issueAlreadyAssignedTo }] } };
+          }
+          return { data: { assignees: [] } };
         },
         listForRepo: async (params) => {
           calls.graphqlCalls.push(`REST listForRepo: state=${params.state} assignee=${params.assignee}`);
@@ -162,6 +165,34 @@ function createMockGithub(options = {}) {
 // =============================================================================
 
 const scenarios = [
+  {
+    name: 'Race Condition - Issue Snatched While Queued (Case 2)',
+    description: 'Fresh fetch shows another user was assigned between queue and execution',
+    context: {
+      eventName: 'issue_comment',
+      payload: {
+        issue: {
+          number: 120,
+          assignees: [], // stale payload: appears unassigned
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: good first issue' },
+          ],
+        },
+        comment: {
+          id: 1021,
+          body: '/assign',
+          user: { login: 'second-requester', type: 'User' },
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: { issueAlreadyAssignedTo: 'first-requester' },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @second-requester! This issue is already assigned to @first-requester.\n\n👉 **Find another issue to work on:**\n[Browse unassigned issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)\n\nOnce you find one you like, comment \`/assign\` to get started!`
+    ],
+  },
   // ---------------------------------------------------------------------------
   // HAPPY PATHS (4 tests)
   // Successful assignment for each skill level

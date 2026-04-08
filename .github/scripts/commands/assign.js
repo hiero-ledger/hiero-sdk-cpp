@@ -15,7 +15,6 @@ const {
   hasLabel,
   swapLabels,
   addAssignees,
-  removeAssignees,
   postComment,
   acknowledgeComment,
 } = require('../helpers');
@@ -337,44 +336,41 @@ async function enforceAssignmentLimit(botContext, requesterUsername) {
  */
 async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
   logger.log('Assigning issue to', requesterUsername);
+
+  // Case 2 fix: fetch live issue state BEFORE writing, 
+  // relying on the per-issue concurrency key to serialize runs.
+  let freshIssue;
+  try {
+    const response = await botContext.github.rest.issues.get({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      issue_number: botContext.number,
+    });
+    freshIssue = response.data;
+  } catch (err) {
+    logger.error('Failed to pre-fetch fresh issue state:', err.message);
+    await postComment(botContext, buildApiErrorComment(requesterUsername));
+    return;
+  }
+
+  const alreadyAssigned = freshIssue.assignees?.some(
+    a => a.login === requesterUsername
+  );
+  if (!alreadyAssigned && freshIssue.assignees?.length > 0) {
+    logger.log('Exit: issue was assigned by another user while queued');
+    await postComment(botContext, buildAlreadyAssignedComment(
+      requesterUsername,
+      freshIssue,
+      botContext.owner,
+      botContext.repo
+    ));
+    return;
+  }
+
   const assignResult = await addAssignees(botContext, [requesterUsername]);
   if (!assignResult.success) {
     await postComment(botContext, buildAssignmentFailureComment(requesterUsername, assignResult.error));
     logger.log('Posted assignment failure comment, tagged maintainers');
-    return;
-  }
-
-  // Allow REST replica sync (GitHub's replication lag is ~50-200ms, use 500ms safety buffer)
-  logger.log('Waiting 500ms for REST replica sync...');
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  // Check GLOBAL open assignment count (all issues, no label filter)
-  const finalOpenCount = await countAssignedIssues(
-    botContext.github,
-    botContext.owner,
-    botContext.repo,
-    requesterUsername,
-    ISSUE_STATE.OPEN,
-    null // No label filter - count ALL open assignments globally
-  );
-
-  // Optimistic Rollback: If race condition was hit, revert the assignment
-  if (finalOpenCount === null) {
-    await postComment(botContext, buildApiErrorComment(requesterUsername));
-    logger.log('Could not verify post-assignment count due to API error');
-    return;
-  }
-
-  if (finalOpenCount > MAX_OPEN_ASSIGNMENTS) {
-    logger.error('Race condition detected: Final count exceeds limit. Rolling back.');
-    await removeAssignees(botContext, [requesterUsername]);
-    await postComment(botContext, 
-      `⚠️ @${requesterUsername}, your assignment request conflicted with concurrent requests on other issues.\n\n` +
-      `Your assignment to this issue has been automatically rolled back to maintain the **${MAX_OPEN_ASSIGNMENTS}-issue limit**.\n\n` +
-      `You currently have **${finalOpenCount - 1}** other open assignments. ` +
-      `Please try again after completing one of them!`
-    );
-    logger.log('Assignment rolled back due to limit breach');
     return;
   }
 
