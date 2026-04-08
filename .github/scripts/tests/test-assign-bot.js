@@ -11,26 +11,6 @@
 const { LABELS } = require('../helpers');
 const script = require('../bot-on-comment.js');
 
-// =============================================================================
-// GRAPHQL QUERY KIND (for mock)
-// =============================================================================
-// Derives the kind of count query from the search string the bot builds.
-// Update this if the bot's query format changes so the mock stays in sync.
-
-/**
- * @param {string} searchQuery - The GraphQL search query string.
- * @returns {'openExcludingBlocked'|'openWithLabelBlocked'|'closedWithLabel'|'open'|'unknown'}
- */
-function getGraphQLQueryKind(searchQuery) {
-  if (typeof searchQuery !== 'string') return 'unknown';
-  if (searchQuery.includes('is:closed')) return 'closedWithLabel';
-  if (searchQuery.includes('is:open')) {
-    if (searchQuery.includes(`-label:"${LABELS.BLOCKED}"`)) return 'openExcludingBlocked';
-    if (searchQuery.includes(`label:"${LABELS.BLOCKED}"`)) return 'openWithLabelBlocked';
-    return 'open';
-  }
-  return 'unknown';
-}
 
 // =============================================================================
 // MOCK GITHUB API
@@ -48,7 +28,7 @@ function createMockGithub(options = {}) {
     assignShouldFail = false,
     removeLabelShouldFail = false,
     addLabelShouldFail = false,
-    reactionShouldFail = false,
+    issueGetShouldFail = false,
   } = options;
 
   const calls = {
@@ -103,6 +83,9 @@ function createMockGithub(options = {}) {
         },
         get: async (params) => {
           console.log(`\n🔍 REST API CALL: get issue_number=${params.issue_number}`);
+          if (issueGetShouldFail) {
+            throw new Error('Simulated issues.get failure');
+          }
           if (options.issueAlreadyAssignedTo) {
             return { data: { assignees: [{ login: options.issueAlreadyAssignedTo }] } };
           }
@@ -191,6 +174,34 @@ const scenarios = [
     expectedAssignee: null,
     expectedComments: [
       `👋 Hi @second-requester! This issue is already assigned to @first-requester.\n\n👉 **Find another issue to work on:**\n[Browse unassigned issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)\n\nOnce you find one you like, comment \`/assign\` to get started!`
+    ],
+  },
+  {
+    name: 'Error - Fresh Issue Fetch API Failure',
+    description: 'Tags maintainers when issues.get fails inside assignAndFinalize',
+    context: {
+      eventName: 'issue_comment',
+      payload: {
+        issue: {
+          number: 121,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: good first issue' },
+          ],
+        },
+        comment: {
+          id: 1022,
+          body: '/assign',
+          user: { login: 'unlucky-user-4', type: 'User' },
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: { issueGetShouldFail: true },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @unlucky-user-4! I encountered an error while trying to verify your eligibility for this issue.\n\n@hiero-ledger/hiero-sdk-cpp-maintainers — could you please help with this assignment request?\n\n@unlucky-user-4, a maintainer will review your request and assign you manually if appropriate. Sorry for the inconvenience!`
     ],
   },
   // ---------------------------------------------------------------------------

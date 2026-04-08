@@ -56,11 +56,11 @@ function getIssueSkillLevel(issue) {
 }
 
 /**
- * Counts issues assigned to a user matching specified criteria via GraphQL search.
- * When state is OPEN and no label filter is given, issues with "status: blocked" are
- * excluded from the count (so blocked issues don't penalize the assignment limit).
+ * Fetches the total number of issues assigned to a specific user that match
+ * a given state and optional label using the GitHub REST API.
+ * The search is constrained to the repo specified in the context.
  *
- * @param {object} github - Octokit GitHub API client (must support github.graphql).
+ * @param {object} github - Octokit GitHub API client (must support github.rest).
  * @param {string} owner - Repository owner (e.g. 'hiero-ledger').
  * @param {string} repo - Repository name (e.g. 'hiero-sdk-cpp').
  * @param {string} username - GitHub username to search for.
@@ -391,11 +391,12 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
  *   5. Open-assignment count API error? -> API-error comment (tags maintainers).
  *   6. At or above MAX_OPEN_ASSIGNMENTS? -> limit-exceeded comment.
  *   6b. GFI cap reached (skill: good first issue only)? -> GFI-limit-exceeded comment.
- *   7. Skill prerequisites not met? -> prerequisite-not-met comment.
- *   8. Assignment API failure? -> assignment-failure comment (tags maintainers).
- *
- * On success: assigns the user, posts a welcome comment, and transitions the
- * status labels from "ready for dev" to "in progress".
+ *   7. Too many open assignments limit reached? -> assignment-limit-exceeded comment.
+ *   8. Issue snatched while queued (fresh fetch)? -> already-assigned comment.
+ *   9. Assignment API failure? -> assignment-failure comment (tags maintainers).
+ * 
+ * If all checks pass, the bot assigns the issue, posts a welcome comment,
+ * and swaps the "status: ready for dev" label with "status: in progress".
  *
  * @param {{ github: object, owner: string, repo: string, number: number,
  *           issue: object, comment: { id: number, user: { login: string } } }} botContext
