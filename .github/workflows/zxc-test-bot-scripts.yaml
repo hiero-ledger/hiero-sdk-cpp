@@ -49,6 +49,9 @@ jobs:
       - name: Run API Helpers Tests
         run: node .github/scripts/tests/test-api.js
 
+      - name: Run Recommend Issues Bot Tests
+        run: node .github/scripts/tests/test-recommend-issues-bot.js
+
       - name: Run On-PR-Open Bot Tests
         run: node .github/scripts/tests/test-on-pr-open-bot.js
 
