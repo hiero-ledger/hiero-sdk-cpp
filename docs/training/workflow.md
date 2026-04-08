@@ -177,7 +177,36 @@ Follow our [Signing Guide](signing.md) with step-by-step instructions.
 **WARNING** any merge or rebase operations will cause a loss of signing status unless you preserve signing: `git rebase main -S`
 
 ## 6. Ensure Code is Formatted
-Code should be formatted properly using the provided `.clang-format` file in the repository (currently using `clang-format-17`)
+Code should be formatted properly using `clang-format-17`.
+
+The CI lint job checks formatting in:
+- `src/sdk/main`
+- `src/tck`
+
+The `.clang-format` file at the repository root is detected automatically by `clang-format`.
+
+### Install clang-format 17
+
+Linux (apt):
+```bash
+sudo apt-get update
+sudo apt-get install -y clang-format-17
+```
+
+macOS (brew):
+```bash
+brew install clang-format@17
+```
+
+### Check formatting without changing files
+```bash
+find src/sdk/main src/tck -type f \( -name "*.c" -o -name "*.cc" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) -print0 | xargs -0 clang-format-17 --dry-run --Werror
+```
+
+### Auto-fix formatting in place
+```bash
+find src/sdk/main src/tck -type f \( -name "*.c" -o -name "*.cc" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) -print0 | xargs -0 clang-format-17 -i
+```
 
 ## 7. Test and Document any new functionality
 In the case that you have added new functionality (beyond documentation) to the SDK, you will need to write test cases and write examples.
