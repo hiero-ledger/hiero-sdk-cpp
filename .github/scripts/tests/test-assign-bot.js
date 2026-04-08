@@ -23,8 +23,8 @@ function createMockGithub(options = {}) {
     openAssignmentCount = 0,
     openAssignmentCountExcludingBlocked = openAssignmentCount,
     blockedIssueCount = 0,
-    graphqlShouldFail = false,
-    graphqlOpenAssignmentsShouldFail = false,
+    restListClosedShouldFail = false,
+    restListOpenShouldFail = false,
     assignShouldFail = false,
     removeLabelShouldFail = false,
     addLabelShouldFail = false,
@@ -36,7 +36,7 @@ function createMockGithub(options = {}) {
     assignees: [],
     labelsAdded: [],
     labelsRemoved: [],
-    graphqlCalls: [],
+    restCalls: [],
     reactions: [],
   };
 
@@ -92,11 +92,11 @@ function createMockGithub(options = {}) {
           return { data: { assignees: [] } };
         },
         listForRepo: async (params) => {
-          calls.graphqlCalls.push(`REST listForRepo: state=${params.state} assignee=${params.assignee}`);
+          calls.restCalls.push(`REST listForRepo: state=${params.state} assignee=${params.assignee}`);
           console.log(`\n🔍 REST API CALL: listForRepo state=${params.state} assignee=${params.assignee}`);
 
           if (params.state === 'open') {
-            if (graphqlOpenAssignmentsShouldFail) {
+            if (restListOpenShouldFail) {
               throw new Error('Simulated REST API failure for open assignments');
             }
             const issues = [];
@@ -113,11 +113,14 @@ function createMockGithub(options = {}) {
                 issues.push({ labels: [] });
               }
             }
+            if (params.labels) {
+              return { data: issues.filter(issue => issue.labels?.some(l => l.name === params.labels)) };
+            }
             return { data: issues };
           }
 
           if (params.state === 'closed') {
-            if (graphqlShouldFail) {
+            if (restListClosedShouldFail) {
               throw new Error('Simulated REST API failure');
             }
             const issues = [];
@@ -128,6 +131,9 @@ function createMockGithub(options = {}) {
             }
             for (let i = 0; i < completedIssueCount; i++) {
               issues.push({ labels: [] });
+            }
+            if (params.labels) {
+              return { data: issues.filter(issue => issue.labels?.some(l => l.name === params.labels)) };
             }
             return { data: issues };
           }
@@ -995,7 +1001,7 @@ Good luck, and welcome aboard! 🚀`,
       },
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
-    githubOptions: { graphqlOpenAssignmentsShouldFail: true },
+    githubOptions: { restListOpenShouldFail: true },
     expectedAssignee: null,
     expectedComments: [
       `👋 Hi @unlucky-user-3! I encountered an error while trying to verify your eligibility for this issue.
@@ -1007,7 +1013,7 @@ Good luck, and welcome aboard! 🚀`,
   },
 
   {
-    name: 'Error - GraphQL API Failure',
+    name: 'Error - Prerequisite Check API Failure',
     description: 'Tags maintainers when prerequisite check fails',
     context: {
       eventName: 'issue_comment',
@@ -1028,7 +1034,7 @@ Good luck, and welcome aboard! 🚀`,
       },
       repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
     },
-    githubOptions: { graphqlShouldFail: true },
+    githubOptions: { restListClosedShouldFail: true },
     expectedAssignee: null,
     expectedComments: [
       `👋 Hi @unlucky-user! I encountered an error while trying to verify your eligibility for this issue.

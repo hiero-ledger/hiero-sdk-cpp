@@ -20,9 +20,11 @@ name: Bot - On Comment
 #     PR review comments (which have a different payload shape).
 #
 # Concurrency:
-#   Serialized per issue number (cancel-in-progress: false) to prevent
-#   race conditions when multiple /assign comments arrive in quick
-#   succession on the same issue.
+#   Serialized per actor (github.actor) with cancel-in-progress: false.
+#   This infrastructure-level lock completely eliminates the TOCTOU limit bypass
+#   where malicious/fast users could spam /assign across multiple issues to
+#   hoard tickets. Same-issue collisions between DIFFERENT users are handled 
+#   natively in JS (via fresh-state REST pre-fetches in assign.js).
 # ──────────────────────────────────────────────────────────────────────
 on:
   issue_comment:
@@ -40,9 +42,9 @@ jobs:
 
     runs-on: hiero-client-sdk-linux-large
 
-    # Serialize per issue — never cancel a running /assign to prevent partial state
+    # Serialize per user to block multi-issue assignment limit exploits
     concurrency:
-      group: on-comment-${{ github.event.issue.number }}
+      group: on-comment-${{ github.actor }}
       cancel-in-progress: false
 
     steps:

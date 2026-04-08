@@ -77,6 +77,10 @@ async function countAssignedIssues(github, owner, repo, username, state, label =
     logger.log('[assign] Invalid state:', { state });
     return null;
   }
+  if (label && (typeof label !== 'string' || !label.trim() || label.includes('"'))) {
+    logger.log('[assign] Invalid label parameter:', { label });
+    return null;
+  }
 
   try {
     let page = 1;
@@ -85,15 +89,22 @@ async function countAssignedIssues(github, owner, repo, username, state, label =
     
     logger.log(`[assign] Fetching ${state} assigned issues via REST...`);
     while (true) {
-      const result = await github.rest.issues.listForRepo({
+      const params = {
         owner,
         repo,
         state: state.toLowerCase(),
         assignee: username,
         per_page: perPage,
         page
-      });
-      allIssues = allIssues.concat(result.data);
+      };
+      if (label) params.labels = label;
+      
+      const result = await github.rest.issues.listForRepo(params);
+      // Filter out Pull Requests (which are returned by the issues endpoint)
+      const actualIssues = result.data.filter(item => !item.pull_request);
+      allIssues = allIssues.concat(actualIssues);
+      
+      // Pagination must evaluate the raw result size, not the filtered size.
       if (result.data.length < perPage) break;
       page++;
     }
@@ -106,20 +117,12 @@ async function countAssignedIssues(github, owner, repo, username, state, label =
       return count;
     }
 
-    if (label) {
-      if (typeof label !== 'string' || !label.trim() || label.includes('"')) {
-        logger.log('[assign] Invalid label parameter:', { label });
-        return null;
-      }
-      const count = allIssues.filter(issue =>
-        issue.labels?.some(l => (l.name || l) === label)
-      ).length;
-      logger.log(`[assign] ${state} assigned issues for ${username} with label ${label}: ${count}`);
-      return count;
-    }
-
     const count = allIssues.length;
-    logger.log(`[assign] ${state} assigned issues for ${username}: ${count}`);
+    if (label) {
+      logger.log(`[assign] ${state} assigned issues for ${username} with label ${label}: ${count}`);
+    } else {
+      logger.log(`[assign] ${state} assigned issues for ${username}: ${count}`);
+    }
     return count;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -360,7 +363,19 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
   const alreadyAssigned = freshIssue.assignees?.some(
     a => a.login === requesterUsername
   );
-  if (!alreadyAssigned && freshIssue.assignees?.length > 0) {
+
+  if (alreadyAssigned) {
+    logger.log('Exit: user is already assigned (caught during fresh fetch)');
+    await postComment(botContext, buildAlreadyAssignedComment(
+      requesterUsername,
+      freshIssue,
+      botContext.owner,
+      botContext.repo
+    ));
+    return;
+  }
+
+  if (freshIssue.assignees?.length > 0) {
     logger.log('Exit: issue was assigned by another user while queued');
     await postComment(botContext, buildAlreadyAssignedComment(
       requesterUsername,
