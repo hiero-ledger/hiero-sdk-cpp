@@ -15,6 +15,7 @@ const {
   hasLabel,
   swapLabels,
   addAssignees,
+  removeAssignees,
   postComment,
   acknowledgeComment,
 } = require('../helpers');
@@ -34,6 +35,7 @@ const {
   buildApiErrorComment,
   buildLabelUpdateFailureComment,
   buildAssignmentFailureComment,
+  buildAssignmentRollbackComment,
 } = require('./assign-comments');
 
 // Delegate to the active logger set by the dispatcher (bot-on-comment.js).
@@ -58,6 +60,9 @@ function getIssueSkillLevel(issue) {
 /**
  * Fetches the total number of issues assigned to a specific user that match
  * a given state and optional label using the GitHub REST API.
+ * 
+ * Note: When state is OPEN and no label filter is provided, issues with the
+ * "status: blocked" label are explicitly EXCLUDED from the count.
  * The search is constrained to the repo specified in the context.
  *
  * @param {object} github - Octokit GitHub API client (must support github.rest).
@@ -66,9 +71,10 @@ function getIssueSkillLevel(issue) {
  * @param {string} username - GitHub username to search for.
  * @param {string} state - Issue state filter: ISSUE_STATE.OPEN or ISSUE_STATE.CLOSED.
  * @param {string|null} [label=null] - Optional label filter (e.g. 'skill: good first issue').
+ * @param {number|null} [threshold=null] - Optional threshold to short-circuit pagination.
  * @returns {Promise<number|null>} The issue count, or null if inputs are invalid or the API call fails.
  */
-async function countAssignedIssues(github, owner, repo, username, state, label = null) {
+async function countAssignedIssues(github, owner, repo, username, state, label = null, threshold = null) {
   if (!isSafeSearchToken(owner) || !isSafeSearchToken(repo) || !isSafeSearchToken(username)) {
     logger.log('[assign] Invalid search inputs:', { owner, repo, username, label });
     return null;
@@ -84,7 +90,7 @@ async function countAssignedIssues(github, owner, repo, username, state, label =
 
   try {
     let page = 1;
-    let allIssues = [];
+    let matchingIssuesCount = 0;
     const perPage = 100;
     
     logger.log(`[assign] Fetching ${state} assigned issues via REST...`);
@@ -102,28 +108,35 @@ async function countAssignedIssues(github, owner, repo, username, state, label =
       const result = await github.rest.issues.listForRepo(params);
       // Filter out Pull Requests (which are returned by the issues endpoint)
       const actualIssues = result.data.filter(item => !item.pull_request);
-      allIssues = allIssues.concat(actualIssues);
+      
+      let pageMatchCount = 0;
+      if (state === ISSUE_STATE.OPEN && !label) {
+        pageMatchCount = actualIssues.filter(issue => 
+          !issue.labels?.some(l => (l.name || l) === LABELS.BLOCKED)
+        ).length;
+      } else {
+        pageMatchCount = actualIssues.length;
+      }
+      
+      matchingIssuesCount += pageMatchCount;
+      
+      if (threshold !== null && matchingIssuesCount >= threshold) {
+        logger.log(`[assign] Reached threshold (${threshold}), short-circuiting fetch.`);
+        matchingIssuesCount = threshold; // Cap at threshold logically for callers
+        break;
+      }
       
       // Pagination must evaluate the raw result size, not the filtered size.
       if (result.data.length < perPage) break;
       page++;
     }
 
-    if (state === ISSUE_STATE.OPEN && !label) {
-      const count = allIssues.filter(issue => 
-        !issue.labels?.some(l => (l.name || l) === LABELS.BLOCKED)
-      ).length;
-      logger.log(`[assign] open assigned issues for ${username} (excluding blocked): ${count}`);
-      return count;
-    }
-
-    const count = allIssues.length;
     if (label) {
-      logger.log(`[assign] ${state} assigned issues for ${username} with label ${label}: ${count}`);
+      logger.log(`[assign] ${state} assigned issues for ${username} with label ${label}: ${matchingIssuesCount}`);
     } else {
-      logger.log(`[assign] ${state} assigned issues for ${username}: ${count}`);
+      logger.log(`[assign] ${state} assigned issues for ${username}${state === ISSUE_STATE.OPEN ? ' (excluding blocked)' : ''}: ${matchingIssuesCount}`);
     }
-    return count;
+    return matchingIssuesCount;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.log(`[assign] Failed to count ${state} issues for ${username}: ${message}`);
@@ -143,7 +156,7 @@ async function countAssignedIssues(github, owner, repo, username, state, label =
  * @returns {Promise<number>} The blocked-issue count (defaults to 0 on any error).
  */
 async function getBlockedCount(github, owner, repo, username) {
-  const count = await countAssignedIssues(github, owner, repo, username, ISSUE_STATE.OPEN, LABELS.BLOCKED);
+  const count = await countAssignedIssues(github, owner, repo, username, ISSUE_STATE.OPEN, LABELS.BLOCKED, 1);
   if (count !== null && isNonNegativeInteger(count)) return Math.floor(count);
   return 0;
 }
@@ -171,7 +184,7 @@ async function checkPrerequisites(botContext, skillLevel, requesterUsername) {
       const checkCurrLevel = SKILL_HIERARCHY[i];
       const countAtLevel = await countAssignedIssues(
         botContext.github, botContext.owner, botContext.repo,
-        requesterUsername, ISSUE_STATE.CLOSED, checkCurrLevel
+        requesterUsername, ISSUE_STATE.CLOSED, checkCurrLevel, 1
       );
 
       if (countAtLevel !== null && countAtLevel > 0) {
@@ -184,7 +197,7 @@ async function checkPrerequisites(botContext, skillLevel, requesterUsername) {
   // Normal validation
   const completedCount = await countAssignedIssues(
     botContext.github, botContext.owner, botContext.repo,
-    requesterUsername, ISSUE_STATE.CLOSED, prereq.requiredLabel
+    requesterUsername, ISSUE_STATE.CLOSED, prereq.requiredLabel, prereq.requiredCount
   );
   if (completedCount === null) {
     logger.log('Exit: could not verify prerequisites due to API error');
@@ -235,7 +248,7 @@ async function enforceGfiCompletionLimit(botContext, skillLevel, requesterUserna
 
   const completedCount = await countAssignedIssues(
     botContext.github, botContext.owner, botContext.repo,
-    requesterUsername, ISSUE_STATE.CLOSED, LABELS.GOOD_FIRST_ISSUE
+    requesterUsername, ISSUE_STATE.CLOSED, LABELS.GOOD_FIRST_ISSUE, MAX_GFI_COMPLETIONS
   );
   if (completedCount === null) {
     logger.log('Exit: could not verify GFI completion count due to API error');
@@ -303,7 +316,7 @@ async function validateIssueState(botContext, requesterUsername) {
  */
 async function enforceAssignmentLimit(botContext, requesterUsername) {
   const openAssignmentCount = await countAssignedIssues(
-    botContext.github, botContext.owner, botContext.repo, requesterUsername, ISSUE_STATE.OPEN
+    botContext.github, botContext.owner, botContext.repo, requesterUsername, ISSUE_STATE.OPEN, null, MAX_OPEN_ASSIGNMENTS + 1
   );
   if (openAssignmentCount === null) {
     logger.log('Exit: could not verify open assignments due to API error');
@@ -329,12 +342,19 @@ async function enforceAssignmentLimit(botContext, requesterUsername) {
 }
 
 /**
- * Performs the actual issue assignment with a live pre-flight state check.
- * Fetches fresh issue data immediately before assigning to detect concurrent
- * assignments (Case 2 race condition). Bails out gracefully if the issue was
- * snatched by another user while this run was queued. On success, posts a
- * welcome comment and transitions status labels. Posts failure comments if
- * the pre-fetch or assignment API calls fail.
+ * Performs the actual issue assignment with two concurrency defenses:
+ *
+ * 1. Pre-flight check: fetches fresh issue state via issues.get() to detect
+ *    same-issue collisions (another user assigned while this run was queued;
+ *    serialized per-issue by the workflow concurrency key).
+ *
+ * 2. Post-write OCC verification: after addAssignees succeeds, re-counts
+ *    the user's open assignments via countAssignedIssues(). If the count
+ *    exceeds MAX_OPEN_ASSIGNMENTS (due to a concurrent run on a DIFFERENT
+ *    issue), rolls back with removeAssignees and posts a rollback comment.
+ *
+ * On success, posts a welcome comment and transitions status labels.
+ * Posts failure comments if any API call fails.
  *
  * @param {object} botContext - Bot context from buildBotContext.
  * @param {string} requesterUsername - GitHub username being assigned.
@@ -355,7 +375,8 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
     });
     freshIssue = response.data;
   } catch (err) {
-    logger.error('Failed to pre-fetch fresh issue state:', err.message);
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    logger.error('Failed to pre-fetch fresh issue state:', errorMsg);
     await postComment(botContext, buildApiErrorComment(requesterUsername));
     return;
   }
@@ -393,6 +414,25 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
     return;
   }
 
+  // OCC post-write verification: re-count open assignments AFTER the write.
+  // If a concurrent run on a DIFFERENT issue also assigned this user, the
+  // count will now exceed MAX_OPEN_ASSIGNMENTS and we must roll back.
+  const postWriteCount = await countAssignedIssues(
+    botContext.github, botContext.owner, botContext.repo, requesterUsername, ISSUE_STATE.OPEN, null, MAX_OPEN_ASSIGNMENTS + 1
+  );
+
+  if (postWriteCount !== null && postWriteCount > MAX_OPEN_ASSIGNMENTS) {
+    logger.log('Post-write verification failed: limit exceeded after concurrent assignment', {
+      maxAllowed: MAX_OPEN_ASSIGNMENTS, postWriteCount,
+    });
+    await removeAssignees(botContext, [requesterUsername]);
+    await postComment(botContext, buildAssignmentRollbackComment(
+      requesterUsername, postWriteCount, botContext.owner, botContext.repo
+    ));
+    logger.log('Rolled back assignment due to concurrent limit breach');
+    return;
+  }
+
   await postComment(botContext, buildWelcomeComment(requesterUsername, skillLevel));
   logger.log('Posted welcome comment');
   await updateLabels(botContext, requesterUsername);
@@ -413,6 +453,7 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
  *   8. Skill prerequisites not met? -> prerequisite-not-met comment.
  *   9. Issue snatched while queued (fresh fetch)? -> already-assigned comment.
  *   10. Assignment API failure? -> assignment-failure comment (tags maintainers).
+ *   11. Post-write OCC check: limit breached after concurrent write? -> rollback + comment.
  * 
  * If all checks pass, the bot assigns the issue, posts a welcome comment,
  * and swaps the "status: ready for dev" label with "status: in progress".

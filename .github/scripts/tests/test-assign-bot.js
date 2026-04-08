@@ -29,16 +29,20 @@ function createMockGithub(options = {}) {
     removeLabelShouldFail = false,
     addLabelShouldFail = false,
     issueGetShouldFail = false,
+    postWriteOpenCount = null,
   } = options;
 
   const calls = {
     comments: [],
     assignees: [],
+    removedAssignees: [],
     labelsAdded: [],
     labelsRemoved: [],
     restCalls: [],
     reactions: [],
   };
+
+  let openListCallCount = 0;
 
   return {
     calls,
@@ -66,6 +70,10 @@ function createMockGithub(options = {}) {
           }
           calls.assignees.push(...params.assignees);
           console.log(`\n✅ ASSIGNED: ${params.assignees.join(', ')}`);
+        },
+        removeAssignees: async (params) => {
+          calls.removedAssignees.push(...params.assignees);
+          console.log(`\n❌ UNASSIGNED: ${params.assignees.join(', ')}`);
         },
         addLabels: async (params) => {
           if (addLabelShouldFail) {
@@ -99,8 +107,14 @@ function createMockGithub(options = {}) {
             if (restListOpenShouldFail) {
               throw new Error('Simulated REST API failure for open assignments');
             }
+            openListCallCount++;
+            // On the SECOND open-state call (post-write verification),
+            // return a higher count if postWriteOpenCount is configured.
+            const effectiveCount = (postWriteOpenCount !== null && openListCallCount > 1)
+              ? postWriteOpenCount
+              : openAssignmentCountExcludingBlocked;
             const issues = [];
-            for (let i = 0; i < openAssignmentCountExcludingBlocked; i++) {
+            for (let i = 0; i < effectiveCount; i++) {
               issues.push({ labels: [{ name: 'status: ready for dev' }] });
             }
             const blockedToGenerate = Math.max(blockedIssueCount, openAssignmentCount - openAssignmentCountExcludingBlocked);
@@ -802,7 +816,7 @@ Once you complete or unassign from one of your current issues, come back and we'
 
 To help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time. Issues labeled \`status: blocked\` are not counted toward this limit.
 
-📊 **Your Current Assignments:** You're currently assigned to **5** open issues.
+📊 **Your Current Assignments:** You're currently assigned to **3** open issues.
 
 👉 **View your assigned issues:**
 [Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Avery-busy-contributor%20-label%3A%22status%3A%20blocked%22)
@@ -975,8 +989,8 @@ Good luck, and welcome aboard! 🚀`,
   },
 
   // ---------------------------------------------------------------------------
-  // ERROR HANDLING (6 tests)
-  // API failures result in maintainer tagging
+  // ERROR HANDLING (7 tests)
+  // API failures and OCC rollbacks
   // ---------------------------------------------------------------------------
 
   {
@@ -1122,6 +1136,45 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
     ],
   },
 
+  {
+    name: 'OCC Rollback - Concurrent Multi-Issue Limit Breach',
+    description: 'User assigned on 2 different issues concurrently; post-write verification detects limit breach and rolls back',
+    context: {
+      eventName: 'issue_comment',
+      payload: {
+        issue: {
+          number: 500,
+          assignees: [],
+          labels: [
+            { name: LABELS.READY_FOR_DEV },
+            { name: LABELS.GOOD_FIRST_ISSUE },
+          ],
+        },
+        comment: {
+          id: 5001,
+          body: '/assign',
+          user: { login: 'concurrent-spammer', type: 'User' },
+        },
+        repository: {
+          owner: { login: 'hiero-ledger' },
+          name: 'hiero-sdk-cpp',
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: {
+      openAssignmentCount: 0,
+      openAssignmentCountExcludingBlocked: 0,
+      // After the write, the user now has 3 open (over the limit of 2)
+      postWriteOpenCount: 3,
+    },
+    expectedAssignee: 'concurrent-spammer',
+    expectedRemovedAssignee: 'concurrent-spammer',
+    expectedComments: [
+      `👋 Hi @concurrent-spammer! It looks like your assignment limit was reached by the time this request was processed (you now have **3** open issues, limit is **2**).\n\nI've automatically unassigned you from this issue to keep things fair for everyone.\n\n👉 **View your current assignments:**\n[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Aconcurrent-spammer%20-label%3A%22status%3A%20blocked%22)\n\nOnce you complete or unassign from one of your current issues, come back and comment \`/assign\` again! 🎯`,
+    ],
+  },
+
   // ---------------------------------------------------------------------------
   // DELETED COMMENT ABORT (1 test)
   // Bot aborts /assign when the triggering comment has been deleted
@@ -1253,6 +1306,15 @@ async function runTest(scenario, index) {
     } else {
       results.passed = false;
       results.details.push(`❌ Should not have assigned, but assigned: ${mockGithub.calls.assignees.join(', ')}`);
+    }
+  }
+
+  if (scenario.expectedRemovedAssignee) {
+    if (mockGithub.calls.removedAssignees.includes(scenario.expectedRemovedAssignee)) {
+      results.details.push(`✅ Correctly rolled back assignment for ${scenario.expectedRemovedAssignee}`);
+    } else {
+      results.passed = false;
+      results.details.push(`❌ Expected rollback for ${scenario.expectedRemovedAssignee}, but removedAssignees: ${mockGithub.calls.removedAssignees.join(', ') || 'none'}`);
     }
   }
 
