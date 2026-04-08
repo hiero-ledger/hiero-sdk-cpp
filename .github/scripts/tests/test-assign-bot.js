@@ -905,7 +905,7 @@ Once you complete or unassign from one of your current issues, come back and we'
 
 To help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time. Issues labeled \`status: blocked\` are not counted toward this limit.
 
-📊 **Your Current Assignments:** You're currently assigned to **3** open issues.
+📊 **Your Current Assignments:** You're currently assigned to **3+** open issues.
 
 👉 **View your assigned issues:**
 [Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Avery-busy-contributor%20-label%3A%22status%3A%20blocked%22)
@@ -947,7 +947,7 @@ Once you complete or unassign from one of your current issues, come back and we'
 
 To help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time. Issues labeled \`status: blocked\` are not counted toward this limit.
 
-📊 **Your Current Assignments:** You're currently assigned to **3** open issues.
+📊 **Your Current Assignments:** You're currently assigned to **3+** open issues.
 
 👉 **View your assigned issues:**
 [Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Anow-over-limit-user%20-label%3A%22status%3A%20blocked%22)
@@ -1264,7 +1264,7 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
     expectedAssignee: "concurrent-spammer",
     expectedRemovedAssignee: "concurrent-spammer",
     expectedComments: [
-      `👋 Hi @concurrent-spammer! It looks like your assignment limit was reached by the time this request was processed (you now have **3** open issues, limit is **2**).\n\nI've automatically unassigned you from this issue to keep things fair for everyone.\n\n👉 **View your current assignments:**\n[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Aconcurrent-spammer%20-label%3A%22status%3A%20blocked%22)\n\nOnce you complete or unassign from one of your current issues, come back and comment \`/assign\` again! 🎯`,
+      `👋 Hi @concurrent-spammer! It looks like your assignment limit was reached by the time this request was processed (you now have **3+** open issues, limit is **2**).\n\nI've automatically unassigned you from this issue to keep things fair for everyone.\n\n👉 **View your current assignments:**\n[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Aconcurrent-spammer%20-label%3A%22status%3A%20blocked%22)\n\nOnce you complete or unassign from one of your current issues, come back and comment \`/assign\` again! 🎯`,
     ],
   },
 

@@ -234,7 +234,7 @@ function buildIssuesSearchUrl(owner, repo, searchQuery) {
  * (optionally) blocked issues.
  *
  * @param {string} requesterUsername - The GitHub username who commented /assign.
- * @param {number} openCount - Number of open (non-blocked) issues currently assigned to the user.
+ * @param {string|number} openCount - User-facing open-assignment count display (for example 2 or "3+").
  * @param {string} assignedIssuesUrl - URL to the user's open assigned issues search.
  * @param {string|null} blockedIssuesUrl - URL to the user's blocked issues search, or null if none.
  * @returns {string} The formatted Markdown comment body.
@@ -275,7 +275,7 @@ function formatAssignmentLimitExceededComment(
  * user's assigned and blocked issues, then delegates to formatAssignmentLimitExceededComment.
  *
  * @param {string} requesterUsername - The GitHub username who commented /assign.
- * @param {number} openCount - Number of open (non-blocked) issues currently assigned to the user.
+ * @param {string|number} openCount - User-facing open-assignment count display (for example 2 or "3+").
  * @param {string} owner - Repository owner (for search URLs).
  * @param {string} repo - Repository name (for search URLs).
  * @param {number} [blockedCount=0] - Number of blocked issues assigned to the user (shows link if > 0).
@@ -351,7 +351,7 @@ function buildLabelUpdateFailureComment(username, error) {
  * warmly and redirects them toward Beginner and higher-level issues.
  *
  * @param {string} requesterUsername - The GitHub username who commented /assign.
- * @param {number} completedCount - How many Good First Issues the user has completed.
+ * @param {string|number} completedCount - User-facing completed-count display (for example 5 or "5+").
  * @param {string} owner - Repository owner (for the search URL).
  * @param {string} repo - Repository name (for the search URL).
  * @returns {string} The formatted Markdown comment body.
@@ -437,7 +437,7 @@ function buildAssignmentRollbackFailureComment(requesterUsername, error) {
  * This is the OCC (Optimistic Concurrency Control) rollback path.
  *
  * @param {string} requesterUsername - The GitHub username whose assignment was reverted.
- * @param {number} openCount - The user's open assignment count after the write.
+ * @param {string|number} openCount - User-facing open-assignment count display after the write (for example 3 or "3+").
  * @param {string} owner - Repository owner (for search URLs).
  * @param {string} repo - Repository name (for search URLs).
  * @returns {string} The formatted Markdown comment body.

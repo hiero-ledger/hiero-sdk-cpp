@@ -45,6 +45,19 @@ const {
 const logger = createDelegatingLogger();
 
 /**
+ * Formats a count for user-facing text when a threshold short-circuit may have
+ * capped the value. If count reaches the short-circuit threshold, return an
+ * "at least" style display (e.g. "3+") rather than implying an exact value.
+ *
+ * @param {number} count - Count returned by countAssignedIssues.
+ * @param {number} threshold - Threshold used for short-circuiting.
+ * @returns {string} User-facing display string.
+ */
+function formatThresholdedCount(count, threshold) {
+  return count >= threshold ? `${threshold}+` : String(count);
+}
+
+/**
  * Returns the skill-level label on an issue, checking in ascending order:
  * Good First Issue -> Beginner -> Intermediate -> Advanced.
  * Returns the first match, or null if the issue has no skill-level label.
@@ -60,8 +73,8 @@ function getIssueSkillLevel(issue) {
 }
 
 /**
- * Fetches the total number of issues assigned to a specific user that match
- * a given state and optional label using the GitHub REST API.
+ * Fetches the number of issues assigned to a specific user that match a given
+ * state and optional label using the GitHub REST API.
  *
  * Note: When state is OPEN and no label filter is provided, issues with the
  * "status: blocked" label are explicitly EXCLUDED from the count.
@@ -74,7 +87,11 @@ function getIssueSkillLevel(issue) {
  * @param {string} state - Issue state filter: ISSUE_STATE.OPEN or ISSUE_STATE.CLOSED.
  * @param {string|null} [label=null] - Optional label filter (e.g. 'skill: good first issue').
  * @param {number|null} [threshold=null] - Optional threshold to short-circuit pagination.
- * @returns {Promise<number|null>} The issue count, or null if inputs are invalid or the API call fails.
+ *   When provided, the function returns a capped count (the threshold value)
+ *   once that threshold is reached.
+ * @returns {Promise<number|null>} Matching issue count, or null if inputs are invalid or the API call fails.
+ *   When threshold is provided and reached, returns the threshold value (capped),
+ *   not necessarily the exact total.
  */
 async function countAssignedIssues(
   github,
@@ -329,7 +346,7 @@ async function enforceGfiCompletionLimit(
     requesterUsername,
     ISSUE_STATE.CLOSED,
     LABELS.GOOD_FIRST_ISSUE,
-    MAX_GFI_COMPLETIONS,
+    MAX_GFI_COMPLETIONS + 1,
   );
   if (completedCount === null) {
     logger.log("Exit: could not verify GFI completion count due to API error");
@@ -346,7 +363,7 @@ async function enforceGfiCompletionLimit(
       botContext,
       buildGfiLimitExceededComment(
         requesterUsername,
-        completedCount,
+        formatThresholdedCount(completedCount, MAX_GFI_COMPLETIONS + 1),
         botContext.owner,
         botContext.repo,
       ),
@@ -456,7 +473,7 @@ async function enforceAssignmentLimit(botContext, requesterUsername) {
       botContext,
       buildAssignmentLimitExceededComment(
         requesterUsername,
-        openAssignmentCount,
+        formatThresholdedCount(openAssignmentCount, MAX_OPEN_ASSIGNMENTS + 1),
         botContext.owner,
         botContext.repo,
         blockedCount,
@@ -627,7 +644,7 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
       botContext,
       buildAssignmentRollbackComment(
         requesterUsername,
-        postWriteCount,
+        formatThresholdedCount(postWriteCount, MAX_OPEN_ASSIGNMENTS + 1),
         botContext.owner,
         botContext.repo,
       ),
