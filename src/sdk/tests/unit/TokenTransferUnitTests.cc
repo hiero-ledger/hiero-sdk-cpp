@@ -4,8 +4,8 @@
 #include "AccountId.h"
 #include "TokenId.h"
 
-#include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
+#include <services/basic_types.pb.h>
 
 using namespace Hiero;
 
@@ -137,13 +137,20 @@ TEST_F(TokenTransferUnitTests, OperatorEqualsSame)
 TEST_F(TokenTransferUnitTests, OperatorEqualsDiff)
 {
   // Given
-  TokenTransfer testTokenTransfer(getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
+  TokenTransfer testTokenTransfer(
+    getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
 
-  TokenTransfer            diffTestToken( TokenId(505ULL),  getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
-  TokenTransfer        diffTestAccountId(getTestTokenId(), AccountId(12345ULL), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
-  TokenTransfer           diffTestAmount(getTestTokenId(),  getTestAccountId(),           500LL, getTestExpectedDecimals(), getTestIsApproval());
-  TokenTransfer diffTestExpectedDecimals(getTestTokenId(),  getTestAccountId(), getTestAmount(),                        2U, getTestIsApproval());
-  TokenTransfer       diffTestIsApproval(getTestTokenId(),  getTestAccountId(), getTestAmount(), getTestExpectedDecimals(),               false);
+  // When
+  TokenTransfer diffTestToken(
+    TokenId(505ULL), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
+  TokenTransfer diffTestAccountId(
+    getTestTokenId(), AccountId(12345ULL), getTestAmount(), getTestExpectedDecimals(), getTestIsApproval());
+  TokenTransfer diffTestAmount(
+    getTestTokenId(), getTestAccountId(), 500LL, getTestExpectedDecimals(), getTestIsApproval());
+  TokenTransfer diffTestExpectedDecimals(
+    getTestTokenId(), getTestAccountId(), getTestAmount(), 2U, getTestIsApproval());
+  TokenTransfer diffTestIsApproval(
+    getTestTokenId(), getTestAccountId(), getTestAmount(), getTestExpectedDecimals(), false);
 
   // Then
   EXPECT_FALSE(testTokenTransfer == diffTestToken);
