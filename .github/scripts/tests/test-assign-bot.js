@@ -178,6 +178,8 @@ const scenarios = [
   },
   {
     name: 'Error - Fresh Issue Fetch API Failure',
+    // Note: This failure fires from inside assignAndFinalize(), unlike the
+    // other API failure tests which catch errors during precondition checks.
     description: 'Tags maintainers when issues.get fails inside assignAndFinalize',
     context: {
       eventName: 'issue_comment',
@@ -967,7 +969,7 @@ Good luck, and welcome aboard! 🚀`,
   },
 
   // ---------------------------------------------------------------------------
-  // ERROR HANDLING (5 tests)
+  // ERROR HANDLING (6 tests)
   // API failures result in maintainer tagging
   // ---------------------------------------------------------------------------
 

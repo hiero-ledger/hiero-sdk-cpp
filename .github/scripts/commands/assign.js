@@ -326,8 +326,12 @@ async function enforceAssignmentLimit(botContext, requesterUsername) {
 }
 
 /**
- * Performs the actual issue assignment, posts a welcome comment, and transitions
- * status labels. If the assignment API call fails, posts a failure comment instead.
+ * Performs the actual issue assignment with a live pre-flight state check.
+ * Fetches fresh issue data immediately before assigning to detect concurrent
+ * assignments (Case 2 race condition). Bails out gracefully if the issue was
+ * snatched by another user while this run was queued. On success, posts a
+ * welcome comment and transitions status labels. Posts failure comments if
+ * the pre-fetch or assignment API calls fail.
  *
  * @param {object} botContext - Bot context from buildBotContext.
  * @param {string} requesterUsername - GitHub username being assigned.
@@ -390,10 +394,10 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
  *   4. No skill-level label? -> no-skill-level comment (tags maintainers).
  *   5. Open-assignment count API error? -> API-error comment (tags maintainers).
  *   6. At or above MAX_OPEN_ASSIGNMENTS? -> limit-exceeded comment.
- *   6b. GFI cap reached (skill: good first issue only)? -> GFI-limit-exceeded comment.
- *   7. Too many open assignments limit reached? -> assignment-limit-exceeded comment.
- *   8. Issue snatched while queued (fresh fetch)? -> already-assigned comment.
- *   9. Assignment API failure? -> assignment-failure comment (tags maintainers).
+ *   7. GFI cap reached (skill: good first issue only)? -> GFI-limit-exceeded comment.
+ *   8. Skill prerequisites not met? -> prerequisite-not-met comment.
+ *   9. Issue snatched while queued (fresh fetch)? -> already-assigned comment.
+ *   10. Assignment API failure? -> assignment-failure comment (tags maintainers).
  * 
  * If all checks pass, the bot assigns the issue, posts a welcome comment,
  * and swaps the "status: ready for dev" label with "status: in progress".
