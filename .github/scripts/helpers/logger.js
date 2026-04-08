@@ -34,7 +34,21 @@ function getLogger() {
   return _logger;
 }
 
+/**
+ * Returns a logger proxy that always delegates to whichever logger is currently
+ * active (i.e., the one last set by createLogger). Use this in command modules
+ * so log calls automatically pick up the prefix set by the dispatcher.
+ * @returns {{ log: function, error: function }}
+ */
+function createDelegatingLogger() {
+  return {
+    log: (...args) => getLogger().log(...args),
+    error: (...args) => getLogger().error(...args),
+  };
+}
+
 module.exports = {
   createLogger,
   getLogger,
+  createDelegatingLogger,
 };

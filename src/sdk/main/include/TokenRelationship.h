@@ -71,7 +71,7 @@ public:
    *
    * @return A string representation of the TokenRelationship.
    */
-  std::string toString() const;
+  [[nodiscard]] std::string toString() const;
 
   /**
    *  The unique token ID.
