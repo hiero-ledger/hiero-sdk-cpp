@@ -365,7 +365,11 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
 async function handleAssign(botContext) {
   const requesterUsername = botContext.comment.user.login;
 
-  await acknowledgeComment(botContext, botContext.comment.id);
+  const ack = await acknowledgeComment(botContext, botContext.comment.id);
+  if (!ack.success) {
+    logger.log('Aborting /assign: triggering comment was deleted or could not be acknowledged');
+    return;
+  }
 
   const skillLevel = await validateIssueState(botContext, requesterUsername);
   if (!skillLevel) return;
