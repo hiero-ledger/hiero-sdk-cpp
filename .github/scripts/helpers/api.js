@@ -597,10 +597,10 @@ async function resolveLinkedIssue(botContext) {
  * @returns {string|null} Matching level or null if none found.
  */
 function getHighestIssueSkillLevel(issue) {
-    for (const level of [...SKILL_HIERARCHY].reverse()) {
-        if (hasLabel(issue, level)) return level;
-    }
-    return null;
+  for (const level of [...SKILL_HIERARCHY].reverse()) {
+    if (hasLabel(issue, level)) return level;
+  }
+  return null;
 }
 
 module.exports = {

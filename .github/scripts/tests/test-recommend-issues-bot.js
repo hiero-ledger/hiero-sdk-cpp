@@ -9,7 +9,6 @@ const { runTestSuite } = require('./test-utils');
 const { LABELS, SKILL_HIERARCHY, MAINTAINER_TEAM } = require('../helpers/constants');
 const {
   handleRecommendIssues,
-  getIssueSkillLevel,
   getNextLevel,
   getFallbackLevel,
   getRecommendedIssues,

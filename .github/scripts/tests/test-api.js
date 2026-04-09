@@ -633,7 +633,6 @@ const unitTests = [
       return getHighestIssueSkillLevel(issue) === null;
     },
   },
-  
 ];
 // =============================================================================
 // TEST RUNNER
