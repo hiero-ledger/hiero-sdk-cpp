@@ -48,6 +48,7 @@ function createMockGithub(options = {}) {
     assignShouldFail = false,
     removeLabelShouldFail = false,
     addLabelShouldFail = false,
+    reactionShouldFail = false,
   } = options;
 
   const calls = {
@@ -64,6 +65,9 @@ function createMockGithub(options = {}) {
     rest: {
       reactions: {
         createForIssueComment: async (params) => {
+          if (reactionShouldFail) {
+            throw new Error('Simulated reaction failure: comment not found (404)');
+          }
           calls.reactions.push({ commentId: params.comment_id, content: params.content });
           console.log(`\n👍 REACTION ADDED: ${params.content}`);
         },
@@ -1053,6 +1057,39 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
   },
 
   // ---------------------------------------------------------------------------
+  // DELETED COMMENT ABORT (1 test)
+  // Bot aborts /assign when the triggering comment has been deleted
+  // ---------------------------------------------------------------------------
+
+  {
+    name: 'Abort - Triggering Comment Deleted',
+    description: 'Bot aborts /assign flow when acknowledgeComment fails (comment deleted)',
+    context: {
+      eventName: 'issue_comment',
+      payload: {
+        issue: {
+          number: 400,
+          assignees: [],
+          labels: [
+            { name: 'status: ready for dev' },
+            { name: 'skill: good first issue' },
+          ],
+        },
+        comment: {
+          id: 4001,
+          body: '/assign',
+          user: { login: 'deleted-comment-user', type: 'User' },
+        },
+      },
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+    },
+    githubOptions: { reactionShouldFail: true },
+    expectedAssignee: null,
+    expectedComments: [],
+    expectedNoSideEffects: true,
+  },
+
+  // ---------------------------------------------------------------------------
   // NO ACTION (2 tests)
   // Bot stays silent and takes no action
   // ---------------------------------------------------------------------------
@@ -1156,6 +1193,21 @@ async function runTest(scenario, index) {
   const commentResult = verifyComments(scenario.expectedComments || [], mockGithub.calls.comments);
   if (!commentResult.passed) results.passed = false;
   results.details.push(...commentResult.details);
+
+  if (scenario.expectedNoSideEffects) {
+    if (mockGithub.calls.labelsAdded.length === 0) {
+      results.details.push('✅ Correctly did not add any labels');
+    } else {
+      results.passed = false;
+      results.details.push(`❌ Should not have added labels, but added: ${mockGithub.calls.labelsAdded.join(', ')}`);
+    }
+    if (mockGithub.calls.labelsRemoved.length === 0) {
+      results.details.push('✅ Correctly did not remove any labels');
+    } else {
+      results.passed = false;
+      results.details.push(`❌ Should not have removed labels, but removed: ${mockGithub.calls.labelsRemoved.join(', ')}`);
+    }
+  }
 
   console.log('\n📊 RESULT:');
   results.details.forEach(d => console.log(`   ${d}`));
