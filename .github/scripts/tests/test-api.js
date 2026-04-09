@@ -603,34 +603,34 @@ const unitTests = [
   },
 
   // ---------------------------------------------------------------------------
-  // getIssueSkillLevel
+  // getHighestIssueSkillLevel
   // ---------------------------------------------------------------------------
   {
-    name: 'getIssueSkillLevel: issue with one skill label → returns that level',
+    name: 'getHighestIssueSkillLevel: issue with one skill label → returns that level',
     test: () => {
-      const issue = makeIssue([BEGINNER, LABELS.READY_FOR_DEV]);
-      return getIssueSkillLevel(issue) === BEGINNER;
+      const issue = { number: 1, title: 'Test', labels: [{ name: LABELS.BEGINNER }, { name: LABELS.READY_FOR_DEV }] };
+      return getHighestIssueSkillLevel(issue) === LABELS.BEGINNER;
     },
   },
   {
-    name: 'getIssueSkillLevel: issue with no skill labels → returns null',
+    name: 'getHighestIssueSkillLevel: issue with no skill labels → returns null',
     test: () => {
-      const issue = makeIssue(['bug', 'enhancement']);
-      return getIssueSkillLevel(issue) === null;
+      const issue = { number: 1, title: 'Test', labels: [{ name: 'bug' }, { name: 'enhancement' }] };
+      return getHighestIssueSkillLevel(issue) === null;
     },
   },
   {
-    name: 'getIssueSkillLevel: issue with multiple skill labels → returns highest',
+    name: 'getHighestIssueSkillLevel: issue with multiple skill labels → returns highest',
     test: () => {
-      // recommend-issues iterates reversed, so highest wins
-      const issue = makeIssue([GFI, BEGINNER, MID]);
-      return getIssueSkillLevel(issue) === MID;
+      const issue = { number: 1, title: 'Test', labels: [{ name: LABELS.GOOD_FIRST_ISSUE }, { name: LABELS.BEGINNER }, { name: LABELS.INTERMEDIATE }] };
+      return getHighestIssueSkillLevel(issue) === LABELS.INTERMEDIATE;
     },
   },
   {
-    name: 'getIssueSkillLevel: issue with empty labels → returns null',
+    name: 'getHighestIssueSkillLevel: issue with empty labels → returns null',
     test: () => {
-      return getIssueSkillLevel(makeIssue([])) === null;
+      const issue = { number: 1, title: 'Test', labels: [] };
+      return getHighestIssueSkillLevel(issue) === null;
     },
   },
   
