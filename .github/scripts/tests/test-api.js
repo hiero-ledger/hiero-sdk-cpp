@@ -422,7 +422,7 @@ const unitTests = [
     },
   },
   {
-      name: 'resolveLinkedIssue: single issue, no skill label → returns null',
+      name: 'resolveLinkedIssue: single linked issue with no skill label → returns null',
       test: async () => {
           const { botContext } = createMockBotContext({
               graphql: async () => ({
@@ -443,7 +443,7 @@ const unitTests = [
       },
   },
   {
-    name: 'resolveLinkedIssue: multiple linked issues → returns highest skill level',
+    name: 'resolveLinkedIssue: multiple linked issues with skill label → returns highest skill level',
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -466,7 +466,7 @@ const unitTests = [
     },
   },
   {
-    name: 'resolveLinkedIssue: multiple issues, none with skill label → returns null',
+    name: 'resolveLinkedIssue: multiple linked issues with no skill label → returns null',
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
