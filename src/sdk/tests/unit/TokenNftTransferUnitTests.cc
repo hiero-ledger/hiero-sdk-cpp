@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
+
 #include "AccountId.h"
 #include "TokenNftTransfer.h"
-
 #include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
 
@@ -23,6 +23,7 @@ private:
 };
 
 //-----
+
 TEST_F(TokenNftTransferUnitTests, ProtobufTokenNftTransfer)
 {
   TokenNftTransfer tokenNftTransfer(
@@ -47,7 +48,8 @@ TEST_F(TokenNftTransferUnitTests, ProtobufTokenNftTransfer)
 }
 
 //-----
-TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDefaultConstructedInstances)
+
+TEST_F(TokenNftTransferUnitTests, OperatorEqualsDefaultConstructed)
 {
   // Given
   const TokenNftTransfer transferA;
@@ -58,7 +60,8 @@ TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDefaultConstructedInstances)
 }
 
 //-----
-TEST_F(TokenNftTransferUnitTests, OperatorEqualWithIdenticalConstructedInstances)
+
+TEST_F(TokenNftTransferUnitTests, OperatorEqualsSame)
 {
   // Given
   const TokenNftTransfer transferA(
@@ -71,7 +74,8 @@ TEST_F(TokenNftTransferUnitTests, OperatorEqualWithIdenticalConstructedInstances
 }
 
 //-----
-TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDifferentNftId)
+
+TEST_F(TokenNftTransferUnitTests, OperatorEqualsDiffNftId)
 {
   // Given
   const TokenNftTransfer transferA(
@@ -84,7 +88,8 @@ TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDifferentNftId)
 }
 
 //-----
-TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDifferentSenderAccountId)
+
+TEST_F(TokenNftTransferUnitTests, OperatorEqualsDiffSenderAccountId)
 {
   // Given
   const TokenNftTransfer transferA(
@@ -96,7 +101,8 @@ TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDifferentSenderAccountId)
 }
 
 //-----
-TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDifferentReceiverAccountId)
+
+TEST_F(TokenNftTransferUnitTests, OperatorEqualsDiffReceiverAccountId)
 {
   // Given
   const TokenNftTransfer transferA(
@@ -108,7 +114,8 @@ TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDifferentReceiverAccountId)
 }
 
 //-----
-TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDifferentIsApproval)
+
+TEST_F(TokenNftTransferUnitTests, OperatorEqualsDiffIsApproval)
 {
   // Given
   const TokenNftTransfer transferA(
