@@ -28,3 +28,18 @@ TEST_F(AccountBalanceUnitTests, DeserializeAccountBalanceFromProtobuf)
   // Then
   EXPECT_EQ(accountBalance.mBalance, getTestBalance());
 }
+
+//-----
+TEST_F(AccountBalanceUnitTests, ToString)
+{
+  // Given
+  AccountBalance accountBalance;
+  accountBalance.mBalance = getTestBalance();
+
+  // When
+  const std::string result = accountBalance.toString();
+
+  // Then
+  EXPECT_FALSE(result.empty());
+  EXPECT_NE(result.find(getTestBalance().toString()), std::string::npos);
+}
