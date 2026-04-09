@@ -25,27 +25,20 @@ function createMockGithub(options = {}) {
     restListClosedShouldFail = false,
     restListOpenShouldFail = false,
     assignShouldFail = false,
-    removeAssigneesShouldFail = false,
     removeLabelShouldFail = false,
     addLabelShouldFail = false,
     issueGetShouldFail = false,
     issueAssignees = null,
-    postWriteOpenCount = null,
-    postWriteOpenCountSequence = null,
-    postWriteOpenShouldFail = false,
   } = options;
 
   const calls = {
     comments: [],
     assignees: [],
-    removedAssignees: [],
     labelsAdded: [],
     labelsRemoved: [],
     restCalls: [],
     reactions: [],
   };
-
-  let openListCallCount = 0;
 
   return {
     calls,
@@ -73,13 +66,6 @@ function createMockGithub(options = {}) {
           }
           calls.assignees.push(...params.assignees);
           console.log(`\n✅ ASSIGNED: ${params.assignees.join(", ")}`);
-        },
-        removeAssignees: async (params) => {
-          if (removeAssigneesShouldFail) {
-            throw new Error("Simulated remove assignees failure");
-          }
-          calls.removedAssignees.push(...params.assignees);
-          console.log(`\n❌ UNASSIGNED: ${params.assignees.join(", ")}`);
         },
         addLabels: async (params) => {
           if (addLabelShouldFail) {
@@ -130,30 +116,7 @@ function createMockGithub(options = {}) {
                 "Simulated REST API failure for open assignments",
               );
             }
-            openListCallCount++;
-            if (postWriteOpenShouldFail && openListCallCount > 1) {
-              throw new Error(
-                "Simulated REST API failure for post-write open assignments",
-              );
-            }
-            // For open-state calls after the pre-write gate, allow tests to
-            // provide either a fixed post-write count or a sequence to model
-            // delayed visibility across multiple verification attempts.
-            let effectiveCount = openAssignmentCountExcludingBlocked;
-            if (openListCallCount > 1) {
-              if (
-                Array.isArray(postWriteOpenCountSequence) &&
-                postWriteOpenCountSequence.length > 0
-              ) {
-                const seqIndex = Math.min(
-                  openListCallCount - 2,
-                  postWriteOpenCountSequence.length - 1,
-                );
-                effectiveCount = postWriteOpenCountSequence[seqIndex];
-              } else if (postWriteOpenCount !== null) {
-                effectiveCount = postWriteOpenCount;
-              }
-            }
+            const effectiveCount = openAssignmentCountExcludingBlocked;
             const issues = [];
             for (let i = 0; i < effectiveCount; i++) {
               issues.push({ labels: [{ name: "status: ready for dev" }] });
@@ -1131,8 +1094,8 @@ Good luck, and welcome aboard! 🚀`,
   },
 
   // ---------------------------------------------------------------------------
-  // ERROR HANDLING (7 tests)
-  // API failures and OCC rollbacks
+  // ERROR HANDLING (4 tests)
+  // API failures
   // ---------------------------------------------------------------------------
 
   {
@@ -1278,148 +1241,6 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
     ],
   },
 
-  {
-    name: "OCC Rollback - Concurrent Multi-Issue Limit Breach",
-    description:
-      "User assigned on 2 different issues concurrently; post-write verification detects limit breach and rolls back",
-    context: {
-      eventName: "issue_comment",
-      payload: {
-        issue: {
-          number: 500,
-          assignees: [],
-          labels: [
-            { name: LABELS.READY_FOR_DEV },
-            { name: LABELS.GOOD_FIRST_ISSUE },
-          ],
-        },
-        comment: {
-          id: 5001,
-          body: "/assign",
-          user: { login: "concurrent-spammer", type: "User" },
-        },
-        repository: {
-          owner: { login: "hiero-ledger" },
-          name: "hiero-sdk-cpp",
-        },
-      },
-      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
-    },
-    githubOptions: {
-      openAssignmentCount: 0,
-      openAssignmentCountExcludingBlocked: 0,
-      // After the write, the user now has 3 open (over the limit of 2)
-      postWriteOpenCount: 3,
-    },
-    expectedAssignee: "concurrent-spammer",
-    expectedRemovedAssignee: "concurrent-spammer",
-    expectedComments: [
-      `👋 Hi @concurrent-spammer! It looks like your assignment limit was reached by the time this request was processed (you now have **3+** open issues, limit is **2**).\n\nI've automatically unassigned you from this issue to keep things fair for everyone.\n\n👉 **View your current assignments:**\n[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Aconcurrent-spammer%20-label%3A%22status%3A%20blocked%22)\n\nOnce you complete or unassign from one of your current issues, come back and comment \`/assign\` again! 🎯`,
-    ],
-  },
-
-  {
-    name: "OCC Rollback - Delayed Visibility Across Verification Retries",
-    description:
-      "First post-write read shows 2 (stale), later retry shows 3 and triggers rollback",
-    context: {
-      eventName: "issue_comment",
-      payload: {
-        issue: {
-          number: 503,
-          assignees: [],
-          labels: [
-            { name: LABELS.READY_FOR_DEV },
-            { name: LABELS.GOOD_FIRST_ISSUE },
-          ],
-        },
-        comment: {
-          id: 5004,
-          body: "/assign",
-          user: { login: "laggy-visibility-user", type: "User" },
-        },
-      },
-      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
-    },
-    githubOptions: {
-      openAssignmentCount: 1,
-      openAssignmentCountExcludingBlocked: 1,
-      // Pre-write gate sees 1. After write, retries observe 2 then 3.
-      postWriteOpenCountSequence: [2, 3],
-    },
-    expectedAssignee: "laggy-visibility-user",
-    expectedRemovedAssignee: "laggy-visibility-user",
-    expectedComments: [
-      `👋 Hi @laggy-visibility-user! It looks like your assignment limit was reached by the time this request was processed (you now have **3+** open issues, limit is **2**).\n\nI've automatically unassigned you from this issue to keep things fair for everyone.\n\n👉 **View your current assignments:**\n[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Alaggy-visibility-user%20-label%3A%22status%3A%20blocked%22)\n\nOnce you complete or unassign from one of your current issues, come back and comment \`/assign\` again! 🎯`,
-    ],
-  },
-
-  {
-    name: "Error - Post-Write Verification API Failure",
-    description:
-      "Assignment is rolled back if the limit verification call fails after the write",
-    context: {
-      eventName: "issue_comment",
-      payload: {
-        issue: {
-          number: 501,
-          assignees: [],
-          labels: [
-            { name: LABELS.READY_FOR_DEV },
-            { name: LABELS.GOOD_FIRST_ISSUE },
-          ],
-        },
-        comment: {
-          id: 5002,
-          body: "/assign",
-          user: { login: "verification-failure-user", type: "User" },
-        },
-      },
-      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
-    },
-    githubOptions: {
-      postWriteOpenShouldFail: true,
-    },
-    expectedAssignee: "verification-failure-user",
-    expectedRemovedAssignee: "verification-failure-user",
-    expectedComments: [
-      `⚠️ Hi @verification-failure-user! I assigned you to this issue, but then encountered an error while verifying your open-assignment limit.\n\nTo keep the limit consistent, I reverted the assignment for now.\n\n@hiero-ledger/hiero-sdk-cpp-maintainers — could you please check the assignment-limit verification path?`,
-    ],
-  },
-
-  {
-    name: "Error - Rollback Failure After Limit Breach",
-    description:
-      "If rollback fails, the bot should report the failure instead of pretending success",
-    context: {
-      eventName: "issue_comment",
-      payload: {
-        issue: {
-          number: 502,
-          assignees: [],
-          labels: [
-            { name: LABELS.READY_FOR_DEV },
-            { name: LABELS.GOOD_FIRST_ISSUE },
-          ],
-        },
-        comment: {
-          id: 5003,
-          body: "/assign",
-          user: { login: "rollback-failure-user", type: "User" },
-        },
-      },
-      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
-    },
-    githubOptions: {
-      postWriteOpenCount: 3,
-      removeAssigneesShouldFail: true,
-    },
-    expectedAssignee: "rollback-failure-user",
-    expectedComments: [
-      `⚠️ Hi @rollback-failure-user! I needed to roll back your assignment to enforce the open-assignment limit, but the unassign operation failed.\n\n@hiero-ledger/hiero-sdk-cpp-maintainers — could you please manually review @rollback-failure-user's open assignments and unassign them if needed?\n\nError details: Simulated remove assignees failure`,
-    ],
-  },
-
   // ---------------------------------------------------------------------------
   // DELETED COMMENT ABORT (1 test)
   // Bot aborts /assign when the triggering comment has been deleted
@@ -1556,23 +1377,6 @@ async function runTest(scenario, index) {
       results.passed = false;
       results.details.push(
         `❌ Should not have assigned, but assigned: ${mockGithub.calls.assignees.join(", ")}`,
-      );
-    }
-  }
-
-  if (scenario.expectedRemovedAssignee) {
-    if (
-      mockGithub.calls.removedAssignees.includes(
-        scenario.expectedRemovedAssignee,
-      )
-    ) {
-      results.details.push(
-        `✅ Correctly rolled back assignment for ${scenario.expectedRemovedAssignee}`,
-      );
-    } else {
-      results.passed = false;
-      results.details.push(
-        `❌ Expected rollback for ${scenario.expectedRemovedAssignee}, but removedAssignees: ${mockGithub.calls.removedAssignees.join(", ") || "none"}`,
       );
     }
   }

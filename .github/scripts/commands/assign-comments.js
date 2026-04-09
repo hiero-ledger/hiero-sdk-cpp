@@ -411,74 +411,6 @@ function buildAssignmentFailureComment(requesterUsername, error) {
   ].join("\n");
 }
 
-/**
- * Builds the comment posted when the assignment must be rolled back because the
- * post-write verification step could not confirm the open-assignment limit.
- * Tags the maintainer team for manual follow-up and explains that the bot
- * reverted the assignment to keep the limit consistent.
- *
- * @param {string} requesterUsername - The GitHub username whose assignment was reverted.
- * @returns {string} The formatted Markdown comment body.
- */
-function buildAssignmentVerificationFailureComment(requesterUsername) {
-  return [
-    `⚠️ Hi @${requesterUsername}! I assigned you to this issue, but then encountered an error while verifying your open-assignment limit.`,
-    "",
-    "To keep the limit consistent, I reverted the assignment for now.",
-    "",
-    `${MAINTAINER_TEAM} — could you please check the assignment-limit verification path?`,
-  ].join("\n");
-}
-
-/**
- * Builds the comment posted when the rollback itself fails while enforcing the
- * open-assignment limit.
- *
- * @param {string} requesterUsername - The GitHub username whose assignment should have been reverted.
- * @param {string} error - The error message from the failed rollback operation.
- * @returns {string} The formatted Markdown comment body.
- */
-function buildAssignmentRollbackFailureComment(requesterUsername, error) {
-  return [
-    `⚠️ Hi @${requesterUsername}! I needed to roll back your assignment to enforce the open-assignment limit, but the unassign operation failed.`,
-    "",
-    `${MAINTAINER_TEAM} — could you please manually review @${requesterUsername}'s open assignments and unassign them if needed?`,
-    "",
-    `Error details: ${error}`,
-  ].join("\n");
-}
-
-/**
- * Builds the comment posted when a concurrent assignment is rolled back because
- * post-write verification detected the user exceeded MAX_OPEN_ASSIGNMENTS.
- * This is the OCC (Optimistic Concurrency Control) rollback path.
- *
- * @param {string} requesterUsername - The GitHub username whose assignment was reverted.
- * @param {string|number} openCount - User-facing open-assignment count display after the write (for example 3 or "3+").
- * @param {string} owner - Repository owner (for search URLs).
- * @param {string} repo - Repository name (for search URLs).
- * @returns {string} The formatted Markdown comment body.
- */
-function buildAssignmentRollbackComment(
-  requesterUsername,
-  openCount,
-  owner,
-  repo,
-) {
-  const assignedQuery = `is:issue is:${ISSUE_STATE.OPEN} assignee:${requesterUsername} -label:"${LABELS.BLOCKED}"`;
-  const assignedIssuesUrl = buildIssuesSearchUrl(owner, repo, assignedQuery);
-  return [
-    `👋 Hi @${requesterUsername}! It looks like your assignment limit was reached by the time this request was processed (you now have **${openCount}** open issues, limit is **${MAX_OPEN_ASSIGNMENTS}**).`,
-    "",
-    `I've automatically unassigned you from this issue to keep things fair for everyone.`,
-    "",
-    `👉 **View your current assignments:**`,
-    `[Your open assignments](${assignedIssuesUrl})`,
-    "",
-    `Once you complete or unassign from one of your current issues, come back and comment \`/assign\` again! 🎯`,
-  ].join("\n");
-}
-
 module.exports = {
   MAX_OPEN_ASSIGNMENTS,
   MAX_GFI_COMPLETIONS,
@@ -494,7 +426,4 @@ module.exports = {
   buildApiErrorComment,
   buildLabelUpdateFailureComment,
   buildAssignmentFailureComment,
-  buildAssignmentVerificationFailureComment,
-  buildAssignmentRollbackFailureComment,
-  buildAssignmentRollbackComment,
 };

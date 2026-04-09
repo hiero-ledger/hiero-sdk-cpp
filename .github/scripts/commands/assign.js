@@ -15,7 +15,6 @@ const {
   hasLabel,
   swapLabels,
   addAssignees,
-  removeAssignees,
   postComment,
   acknowledgeComment,
 } = require("../helpers");
@@ -35,23 +34,11 @@ const {
   buildApiErrorComment,
   buildLabelUpdateFailureComment,
   buildAssignmentFailureComment,
-  buildAssignmentVerificationFailureComment,
-  buildAssignmentRollbackFailureComment,
-  buildAssignmentRollbackComment,
 } = require("./assign-comments");
 
 // Delegate to the active logger set by the dispatcher (bot-on-comment.js).
 // This ensures the correct prefix is used after command parsing.
 const logger = createDelegatingLogger();
-
-// Defense-in-depth for eventual consistency: sample post-write assignment count
-// a few times before finalizing success.
-const POST_WRITE_VERIFY_ATTEMPTS = 3;
-const POST_WRITE_VERIFY_DELAY_MS = 200;
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 /**
  * Formats a count for user-facing text when a threshold short-circuit may have
@@ -500,62 +487,11 @@ async function enforceAssignmentLimit(botContext, requesterUsername) {
 }
 
 /**
- * Re-checks open assignment count multiple times after a write and returns the
- * highest observed value. This reduces false negatives caused by short-lived
- * read-replica lag immediately after concurrent assignments.
- *
- * @param {object} botContext - Bot context from buildBotContext.
- * @param {string} requesterUsername - GitHub username requesting assignment.
- * @returns {Promise<number|null>} Highest observed open-assignment count,
- *   or null if any verification call fails.
- */
-async function getPostWriteOpenCount(botContext, requesterUsername) {
-  let maxObservedCount = 0;
-
-  for (let attempt = 1; attempt <= POST_WRITE_VERIFY_ATTEMPTS; attempt++) {
-    const count = await countAssignedIssues(
-      botContext.github,
-      botContext.owner,
-      botContext.repo,
-      requesterUsername,
-      ISSUE_STATE.OPEN,
-      null,
-      MAX_OPEN_ASSIGNMENTS + 1,
-    );
-
-    if (count === null) {
-      logger.log("Post-write verification call failed", {
-        attempt,
-        maxAttempts: POST_WRITE_VERIFY_ATTEMPTS,
-      });
-      return null;
-    }
-
-    maxObservedCount = Math.max(maxObservedCount, count);
-
-    if (maxObservedCount > MAX_OPEN_ASSIGNMENTS) {
-      return maxObservedCount;
-    }
-
-    if (attempt < POST_WRITE_VERIFY_ATTEMPTS) {
-      await sleep(POST_WRITE_VERIFY_DELAY_MS);
-    }
-  }
-
-  return maxObservedCount;
-}
-
-/**
- * Performs the actual issue assignment with two concurrency defenses:
+ * Performs the actual issue assignment with a same-issue race defense:
  *
  * 1. Pre-flight check: fetches fresh issue state via issues.get() to detect
  *    same-issue collisions (another user assigned while this run was queued;
  *    the workflow concurrency key is serialized per issue).
- *
- * 2. Post-write OCC verification: after addAssignees succeeds, re-counts
- *    the user's open assignments via countAssignedIssues(). If the count
- *    exceeds MAX_OPEN_ASSIGNMENTS (due to a concurrent run on a DIFFERENT
- *    issue), rolls back with removeAssignees and posts a rollback comment.
  *
  * On success, posts a welcome comment and transitions status labels.
  * Posts failure comments if any API call fails.
@@ -568,8 +504,9 @@ async function getPostWriteOpenCount(botContext, requesterUsername) {
 async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
   logger.log("Assigning issue to", requesterUsername);
 
-  // Case 2 fix: fetch live issue state BEFORE writing,
-  // relying on the per-issue concurrency key to keep same-issue runs serialized.
+  // Pre-flight same-issue collision check: fetch live issue state BEFORE writing.
+  // The per-issue concurrency key serializes runs on the same issue, so by the
+  // time this run executes, another user may already be assigned.
   let freshIssue;
   try {
     const response = await botContext.github.rest.issues.get({
@@ -627,82 +564,6 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
     return;
   }
 
-  // OCC post-write verification: sample open-assignment count multiple times
-  // after the write. This catches concurrent cross-issue assignments that may
-  // appear with slight delay under eventual consistency.
-  const postWriteCount = await getPostWriteOpenCount(
-    botContext,
-    requesterUsername,
-  );
-
-  if (postWriteCount === null) {
-    logger.log(
-      "Post-write verification failed: could not re-count open assignments after assignment",
-    );
-    const rollbackResult = await removeAssignees(botContext, [
-      requesterUsername,
-    ]);
-    if (!rollbackResult.success) {
-      logger.error(
-        "Rollback failed after post-write verification error:",
-        rollbackResult.error,
-      );
-      await postComment(
-        botContext,
-        buildAssignmentRollbackFailureComment(
-          requesterUsername,
-          rollbackResult.error,
-        ),
-      );
-      return;
-    }
-
-    await postComment(
-      botContext,
-      buildAssignmentVerificationFailureComment(requesterUsername),
-    );
-    logger.log("Rolled back assignment after post-write verification error");
-    return;
-  }
-
-  if (postWriteCount !== null && postWriteCount > MAX_OPEN_ASSIGNMENTS) {
-    logger.log(
-      "Post-write verification failed: limit exceeded after concurrent assignment",
-      {
-        maxAllowed: MAX_OPEN_ASSIGNMENTS,
-        postWriteCount,
-      },
-    );
-    const rollbackResult = await removeAssignees(botContext, [
-      requesterUsername,
-    ]);
-    if (!rollbackResult.success) {
-      logger.error(
-        "Rollback failed after concurrent limit breach:",
-        rollbackResult.error,
-      );
-      await postComment(
-        botContext,
-        buildAssignmentRollbackFailureComment(
-          requesterUsername,
-          rollbackResult.error,
-        ),
-      );
-      return;
-    }
-    await postComment(
-      botContext,
-      buildAssignmentRollbackComment(
-        requesterUsername,
-        formatThresholdedCount(postWriteCount, MAX_OPEN_ASSIGNMENTS + 1),
-        botContext.owner,
-        botContext.repo,
-      ),
-    );
-    logger.log("Rolled back assignment due to concurrent limit breach");
-    return;
-  }
-
   await postComment(
     botContext,
     buildWelcomeComment(requesterUsername, skillLevel),
@@ -726,7 +587,6 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
  *   8. Skill prerequisites not met? -> prerequisite-not-met comment.
  *   9. Issue snatched while queued (fresh fetch)? -> already-assigned comment.
  *   10. Assignment API failure? -> assignment-failure comment (tags maintainers).
- *   11. Post-write OCC check: limit breached after concurrent write? -> rollback + comment.
  *
  * If all checks pass, the bot assigns the issue, posts a welcome comment,
  * and swaps the "status: ready for dev" label with "status: in progress".
