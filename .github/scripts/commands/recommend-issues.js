@@ -232,7 +232,7 @@ async function handleRecommendIssues(botContext) {
         return;
     }
 
-    const skillLevel = getIssueSkillLevel(botContext.issue);
+    const skillLevel = getHighestIssueSkillLevel(botContext.issue);
     if (!skillLevel) {
         logger.log('No skill level found, skipping recommendation', {
             issueNumber: botContext.issue?.number,
@@ -279,7 +279,6 @@ async function handleRecommendIssues(botContext) {
 
 module.exports = { 
     handleRecommendIssues,
-    getIssueSkillLevel,
     getNextLevel,
     getFallbackLevel,
     getRecommendedIssues,
