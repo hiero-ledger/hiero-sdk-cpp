@@ -41,7 +41,9 @@ jobs:
 
     runs-on: hiero-client-sdk-linux-large
 
-    # Serialize per issue to prevent same-issue races without blocking other issues
+    # Serialize per issue to prevent same-issue races without blocking other issues.
+    # IMPORTANT: keep this keyed by issue.number (not github.actor), otherwise
+    # two different users can run /assign on the same issue concurrently.
     concurrency:
       group: on-comment-${{ github.event.issue.number }}
       cancel-in-progress: false

@@ -29,7 +29,9 @@ function createMockGithub(options = {}) {
     removeLabelShouldFail = false,
     addLabelShouldFail = false,
     issueGetShouldFail = false,
+    issueAssignees = null,
     postWriteOpenCount = null,
+    postWriteOpenCountSequence = null,
     postWriteOpenShouldFail = false,
   } = options;
 
@@ -100,6 +102,13 @@ function createMockGithub(options = {}) {
           if (issueGetShouldFail) {
             throw new Error("Simulated issues.get failure");
           }
+          if (Array.isArray(issueAssignees)) {
+            return {
+              data: {
+                assignees: issueAssignees.map((login) => ({ login })),
+              },
+            };
+          }
           if (options.issueAlreadyAssignedTo) {
             return {
               data: { assignees: [{ login: options.issueAlreadyAssignedTo }] },
@@ -127,12 +136,24 @@ function createMockGithub(options = {}) {
                 "Simulated REST API failure for post-write open assignments",
               );
             }
-            // On the SECOND open-state call (post-write verification),
-            // return a higher count if postWriteOpenCount is configured.
-            const effectiveCount =
-              postWriteOpenCount !== null && openListCallCount > 1
-                ? postWriteOpenCount
-                : openAssignmentCountExcludingBlocked;
+            // For open-state calls after the pre-write gate, allow tests to
+            // provide either a fixed post-write count or a sequence to model
+            // delayed visibility across multiple verification attempts.
+            let effectiveCount = openAssignmentCountExcludingBlocked;
+            if (openListCallCount > 1) {
+              if (
+                Array.isArray(postWriteOpenCountSequence) &&
+                postWriteOpenCountSequence.length > 0
+              ) {
+                const seqIndex = Math.min(
+                  openListCallCount - 2,
+                  postWriteOpenCountSequence.length - 1,
+                );
+                effectiveCount = postWriteOpenCountSequence[seqIndex];
+              } else if (postWriteOpenCount !== null) {
+                effectiveCount = postWriteOpenCount;
+              }
+            }
             const issues = [];
             for (let i = 0; i < effectiveCount; i++) {
               issues.push({ labels: [{ name: "status: ready for dev" }] });
@@ -259,6 +280,35 @@ const scenarios = [
     expectedAssignee: null,
     expectedComments: [
       `👋 Hi @already-assigned-user! You're already assigned to this issue. You're all set to start working on it!\n\nIf you have any questions, feel free to ask here or reach out to the team.`,
+    ],
+  },
+  {
+    name: "Race Condition - Fresh Issue Has Multiple Assignees",
+    description:
+      "Fresh fetch reveals a corrupted multi-assignee issue; bot must reject and list all assignees",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 123,
+          assignees: [],
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 1024,
+          body: "/assign",
+          user: { login: "third-user", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: { issueAssignees: ["first-user", "second-user"] },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @third-user! This issue is already assigned to @first-user, @second-user.\n\n👉 **Find another issue to work on:**\n[Browse unassigned issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)\n\nOnce you find one you like, comment \`/assign\` to get started!`,
     ],
   },
   {
@@ -1265,6 +1315,42 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
     expectedRemovedAssignee: "concurrent-spammer",
     expectedComments: [
       `👋 Hi @concurrent-spammer! It looks like your assignment limit was reached by the time this request was processed (you now have **3+** open issues, limit is **2**).\n\nI've automatically unassigned you from this issue to keep things fair for everyone.\n\n👉 **View your current assignments:**\n[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Aconcurrent-spammer%20-label%3A%22status%3A%20blocked%22)\n\nOnce you complete or unassign from one of your current issues, come back and comment \`/assign\` again! 🎯`,
+    ],
+  },
+
+  {
+    name: "OCC Rollback - Delayed Visibility Across Verification Retries",
+    description:
+      "First post-write read shows 2 (stale), later retry shows 3 and triggers rollback",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 503,
+          assignees: [],
+          labels: [
+            { name: LABELS.READY_FOR_DEV },
+            { name: LABELS.GOOD_FIRST_ISSUE },
+          ],
+        },
+        comment: {
+          id: 5004,
+          body: "/assign",
+          user: { login: "laggy-visibility-user", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: {
+      openAssignmentCount: 1,
+      openAssignmentCountExcludingBlocked: 1,
+      // Pre-write gate sees 1. After write, retries observe 2 then 3.
+      postWriteOpenCountSequence: [2, 3],
+    },
+    expectedAssignee: "laggy-visibility-user",
+    expectedRemovedAssignee: "laggy-visibility-user",
+    expectedComments: [
+      `👋 Hi @laggy-visibility-user! It looks like your assignment limit was reached by the time this request was processed (you now have **3+** open issues, limit is **2**).\n\nI've automatically unassigned you from this issue to keep things fair for everyone.\n\n👉 **View your current assignments:**\n[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Alaggy-visibility-user%20-label%3A%22status%3A%20blocked%22)\n\nOnce you complete or unassign from one of your current issues, come back and comment \`/assign\` again! 🎯`,
     ],
   },
 

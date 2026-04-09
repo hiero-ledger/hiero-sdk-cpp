@@ -44,6 +44,15 @@ const {
 // This ensures the correct prefix is used after command parsing.
 const logger = createDelegatingLogger();
 
+// Defense-in-depth for eventual consistency: sample post-write assignment count
+// a few times before finalizing success.
+const POST_WRITE_VERIFY_ATTEMPTS = 3;
+const POST_WRITE_VERIFY_DELAY_MS = 200;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
  * Formats a count for user-facing text when a threshold short-circuit may have
  * capped the value. If count reaches the short-circuit threshold, return an
@@ -491,6 +500,52 @@ async function enforceAssignmentLimit(botContext, requesterUsername) {
 }
 
 /**
+ * Re-checks open assignment count multiple times after a write and returns the
+ * highest observed value. This reduces false negatives caused by short-lived
+ * read-replica lag immediately after concurrent assignments.
+ *
+ * @param {object} botContext - Bot context from buildBotContext.
+ * @param {string} requesterUsername - GitHub username requesting assignment.
+ * @returns {Promise<number|null>} Highest observed open-assignment count,
+ *   or null if any verification call fails.
+ */
+async function getPostWriteOpenCount(botContext, requesterUsername) {
+  let maxObservedCount = 0;
+
+  for (let attempt = 1; attempt <= POST_WRITE_VERIFY_ATTEMPTS; attempt++) {
+    const count = await countAssignedIssues(
+      botContext.github,
+      botContext.owner,
+      botContext.repo,
+      requesterUsername,
+      ISSUE_STATE.OPEN,
+      null,
+      MAX_OPEN_ASSIGNMENTS + 1,
+    );
+
+    if (count === null) {
+      logger.log("Post-write verification call failed", {
+        attempt,
+        maxAttempts: POST_WRITE_VERIFY_ATTEMPTS,
+      });
+      return null;
+    }
+
+    maxObservedCount = Math.max(maxObservedCount, count);
+
+    if (maxObservedCount > MAX_OPEN_ASSIGNMENTS) {
+      return maxObservedCount;
+    }
+
+    if (attempt < POST_WRITE_VERIFY_ATTEMPTS) {
+      await sleep(POST_WRITE_VERIFY_DELAY_MS);
+    }
+  }
+
+  return maxObservedCount;
+}
+
+/**
  * Performs the actual issue assignment with two concurrency defenses:
  *
  * 1. Pre-flight check: fetches fresh issue state via issues.get() to detect
@@ -572,17 +627,12 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
     return;
   }
 
-  // OCC post-write verification: re-count open assignments AFTER the write.
-  // If a concurrent run on a DIFFERENT issue also assigned this user, the
-  // count will now exceed MAX_OPEN_ASSIGNMENTS and we must roll back.
-  const postWriteCount = await countAssignedIssues(
-    botContext.github,
-    botContext.owner,
-    botContext.repo,
+  // OCC post-write verification: sample open-assignment count multiple times
+  // after the write. This catches concurrent cross-issue assignments that may
+  // appear with slight delay under eventual consistency.
+  const postWriteCount = await getPostWriteOpenCount(
+    botContext,
     requesterUsername,
-    ISSUE_STATE.OPEN,
-    null,
-    MAX_OPEN_ASSIGNMENTS + 1,
   );
 
   if (postWriteCount === null) {

@@ -116,15 +116,32 @@ function buildAlreadyAssignedComment(requesterUsername, issue, owner, repo) {
       (a.login || "").toLowerCase() === (requesterUsername || "").toLowerCase(),
   );
   if (isAssignedToSelf) {
+    const otherAssignees = (issue?.assignees || [])
+      .map((assignee) => assignee?.login)
+      .filter(
+        (login) =>
+          login &&
+          login.toLowerCase() !== (requesterUsername || "").toLowerCase(),
+      );
+    const currentAssignmentLine =
+      otherAssignees.length > 0
+        ? `You're already assigned to this issue, which is also assigned to ${otherAssignees.map((login) => `@${login}`).join(", ")}.`
+        : "You're already assigned to this issue. You're all set to start working on it!";
     return [
-      `👋 Hi @${requesterUsername}! You're already assigned to this issue. You're all set to start working on it!`,
+      `👋 Hi @${requesterUsername}! ${currentAssignmentLine}`,
       "",
       "If you have any questions, feel free to ask here or reach out to the team.",
     ].join("\n");
   }
-  const currentAssignee = issue?.assignees?.[0]?.login ?? "someone";
+  const assigneeLogins = (issue?.assignees || [])
+    .map((assignee) => assignee?.login)
+    .filter(Boolean);
+  const currentAssignee =
+    assigneeLogins.length === 0
+      ? "someone"
+      : assigneeLogins.map((login) => `@${login}`).join(", ");
   return [
-    `👋 Hi @${requesterUsername}! This issue is already assigned to @${currentAssignee}.`,
+    `👋 Hi @${requesterUsername}! This issue is already assigned to ${currentAssignee}.`,
     "",
     "👉 **Find another issue to work on:**",
     `[Browse unassigned issues](https://github.com/${owner}/${repo}/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)`,
