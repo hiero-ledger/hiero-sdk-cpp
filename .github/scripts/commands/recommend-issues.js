@@ -7,19 +7,16 @@
 // suitable issues based on difficulty level.
 
 const {
-    MAINTAINER_TEAM,
-    LABELS,
-    SKILL_HIERARCHY,
-    hasLabel,
-    postComment,
-    getLogger,
+  MAINTAINER_TEAM,
+  LABELS,
+  SKILL_HIERARCHY,
+  hasLabel,
+  postComment,
+  getLogger,
+  createDelegatingLogger,
 } = require('../helpers');
 
-// Logger delegation 
-const logger = {
-    log: (...args) => getLogger().log(...args),
-    error: (...args) => getLogger().error(...args),
-};
+const logger = createDelegatingLogger();
 
 /**
  * Returns the highest difficulty level of an issue based on its labels.
