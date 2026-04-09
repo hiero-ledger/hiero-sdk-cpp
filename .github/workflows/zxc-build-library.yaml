@@ -185,7 +185,7 @@ jobs:
           soloVersion: v0.67.0
           installMirrorNode: true
           mirrorNodeVersion: v0.151.0
-          hieroVersion: v0.72.0
+          hieroVersion: v0.72.1
           dualMode: true
 
       - name: Start CTest suite (Debug)
