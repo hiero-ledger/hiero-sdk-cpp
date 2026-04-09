@@ -424,22 +424,22 @@ const unitTests = [
   {
     name: 'resolveLinkedIssue: single linked issue with no skill label → returns null',
     test: async () => {
-        const { botContext } = createMockBotContext({
-            graphql: async () => ({
-                repository: {
-                    pullRequest: {
-                        closingIssuesReferences: {
-                            nodes: [{ number: 7 }],
-                        },
-                    },
-                },
-            }),
-            issues: {
-                7: { number: 7, title: 'Issue 7', labels: [{ name: 'bug' }] },
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: {
+                nodes: [{ number: 7 }],
+              },
             },
-        });
-        const result = await resolveLinkedIssue(botContext);
-        return result === null;
+          },
+        }),
+        issues: {
+          7: { number: 7, title: 'Issue 7', labels: [{ name: 'bug' }] },
+        },
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result === null;
     },
   },
   {
