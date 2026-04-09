@@ -197,15 +197,26 @@ macOS (brew):
 ```bash
 brew install clang-format@17
 ```
+Homebrew installs the binary as `clang-format`.
 
 ### Check formatting without changing files
+Linux:
 ```bash
 find src/sdk/main src/tck -type f \( -name "*.c" -o -name "*.cc" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) -print0 | xargs -0 clang-format-17 --dry-run --Werror
 ```
+macOS:
+```bash
+find src/sdk/main src/tck -type f \( -name "*.c" -o -name "*.cc" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) -print0 | xargs -0 clang-format --dry-run --Werror
+```
 
 ### Auto-fix formatting in place
+Linux:
 ```bash
 find src/sdk/main src/tck -type f \( -name "*.c" -o -name "*.cc" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) -print0 | xargs -0 clang-format-17 -i
+```
+macOS:
+```bash
+find src/sdk/main src/tck -type f \( -name "*.c" -o -name "*.cc" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) -print0 | xargs -0 clang-format -i
 ```
 
 ## 7. Test and Document any new functionality
