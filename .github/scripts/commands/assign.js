@@ -17,6 +17,7 @@ const {
   addAssignees,
   postComment,
   acknowledgeComment,
+  getHighestIssueSkillLevel,
 } = require('../helpers');
 
 const {
@@ -39,21 +40,6 @@ const {
 // Delegate to the active logger set by the dispatcher (bot-on-comment.js).
 // This ensures the correct prefix is used after command parsing.
 const logger = createDelegatingLogger();
-
-/**
- * Returns the skill-level label on an issue, checking in ascending order:
- * Good First Issue -> Beginner -> Intermediate -> Advanced.
- * Returns the first match, or null if the issue has no skill-level label.
- *
- * @param {{ labels: Array<string|{ name: string }> }} issue - The issue object from the GitHub payload.
- * @returns {string|null} The matching LABELS constant (e.g. LABELS.BEGINNER), or null.
- */
-function getIssueSkillLevel(issue) {
-  for (const level of SKILL_HIERARCHY) {
-    if (hasLabel(issue, level)) return level;
-  }
-  return null;
-}
 
 /**
  * Counts issues assigned to a user matching specified criteria via GraphQL search.
@@ -269,7 +255,7 @@ async function validateIssueState(botContext, requesterUsername) {
     return null;
   }
 
-  const skillLevel = getIssueSkillLevel(botContext.issue);
+  const skillLevel = getHighestIssueSkillLevel(botContext.issue);
   if (!skillLevel) {
     logger.log('Exit: issue has no skill level label');
     await postComment(botContext, buildNoSkillLevelComment(requesterUsername));

@@ -588,6 +588,21 @@ async function resolveLinkedIssue(botContext) {
     }
 }
 
+/**
+ * Returns the highest difficulty level of an issue based on its labels.
+ *
+ * Checks labels against SKILL_HIERARCHY in descending order and returns the first match.
+ *
+ * @param {{ labels: Array<string|{ name: string }> }} issue
+ * @returns {string|null} Matching level or null if none found.
+ */
+function getHighestIssueSkillLevel(issue) {
+    for (const level of [...SKILL_HIERARCHY].reverse()) {
+        if (hasLabel(issue, level)) return level;
+    }
+    return null;
+}
+
 module.exports = {
   buildBotContext,
   addLabels,
@@ -606,4 +621,5 @@ module.exports = {
   runAllChecksAndComment,
   resolveLinkedIssue,
   acknowledgeComment,
+  getHighestIssueSkillLevel,
 };
