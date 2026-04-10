@@ -107,6 +107,21 @@ TEST_F(ExchangeRateUnitTests, ExchangeRatesFromProtobuf)
 }
 
 //-----
+TEST_F(ExchangeRateUnitTests, ToString)
+{
+  // Given
+  const ExchangeRate exchangeRate(getTestHbar(), getTestCents(), getTestExpirationTime());
+
+  // When
+  const std::string result = exchangeRate.toString();
+
+  // Then
+  EXPECT_FALSE(result.empty());
+  EXPECT_NE(result.find(std::to_string(getTestHbar())), std::string::npos);
+  EXPECT_NE(result.find(std::to_string(getTestCents())), std::string::npos);
+}
+
+//-----
 TEST_F(ExchangeRateUnitTests, ExchangeRatesFromBytes)
 {
   // Given
@@ -137,4 +152,42 @@ TEST_F(ExchangeRateUnitTests, ExchangeRatesFromBytes)
     std::chrono::duration_cast<std::chrono::seconds>(exchangeRates.mNextRate.mExpirationTime.time_since_epoch()),
     std::chrono::duration_cast<std::chrono::seconds>(getTestExpirationTime().time_since_epoch()));
   EXPECT_EQ(exchangeRates.mNextRate.mExchangeRateInCents, getTestCents() / getTestHbar());
+}
+
+//-----
+TEST_F(ExchangeRateUnitTests, OperatorEqualsDefaults)
+{
+  // Given
+  ExchangeRate lhs;
+  ExchangeRate rhs;
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(ExchangeRateUnitTests, OperatorEqualsSimilar)
+{
+  // Given
+  auto testExpirationTime = getTestExpirationTime();
+  ExchangeRate lhs(getTestHbar(), getTestCents(), testExpirationTime);
+  ExchangeRate rhs(getTestHbar(), getTestCents(), testExpirationTime);
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(ExchangeRateUnitTests, OperatorEqualsDiff)
+{
+  // Given
+  ExchangeRate lhs(getTestHbar(), getTestCents(), getTestExpirationTime());
+  ExchangeRate diffHbar(3, getTestCents(), getTestExpirationTime());
+  ExchangeRate diffCents(getTestHbar(), 3, getTestExpirationTime());
+  ExchangeRate diffExpirationTime(getTestHbar(), getTestCents(), getTestExpirationTime() + std::chrono::seconds(1));
+
+  // Then
+  EXPECT_FALSE(lhs == diffHbar);
+  EXPECT_FALSE(lhs == diffCents);
+  EXPECT_FALSE(lhs == diffExpirationTime);
 }

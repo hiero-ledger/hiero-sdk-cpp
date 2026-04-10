@@ -45,3 +45,77 @@ TEST_F(TokenNftTransferUnitTests, ProtobufTokenNftTransfer)
   EXPECT_EQ(tokenNftTransfer.mReceiverAccountId, getTestSenderAccountId());
   EXPECT_EQ(tokenNftTransfer.mIsApproval, !getTestIsApproval());
 }
+
+//-----
+TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDefaultConstructedInstances)
+{
+  // Given
+  const TokenNftTransfer transferA;
+  const TokenNftTransfer transferB;
+
+  // Then
+  EXPECT_TRUE(transferA == transferB);
+}
+
+//-----
+TEST_F(TokenNftTransferUnitTests, OperatorEqualWithIdenticalConstructedInstances)
+{
+  // Given
+  const TokenNftTransfer transferA(
+    getTestNftId(), getTestSenderAccountId(), getTestReceiverAccountId(), getTestIsApproval());
+  const TokenNftTransfer transferB(
+    getTestNftId(), getTestSenderAccountId(), getTestReceiverAccountId(), getTestIsApproval());
+
+  // Then
+  EXPECT_TRUE(transferA == transferB);
+}
+
+//-----
+TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDifferentNftId)
+{
+  // Given
+  const TokenNftTransfer transferA(
+    getTestNftId(), getTestSenderAccountId(), getTestReceiverAccountId(), getTestIsApproval());
+  const TokenNftTransfer transferB(
+    NftId(TokenId(2ULL), 21ULL), getTestSenderAccountId(), getTestReceiverAccountId(), getTestIsApproval());
+
+  // Then
+  EXPECT_FALSE(transferA == transferB);
+}
+
+//-----
+TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDifferentSenderAccountId)
+{
+  // Given
+  const TokenNftTransfer transferA(
+    getTestNftId(), getTestSenderAccountId(), getTestReceiverAccountId(), getTestIsApproval());
+  const TokenNftTransfer transferB(getTestNftId(), AccountId(301ULL), getTestReceiverAccountId(), getTestIsApproval());
+
+  // Then
+  EXPECT_FALSE(transferA == transferB);
+}
+
+//-----
+TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDifferentReceiverAccountId)
+{
+  // Given
+  const TokenNftTransfer transferA(
+    getTestNftId(), getTestSenderAccountId(), getTestReceiverAccountId(), getTestIsApproval());
+  const TokenNftTransfer transferB(getTestNftId(), getTestSenderAccountId(), AccountId(4001ULL), getTestIsApproval());
+
+  // Then
+  EXPECT_FALSE(transferA == transferB);
+}
+
+//-----
+TEST_F(TokenNftTransferUnitTests, OperatorEqualWithDifferentIsApproval)
+{
+  // Given
+  const TokenNftTransfer transferA(
+    getTestNftId(), getTestSenderAccountId(), getTestReceiverAccountId(), getTestIsApproval());
+  const TokenNftTransfer transferB(
+    getTestNftId(), getTestSenderAccountId(), getTestReceiverAccountId(), !getTestIsApproval());
+
+  // Then
+  EXPECT_FALSE(transferA == transferB);
+}
