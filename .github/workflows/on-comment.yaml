@@ -21,8 +21,9 @@ name: Bot - On Comment
 #
 # Concurrency:
 #   Serialized per issue number (cancel-in-progress: false) to prevent
-#   race conditions when multiple /assign comments arrive in quick
-#   succession on the same issue.
+#   same-issue races where two different users both see assignees=[] and
+#   both get assigned. Same-user multi-issue bypass is handled by fresh-state
+#   REST counting plus post-write rollback in assign.js.
 # ──────────────────────────────────────────────────────────────────────
 on:
   issue_comment:
@@ -30,8 +31,8 @@ on:
       - created
 
 permissions:
-  issues: write       # Required to add assignees, labels, reactions, and post comments
-  contents: read      # Required to checkout the default branch for bot scripts
+  issues: write # Required to add assignees, labels, reactions, and post comments
+  contents: read # Required to checkout the default branch for bot scripts
 
 jobs:
   on-comment:
@@ -40,7 +41,9 @@ jobs:
 
     runs-on: hiero-client-sdk-linux-large
 
-    # Serialize per issue — never cancel a running /assign to prevent partial state
+    # Serialize per issue to prevent same-issue races without blocking other issues.
+    # IMPORTANT: keep this keyed by issue.number (not github.actor), otherwise
+    # two different users can run /assign on the same issue concurrently.
     concurrency:
       group: on-comment-${{ github.event.issue.number }}
       cancel-in-progress: false
