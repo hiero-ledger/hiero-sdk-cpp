@@ -2,9 +2,9 @@
 #include "StakingInfo.h"
 #include "impl/TimestampConverter.h"
 
-#include <services/basic_types.pb.h>
 #include <chrono>
 #include <gtest/gtest.h>
+#include <services/basic_types.pb.h>
 
 using namespace Hiero;
 

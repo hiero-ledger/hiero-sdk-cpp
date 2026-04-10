@@ -861,7 +861,7 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCanC
   ASSERT_NO_THROW(customFeeLimit = CustomFeeLimit().setPayerId(payerId).addCustomFee(CustomFixedFee().setAmount(hbar)));
 
   setTestClientOperator(payerId, payerKey);
-  
+
   TransactionResponse scheduleResponse;
   EXPECT_NO_THROW(scheduleResponse = TopicMessageSubmitTransaction()
                                        .setMessage("message")
@@ -924,14 +924,14 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
   // Set custom fee limit with lower amount than the custom fee
   CustomFeeLimit customFeeLimit;
   ASSERT_NO_THROW(customFeeLimit.setPayerId(payerId));
-  
+
   CustomFixedFee customFee;
   ASSERT_NO_THROW(customFee.setAmount(static_cast<uint64_t>((hbar / 2) - 1)));
   ASSERT_NO_THROW(customFeeLimit.addCustomFee(customFee));
 
   // Submit a message to the revenue generating topic with custom fee limit - should fail when executed
   setTestClientOperator(payerId, payerKey);
-  
+
   TransactionResponse scheduleResponse;
   EXPECT_NO_THROW(scheduleResponse = TopicMessageSubmitTransaction()
                                        .setMessage("message")
@@ -958,7 +958,8 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
 }
 
 //-----
-TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCannotExecuteWithInvalidCustomFeeLimitSchedule)
+TEST_F(TopicMessageSubmitTransactionIntegrationTests,
+       RevenueGeneratingTopicCannotExecuteWithInvalidCustomFeeLimitSchedule)
 {
   // Create a token first
   TokenId tokenId;
@@ -1012,13 +1013,13 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
   // Test 1: Set custom fee limit with invalid token ID
   CustomFeeLimit customFeeLimit;
   ASSERT_NO_THROW(customFeeLimit.setPayerId(payerId));
-  
+
   CustomFixedFee customFee;
   ASSERT_NO_THROW(customFee.setAmount(2).setDenominatingTokenId(TokenId(0, 0, 0)));
   ASSERT_NO_THROW(customFeeLimit.addCustomFee(customFee));
 
   setTestClientOperator(payerId, payerKey);
-  
+
   TransactionResponse scheduleResponse;
   EXPECT_NO_THROW(scheduleResponse = TopicMessageSubmitTransaction()
                                        .setMessage("message")
@@ -1042,11 +1043,11 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
   // Test 2: Set custom fee limit with duplicate denomination token ID
   CustomFeeLimit customFeeLimit2;
   ASSERT_NO_THROW(customFeeLimit2.setPayerId(payerId));
-  
+
   CustomFixedFee customFee1;
   ASSERT_NO_THROW(customFee1.setAmount(1).setDenominatingTokenId(tokenId));
   ASSERT_NO_THROW(customFeeLimit2.addCustomFee(customFee1));
-  
+
   CustomFixedFee customFee2;
   ASSERT_NO_THROW(customFee2.setAmount(2).setDenominatingTokenId(tokenId));
   ASSERT_NO_THROW(customFeeLimit2.addCustomFee(customFee2));
@@ -1107,14 +1108,14 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicGetS
   // Create custom fee limit
   CustomFeeLimit customFeeLimit;
   ASSERT_NO_THROW(customFeeLimit.setPayerId(payerId));
-  
+
   CustomFixedFee customFee;
   ASSERT_NO_THROW(customFee.setAmount(static_cast<uint64_t>(hbar)));
   ASSERT_NO_THROW(customFeeLimit.addCustomFee(customFee));
 
   // Submit a message to the revenue generating topic with custom fee limit
   setTestClientOperator(payerId, payerKey);
-  
+
   TransactionResponse scheduleResponse;
   EXPECT_NO_THROW(scheduleResponse = TopicMessageSubmitTransaction()
                                        .setMessage("message")

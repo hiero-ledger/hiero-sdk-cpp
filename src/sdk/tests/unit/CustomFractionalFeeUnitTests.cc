@@ -4,8 +4,8 @@
 #include "FeeAssessmentMethod.h"
 #include "impl/Utilities.h"
 
-#include <services/custom_fees.pb.h>
 #include <gtest/gtest.h>
+#include <services/custom_fees.pb.h>
 #include <stdexcept>
 
 using namespace Hiero;

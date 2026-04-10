@@ -4,8 +4,8 @@
 #include "impl/TimestampConverter.h"
 #include "impl/Utilities.h"
 
-#include <services/exchange_rate.pb.h>
 #include <gtest/gtest.h>
+#include <services/exchange_rate.pb.h>
 
 using namespace Hiero;
 
