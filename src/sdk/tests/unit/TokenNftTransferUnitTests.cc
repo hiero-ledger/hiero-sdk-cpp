@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
-
 #include "AccountId.h"
 #include "TokenNftTransfer.h"
 #include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
-
 using namespace Hiero;
 
 class TokenNftTransferUnitTests : public ::testing::Test
@@ -23,7 +21,6 @@ private:
 };
 
 //-----
-
 TEST_F(TokenNftTransferUnitTests, ProtobufTokenNftTransfer)
 {
   TokenNftTransfer tokenNftTransfer(
@@ -48,7 +45,6 @@ TEST_F(TokenNftTransferUnitTests, ProtobufTokenNftTransfer)
 }
 
 //-----
-
 TEST_F(TokenNftTransferUnitTests, OperatorEqualsDefaultConstructed)
 {
   // Given
@@ -60,7 +56,6 @@ TEST_F(TokenNftTransferUnitTests, OperatorEqualsDefaultConstructed)
 }
 
 //-----
-
 TEST_F(TokenNftTransferUnitTests, OperatorEqualsSame)
 {
   // Given
@@ -74,7 +69,6 @@ TEST_F(TokenNftTransferUnitTests, OperatorEqualsSame)
 }
 
 //-----
-
 TEST_F(TokenNftTransferUnitTests, OperatorEqualsDiffNftId)
 {
   // Given
@@ -88,7 +82,6 @@ TEST_F(TokenNftTransferUnitTests, OperatorEqualsDiffNftId)
 }
 
 //-----
-
 TEST_F(TokenNftTransferUnitTests, OperatorEqualsDiffSenderAccountId)
 {
   // Given
@@ -101,7 +94,6 @@ TEST_F(TokenNftTransferUnitTests, OperatorEqualsDiffSenderAccountId)
 }
 
 //-----
-
 TEST_F(TokenNftTransferUnitTests, OperatorEqualsDiffReceiverAccountId)
 {
   // Given
@@ -114,7 +106,6 @@ TEST_F(TokenNftTransferUnitTests, OperatorEqualsDiffReceiverAccountId)
 }
 
 //-----
-
 TEST_F(TokenNftTransferUnitTests, OperatorEqualsDiffIsApproval)
 {
   // Given
