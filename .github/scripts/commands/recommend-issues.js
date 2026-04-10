@@ -12,7 +12,6 @@ const {
   SKILL_HIERARCHY,
   hasLabel,
   postComment,
-  getLogger,
   createDelegatingLogger,
 } = require('../helpers');
 
