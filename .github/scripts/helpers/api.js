@@ -554,7 +554,12 @@ async function resolveLinkedIssue(botContext) {
         }
 
         if (issueNumbers.length === 1) {
-            return await fetchIssue(botContext, issueNumbers[0]) || null;
+            const issue = await fetchIssue(botContext, issueNumbers[0]);
+            if (!issue || SKILL_HIERARCHY.findIndex(level => hasLabel(issue, level)) === -1) {
+                getLogger().log('Single linked issue has no skill label', { issueNumber: issueNumbers[0] });
+                return null;
+            }
+            return issue;
         }
 
         const issues = await Promise.all(
@@ -572,6 +577,12 @@ async function resolveLinkedIssue(botContext) {
             const currIndex = SKILL_HIERARCHY.findIndex(level => hasLabel(issue, level));
             return currIndex > bestIndex ? issue : best;
         });
+
+        const selectedIndex = SKILL_HIERARCHY.findIndex(level => hasLabel(selected, level));
+        if (selectedIndex === -1) {
+            getLogger().log('No linked issues have a skill label', { issueNumbers });
+            return null;
+        }
 
         getLogger().log('Multiple linked issues found (using highest level)', {
             issueNumbers,
