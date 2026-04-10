@@ -143,6 +143,24 @@ function parseIssueNumbers(body) {
 }
 
 /**
+ * Identifies the issue numbers referenced in the PR title so they can be excluded from the GraphQL fallback results.
+ * @param {string} value 
+ * @returns {Set<number>}
+ */
+function extractNumbersFromTitle(value) {
+  const numbers = new Set();
+  const pattern = /#(\d+)/g;
+  if (!value) return numbers;
+
+  let match;
+  while ((match = pattern.exec(value)) !== null) {
+    numbers.add(parseInt(match[1], 10));
+  }
+  
+  return numbers;
+}
+
+/**
  * Fetches each issue by number and checks whether the given author is assigned.
  * Issues that fail to fetch are silently skipped (logged only).
  * @param {object} botContext
@@ -187,8 +205,13 @@ async function checkIssueLink(botContext, { fetchIssue, fetchClosingIssueNumbers
   const issueNumbers = parseIssueNumbers(body);
 
   if (issueNumbers.size === 0) {
+    const prTitle = botContext.pr?.title || '';
+    const prTitleIssues = extractNumbersFromTitle(prTitle);
+    prTitleIssues.forEach(n => console.log(' ', n))
     const graphqlIssues = await fetchClosingIssueNumbers(botContext);
-    graphqlIssues.forEach(n => issueNumbers.add(n));
+    graphqlIssues
+      .filter(n => !prTitleIssues.has(n))
+      .forEach(n => issueNumbers.add(n));
   }
 
   if (issueNumbers.size === 0) {
@@ -222,4 +245,5 @@ module.exports = {
   checkGPG,
   checkMergeConflict,
   checkIssueLink,
+  extractNumbersFromTitle
 };
