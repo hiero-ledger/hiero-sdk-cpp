@@ -27,6 +27,7 @@ function createMockGithub(options = {}) {
     assignShouldFail = false,
     removeLabelShouldFail = false,
     addLabelShouldFail = false,
+    reactionShouldFail = false,
     issueGetShouldFail = false,
     issueAssignees = null,
   } = options;
@@ -45,6 +46,11 @@ function createMockGithub(options = {}) {
     rest: {
       reactions: {
         createForIssueComment: async (params) => {
+          if (reactionShouldFail) {
+            throw new Error(
+              "Simulated reaction failure: comment not found (404)",
+            );
+          }
           calls.reactions.push({
             commentId: params.comment_id,
             content: params.content,
@@ -1247,26 +1253,27 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
   // ---------------------------------------------------------------------------
 
   {
-    name: 'Abort - Triggering Comment Deleted',
-    description: 'Bot aborts /assign flow when acknowledgeComment fails (comment deleted)',
+    name: "Abort - Triggering Comment Deleted",
+    description:
+      "Bot aborts /assign flow when acknowledgeComment fails (comment deleted)",
     context: {
-      eventName: 'issue_comment',
+      eventName: "issue_comment",
       payload: {
         issue: {
           number: 400,
           assignees: [],
           labels: [
-            { name: 'status: ready for dev' },
-            { name: 'skill: good first issue' },
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
           ],
         },
         comment: {
           id: 4001,
-          body: '/assign',
-          user: { login: 'deleted-comment-user', type: 'User' },
+          body: "/assign",
+          user: { login: "deleted-comment-user", type: "User" },
         },
       },
-      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-cpp' },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
     },
     githubOptions: { reactionShouldFail: true },
     expectedAssignee: null,
