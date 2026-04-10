@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "AccountId.h"
 #include "TokenNftTransfer.h"
+
 #include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
+
 using namespace Hiero;
 
 class TokenNftTransferUnitTests : public ::testing::Test
