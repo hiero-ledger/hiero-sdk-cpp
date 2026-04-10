@@ -44,6 +44,8 @@ jobs:
         include:
           - type: sdk
             check-path: "src/sdk/main"
+          - type: sdk-tests
+            check-path: "src/sdk/tests"
           - type: tck
             check-path: "src/tck"
 
