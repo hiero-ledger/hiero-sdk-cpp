@@ -10,6 +10,7 @@
 #include <services/contract_update.pb.h>
 #include <gtest/gtest.h>
 #include <limits>
+#include <services/hook_types.pb.h>
 #include <services/transaction.pb.h>
 
 using namespace Hiero;
@@ -400,4 +401,35 @@ TEST_F(ContractUpdateTransactionUnitTests, ResetStakedNodeId)
   // Then
   EXPECT_TRUE(transaction.getStakedAccountId().has_value());
   EXPECT_FALSE(transaction.getStakedNodeId().has_value());
+}
+
+//-----
+TEST_F(ContractUpdateTransactionUnitTests, ConstructFromProtobufWithHooks)
+{
+  // Given
+  auto body = std::make_unique<proto::ContractUpdateTransactionBody>();
+  body->set_allocated_contractid(getTestContractId().toProtobuf().release());
+
+  body->add_hook_ids_to_delete(10LL);
+  body->add_hook_ids_to_delete(20LL);
+  body->add_hook_ids_to_delete(30LL);
+
+  body->add_hook_creation_details()->set_hook_id(100LL);
+  body->add_hook_creation_details()->set_hook_id(200LL);
+
+  proto::TransactionBody txBody;
+  txBody.set_allocated_contractupdateinstance(body.release());
+
+  // When
+  const ContractUpdateTransaction contractUpdateTransaction(txBody);
+
+  // Then
+  ASSERT_EQ(contractUpdateTransaction.getHooksToDelete().size(), 3U);
+  EXPECT_EQ(contractUpdateTransaction.getHooksToDelete().at(0), 10LL);
+  EXPECT_EQ(contractUpdateTransaction.getHooksToDelete().at(1), 20LL);
+  EXPECT_EQ(contractUpdateTransaction.getHooksToDelete().at(2), 30LL);
+
+  ASSERT_EQ(contractUpdateTransaction.getHooksToCreate().size(), 2U);
+  EXPECT_EQ(contractUpdateTransaction.getHooksToCreate().at(0).getHookId(), 100LL);
+  EXPECT_EQ(contractUpdateTransaction.getHooksToCreate().at(1).getHookId(), 200LL);
 }

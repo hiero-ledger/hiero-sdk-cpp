@@ -3,6 +3,7 @@
 #define HIERO_SDK_CPP_HOOK_ENTITY_ID_H_
 
 #include "AccountId.h"
+#include "ContractId.h"
 
 #include <memory>
 #include <optional>
@@ -52,9 +53,17 @@ public:
    * Set the ID of the owning entity as an account. This will reset other entity ID values.
    *
    * @param accountId The ID of the owning account.
-   * @return A reference to this HookCreationDetails object with the newly-set account ID.
+   * @return A reference to this HookEntityId object with the newly-set account ID.
    */
   HookEntityId& setAccountId(const AccountId& accountId);
+
+  /**
+   * Set the ID of the owning entity as a contract. This will reset other entity ID values.
+   *
+   * @param contractId The ID of the owning contract.
+   * @return A reference to this HookEntityId object with the newly-set contract ID.
+   */
+  HookEntityId& setContractId(const ContractId& contractId);
 
   /**
    * Get the account ID.
@@ -63,11 +72,23 @@ public:
    */
   [[nodiscard]] inline std::optional<AccountId> getAccountId() const { return mAccountId; }
 
+  /**
+   * Get the contract ID.
+   *
+   * @return The contract ID.
+   */
+  [[nodiscard]] inline std::optional<ContractId> getContractId() const { return mContractId; }
+
 private:
   /**
    * The account owning the hook.
    */
   std::optional<AccountId> mAccountId;
+
+  /**
+   * The contract owning the hook.
+   */
+  std::optional<ContractId> mContractId;
 };
 
 } // namespace Hiero
