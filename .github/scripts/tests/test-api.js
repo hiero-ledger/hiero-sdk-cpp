@@ -13,6 +13,7 @@ const {
   fetchClosingIssueNumbers,
   swapStatusLabel,
   hasLabel,
+  resolveLinkedIssue,
 } = require('../helpers/api');
 const { LABELS } = require('../helpers/constants');
 const { isSafeSearchToken } = require('../helpers/validation');
@@ -384,6 +385,119 @@ const unitTests = [
   },
 
   // ---------------------------------------------------------------------------
+  // resolveLinkedIssue
+  // ---------------------------------------------------------------------------
+  {
+    name: 'resolveLinkedIssue: no linked issues → returns null',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: { nodes: [] },
+            },
+          },
+        }),
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result === null;
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: single linked issue → returns it',
+    test: async () => {
+      const issueData = { number: 10, title: 'Fix bug', labels: [] };
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: { nodes: [{ number: 10 }] },
+            },
+          },
+        }),
+        issues: { 10: issueData },
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result !== null && result.number === 10;
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: multiple linked issues → returns highest skill level',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: {
+                nodes: [{ number: 1 }, { number: 2 }, { number: 3 }],
+              },
+            },
+          },
+        }),
+        issues: {
+          1: { number: 1, title: 'GFI issue',          labels: [{ name: LABELS.GOOD_FIRST_ISSUE }] },
+          2: { number: 2, title: 'Intermediate issue',  labels: [{ name: LABELS.INTERMEDIATE }] },
+          3: { number: 3, title: 'Beginner issue',      labels: [{ name: LABELS.BEGINNER }] },
+        },
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result !== null && result.number === 2; // INTERMEDIATE is highest
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: multiple issues, none with skill label → returns first fetched issue',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: {
+                nodes: [{ number: 4 }, { number: 5 }],
+              },
+            },
+          },
+        }),
+        issues: {
+          4: { number: 4, title: 'Issue 4', labels: [{ name: 'bug' }] },
+          5: { number: 5, title: 'Issue 5', labels: [{ name: 'enhancement' }] },
+        },
+      });
+      const result = await resolveLinkedIssue(botContext);
+      // No skill labels — reduce stays on first, so issue 4
+      return result !== null && result.number === 4;
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: GraphQL fails → returns null gracefully',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => { throw new Error('GraphQL error'); },
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result === null;
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: issue fetch fails for all linked issues → returns null',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: {
+                nodes: [{ number: 999 }, { number: 998 }],
+              },
+            },
+          },
+        }),
+        issues: {}, // no issues → fetchIssue throws for all
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result === null;
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // swapStatusLabel
   // ---------------------------------------------------------------------------
   {
@@ -471,11 +585,11 @@ const unitTests = [
     test: () => isSafeSearchToken('bad username') === false,
   },
   {
-    name: 'isSafeSearchToken: string with bad characters → false',
+    name: 'isSafeSearchToken: string with angle brackets → false',
     test: () => isSafeSearchToken('bad<username>') === false,
   },
   {
-    name: 'isSafeSearchToken: string with bad characters → false',
+    name: 'isSafeSearchToken: string with semicolon → false',
     test: () => isSafeSearchToken('bad;username') === false,
   },
   {

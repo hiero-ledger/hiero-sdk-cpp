@@ -27,6 +27,8 @@ function isNonNegativeInteger(value) {
 
 /**
  * Returns true if value is a string safe for GitHub search queries (type and format).
+ * Allows standard alphanumeric characters, `-`, `_`, `/`, `.`, and the optional
+ * GitHub bot suffix `[bot]` (e.g. `dependabot[bot]`).
  * Two checks: is string and matches safe character set.
  * @param {*} value
  * @returns {boolean}
