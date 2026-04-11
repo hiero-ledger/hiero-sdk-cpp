@@ -4,9 +4,9 @@
 #include "impl/HexConverter.h"
 #include "impl/Utilities.h"
 
-#include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
 #include <limits>
+#include <services/basic_types.pb.h>
 #include <stdexcept>
 
 using namespace Hiero;
@@ -192,8 +192,9 @@ TEST_F(TopicIdUnitTests, FromBytes)
 TEST_F(TopicIdUnitTests, FromBytesInvalidBytes)
 {
   // Given
-  const std::vector<std::byte> invalidBytes = { std::byte(0xFF), std::byte(0xFF), std::byte(0xFF),
-                                                 std::byte(0xFF), std::byte(0xFF) };
+  const std::vector<std::byte> invalidBytes = {
+    std::byte(0xFF), std::byte(0xFF), std::byte(0xFF), std::byte(0xFF), std::byte(0xFF)
+  };
 
   // When / Then
   EXPECT_THROW(TopicId::fromBytes(invalidBytes), std::invalid_argument);
