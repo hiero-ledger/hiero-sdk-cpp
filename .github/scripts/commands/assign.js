@@ -42,9 +42,6 @@ const {
 const logger = createDelegatingLogger();
 
 /**
- * Counts issues assigned to a user matching specified criteria via GraphQL search.
- * When state is OPEN and no label filter is given, issues with "status: blocked" are
- * excluded from the count (so blocked issues don't penalize the assignment limit).
  * Formats a count for user-facing text when a threshold short-circuit may have
  * capped the value. If count reaches the short-circuit threshold, return an
  * "at least" style display (e.g. "3+") rather than implying an exact value.
