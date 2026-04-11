@@ -72,6 +72,13 @@ public:
   [[nodiscard]] std::string toString() const;
 
   /**
+   * Compare this ExchangeRates to another ExchangeRates and determine if they represent the same exchange rates.
+   *
+   * @param other The other ExchangeRates with which to compare this ExchangeRates.
+   * @return \c TRUE if this ExchangeRates is the same as the input ExchangeRates, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const ExchangeRates& other) const;
+  /**
    * Write this ExchangeRates to an output stream.
    *
    * @param os    The output stream.

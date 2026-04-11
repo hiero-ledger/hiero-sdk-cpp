@@ -60,4 +60,10 @@ std::ostream& operator<<(std::ostream& os, const ExchangeRates& rates)
   return os;
 }
 
+//-----
+bool ExchangeRates::operator==(const ExchangeRates& other) const
+{
+  return (mCurrentRate == other.mCurrentRate) && (mNextRate == other.mNextRate);
+}
+
 } // namespace Hiero
