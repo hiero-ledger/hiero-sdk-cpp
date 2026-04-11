@@ -29,6 +29,7 @@ const {
   buildNotReadyComment,
   buildPrerequisiteNotMetComment,
   buildNoSkillLevelComment,
+  buildSkillLevelChangedComment,
   buildAssignmentLimitExceededComment,
   buildGfiLimitExceededComment,
   buildApiErrorComment,
@@ -585,14 +586,11 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
     });
     await postComment(
       botContext,
-      [
-        `👋 Hi @${requesterUsername}! The skill level for this issue changed while your assignment request was being processed.`,
-        "",
-        `**Current label:** \`${freshSkillLevel}\``,
-        `**Previous label:** \`${skillLevel}\``,
-        "",
-        "Please comment `/assign` again to request assignment with the updated skill requirements.",
-      ].join("\n"),
+      buildSkillLevelChangedComment(
+        requesterUsername,
+        skillLevel,
+        freshSkillLevel,
+      ),
     );
     logger.log("Posted skill-level-changed comment");
     return;
