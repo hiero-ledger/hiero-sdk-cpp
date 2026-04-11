@@ -23,7 +23,7 @@ name: Bot - On Comment
 #   Serialized per issue number (cancel-in-progress: false) to prevent
 #   same-issue races where two different users both see assignees=[] and
 #   both get assigned. Same-user multi-issue bypass is handled by fresh-state
-#   REST counting plus post-write rollback in assign.js.
+#   REST counting plus pre-write fresh issue validation in assign.js.
 # ──────────────────────────────────────────────────────────────────────
 on:
   issue_comment:

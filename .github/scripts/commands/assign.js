@@ -554,6 +554,28 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
     return;
   }
 
+  // Revalidate labels from the fresh issue snapshot to prevent stale-event
+  // payload eligibility checks when labels change while this run is queued.
+  if (!hasLabel(freshIssue, LABELS.READY_FOR_DEV)) {
+    logger.log("Exit: fresh issue state is missing ready for dev label");
+    await postComment(
+      botContext,
+      buildNotReadyComment(
+        requesterUsername,
+        botContext.owner,
+        botContext.repo,
+      ),
+    );
+    return;
+  }
+
+  const freshSkillLevel = getIssueSkillLevel(freshIssue);
+  if (!freshSkillLevel) {
+    logger.log("Exit: fresh issue state has no skill level label");
+    await postComment(botContext, buildNoSkillLevelComment(requesterUsername));
+    return;
+  }
+
   const assignResult = await addAssignees(botContext, [requesterUsername]);
   if (!assignResult.success) {
     await postComment(
@@ -566,7 +588,7 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
 
   await postComment(
     botContext,
-    buildWelcomeComment(requesterUsername, skillLevel),
+    buildWelcomeComment(requesterUsername, freshSkillLevel),
   );
   logger.log("Posted welcome comment");
   await updateLabels(botContext, requesterUsername);
@@ -586,7 +608,8 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
  *   7. GFI cap reached (skill: good first issue only)? -> GFI-limit-exceeded comment.
  *   8. Skill prerequisites not met? -> prerequisite-not-met comment.
  *   9. Issue snatched while queued (fresh fetch)? -> already-assigned comment.
- *   10. Assignment API failure? -> assignment-failure comment (tags maintainers).
+ *   10. Fresh labels invalid while queued? -> not-ready/no-skill-level comment.
+ *   11. Assignment API failure? -> assignment-failure comment (tags maintainers).
  *
  * If all checks pass, the bot assigns the issue, posts a welcome comment,
  * and swaps the "status: ready for dev" label with "status: in progress".
@@ -601,7 +624,9 @@ async function handleAssign(botContext) {
 
   const ack = await acknowledgeComment(botContext, botContext.comment.id);
   if (!ack.success) {
-    logger.log('Aborting /assign: triggering comment was deleted or could not be acknowledged');
+    logger.log(
+      "Aborting /assign: triggering comment was deleted or could not be acknowledged",
+    );
     return;
   }
 
