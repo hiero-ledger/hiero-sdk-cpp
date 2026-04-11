@@ -43,55 +43,49 @@ protected:
     std::shared_ptr<PrivateKey> payerKey;
   };
 
-  CustomFeeTestSetup setupRevenueGeneratingTopicWithToken()
+  void setupRevenueGeneratingTopicWithToken(CustomFeeTestSetup& setup)
   {
     // Create a token
-    TokenId tokenId;
-    ASSERT_NO_THROW(tokenId = TokenCreateTransaction()
-                                .setTokenName("ffff")
-                                .setTokenSymbol("F")
-                                .setInitialSupply(10)
-                                .setAdminKey(getTestClient().getOperatorPublicKey())
-                                .setTreasuryAccountId(AccountId(2ULL))
-                                .execute(getTestClient())
-                                .getReceipt(getTestClient())
-                                .mTokenId.value());
+    ASSERT_NO_THROW(setup.tokenId = TokenCreateTransaction()
+                                      .setTokenName("ffff")
+                                      .setTokenSymbol("F")
+                                      .setInitialSupply(10)
+                                      .setAdminKey(getTestClient().getOperatorPublicKey())
+                                      .setTreasuryAccountId(AccountId(2ULL))
+                                      .execute(getTestClient())
+                                      .getReceipt(getTestClient())
+                                      .mTokenId.value());
 
     // Create a revenue generating topic with token custom fee
-    TopicId topicId;
-    ASSERT_NO_THROW(topicId = TopicCreateTransaction()
-                                .setAdminKey(getTestClient().getOperatorPublicKey())
-                                .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
-                                .addCustomFixedFee({ CustomFixedFee()
-                                                        .setAmount(2)
-                                                        .setDenominatingTokenId(tokenId)
-                                                        .setFeeCollectorAccountId(
-                                                          getTestClient().getOperatorAccountId().value()) })
-                                .execute(getTestClient())
-                                .getReceipt(getTestClient())
-                                .mTopicId.value());
+    ASSERT_NO_THROW(setup.topicId = TopicCreateTransaction()
+                                      .setAdminKey(getTestClient().getOperatorPublicKey())
+                                      .setFeeScheduleKey(getTestClient().getOperatorPublicKey())
+                                      .addCustomFixedFee(
+                                        { CustomFixedFee()
+                                            .setAmount(2)
+                                            .setDenominatingTokenId(setup.tokenId)
+                                            .setFeeCollectorAccountId(getTestClient().getOperatorAccountId().value()) })
+                                      .execute(getTestClient())
+                                      .getReceipt(getTestClient())
+                                      .mTopicId.value());
 
     // Create payer with unlimited token associations
-    std::shared_ptr<PrivateKey> payerKey;
-    ASSERT_NO_THROW(payerKey = ED25519PrivateKey::generatePrivateKey());
+    ASSERT_NO_THROW(setup.payerKey = ED25519PrivateKey::generatePrivateKey());
 
-    AccountId payerId;
-    ASSERT_NO_THROW(payerId = AccountCreateTransaction()
-                                .setKeyWithoutAlias(payerKey->getPublicKey())
-                                .setMaxAutomaticTokenAssociations(-1)
-                                .setInitialBalance(Hbar(1LL))
-                                .execute(getTestClient())
-                                .getReceipt(getTestClient())
-                                .mAccountId.value());
+    ASSERT_NO_THROW(setup.payerId = AccountCreateTransaction()
+                                      .setKeyWithoutAlias(setup.payerKey->getPublicKey())
+                                      .setMaxAutomaticTokenAssociations(-1)
+                                      .setInitialBalance(Hbar(1LL))
+                                      .execute(getTestClient())
+                                      .getReceipt(getTestClient())
+                                      .mAccountId.value());
 
     // Send tokens to payer
     EXPECT_NO_THROW(TransferTransaction()
-                      .addTokenTransfer(tokenId, getTestClient().getOperatorAccountId().value(), -2LL)
-                      .addTokenTransfer(tokenId, payerId, 2LL)
+                      .addTokenTransfer(setup.tokenId, getTestClient().getOperatorAccountId().value(), -2LL)
+                      .addTokenTransfer(setup.tokenId, setup.payerId, 2LL)
                       .execute(getTestClient())
                       .getReceipt(getTestClient()));
-
-    return { tokenId, topicId, payerId, payerKey };
   }
 
 private:
@@ -1020,13 +1014,13 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
 TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCannotExecuteWithInvalidCustomFeeLimit)
 {
   // Setup
-  const auto setup = setupRevenueGeneratingTopicWithToken();
+  CustomFeeTestSetup setup;
+  setupRevenueGeneratingTopicWithToken(setup);
 
   // Create custom fee limit with invalid token ID
   CustomFeeLimit customFeeLimit;
   ASSERT_NO_THROW(customFeeLimit.setPayerId(setup.payerId));
-  ASSERT_NO_THROW(customFeeLimit.addCustomFee(
-    CustomFixedFee().setAmount(2).setDenominatingTokenId(TokenId(0, 0, 0))));
+  ASSERT_NO_THROW(customFeeLimit.addCustomFee(CustomFixedFee().setAmount(2).setDenominatingTokenId(TokenId(0, 0, 0))));
 
   setTestClientOperator(setup.payerId, setup.payerKey);
 
@@ -1044,25 +1038,22 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
   setDefaultTestClientOperator();
 
   // Clean up
-  ASSERT_NO_THROW(TopicDeleteTransaction()
-                    .setTopicId(setup.topicId)
-                    .execute(getTestClient())
-                    .getReceipt(getTestClient()));
+  ASSERT_NO_THROW(
+    TopicDeleteTransaction().setTopicId(setup.topicId).execute(getTestClient()).getReceipt(getTestClient()));
 }
 
 //-----
 TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCannotExecuteWithDuplicateCustomFeeLimit)
 {
   // Setup
-  const auto setup = setupRevenueGeneratingTopicWithToken();
+  CustomFeeTestSetup setup;
+  setupRevenueGeneratingTopicWithToken(setup);
 
   // Create custom fee limit with duplicate denomination token ID
   CustomFeeLimit customFeeLimit;
   ASSERT_NO_THROW(customFeeLimit.setPayerId(setup.payerId));
-  ASSERT_NO_THROW(customFeeLimit.addCustomFee(
-    CustomFixedFee().setAmount(1).setDenominatingTokenId(setup.tokenId)));
-  ASSERT_NO_THROW(customFeeLimit.addCustomFee(
-    CustomFixedFee().setAmount(2).setDenominatingTokenId(setup.tokenId)));
+  ASSERT_NO_THROW(customFeeLimit.addCustomFee(CustomFixedFee().setAmount(1).setDenominatingTokenId(setup.tokenId)));
+  ASSERT_NO_THROW(customFeeLimit.addCustomFee(CustomFixedFee().setAmount(2).setDenominatingTokenId(setup.tokenId)));
 
   setTestClientOperator(setup.payerId, setup.payerKey);
 
@@ -1079,10 +1070,8 @@ TEST_F(TopicMessageSubmitTransactionIntegrationTests, RevenueGeneratingTopicCann
   setDefaultTestClientOperator();
 
   // Clean up
-  ASSERT_NO_THROW(TopicDeleteTransaction()
-                    .setTopicId(setup.topicId)
-                    .execute(getTestClient())
-                    .getReceipt(getTestClient()));
+  ASSERT_NO_THROW(
+    TopicDeleteTransaction().setTopicId(setup.topicId).execute(getTestClient()).getReceipt(getTestClient()));
 }
 
 //-----
