@@ -6,7 +6,6 @@
 
 #include <gtest/gtest.h>
 #include <services/exchange_rate.pb.h>
-#include <string>
 
 using namespace Hiero;
 

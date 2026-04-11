@@ -3,9 +3,9 @@
 #include "ContractNonceInfo.h"
 #include "impl/Utilities.h"
 
-#include <services/contract_types.pb.h>
 #include <cstddef>
 #include <gtest/gtest.h>
+#include <services/contract_types.pb.h>
 #include <vector>
 
 using namespace Hiero;

@@ -15,8 +15,8 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <memory>
-#include <string>
 #include <services/transaction.pb.h>
+#include <string>
 #include <vector>
 
 using namespace Hiero;
@@ -65,11 +65,7 @@ private:
   const std::shared_ptr<PublicKey> mTestFeeScheduleKey = ECDSAsecp256k1PrivateKey::generatePrivateKey()->getPublicKey();
   const std::shared_ptr<PublicKey> mTestPauseKey = ECDSAsecp256k1PrivateKey::generatePrivateKey()->getPublicKey();
   const std::shared_ptr<PublicKey> mTestMetadataKey = ECDSAsecp256k1PrivateKey::generatePrivateKey()->getPublicKey();
-  const std::vector<std::byte> mTestMetadata = {
-    std::byte(0x01),
-    std::byte(0x02),
-    std::byte(0x03)
-  };
+  const std::vector<std::byte> mTestMetadata = { std::byte(0x01), std::byte(0x02), std::byte(0x03) };
 };
 
 //-----

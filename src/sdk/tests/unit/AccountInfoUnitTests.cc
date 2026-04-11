@@ -9,9 +9,9 @@
 #include "impl/Utilities.h"
 
 #include <chrono>
-#include <services/crypto_get_info.pb.h>
 #include <gtest/gtest.h>
 #include <memory>
+#include <services/crypto_get_info.pb.h>
 #include <string>
 
 using namespace Hiero;
