@@ -54,16 +54,16 @@ std::string ExchangeRates::toString() const
 }
 
 //-----
+bool ExchangeRates::operator==(const ExchangeRates& other) const
+{
+  return (mCurrentRate == other.mCurrentRate) && (mNextRate == other.mNextRate);
+}
+
+//-----
 std::ostream& operator<<(std::ostream& os, const ExchangeRates& rates)
 {
   os << rates.toString();
   return os;
-}
-
-//-----
-bool ExchangeRates::operator==(const ExchangeRates& other) const
-{
-  return (mCurrentRate == other.mCurrentRate) && (mNextRate == other.mNextRate);
 }
 
 } // namespace Hiero

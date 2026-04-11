@@ -78,6 +78,7 @@ public:
    * @return \c TRUE if this ExchangeRates is the same as the input ExchangeRates, otherwise \c FALSE.
    */
   [[nodiscard]] bool operator==(const ExchangeRates& other) const;
+
   /**
    * Write this ExchangeRates to an output stream.
    *
