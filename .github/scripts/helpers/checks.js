@@ -156,7 +156,6 @@ function extractNumbersFromTitle(value) {
   while ((match = pattern.exec(value)) !== null) {
     numbers.add(parseInt(match[1], 10));
   }
-  
   return numbers;
 }
 
@@ -207,7 +206,6 @@ async function checkIssueLink(botContext, { fetchIssue, fetchClosingIssueNumbers
   if (issueNumbers.size === 0) {
     const prTitle = botContext.pr?.title || '';
     const prTitleIssues = extractNumbersFromTitle(prTitle);
-    prTitleIssues.forEach(n => console.log(' ', n))
     const graphqlIssues = await fetchClosingIssueNumbers(botContext);
     graphqlIssues
       .filter(n => !prTitleIssues.has(n))
