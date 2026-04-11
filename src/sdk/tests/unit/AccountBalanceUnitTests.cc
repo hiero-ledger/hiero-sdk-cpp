@@ -43,3 +43,93 @@ TEST_F(AccountBalanceUnitTests, ToString)
   EXPECT_FALSE(result.empty());
   EXPECT_NE(result.find(getTestBalance().toString()), std::string::npos);
 }
+
+//-----
+TEST_F(AccountBalanceUnitTests, DefaultEqualityOperator)
+{
+  // Given
+  AccountBalance accountBalance1;
+  AccountBalance accountBalance2;
+
+  // When
+  const bool areEqual = (accountBalance1 == accountBalance2);
+
+  // Then
+  EXPECT_TRUE(areEqual);
+}
+
+//-----
+TEST_F(AccountBalanceUnitTests, EqualityOperatorWithSameBalance)
+{
+  // Given
+  AccountBalance accountBalance1;
+  accountBalance1.mBalance = getTestBalance();
+
+  AccountBalance accountBalance2;
+  accountBalance2.mBalance = getTestBalance();
+
+  // When
+  const bool areEqual = (accountBalance1 == accountBalance2);
+
+  // Then
+  EXPECT_TRUE(areEqual);
+}
+
+//-----
+TEST_F(AccountBalanceUnitTests, EqualityOperatorWithDifferentBalance)
+{
+  // Given
+  AccountBalance accountBalance1;
+  accountBalance1.mBalance = getTestBalance();
+
+  AccountBalance accountBalance2;
+  accountBalance2.mBalance = Hbar(200LL);
+
+  // When
+  const bool areEqual = (accountBalance1 == accountBalance2);
+
+  // Then
+  EXPECT_FALSE(areEqual);
+}
+
+//-----
+TEST_F(AccountBalanceUnitTests, EqualityOperatorWithSameTokens)
+{
+  // Given
+  TokenId tokenId(0, 0, 1);
+
+  AccountBalance accountBalance1;
+  accountBalance1.mBalance = getTestBalance();
+  accountBalance1.mTokens[tokenId] = 50;
+
+  AccountBalance accountBalance2;
+  accountBalance2.mBalance = getTestBalance();
+  accountBalance2.mTokens[tokenId] = 50;
+
+  // When
+  const bool areEqual = (accountBalance1 == accountBalance2);
+
+  // Then
+  EXPECT_TRUE(areEqual);
+}
+
+//-----
+TEST_F(AccountBalanceUnitTests, EqualityOperatorWithDifferentTokens)
+{
+  // Given
+  TokenId tokenId(0, 0, 1);
+
+  AccountBalance accountBalance1;
+  accountBalance1.mBalance = getTestBalance();
+  accountBalance1.mTokens[tokenId] = 50;
+
+  AccountBalance accountBalance2;
+  accountBalance2.mBalance = getTestBalance();
+  accountBalance2.mTokens[tokenId] = 100;
+
+  // When
+  const bool areEqual = (accountBalance1 == accountBalance2);
+
+  // Then
+  EXPECT_FALSE(areEqual);
+}

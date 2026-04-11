@@ -5,8 +5,8 @@
 #include "PublicKey.h"
 #include "impl/Utilities.h"
 
-#include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
+#include <services/basic_types.pb.h>
 
 using namespace Hiero;
 

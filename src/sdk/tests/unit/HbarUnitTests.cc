@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "Hbar.h"
 
-#include <gtest/gtest.h>
 #include <cstring>
+#include <gtest/gtest.h>
 
 using namespace Hiero;
 
@@ -104,10 +104,7 @@ TEST_F(HbarUnitTests, AddEqualsOperator)
 {
   Hbar hbar(amount, HbarUnit::TINYBAR());
   hbar += Hbar(amount, HbarUnit::MICROBAR());
-  EXPECT_EQ(
-    hbar.toTinybars(),
-    amount * HbarUnit::MICROBAR().getTinybars() + amount
-  );
+  EXPECT_EQ(hbar.toTinybars(), amount * HbarUnit::MICROBAR().getTinybars() + amount);
 }
 
 //-----

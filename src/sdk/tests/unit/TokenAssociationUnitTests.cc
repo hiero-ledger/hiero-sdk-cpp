@@ -2,9 +2,8 @@
 #include "TokenAssociation.h"
 #include "impl/Utilities.h"
 
-#include <services/custom_fees.pb.h>
-#include <string>
 #include <gtest/gtest.h>
+#include <services/custom_fees.pb.h>
 
 using namespace Hiero;
 
