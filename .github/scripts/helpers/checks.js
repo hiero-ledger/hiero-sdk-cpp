@@ -243,5 +243,5 @@ module.exports = {
   checkGPG,
   checkMergeConflict,
   checkIssueLink,
-  extractNumbersFromTitle
+  extractNumbersFromTitle,
 };
