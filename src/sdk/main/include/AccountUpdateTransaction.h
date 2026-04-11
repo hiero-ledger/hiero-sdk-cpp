@@ -364,7 +364,7 @@ private:
   std::optional<bool> mReceiverSignatureRequired;
 
   /**
-   * The new duration to use for the account to automatically extend its expiration period. It it doesn't have enough
+   * The new duration to use for the account to automatically extend its expiration period. If it doesn't have enough
    * balance, it extends as long as possible. If it is empty when it expires, then it is deleted.
    */
   std::optional<std::chrono::system_clock::duration> mAutoRenewPeriod;
