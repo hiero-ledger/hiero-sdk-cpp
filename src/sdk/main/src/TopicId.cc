@@ -8,6 +8,7 @@
 #include <services/basic_types.pb.h>
 
 #include <limits>
+#include <stdexcept>
 
 namespace Hiero
 {
@@ -60,7 +61,11 @@ TopicId TopicId::fromProtobuf(const proto::TopicID& proto)
 TopicId TopicId::fromBytes(const std::vector<std::byte>& bytes)
 {
   proto::TopicID proto;
-  proto.ParseFromArray(bytes.data(), static_cast<int>(bytes.size()));
+  if (!proto.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())))
+  {
+    throw std::invalid_argument("Failed to parse TopicId from provided bytes");
+  }
+
   return fromProtobuf(proto);
 }
 

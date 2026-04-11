@@ -189,6 +189,17 @@ TEST_F(TopicIdUnitTests, FromBytes)
 }
 
 //-----
+TEST_F(TopicIdUnitTests, FromBytesInvalidBytes)
+{
+  // Given
+  const std::vector<std::byte> invalidBytes = { std::byte(0xFF), std::byte(0xFF), std::byte(0xFF),
+                                                 std::byte(0xFF), std::byte(0xFF) };
+
+  // When / Then
+  EXPECT_THROW(TopicId::fromBytes(invalidBytes), std::invalid_argument);
+}
+
+//-----
 TEST_F(TopicIdUnitTests, ToProtobuf)
 {
   // Given

@@ -88,3 +88,18 @@ TEST_F(ContractNonceInfoUnitTests, FromBytes)
   EXPECT_EQ(contractNonceInfo.mContractId.mContractNum, getTestContractId().mContractNum);
   EXPECT_EQ(contractNonceInfo.mNonce, getTestNonce());
 }
+
+//-----
+TEST_F(ContractNonceInfoUnitTests, ToString)
+{
+  // Given
+  const ContractNonceInfo contractNonceInfo(getTestContractId(), getTestNonce());
+
+  // When
+  const std::string result = contractNonceInfo.toString();
+
+  // Then
+  EXPECT_FALSE(result.empty());
+  EXPECT_NE(result.find(getTestContractId().toString()), std::string::npos);
+  EXPECT_NE(result.find(std::to_string(getTestNonce())), std::string::npos);
+}

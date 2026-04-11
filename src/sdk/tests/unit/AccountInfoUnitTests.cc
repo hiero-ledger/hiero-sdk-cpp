@@ -126,3 +126,34 @@ TEST_F(AccountInfoUnitTests, FromProtobuf)
   EXPECT_EQ(accountInfo.mStakingInfo.mStakedAccountId, getTestStakedAccountId());
   EXPECT_FALSE(accountInfo.mStakingInfo.mStakedNodeId.has_value());
 }
+
+//-----
+TEST_F(AccountInfoUnitTests, ToString)
+{
+  // Given
+  AccountInfo accountInfo;
+  accountInfo.mAccountId = getTestAccountId();
+  accountInfo.mContractAccountId = getTestContractAccountId();
+  accountInfo.mIsDeleted = getTestIsDeleted();
+  accountInfo.mProxyReceived = getTestProxyReceived();
+  accountInfo.mKey = getTestPublicKey();
+  accountInfo.mBalance = getTestBalance();
+  accountInfo.mReceiverSignatureRequired = getTestReceiverSignatureRequired();
+  accountInfo.mExpirationTime = getTestExpirationTime();
+  accountInfo.mAutoRenewPeriod = getTestAutoRenewPeriod();
+  accountInfo.mMemo = getTestMemo();
+  accountInfo.mOwnedNfts = getTestOwnedNfts();
+  accountInfo.mMaxAutomaticTokenAssociations = getTestMaxAutomaticTokenAssociations();
+  accountInfo.mPublicKeyAlias = getTestPublicKeyAlias();
+  accountInfo.mLedgerId = getTestLedgerId();
+
+  // When
+  const std::string result = accountInfo.toString();
+
+  // Then
+  EXPECT_FALSE(result.empty());
+  EXPECT_NE(result.find(getTestAccountId().toString()), std::string::npos);
+  EXPECT_NE(result.find(getTestContractAccountId()), std::string::npos);
+  EXPECT_NE(result.find(getTestBalance().toString()), std::string::npos);
+  EXPECT_NE(result.find(getTestMemo()), std::string::npos);
+}
