@@ -576,6 +576,28 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
     return;
   }
 
+  // If the skill level changed while this run was queued, the earlier prerequisite
+  // and GFI-cap gates were run against a stale label. Abort and ask user to retry.
+  if (freshSkillLevel !== skillLevel) {
+    logger.log("Exit: skill level changed while queued", {
+      stalePayloadLevel: skillLevel,
+      freshReadLevel: freshSkillLevel,
+    });
+    await postComment(
+      botContext,
+      [
+        `👋 Hi @${requesterUsername}! The skill level for this issue changed while your assignment request was being processed.`,
+        "",
+        `**Current label:** \`${freshSkillLevel}\``,
+        `**Previous label:** \`${skillLevel}\``,
+        "",
+        "Please comment `/assign` again to request assignment with the updated skill requirements.",
+      ].join("\n"),
+    );
+    logger.log("Posted skill-level-changed comment");
+    return;
+  }
+
   const assignResult = await addAssignees(botContext, [requesterUsername]);
   if (!assignResult.success) {
     await postComment(
@@ -609,7 +631,8 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
  *   8. Skill prerequisites not met? -> prerequisite-not-met comment.
  *   9. Issue snatched while queued (fresh fetch)? -> already-assigned comment.
  *   10. Fresh labels invalid while queued? -> not-ready/no-skill-level comment.
- *   11. Assignment API failure? -> assignment-failure comment (tags maintainers).
+ *   11. Skill level changed while queued? -> skill-level-changed comment (ask to retry).
+ *   12. Assignment API failure? -> assignment-failure comment (tags maintainers).
  *
  * If all checks pass, the bot assigns the issue, posts a welcome comment,
  * and swaps the "status: ready for dev" label with "status: in progress".

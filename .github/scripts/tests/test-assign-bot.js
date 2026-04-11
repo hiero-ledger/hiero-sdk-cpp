@@ -349,6 +349,37 @@ const scenarios = [
     ],
   },
   {
+    name: "Race Condition - Skill Label Changed to Different Level While Queued",
+    description:
+      "Fresh fetch shows a different skill level; bot must abort since prerequisite gates were run against stale level",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 126,
+          assignees: [],
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 1027,
+          body: "/assign",
+          user: { login: "skill-changed-user", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: {
+      issueLabels: [{ name: LABELS.READY_FOR_DEV }, { name: LABELS.BEGINNER }],
+    },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @skill-changed-user! The skill level for this issue changed while your assignment request was being processed.\n\n**Current label:** \`${LABELS.BEGINNER}\`\n**Previous label:** \`${LABELS.GOOD_FIRST_ISSUE}\`\n\nPlease comment \`/assign\` again to request assignment with the updated skill requirements.`,
+    ],
+  },
+  {
     name: "Error - Fresh Issue Fetch API Failure",
     // Note: This failure fires from inside assignAndFinalize(), unlike the
     // other API failure tests which catch errors during precondition checks.
