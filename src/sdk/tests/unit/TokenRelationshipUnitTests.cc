@@ -51,8 +51,8 @@ TEST_F(TokenRelationshipUnitTests, DefaultConstruction)
   EXPECT_EQ(tokenRelationship.mSymbol, "");
   EXPECT_EQ(tokenRelationship.mBalance, 0LL);
   EXPECT_EQ(tokenRelationship.mDecimals, 0);
-  EXPECT_EQ(tokenRelationship.mKycStatus, 0);
-  EXPECT_EQ(tokenRelationship.mFreezeStatus, 0);
+  EXPECT_FALSE(tokenRelationship.mKycStatus.has_value());
+  EXPECT_FALSE(tokenRelationship.mFreezeStatus.has_value());
   EXPECT_EQ(tokenRelationship.mAutomaticAssociation, false);
 }
 
@@ -169,9 +169,11 @@ TEST_F(TokenRelationshipUnitTests, SetGetFreezeStatus)
   TokenRelationship relNotApplicable = createWithStatuses(getTestKycStatus(), 0);
   
   // Then
-  EXPECT_EQ(relFrozen.mFreezeStatus, proto::TokenFreezeStatus::Frozen);
-  EXPECT_EQ(relUnfrozen.mFreezeStatus, proto::TokenFreezeStatus::Unfrozen);
-  EXPECT_EQ(relNotApplicable.mFreezeStatus, proto::TokenFreezeStatus::FreezeNotApplicable);
+  EXPECT_TRUE(relFrozen.mFreezeStatus.has_value());
+  EXPECT_TRUE(relFrozen.mFreezeStatus.value());
+  EXPECT_TRUE(relUnfrozen.mFreezeStatus.has_value());
+  EXPECT_FALSE(relUnfrozen.mFreezeStatus.value());
+  EXPECT_FALSE(relNotApplicable.mFreezeStatus.has_value());
   EXPECT_THROW(
     TokenRelationship relInvalidFreeze = createWithStatuses(getTestKycStatus(), 3);
     , std::invalid_argument
@@ -191,9 +193,11 @@ TEST_F(TokenRelationshipUnitTests, SetGetKycStatus)
   TokenRelationship relNotApplicable = createWithStatuses(0, getTestFreezeStatus());
   
   // Then
-  EXPECT_EQ(relGranted.mKycStatus, proto::TokenKycStatus::Granted);
-  EXPECT_EQ(relRevoked.mKycStatus, proto::TokenKycStatus::Revoked);
-  EXPECT_EQ(relNotApplicable.mKycStatus, proto::TokenKycStatus::KycNotApplicable);
+  EXPECT_TRUE(relGranted.mKycStatus.has_value());
+  EXPECT_TRUE(relGranted.mKycStatus.value());
+  EXPECT_TRUE(relRevoked.mKycStatus.has_value());
+  EXPECT_FALSE(relRevoked.mKycStatus.value());
+  EXPECT_FALSE(relNotApplicable.mKycStatus.has_value());
   EXPECT_THROW(
     TokenRelationship relInvalidKyc = createWithStatuses(3, getTestFreezeStatus());
     , std::invalid_argument
