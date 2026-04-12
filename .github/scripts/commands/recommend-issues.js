@@ -216,6 +216,25 @@ async function getRecommendedIssues(botContext, username, skillLevel) {
 }
 
 /**
+ * Builds a comment when no suitable issues are found.
+ *
+ * @param {string} username
+ * @param {string} skillLevel
+ * @returns {string}
+ */
+function buildNoIssuesComment(username, skillLevel) {
+    return [
+        `👋 Hi @${username}! Great work on your recent contribution! 🎉`,
+        '',
+        `I couldn't find any open issues at your current level right now.`,
+        '',
+        `${MAINTAINER_TEAM} — it looks like our queue for **${skillLevel}** (and related) issues is empty!`,
+        '',
+        `Feel free to check back later or explore the repository for other ways to contribute.`,
+    ].join('\n');
+}
+
+/**
  * Main handler for issue recommendations after a PR is merged.
  *
  * - Determines skill level
@@ -270,6 +289,15 @@ async function handleRecommendIssues(botContext) {
 
     if (issues.length === 0) {
         logger.log('recommendation.empty', { user: username });
+        
+        const emptyComment = buildNoIssuesComment(username, skillLevel);
+        const result = await postComment(botContext, emptyComment);
+        
+        if (!result.success) {
+            logger.error('recommendation.postEmptyCommentFailed', {
+                error: result.error,
+            });
+        }
         return;
     }
 
