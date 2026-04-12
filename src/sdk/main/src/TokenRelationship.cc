@@ -54,6 +54,7 @@ std::unique_ptr<proto::TokenRelationship> TokenRelationship::toProtobuf() const
   proto->set_decimals(mDecimals);
   proto->set_kycstatus(getKycStatus());
   proto->set_freezestatus(getFreezeStatus());
+  proto->set_automatic_association(mAutomaticAssociation);
 
   return proto;
 }
