@@ -200,8 +200,7 @@ TEST_F(ExchangeRateUnitTests, ExchangeRatesOperatorEqualsDefaults)
   ExchangeRates rhs;
 
   // Then
-  EXPECT_TRUE(lhs.mCurrentRate == rhs.mCurrentRate);
-  EXPECT_TRUE(lhs.mNextRate == rhs.mNextRate);
+  EXPECT_TRUE(lhs == rhs);
 }
 
 //-----
