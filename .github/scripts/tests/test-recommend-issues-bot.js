@@ -285,14 +285,30 @@ const unitTests = [
     },
   },
   {
-    name: 'handleRecommendIssues: no matching issues at any level → no comment',
+    name: 'handleRecommendIssues: no matching issues at any level → posts replenishment comment',
     test: async () => {
       const { botContext, calls } = createMockBotContext({
+        sender: { login: 'user' },
         issue: makeIssue([BEGINNER, LABELS.READY_FOR_DEV]),
-        searchItems: [],
+        searchItems: [], // No issues found
       });
+
       await handleRecommendIssues(botContext);
-      return calls.comments.length === 0;
+
+      const expected = [
+        `👋 Hi @user! Great work on your recent contribution! 🎉`,
+        '',
+        `I couldn't find any open issues at your current level right now.`,
+        '',
+        `${MAINTAINER_TEAM} — it looks like our queue for **${BEGINNER}** (and related) issues is empty!`,
+        '',
+        `Feel free to check back later or explore the repository for other ways to contribute.`,
+      ].join('\n');
+
+      return (
+        calls.comments.length === 1 && 
+        calls.comments[0] === expected
+      );
     },
   },
   {
