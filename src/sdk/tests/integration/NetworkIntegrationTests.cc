@@ -38,17 +38,15 @@ TEST_F(NetworkIntegrationTests, GetNodeAccountIdsForExecuteReturnsHealthyNodes)
   // verifying that algorithm worked properly
   for (const auto& accountId : accountIds)
   {
-    bool found = false;
-    for (const auto& [url, mapAccountId] : networkMap)
-    {
-      if (accountId == mapAccountId)
+    const bool found = std::any_of(
+      networkMap.cbegin(),
+      networkMap.cend(),
+      [&accountId](const auto& entry)
       {
-        found = true;
-        break;
-      }
-    }
+        return entry.second == accountId;
+      });
 
-    EXPECT_TRUE(found);
+  EXPECT_TRUE(found);
   }
   network.close();
 }
