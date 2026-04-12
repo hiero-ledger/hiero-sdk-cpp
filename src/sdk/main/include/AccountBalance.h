@@ -43,7 +43,7 @@ public:
   [[nodiscard]] static AccountBalance fromBytes(const std::vector<std::byte>& bytes);
 
   /**
-   * Construct a CryptoGetAccountBalanceResponse protobuf object from this FeeSchedules object.
+   * Construct a CryptoGetAccountBalanceResponse protobuf object from this AccountBalance object.
    *
    * @return A pointer to the created CryptoGetAccountBalanceResponse protobuf object.
    */
