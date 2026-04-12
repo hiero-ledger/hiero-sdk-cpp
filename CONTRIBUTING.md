@@ -7,8 +7,7 @@ code contributions.
 
 **Jump To:**
 - [Code Contributions](#code-contributions)
-- [Bug Reports](#bug-reports)
-- [Feature Requests](#feature-requests)
+- [Submitting an Issue](#submitting-an-issue)
 - [Release New Version](#release-new-version)
 - [Blog Posts](#blog-posts)
 
@@ -26,7 +25,7 @@ Browse [open, unassigned issues](https://github.com/hiero-ledger/hiero-sdk-cpp/i
 | **Intermediate** | Multi-file changes with design decisions | 3 completed Beginner Issues |
 | **Advanced** | Architecture and design-heavy work | 3 completed Intermediate Issues |
 
-Look for issues with the `status: ready for dev` label — these are ready to be worked on.
+Look for issues with the `status: ready for dev` label — these have been triaged and are ready to be worked on.
 
 ### Getting Assigned
 
@@ -56,51 +55,53 @@ Note:
 - The SDK is released under the [Apache 2.0 License][license]. Any code you submit will be released under this license.
 - Pull requests **cannot be merged** without signed commits. See the [Signing Guide](docs/training/signing.md).
 
-## Feature Requests
+## Submitting an Issue
 
-**NOTE:** If you intend to implement a feature request, please submit the feature request _before_ working on any code
-changes and ask to get assigned.
+Not sure which issue type to use? See the [Issue Types Guide](docs/contributing/issue-types.md) for a full breakdown
+with examples of what belongs in each category.
 
-1. Visit [C++ SDK Issue](https://github.com/hiero-ledger/hiero-sdk-cpp/issues)
-2. Verify the Feature Request is not already proposed.
-2. Click 'New Issue' and click the Feature Request template.
-**Ensure** the [New Feature][label-new-feature] or [Feature Enhancements][label-feature-enhancement] label is attached.
+### Bug Reports
 
-### Submitting a Feature Request
+⚠️ **Ensure you are using the latest release of the SDK** — it's possible the bug is already fixed.
 
-Open an [issue][issues] with the following:
+1. Visit the [C++ SDK Issues page][issues]
+2. ⚠️ **Check the bug is not already reported.** If it is, comment to confirm you're also experiencing it.
+3. Click **New Issue** and choose the **Bug Report** template.
 
-- A short, descriptive title. Other community members should be able to understand the nature of the issue by reading
-  this title.
-- A detailed description of the proposed feature. Explain why you believe it should be added to the SDK.
-  Illustrative example code may also be provided to help explain how the feature should work.
-- [Markdown][markdown] formatting as appropriate to make the request easier to read.
-- If you plan to implement this feature yourself, please let us know that you'd like the issue to be assigned to you.
+The template will guide you through providing a description, steps to reproduce, expected vs. actual behavior, and
+environment details. The more reproducible the report, the faster a fix can land.
 
-## Bug Reports
+Security vulnerabilities should be disclosed responsibly via our [bug bounty program](https://hedera.com/bounty)
+rather than as a public issue.
 
-⚠️ **Ensure you are using the latest release of the SDK**.
+### Feature Requests
 
-It's possible the bug is already fixed. We will do our utmost to maintain backwards compatibility between patch version releases, so that you can be
-   confident that your application will continue to work as expected with the newer version.
+**Note:** If you intend to implement a feature yourself, please submit the request _before_ writing any code and
+ask to be assigned. Features are for user-facing SDK capabilities — new transactions, queries, API methods, etc.
+Improvements to tooling, CI, or the contribution process are [Tasks](#tasks) instead.
 
-1. Visit [C++ SDK Issue Page](https://github.com/hiero-ledger/hiero-sdk-cpp/issues)
-2. ⚠️ **Check the Bug is not Already Reported**. If it is, comment to confirm you are also experiencing this bug.
-3. Click 'New Issue' and choose the `Bug Report` template
+1. Visit the [C++ SDK Issues page][issues]
+2. Verify the feature has not already been proposed.
+3. Click **New Issue** and choose the **Feature Request** template.
 
-**Ensure** the [bug][label-bug] label is attached.
+For large or protocol-level changes, consider opening a
+[Hiero Improvement Proposal](https://github.com/hiero-ledger/hiero-improvement-proposals) or a
+[GitHub Discussion](https://github.com/hiero-ledger/hiero-sdk-cpp/discussions) first.
 
-Please ensure that your bug report contains the following:
+### Tasks
 
-- A short, descriptive title. Other community members should be able to understand the nature of the issue by reading
-  this title.
-- A succinct, detailed description of the problem you're experiencing. This should include:
-  - Expected behavior of the SDK and the actual behavior exhibited.
-  - Any details of your application development environment that may be relevant.
-  - If applicable, the exception stack-trace.
-  - If you are able to create one, include a [Minimal Working Example][mwe] that reproduces the issue.
-- [Markdown][markdown] formatting as appropriate to make the report easier to read; for example use code blocks when
-  pasting a code snippet or exception stack-trace.
+Use a Task for maintenance, improvement, or operational work: refactoring, dependency updates, documentation
+improvements, CI/CD changes, test coverage, or enhancements to existing features.
+
+1. Visit the [C++ SDK Issues page][issues]
+2. Verify the work has not already been proposed.
+3. Click **New Issue** and choose the **Task** template.
+
+### After Submitting
+
+All three templates automatically apply `status: awaiting triage`. A maintainer will review the issue, apply the
+appropriate skill level and priority labels, and run `/finalize` to prepare it for contributors. Once finalized,
+the issue will have `status: ready for dev` and can be claimed via `/assign`.
 
 ## Release New Version
 
@@ -152,11 +153,8 @@ Here should be listed all of the Pull Requests (PRs) which are part of the relea
 > (pull-request-title) by (@author) in (#link)
 
 [issues]: https://github.com/hiero-ledger/hiero-sdk-cpp/issues
-[label-bug]: https://github.com/hiero-ledger/hiero-sdk-cpp/labels/bug
 [mwe]: https://en.wikipedia.org/wiki/Minimal_Working_Example
 [markdown]: https://guides.github.com/features/mastering-markdown/
-[label-feature-enhancement]: https://github.com/hiero-ledger/hiero-sdk-cpp/labels/Feature%20Enhancement
-[label-new-feature]: https://github.com/hiero-ledger/hiero-sdk-cpp/labels/New%20Feature
 [pull-requests]: https://github.com/hiero-ledger/hiero-sdk-cpp/pulls
 [license]: https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/LICENSE
 [discord]: https://hedera.com/discord

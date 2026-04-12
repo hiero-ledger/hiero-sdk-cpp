@@ -4,9 +4,9 @@
 #include "impl/TimestampConverter.h"
 #include "impl/Utilities.h"
 
-#include <services/basic_types.pb.h>
 #include <chrono>
 #include <gtest/gtest.h>
+#include <services/basic_types.pb.h>
 
 #include <set>
 #include <vector>
@@ -216,18 +216,17 @@ TEST_F(TransactionIdUnitTests, GenerateUniqueTransactionIds)
   const size_t count = 100000;
   std::vector<TransactionId> ids;
   ids.reserve(count);
-  
+
   // When - generate many IDs rapidly
   for (size_t i = 0; i < count; ++i)
   {
     ids.push_back(TransactionId::generate(getTestAccountId()));
   }
-  
+
   // Then - all IDs should be unique
   std::set<std::chrono::system_clock::time_point> timestamps;
   for (const auto& id : ids)
   {
-    EXPECT_TRUE(timestamps.insert(id.mValidTransactionTime).second)
-      << "Duplicate timestamp found";
+    EXPECT_TRUE(timestamps.insert(id.mValidTransactionTime).second) << "Duplicate timestamp found";
   }
 }
