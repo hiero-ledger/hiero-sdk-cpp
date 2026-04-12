@@ -79,7 +79,31 @@ TEST_F(TokenRelationshipUnitTests, ConstructWithParameters)
 //-----
 TEST_F(TokenRelationshipUnitTests, FromProtobuf)
 {
-  
+  // Given
+  proto::TokenRelationship protoRel;
+  protoRel.set_allocated_tokenid(getTestTokenId().toProtobuf().release());
+  protoRel.set_symbol(getTestSymbol());
+  protoRel.set_balance(getTestBalance());
+  protoRel.set_decimals(getTestDecimals());
+  protoRel.set_kycstatus(static_cast<proto::TokenKycStatus>(getTestKycStatus()));
+  protoRel.set_freezestatus(static_cast<proto::TokenFreezeStatus>(getTestFreezeStatus()));
+  protoRel.set_automatic_association(true);
+
+  // When
+  const TokenRelationship rel = TokenRelationship::fromProtobuf(protoRel);
+
+  // Then
+  EXPECT_EQ(rel.mTokenId, getTestTokenId());
+  EXPECT_EQ(rel.mSymbol, getTestSymbol());
+  EXPECT_EQ(rel.mBalance, getTestBalance());
+  EXPECT_EQ(rel.mDecimals, getTestDecimals());
+  EXPECT_TRUE(rel.mKycStatus.has_value());
+  EXPECT_TRUE(rel.mKycStatus.value());
+  EXPECT_TRUE(rel.mAutomaticAssociation);
+
+  // Round-trip: automatic_association must survive toProtobuf()
+  const auto roundTripped = rel.toProtobuf();
+  EXPECT_TRUE(roundTripped->automatic_association());
 }
 
 //-----
@@ -91,10 +115,16 @@ TEST_F(TokenRelationshipUnitTests, ToProtobuf)
   );
 
   // When
-  std::unique_ptr<proto::TokenRelationship> proto = rel.toProtobuf();
+  auto protoRel = rel.toProtobuf();
 
   // Then
-  
+  EXPECT_EQ(protoRel->tokenid().tokennum(), getTestTokenId().mTokenNum);
+  EXPECT_EQ(protoRel->symbol(), getTestSymbol());
+  EXPECT_EQ(protoRel->balance(), getTestBalance());
+  EXPECT_EQ(protoRel->decimals(), getTestDecimals());
+  EXPECT_EQ(protoRel->kycstatus(), getTestKycStatus());
+  EXPECT_EQ(protoRel->freezestatus(), getTestFreezeStatus());
+  EXPECT_EQ(protoRel->automatic_association(), getTestAutomaticAssociation());
 }
 
 //-----
