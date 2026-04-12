@@ -12,6 +12,8 @@
 #include "account/params/GetAccountInfoParams.h"
 #include "account/params/TransferCryptoParams.h"
 #include "account/params/UpdateAccountParams.h"
+#include "contract/ContractService.h"
+#include "contract/params/DeleteContractParams.h"
 #include "file/FileService.h"
 #include "file/params/AppendFileParams.h"
 #include "file/params/CreateFileParams.h"
@@ -81,6 +83,8 @@ TckServer::TckServer(int port)
   mJsonRpcParser.addMethod("getAccountInfo", getHandle(AccountService::getAccountInfo));
   mJsonRpcParser.addMethod("transferCrypto", getHandle(AccountService::transferCrypto));
   mJsonRpcParser.addMethod("updateAccount", getHandle(AccountService::updateAccount));
+
+  mJsonRpcParser.addMethod("deleteContract", getHandle(ContractService::deleteContract));
 
   mJsonRpcParser.addMethod("airdropToken", getHandle(TokenService::airdropToken));
   mJsonRpcParser.addMethod("associateToken", getHandle(TokenService::associateToken));
@@ -184,6 +188,8 @@ template TckServer::MethodHandle TckServer::getHandle<AccountService::ApproveAll
   nlohmann::json (*method)(const AccountService::ApproveAllowanceParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::DeleteAllowanceParams>(
   nlohmann::json (*method)(const AccountService::DeleteAllowanceParams&));
+template TckServer::MethodHandle TckServer::getHandle<ContractService::DeleteContractParams>(
+  nlohmann::json (*method)(const ContractService::DeleteContractParams&));
 template TckServer::MethodHandle TckServer::getHandle<KeyService::GenerateKeyParams>(
   nlohmann::json (*method)(const KeyService::GenerateKeyParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::CreateTokenParams>(
