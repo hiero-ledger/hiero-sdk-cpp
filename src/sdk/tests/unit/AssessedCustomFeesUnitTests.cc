@@ -121,3 +121,132 @@ TEST_F(AssessedCustomFeeUnitTests, ToBytes)
   // Then
   EXPECT_EQ(bytes, internal::Utilities::stringToByteVector(assessedCustomFee.toProtobuf()->SerializeAsString()));
 }
+
+//-----
+TEST_F(AssessedCustomFeeUnitTests, DefaultEqualityOperator)
+{
+  // Given
+  AssessedCustomFee assessedCustomFee1;
+  AssessedCustomFee assessedCustomFee2;
+
+  // When
+  const bool areEqual = (assessedCustomFee1 == assessedCustomFee2);
+
+  // Then
+  EXPECT_TRUE(areEqual);
+}
+
+//-----
+TEST_F(AssessedCustomFeeUnitTests, EqualityOperatorWithSameValues)
+{
+  // Given
+  AssessedCustomFee assessedCustomFee1;
+  assessedCustomFee1.mAmount = getTestAmount();
+  assessedCustomFee1.mTokenId = getTestTokenId();
+  assessedCustomFee1.mFeeCollectorAccountId = getTestFeeCollectorAccountId();
+  assessedCustomFee1.mPayerAccountIdList = getTestPayerAccountIdList();
+
+  AssessedCustomFee assessedCustomFee2;
+  assessedCustomFee2.mAmount = getTestAmount();
+  assessedCustomFee2.mTokenId = getTestTokenId();
+  assessedCustomFee2.mFeeCollectorAccountId = getTestFeeCollectorAccountId();
+  assessedCustomFee2.mPayerAccountIdList = getTestPayerAccountIdList();
+
+  // When
+  const bool areEqual = (assessedCustomFee1 == assessedCustomFee2);
+
+  // Then
+  EXPECT_TRUE(areEqual);
+}
+
+//-----
+TEST_F(AssessedCustomFeeUnitTests, InequalityOperatorWithDifferentAmount)
+{
+  // Given
+  AssessedCustomFee assessedCustomFee1;
+  assessedCustomFee1.mAmount = getTestAmount();
+  assessedCustomFee1.mTokenId = getTestTokenId();
+  assessedCustomFee1.mFeeCollectorAccountId = getTestFeeCollectorAccountId();
+  assessedCustomFee1.mPayerAccountIdList = getTestPayerAccountIdList();
+
+  AssessedCustomFee assessedCustomFee2;
+  assessedCustomFee2.mAmount = 999LL;
+  assessedCustomFee2.mTokenId = getTestTokenId();
+  assessedCustomFee2.mFeeCollectorAccountId = getTestFeeCollectorAccountId();
+  assessedCustomFee2.mPayerAccountIdList = getTestPayerAccountIdList();
+
+  // When
+  const bool areEqual = (assessedCustomFee1 == assessedCustomFee2);
+
+  // Then
+  EXPECT_FALSE(areEqual);
+}
+
+//-----
+TEST_F(AssessedCustomFeeUnitTests, InequalityOperatorWithDifferentTokenId)
+{
+  // Given
+  AssessedCustomFee assessedCustomFee1;
+  assessedCustomFee1.mAmount = getTestAmount();
+  assessedCustomFee1.mTokenId = getTestTokenId();
+  assessedCustomFee1.mFeeCollectorAccountId = getTestFeeCollectorAccountId();
+  assessedCustomFee1.mPayerAccountIdList = getTestPayerAccountIdList();
+
+  AssessedCustomFee assessedCustomFee2;
+  assessedCustomFee2.mAmount = getTestAmount();
+  assessedCustomFee2.mTokenId = TokenId(99ULL, 99ULL, 99ULL);
+  assessedCustomFee2.mFeeCollectorAccountId = getTestFeeCollectorAccountId();
+  assessedCustomFee2.mPayerAccountIdList = getTestPayerAccountIdList();
+
+  // When
+  const bool areEqual = (assessedCustomFee1 == assessedCustomFee2);
+
+  // Then
+  EXPECT_FALSE(areEqual);
+}
+
+//-----
+TEST_F(AssessedCustomFeeUnitTests, InequalityOperatorWithDifferentFeeCollectorAccountId)
+{
+  // Given
+  AssessedCustomFee assessedCustomFee1;
+  assessedCustomFee1.mAmount = getTestAmount();
+  assessedCustomFee1.mTokenId = getTestTokenId();
+  assessedCustomFee1.mFeeCollectorAccountId = getTestFeeCollectorAccountId();
+  assessedCustomFee1.mPayerAccountIdList = getTestPayerAccountIdList();
+
+  AssessedCustomFee assessedCustomFee2;
+  assessedCustomFee2.mAmount = getTestAmount();
+  assessedCustomFee2.mTokenId = getTestTokenId();
+  assessedCustomFee2.mFeeCollectorAccountId = AccountId(99ULL, 99ULL, 99ULL);
+  assessedCustomFee2.mPayerAccountIdList = getTestPayerAccountIdList();
+
+  // When
+  const bool areEqual = (assessedCustomFee1 == assessedCustomFee2);
+
+  // Then
+  EXPECT_FALSE(areEqual);
+}
+
+//-----
+TEST_F(AssessedCustomFeeUnitTests, InequalityOperatorWithDifferentPayerAccountIdList)
+{
+  // Given
+  AssessedCustomFee assessedCustomFee1;
+  assessedCustomFee1.mAmount = getTestAmount();
+  assessedCustomFee1.mTokenId = getTestTokenId();
+  assessedCustomFee1.mFeeCollectorAccountId = getTestFeeCollectorAccountId();
+  assessedCustomFee1.mPayerAccountIdList = getTestPayerAccountIdList();
+
+  AssessedCustomFee assessedCustomFee2;
+  assessedCustomFee2.mAmount = getTestAmount();
+  assessedCustomFee2.mTokenId = getTestTokenId();
+  assessedCustomFee2.mFeeCollectorAccountId = getTestFeeCollectorAccountId();
+  assessedCustomFee2.mPayerAccountIdList = { AccountId(99ULL, 99ULL, 99ULL) };
+
+  // When
+  const bool areEqual = (assessedCustomFee1 == assessedCustomFee2);
+
+  // Then
+  EXPECT_FALSE(areEqual);
+}
