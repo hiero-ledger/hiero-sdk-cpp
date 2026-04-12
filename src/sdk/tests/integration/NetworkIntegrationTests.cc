@@ -2,10 +2,11 @@
 #include "AccountBalance.h"
 #include "AccountBalanceQuery.h"
 #include "AccountId.h"
-#include "BaseIntegrationTest.h"
+#include "BaseIntegrationTest.h" 
 #include "Client.h"
 #include "impl/Network.h"
-
+ 
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <unordered_map>
 #include <vector>
@@ -38,18 +39,19 @@ TEST_F(NetworkIntegrationTests, GetNodeAccountIdsForExecuteReturnsHealthyNodes)
   // verifying that algorithm worked properly
   for (const auto& accountId : accountIds)
   {
-    const bool found = std::any_of(
-      networkMap.cbegin(),
-      networkMap.cend(),
-      [&accountId](const auto& entry){
-        return entry.second == accountId;
-      });
+      const bool found = std::any_of(
+          networkMap.cbegin(),
+          networkMap.cend(),
+          [&accountId](const auto& entry) 
+          {
+              return entry.second == accountId;
+          });
 
-    EXPECT_TRUE(found);
+      EXPECT_TRUE(found);
   }
   network.close();
 }
-
+    
 //-----
 TEST_F(NetworkIntegrationTests, ExecutesQueryUsingSelectedNodes)
 {
