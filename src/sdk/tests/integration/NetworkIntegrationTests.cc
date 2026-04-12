@@ -40,12 +40,7 @@ TEST_F(NetworkIntegrationTests, GetNodeAccountIdsForExecuteReturnsHealthyNodes)
   for (const auto& accountId : accountIds)
   {
     const bool found = std::any_of(
-      networkMap.cbegin(),
-      networkMap.cend(),
-      [&accountId](const auto& entry)
-      {
-        return entry.second == accountId;
-      });
+      networkMap.cbegin(), networkMap.cend(), [&accountId](const auto& entry) { return entry.second == accountId; });
 
     EXPECT_TRUE(found);
   }
