@@ -38,7 +38,7 @@ struct [[maybe_unused]] adl_serializer<std::shared_ptr<Hiero::CustomFee>>
         fixedFee)
     {
       jsonTo["fixedFee"] = {
-        { "amount", fixedFee->getAmount() }
+        {"amount", fixedFee->getAmount()}
       };
       if (fixedFee->getDenominatingTokenId().has_value())
       {
@@ -56,11 +56,11 @@ struct [[maybe_unused]] adl_serializer<std::shared_ptr<Hiero::CustomFee>>
                      assessmentMethod.begin(),
                      [](unsigned char c) { return std::tolower(c); });
       jsonTo["fractionalFee"] = {
-        { "numerator",        fractionalFee->getNumerator()     },
-        { "denominator",      fractionalFee->getDenominator()   },
-        { "minimumAmount",    fractionalFee->getMinimumAmount() },
-        { "maximumAmount",    fractionalFee->getMaximumAmount() },
-        { "assessmentMethod", assessmentMethod                  }
+        {"numerator",         fractionalFee->getNumerator()    },
+        { "denominator",      fractionalFee->getDenominator()  },
+        { "minimumAmount",    fractionalFee->getMinimumAmount()},
+        { "maximumAmount",    fractionalFee->getMaximumAmount()},
+        { "assessmentMethod", assessmentMethod                 }
       };
     }
 
@@ -70,14 +70,14 @@ struct [[maybe_unused]] adl_serializer<std::shared_ptr<Hiero::CustomFee>>
         std::dynamic_pointer_cast<Hiero::CustomRoyaltyFee>(fee);
 
       jsonTo["royaltyFee"] = {
-        { "numerator",   royaltyFee->getNumerator()   },
-        { "denominator", royaltyFee->getDenominator() }
+        {"numerator",    royaltyFee->getNumerator()  },
+        { "denominator", royaltyFee->getDenominator()}
       };
 
       if (royaltyFee->getFallbackFee().has_value())
       {
         jsonTo["royaltyFee"]["fallbackFee"] = {
-          { "amount", royaltyFee->getFallbackFee()->getAmount() }
+          {"amount", royaltyFee->getFallbackFee()->getAmount()}
         };
         if (royaltyFee->getFallbackFee()->getDenominatingTokenId().has_value())
         {

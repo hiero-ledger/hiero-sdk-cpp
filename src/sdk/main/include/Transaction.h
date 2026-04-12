@@ -534,9 +534,10 @@ private:
    */
   [[nodiscard]]
   typename Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::
-    ExecutionStatus determineStatus(Status status,
-                                    const Client& client,
-                                    [[maybe_unused]] const proto::TransactionResponse& response) override;
+    ExecutionStatus
+    determineStatus(Status status,
+                    const Client& client,
+                    [[maybe_unused]] const proto::TransactionResponse& response) override;
 
   /**
    * Derived from Executable. Perform any needed actions for this Transaction when it is being submitted.

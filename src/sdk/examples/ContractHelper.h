@@ -18,12 +18,12 @@
 #include "TransactionResponse.h"
 #include "impl/HexConverter.h"
 
+#include <services/basic_types.pb.h>
 #include <fstream>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <nlohmann/json.hpp>
-#include <services/basic_types.pb.h>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -185,7 +185,8 @@ public:
 
       const ContractFunctionResult result = txRecord.mContractFunctionResult.value();
       const std::function<bool(const ContractFunctionResult&)> validatorFunc =
-        hasResultValidator ? mStepResultValidators.at(step) : [](const ContractFunctionResult& stepResult)
+        hasResultValidator ? mStepResultValidators.at(step)
+                           : [](const ContractFunctionResult& stepResult)
       {
         // Assume no custom validator means the function should return a success.
         const Status status =

@@ -30,16 +30,16 @@ enum class FeeAssessmentMethod
  * Map of FeeAssessmentMethod to its corresponding string.
  */
 const std::unordered_map<FeeAssessmentMethod, std::string> gFeeAssessmentMethodToString = {
-  { FeeAssessmentMethod::INCLUSIVE, "INCLUSIVE" },
-  { FeeAssessmentMethod::EXCLUSIVE, "EXCLUSIVE" }
+  {FeeAssessmentMethod::INCLUSIVE,  "INCLUSIVE"},
+  { FeeAssessmentMethod::EXCLUSIVE, "EXCLUSIVE"}
 };
 
 /**
  * Map of FeeAssessmentMethod string representation to its corresponding enum value.
  */
 [[maybe_unused]] const std::unordered_map<std::string, FeeAssessmentMethod> gStringToFeeAssessmentMethod = {
-  { "INCLUSIVE", FeeAssessmentMethod::INCLUSIVE },
-  { "EXCLUSIVE", FeeAssessmentMethod::EXCLUSIVE }
+  {"INCLUSIVE",  FeeAssessmentMethod::INCLUSIVE},
+  { "EXCLUSIVE", FeeAssessmentMethod::EXCLUSIVE}
 };
 
 } // namespace Hiero

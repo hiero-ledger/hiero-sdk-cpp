@@ -54,8 +54,8 @@ int main(int argc, char** argv)
 
   // Create a Client with a custom network.
   const std::unordered_map<std::string, AccountId> network = {
-    { "2.testnet.hedera.com:50211", AccountId(5ULL) },
-    { "3.testnet.hedera.com:50211", AccountId(6ULL) }
+    {"2.testnet.hedera.com:50211",  AccountId(5ULL)},
+    { "3.testnet.hedera.com:50211", AccountId(6ULL)}
   };
   Client customClient = Client::forNetwork(network);
 

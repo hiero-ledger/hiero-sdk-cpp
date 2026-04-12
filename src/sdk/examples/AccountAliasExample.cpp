@@ -2,7 +2,7 @@
 /**
  * This example demonstrates Hiero's alias-based automatic account creation.
  *
- * An alias is an AccountId derived from a public key.
+ * An alias is an AccountId derived from a public key. 
  * It can be used in transactions before the account exists on-ledger.
  *
  * Essential steps:
@@ -15,7 +15,7 @@
  * - Query the account balance.
  * - Query account info to obtain the permanent numeric AccountId.
  *
- * No explicit CreateAccount transaction is used.
+ * No explicit CreateAccount transaction is used. 
  * Funding the alias both creates and initializes the account, which can then be referenced by
  * either its alias (public key) or numeric AccountId.
  */

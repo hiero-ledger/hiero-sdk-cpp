@@ -38,10 +38,10 @@ private:
    * Internal mapping of mirror node query types to their respective routes.
    */
   const std::unordered_map<std::string, std::string> routes = {
-    { ACCOUNT_INFO_QUERY,        "/api/v1/accounts/$"        },
-    { CONTRACT_INFO_QUERY,       "/api/v1/contracts/$"       },
-    { TOKEN_RELATIONSHIPS_QUERY, "/api/v1/accounts/$/tokens" },
-    { TOKEN_BALANCES_QUERY,      "/api/v1/tokens/$/balances" }
+    {ACCOUNT_INFO_QUERY,         "/api/v1/accounts/$"       },
+    { CONTRACT_INFO_QUERY,       "/api/v1/contracts/$"      },
+    { TOKEN_RELATIONSHIPS_QUERY, "/api/v1/accounts/$/tokens"},
+    { TOKEN_BALANCES_QUERY,      "/api/v1/tokens/$/balances"}
   };
 };
 
