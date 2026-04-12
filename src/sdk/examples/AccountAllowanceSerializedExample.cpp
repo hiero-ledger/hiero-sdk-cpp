@@ -21,7 +21,7 @@
  * - Attempt to exceed the remaining (1 Hbar) allowance (sending 2 Hbar) to demonstrate ledger enforcement.
  * - Modify the allowance to 3 Hbar and successfully re-attempt the (2 Hbar) transfer.
  * - Query account balances to verify the flow of funds.
- * - Clean up the ledger by resetting the allowance and deleting all generated accounts. 
+ * - Clean up the ledger by resetting the allowance and deleting all generated accounts.
  *
  * This example highlights how transactions can be transported or stored
  * as raw bytes, reconstructed later, and still maintain correctness
