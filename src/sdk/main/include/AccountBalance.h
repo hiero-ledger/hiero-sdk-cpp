@@ -73,6 +73,14 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const AccountBalance& balance);
 
   /**
+   * Check if this AccountBalance is equal to another AccountBalance.
+   *
+   * @param other The other AccountBalance to compare to.
+   * @return True if this AccountBalance is equal to the other, false otherwise.
+   */
+  [[nodiscard]] bool operator==(const AccountBalance& other) const;
+
+  /**
    * The account or contract balance.
    */
   Hbar mBalance;

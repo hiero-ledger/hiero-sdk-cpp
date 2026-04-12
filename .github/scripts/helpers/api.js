@@ -462,11 +462,12 @@ async function swapStatusLabel(botContext, allPassed, { force = false } = {}) {
 
 /**
  * Adds a thumbs-up (+1) reaction to a comment as visual acknowledgement that
- * a bot command was received. Failures are silently logged (non-critical).
+ * a bot command was received. Returns { success: false } when the reaction
+ * cannot be added (e.g. the comment was deleted before the bot ran).
  *
  * @param {object} botContext - Bot context from buildBotContext (github, owner, repo).
  * @param {number} commentId - The ID of the comment to react to.
- * @returns {Promise<void>}
+ * @returns {Promise<{ success: boolean }>}
  */
 async function acknowledgeComment(botContext, commentId) {
   try {
@@ -477,8 +478,10 @@ async function acknowledgeComment(botContext, commentId) {
       content: '+1',
     });
     getLogger().log('Added thumbs-up reaction to comment');
+    return { success: true };
   } catch (error) {
     getLogger().log('Could not add reaction:', error.message);
+    return { success: false };
   }
 }
 
@@ -551,7 +554,12 @@ async function resolveLinkedIssue(botContext) {
         }
 
         if (issueNumbers.length === 1) {
-            return await fetchIssue(botContext, issueNumbers[0]) || null;
+            const issue = await fetchIssue(botContext, issueNumbers[0]);
+            if (!issue || SKILL_HIERARCHY.findIndex(level => hasLabel(issue, level)) === -1) {
+                getLogger().log('Single linked issue has no skill label', { issueNumber: issueNumbers[0] });
+                return null;
+            }
+            return issue;
         }
 
         const issues = await Promise.all(
@@ -569,6 +577,12 @@ async function resolveLinkedIssue(botContext) {
             const currIndex = SKILL_HIERARCHY.findIndex(level => hasLabel(issue, level));
             return currIndex > bestIndex ? issue : best;
         });
+
+        const selectedIndex = SKILL_HIERARCHY.findIndex(level => hasLabel(selected, level));
+        if (selectedIndex === -1) {
+            getLogger().log('No linked issues have a skill label', { issueNumbers });
+            return null;
+        }
 
         getLogger().log('Multiple linked issues found (using highest level)', {
             issueNumbers,

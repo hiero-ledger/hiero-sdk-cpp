@@ -113,6 +113,15 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const TokenNftTransfer& transfer);
 
   /**
+   * Compare two TokenNftTransfer objects and determine if they represent the same transfer.
+   *
+   * @param lhs The first TokenNftTransfer.
+   * @param rhs The second TokenNftTransfer.
+   * @return \c TRUE if the two transfers are the same, otherwise \c FALSE.
+   */
+  [[nodiscard]] friend bool operator==(const TokenNftTransfer& lhs, const TokenNftTransfer& rhs);
+
+  /**
    * The ID of the NFT.
    */
   NftId mNftId;

@@ -404,9 +404,9 @@ const unitTests = [
     },
   },
   {
-    name: 'resolveLinkedIssue: single linked issue → returns it',
+    name: 'resolveLinkedIssue: single linked issue with skill label → returns it',
     test: async () => {
-      const issueData = { number: 10, title: 'Fix bug', labels: [] };
+      const issueData = { number: 10, title: 'Fix bug', labels: [{ name: LABELS.BEGINNER }] };
       const { botContext } = createMockBotContext({
         graphql: async () => ({
           repository: {
@@ -422,7 +422,28 @@ const unitTests = [
     },
   },
   {
-    name: 'resolveLinkedIssue: multiple linked issues → returns highest skill level',
+    name: 'resolveLinkedIssue: single linked issue with no skill label → returns null',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: {
+                nodes: [{ number: 7 }],
+              },
+            },
+          },
+        }),
+        issues: {
+          7: { number: 7, title: 'Issue 7', labels: [{ name: 'bug' }] },
+        },
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result === null;
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: multiple linked issues with skill label → returns highest skill level',
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -445,7 +466,7 @@ const unitTests = [
     },
   },
   {
-    name: 'resolveLinkedIssue: multiple issues, none with skill label → returns first fetched issue',
+    name: 'resolveLinkedIssue: multiple linked issues with no skill label → returns null',
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -463,8 +484,7 @@ const unitTests = [
         },
       });
       const result = await resolveLinkedIssue(botContext);
-      // No skill labels — reduce stays on first, so issue 4
-      return result !== null && result.number === 4;
+      return result === null;
     },
   },
   {
