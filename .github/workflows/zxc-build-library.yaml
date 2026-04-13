@@ -160,7 +160,8 @@ jobs:
           VCPKG_BINARY_SOURCES: clear
         run: |
           echo "::group::Configure Project"
-          ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-debug -DBUILD_TESTS=ON -DBUILD_TCK_TESTS=ON
+          ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-debug \
+            -DBUILD_TESTS=ON -DBUILD_TCK=ON -DBUILD_TCK_TESTS=ON -DBUILD_EXAMPLES=ON
           echo "::endgroup::"
 
           echo "::group::Build Project"
@@ -173,7 +174,8 @@ jobs:
           VCPKG_BINARY_SOURCES: clear
         run: |
           echo "::group::Configure Project"
-          ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-release -DBUILD_TESTS=ON -DBUILD_TCK_TESTS=ON
+          ${{ steps.cgroup.outputs.exec }} cmake --preset ${{ matrix.preset }}-debug \
+            -DBUILD_TESTS=ON -DBUILD_TCK=ON -DBUILD_TCK_TESTS=ON -DBUILD_EXAMPLES=ON
           echo "::endgroup::"
 
           echo "::group::Build Project"
