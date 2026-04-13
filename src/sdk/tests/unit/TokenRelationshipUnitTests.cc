@@ -71,8 +71,8 @@ TEST_F(TokenRelationshipUnitTests, ConstructWithParameters)
   EXPECT_EQ(tokenRelationship.mSymbol, getTestSymbol());
   EXPECT_EQ(tokenRelationship.mBalance, getTestBalance());
   EXPECT_EQ(tokenRelationship.mDecimals, getTestDecimals());
-  EXPECT_EQ(tokenRelationship.mKycStatus, getTestKycStatus());
-  EXPECT_EQ(tokenRelationship.mFreezeStatus, getTestFreezeStatus());
+  EXPECT_FALSE(tokenRelationship.mKycStatus.has_value());
+  EXPECT_FALSE(tokenRelationship.mFreezeStatus.has_value());
   EXPECT_EQ(tokenRelationship.mAutomaticAssociation, getTestAutomaticAssociation());
 }
 
@@ -85,8 +85,8 @@ TEST_F(TokenRelationshipUnitTests, FromProtobuf)
   protoRel.set_symbol(getTestSymbol());
   protoRel.set_balance(getTestBalance());
   protoRel.set_decimals(getTestDecimals());
-  protoRel.set_kycstatus(static_cast<proto::TokenKycStatus>(getTestKycStatus()));
-  protoRel.set_freezestatus(static_cast<proto::TokenFreezeStatus>(getTestFreezeStatus()));
+  protoRel.set_kycstatus(proto::TokenKycStatus::Granted);
+  protoRel.set_freezestatus(proto::TokenFreezeStatus::Frozen);
   protoRel.set_automatic_association(true);
 
   // When
@@ -99,6 +99,8 @@ TEST_F(TokenRelationshipUnitTests, FromProtobuf)
   EXPECT_EQ(rel.mDecimals, getTestDecimals());
   EXPECT_TRUE(rel.mKycStatus.has_value());
   EXPECT_TRUE(rel.mKycStatus.value());
+  EXPECT_TRUE(rel.mFreezeStatus.has_value());
+  EXPECT_TRUE(rel.mFreezeStatus.value());
   EXPECT_TRUE(rel.mAutomaticAssociation);
 
   // Round-trip: automatic_association must survive toProtobuf()
@@ -197,7 +199,7 @@ TEST_F(TokenRelationshipUnitTests, SetGetKycStatus)
   EXPECT_TRUE(relGranted.mKycStatus.value());
   EXPECT_TRUE(relRevoked.mKycStatus.has_value());
   EXPECT_FALSE(relRevoked.mKycStatus.value());
-  EXPECT_FALSE(relNotApplicable.mKycStatus.has_value());
+  EXPECT_FALSE(relNotApplicable.mKycStatus.has_value( ));
   EXPECT_THROW(
     TokenRelationship relInvalidKyc = createWithStatuses(3, getTestFreezeStatus());
     , std::invalid_argument
