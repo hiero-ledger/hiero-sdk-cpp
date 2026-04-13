@@ -49,6 +49,14 @@ ContractDeleteTransaction& ContractDeleteTransaction::setTransferContractId(cons
 }
 
 //-----
+ContractDeleteTransaction& ContractDeleteTransaction::setPermanentRemoval(bool permanentRemoval)
+{
+  requireNotFrozen();
+  mPermanentRemoval = permanentRemoval;
+  return *this;
+}
+
+//-----
 grpc::Status ContractDeleteTransaction::submitRequest(const proto::Transaction& request,
                                                       const std::shared_ptr<internal::Node>& node,
                                                       const std::chrono::system_clock::time_point& deadline,
@@ -106,6 +114,8 @@ void ContractDeleteTransaction::initFromSourceTransactionBody()
   {
     mTransferContractId = ContractId::fromProtobuf(body.transfercontractid());
   }
+
+  mPermanentRemoval = body.permanent_removal();
 }
 
 //-----
@@ -123,6 +133,11 @@ proto::ContractDeleteTransactionBody* ContractDeleteTransaction::build() const
   else if (mTransferContractId.has_value())
   {
     body->set_allocated_transfercontractid(mTransferContractId->toProtobuf().release());
+  }
+
+  if (mPermanentRemoval.has_value())
+  {
+    body->set_permanent_removal(mPermanentRemoval.value());
   }
 
   return body.release();
