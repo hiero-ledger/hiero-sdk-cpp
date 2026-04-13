@@ -299,8 +299,41 @@ async function swapLabels(botContext, fromLabel, toLabel) {
 }
 
 /**
- * Posts a new comment or updates an existing one identified by an HTML marker.
+ * Fetches an existing comment identified by an HTML marker.
  * Paginates through all comments to find a match.
+ * @param {object} botContext
+ * @param {string} marker - HTML comment marker (e.g. '<!-- bot:pr-helper -->').
+ * @returns {Promise<object|null>}
+ */
+async function getBotComment(botContext, marker) {
+  let page = 1;
+  const perPage = 100;
+
+  while (true) {
+    const { data: comments } = await botContext.github.rest.issues.listComments({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      issue_number: botContext.number,
+      per_page: perPage,
+      page,
+    });
+
+    for (const c of comments) {
+      if (c.body && c.body.startsWith(marker)) {
+        return c;
+      }
+    }
+
+    if (comments.length < perPage) break;
+    page++;
+  }
+
+  return null;
+}
+
+/**
+ * Posts a new comment or updates an existing one identified by an HTML marker.
+ * Prevents unnecessary updates if the comment body has not changed.
  * @param {object} botContext
  * @param {string} marker - HTML comment marker (e.g. '<!-- bot:pr-helper -->').
  * @param {string} body - Full comment body (must include the marker).
@@ -311,38 +344,20 @@ async function postOrUpdateComment(botContext, marker, body) {
     requireNonEmptyString(marker, 'marker');
     requireNonEmptyString(body, 'comment body');
 
-    let existingCommentId = null;
-    let page = 1;
-    const perPage = 100;
+    const existingComment = await getBotComment(botContext, marker);
 
-    while (!existingCommentId) {
-      const { data: comments } = await botContext.github.rest.issues.listComments({
-        owner: botContext.owner,
-        repo: botContext.repo,
-        issue_number: botContext.number,
-        per_page: perPage,
-        page,
-      });
-
-      for (const c of comments) {
-        if (c.body && c.body.startsWith(marker)) {
-          existingCommentId = c.id;
-          break;
-        }
+    if (existingComment) {
+      if (existingComment.body.trim() === body.trim()) {
+        getLogger().log('Existing bot comment is up-to-date');
+      } else {
+        await botContext.github.rest.issues.updateComment({
+          owner: botContext.owner,
+          repo: botContext.repo,
+          comment_id: existingComment.id,
+          body,
+        });
+        getLogger().log('Updated existing bot comment');
       }
-
-      if (comments.length < perPage) break;
-      page++;
-    }
-
-    if (existingCommentId) {
-      await botContext.github.rest.issues.updateComment({
-        owner: botContext.owner,
-        repo: botContext.repo,
-        comment_id: existingCommentId,
-        body,
-      });
-      getLogger().log('Updated existing bot comment');
     } else {
       await botContext.github.rest.issues.createComment({
         owner: botContext.owner,
@@ -386,6 +401,35 @@ async function fetchPRCommits(botContext) {
 
   getLogger().log(`Fetched ${commits.length} commits for PR #${botContext.number}`);
   return commits;
+}
+
+/**
+ * Fetches all open pull requests for the repository via the GitHub API (paginated).
+ * @param {object} botContext
+ * @returns {Promise<Array>}
+ */
+async function fetchOpenPRs(botContext) {
+  const prs = [];
+  let page = 1;
+  const perPage = 100;
+
+  while (true) {
+    const response = await botContext.github.rest.pulls.list({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      state: 'open',
+      per_page: perPage,
+      page,
+    });
+
+    prs.push(...response.data);
+
+    if (response.data.length < perPage) break;
+    page++;
+  }
+
+  getLogger().log(`Fetched ${prs.length} open PRs`);
+  return prs;
 }
 
 /**
@@ -492,8 +536,8 @@ async function acknowledgeComment(botContext, commentId) {
  * @param {object} botContext
  * @returns {Promise<{ allPassed: boolean }>}
  */
-async function runAllChecksAndComment(botContext) {
-  let dco, gpg, merge, issueLink;
+async function runAllChecksAndComment(botContext, precomputed = {}) {
+  let { dco, gpg, merge, issueLink } = precomputed;
   let commits = [];
 
   try {
@@ -514,11 +558,15 @@ async function runAllChecksAndComment(botContext) {
     catch (e) { gpg = { error: true, errorMessage: e.message }; }
   }
 
-  try { merge = await checkMergeConflict(botContext); }
-  catch (e) { merge = { error: true, errorMessage: e.message }; }
+  if (!merge) {
+    try { merge = await checkMergeConflict(botContext); }
+    catch (e) { merge = { error: true, errorMessage: e.message }; }
+  }
 
-  try { issueLink = await checkIssueLink(botContext, { fetchIssue, fetchClosingIssueNumbers }); }
-  catch (e) { issueLink = { error: true, errorMessage: e.message }; }
+  if (!issueLink) {
+    try { issueLink = await checkIssueLink(botContext, { fetchIssue, fetchClosingIssueNumbers }); }
+    catch (e) { issueLink = { error: true, errorMessage: e.message }; }
+  }
 
   const prAuthor = botContext.pr?.user?.login;
   const { marker, body, allPassed } = buildBotComment({ prAuthor, dco, gpg, merge, issueLink });
@@ -598,8 +646,10 @@ module.exports = {
   hasLabel,
   getLabelsByPrefix,
   swapLabels,
+  getBotComment,
   postOrUpdateComment,
   fetchPRCommits,
+  fetchOpenPRs,
   fetchIssue,
   fetchClosingIssueNumbers,
   swapStatusLabel,

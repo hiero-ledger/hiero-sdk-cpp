@@ -7,8 +7,10 @@
 
 const { runTestSuite } = require('./test-utils');
 const {
+  getBotComment,
   postOrUpdateComment,
   fetchPRCommits,
+  fetchOpenPRs,
   fetchIssue,
   fetchClosingIssueNumbers,
   swapStatusLabel,
@@ -59,6 +61,12 @@ function createMockBotContext(overrides = {}) {
             },
           },
           pulls: {
+            list: async ({ page, per_page }) => {
+              const allPRs = overrides.openPRs || [];
+              const start = (page - 1) * per_page;
+              const slice = allPRs.slice(start, start + per_page);
+              return { data: slice };
+            },
             listCommits: async ({ page, per_page }) => {
               const allCommits = overrides.commits || [];
               const start = (page - 1) * per_page;
@@ -144,6 +152,50 @@ const unitTests = [
         labels: ['status: needs review', 'bug'],
       };
       return hasLabel(pr, LABELS.NEEDS_REVIEW) === true;
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // getBotComment
+  // ---------------------------------------------------------------------------
+  {
+    name: 'getBotComment: returns comment matched by marker',
+    test: async () => {
+      const marker = '<!-- bot:test -->';
+      const { botContext } = createMockBotContext({
+        comments: [
+          { id: 1, body: 'User comment 1' },
+          { id: 2, body: '<!-- bot:test -->\nBot comment' },
+        ],
+      });
+      const result = await getBotComment(botContext, marker);
+      return result !== null && result.id === 2;
+    },
+  },
+  {
+    name: 'getBotComment: returns null if no marker match',
+    test: async () => {
+      const marker = '<!-- bot:test -->';
+      const { botContext } = createMockBotContext({
+        comments: [
+          { id: 1, body: 'User comment 1' },
+        ],
+      });
+      const result = await getBotComment(botContext, marker);
+      return result === null;
+    },
+  },
+  {
+    name: 'getBotComment: searches across pages',
+    test: async () => {
+      const marker = '<!-- bot:paged -->';
+      const page1 = Array(100).fill(null).map((_, i) => ({ id: i + 1, body: `Comment ${i}` }));
+      const page2 = [{ id: 101, body: '<!-- bot:paged -->\nFound on page 2' }];
+      const { botContext } = createMockBotContext({
+        comments: [...page1, ...page2],
+      });
+      const result = await getBotComment(botContext, marker);
+      return result !== null && result.id === 101;
     },
   },
 
@@ -280,6 +332,46 @@ const unitTests = [
     test: async () => {
       const { botContext } = createMockBotContext({ commits: [] });
       const result = await fetchPRCommits(botContext);
+      return Array.isArray(result) && result.length === 0;
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // fetchOpenPRs
+  // ---------------------------------------------------------------------------
+  {
+    name: 'fetchOpenPRs: single page (< 100 PRs) → returns all',
+    test: async () => {
+      const openPRs = [
+        { number: 1, title: 'First PR' },
+        { number: 2, title: 'Second PR' },
+      ];
+      const { botContext } = createMockBotContext({ openPRs });
+      const result = await fetchOpenPRs(botContext);
+      return (
+        Array.isArray(result) &&
+        result.length === 2 &&
+        result[0].number === 1 &&
+        result[1].number === 2
+      );
+    },
+  },
+  {
+    name: 'fetchOpenPRs: multiple pages → paginates and returns all',
+    test: async () => {
+      const openPRs = Array(150)
+        .fill(null)
+        .map((_, i) => ({ number: i + 1, title: `PR ${i + 1}` }));
+      const { botContext } = createMockBotContext({ openPRs });
+      const result = await fetchOpenPRs(botContext);
+      return result.length === 150;
+    },
+  },
+  {
+    name: 'fetchOpenPRs: zero PRs → returns []',
+    test: async () => {
+      const { botContext } = createMockBotContext({ openPRs: [] });
+      const result = await fetchOpenPRs(botContext);
       return Array.isArray(result) && result.length === 0;
     },
   },
