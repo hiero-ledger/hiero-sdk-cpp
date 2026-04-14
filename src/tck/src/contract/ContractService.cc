@@ -8,6 +8,7 @@
 #include "contract/params/CreateContractParams.h"
 #include "contract/params/DeleteContractParams.h"
 #include "contract/params/ExecuteContractParams.h"
+#include "contract/params/UpdateContractParams.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
 
@@ -21,6 +22,7 @@
 #include <ContractId.h>
 #include <ContractInfo.h>
 #include <ContractInfoQuery.h>
+#include <ContractUpdateTransaction.h>
 #include <FileId.h>
 #include <Hbar.h>
 #include <PublicKey.h>
@@ -170,6 +172,79 @@ nlohmann::json deleteContract(const DeleteContractParams& params)
     {"status",
      gStatusToString.at(
         contractDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json updateContract(const UpdateContractParams& params)
+{
+  ContractUpdateTransaction contractUpdateTransaction;
+  contractUpdateTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mContractId.has_value())
+  {
+    contractUpdateTransaction.setContractId(ContractId::fromString(params.mContractId.value()));
+  }
+
+  if (params.mAdminKey.has_value())
+  {
+    contractUpdateTransaction.setAdminKey(KeyService::getHieroKey(params.mAdminKey.value()));
+  }
+
+  if (params.mExpirationTime.has_value())
+  {
+    contractUpdateTransaction.setExpirationTime(
+      std::chrono::system_clock::from_time_t(0) +
+      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(params.mExpirationTime.value())));
+  }
+
+  if (params.mAutoRenewAccountId.has_value())
+  {
+    contractUpdateTransaction.setAutoRenewAccountId(AccountId::fromString(params.mAutoRenewAccountId.value()));
+  }
+
+  if (params.mAutoRenewPeriod.has_value())
+  {
+    contractUpdateTransaction.setAutoRenewPeriod(
+      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(params.mAutoRenewPeriod.value())));
+  }
+
+  if (params.mMemo.has_value())
+  {
+    contractUpdateTransaction.setContractMemo(params.mMemo.value());
+  }
+
+  if (params.mMaxAutomaticTokenAssociations.has_value())
+  {
+    contractUpdateTransaction.setMaxAutomaticTokenAssociations(params.mMaxAutomaticTokenAssociations.value());
+  }
+
+  if (params.mStakedAccountId.has_value())
+  {
+    contractUpdateTransaction.setStakedAccountId(AccountId::fromString(params.mStakedAccountId.value()));
+  }
+
+  if (params.mStakedNodeId.has_value())
+  {
+    contractUpdateTransaction.setStakedNodeId(
+      internal::EntityIdHelper::getNum<int64_t>(params.mStakedNodeId.value()));
+  }
+
+  if (params.mDeclineStakingReward.has_value())
+  {
+    contractUpdateTransaction.setDeclineStakingReward(params.mDeclineStakingReward.value());
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(contractUpdateTransaction, SdkClient::getClient());
+  }
+
+  const TransactionReceipt txReceipt =
+    contractUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
+
+  return {
+    {"status", gStatusToString.at(txReceipt.mStatus)}
   };
 }
 
