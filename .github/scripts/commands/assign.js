@@ -17,7 +17,8 @@ const {
   addAssignees,
   postComment,
   acknowledgeComment,
-} = require("../helpers");
+  getHighestIssueSkillLevel,
+} = require('../helpers');
 
 const {
   MAX_OPEN_ASSIGNMENTS,
@@ -51,21 +52,6 @@ const logger = createDelegatingLogger();
  */
 function formatThresholdedCount(count, threshold) {
   return count >= threshold ? `${threshold}+` : String(count);
-}
-
-/**
- * Returns the skill-level label on an issue, checking in ascending order:
- * Good First Issue -> Beginner -> Intermediate -> Advanced.
- * Returns the first match, or null if the issue has no skill-level label.
- *
- * @param {{ labels: Array<string|{ name: string }> }} issue - The issue object from the GitHub payload.
- * @returns {string|null} The matching LABELS constant (e.g. LABELS.BEGINNER), or null.
- */
-function getIssueSkillLevel(issue) {
-  for (const level of SKILL_HIERARCHY) {
-    if (hasLabel(issue, level)) return level;
-  }
-  return null;
 }
 
 /**
@@ -417,7 +403,7 @@ async function validateIssueState(botContext, requesterUsername) {
     return null;
   }
 
-  const skillLevel = getIssueSkillLevel(botContext.issue);
+  const skillLevel = getHighestIssueSkillLevel(botContext.issue);
   if (!skillLevel) {
     logger.log("Exit: issue has no skill level label");
     await postComment(botContext, buildNoSkillLevelComment(requesterUsername));

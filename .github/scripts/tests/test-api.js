@@ -14,6 +14,7 @@ const {
   swapStatusLabel,
   hasLabel,
   resolveLinkedIssue,
+  getHighestIssueSkillLevel,
 } = require('../helpers/api');
 const { LABELS } = require('../helpers/constants');
 const { isSafeSearchToken } = require('../helpers/validation');
@@ -620,8 +621,39 @@ const unitTests = [
     name: 'isSafeSearchToken: string with multiple brackets → false',
     test: () => isSafeSearchToken('bad[[admin]') === false,
   },
-];
 
+  // ---------------------------------------------------------------------------
+  // getHighestIssueSkillLevel
+  // ---------------------------------------------------------------------------
+  {
+    name: 'getHighestIssueSkillLevel: issue with one skill label → returns that level',
+    test: () => {
+      const issue = { number: 1, title: 'Test', labels: [{ name: LABELS.BEGINNER }, { name: LABELS.READY_FOR_DEV }] };
+      return getHighestIssueSkillLevel(issue) === LABELS.BEGINNER;
+    },
+  },
+  {
+    name: 'getHighestIssueSkillLevel: issue with no skill labels → returns null',
+    test: () => {
+      const issue = { number: 1, title: 'Test', labels: [{ name: 'bug' }, { name: 'enhancement' }] };
+      return getHighestIssueSkillLevel(issue) === null;
+    },
+  },
+  {
+    name: 'getHighestIssueSkillLevel: issue with multiple skill labels → returns highest',
+    test: () => {
+      const issue = { number: 1, title: 'Test', labels: [{ name: LABELS.GOOD_FIRST_ISSUE }, { name: LABELS.BEGINNER }, { name: LABELS.INTERMEDIATE }] };
+      return getHighestIssueSkillLevel(issue) === LABELS.INTERMEDIATE;
+    },
+  },
+  {
+    name: 'getHighestIssueSkillLevel: issue with empty labels → returns null',
+    test: () => {
+      const issue = { number: 1, title: 'Test', labels: [] };
+      return getHighestIssueSkillLevel(issue) === null;
+    },
+  },
+];
 // =============================================================================
 // TEST RUNNER
 // =============================================================================
