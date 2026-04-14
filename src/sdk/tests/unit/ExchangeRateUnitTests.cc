@@ -6,7 +6,6 @@
 
 #include <gtest/gtest.h>
 #include <services/exchange_rate.pb.h>
-#include <string>
 
 using namespace Hiero;
 
@@ -191,4 +190,47 @@ TEST_F(ExchangeRateUnitTests, OperatorEqualsDiff)
   EXPECT_FALSE(lhs == diffHbar);
   EXPECT_FALSE(lhs == diffCents);
   EXPECT_FALSE(lhs == diffExpirationTime);
+}
+
+//-----
+TEST_F(ExchangeRateUnitTests, ExchangeRatesOperatorEqualsDefaults)
+{
+  // Given
+  ExchangeRates lhs;
+  ExchangeRates rhs;
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(ExchangeRateUnitTests, ExchangeRatesOperatorEqualsSimilar)
+{
+  // Given
+  const ExchangeRate currentRate(getTestHbar(), getTestCents(), getTestExpirationTime());
+  const ExchangeRate nextRate(getTestHbar(), getTestCents(), getTestExpirationTime());
+  const ExchangeRates lhs(currentRate, nextRate);
+  const ExchangeRates rhs(currentRate, nextRate);
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(ExchangeRateUnitTests, ExchangeRatesOperatorEqualsDiff)
+{
+  // Given
+  const ExchangeRate currentRate(getTestHbar(), getTestCents(), getTestExpirationTime());
+  const ExchangeRate nextRate(getTestHbar(), getTestCents(), getTestExpirationTime());
+
+  const ExchangeRates lhs(currentRate, nextRate);
+  const ExchangeRates diffCurrentRate(ExchangeRate(3, getTestCents(), getTestExpirationTime()), nextRate);
+  const ExchangeRates diffNextRate(currentRate, ExchangeRate(getTestHbar(), 3, getTestExpirationTime()));
+  const ExchangeRates diffNextRateExpiration(
+    currentRate, ExchangeRate(getTestHbar(), getTestCents(), getTestExpirationTime() + std::chrono::seconds(1)));
+
+  // Then
+  EXPECT_FALSE(lhs == diffCurrentRate);
+  EXPECT_FALSE(lhs == diffNextRate);
+  EXPECT_FALSE(lhs == diffNextRateExpiration);
 }

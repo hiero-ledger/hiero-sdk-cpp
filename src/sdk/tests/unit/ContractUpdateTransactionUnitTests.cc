@@ -7,9 +7,9 @@
 #include "impl/DurationConverter.h"
 #include "impl/TimestampConverter.h"
 
-#include <services/contract_update.pb.h>
 #include <gtest/gtest.h>
 #include <limits>
+#include <services/contract_update.pb.h>
 #include <services/hook_types.pb.h>
 #include <services/transaction.pb.h>
 
