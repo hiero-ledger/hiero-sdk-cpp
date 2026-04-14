@@ -7,6 +7,7 @@
 #include "contract/params/ContractInfoQueryParams.h"
 #include "contract/params/CreateContractParams.h"
 #include "contract/params/DeleteContractParams.h"
+#include "contract/params/ExecuteContractParams.h"
 #include "key/KeyService.h"
 #include "sdk/SdkClient.h"
 
@@ -15,6 +16,7 @@
 #include <ContractCallQuery.h>
 #include <ContractCreateTransaction.h>
 #include <ContractDeleteTransaction.h>
+#include <ContractExecuteTransaction.h>
 #include <ContractFunctionResult.h>
 #include <ContractId.h>
 #include <ContractInfo.h>
@@ -168,6 +170,47 @@ nlohmann::json deleteContract(const DeleteContractParams& params)
     {"status",
      gStatusToString.at(
         contractDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+  };
+}
+
+//-----
+nlohmann::json executeContract(const ExecuteContractParams& params)
+{
+  ContractExecuteTransaction contractExecuteTransaction;
+  contractExecuteTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mContractId.has_value())
+  {
+    contractExecuteTransaction.setContractId(ContractId::fromString(params.mContractId.value()));
+  }
+
+  if (params.mGas.has_value())
+  {
+    contractExecuteTransaction.setGas(static_cast<uint64_t>(params.mGas.value()));
+  }
+
+  if (params.mAmount.has_value())
+  {
+    contractExecuteTransaction.setPayableAmount(
+      Hbar::fromTinybars(Hiero::internal::EntityIdHelper::getNum<int64_t>(params.mAmount.value())));
+  }
+
+  if (params.mFunctionParameters.has_value())
+  {
+    std::string functionParameters = stripHexPrefix(params.mFunctionParameters.value());
+    contractExecuteTransaction.setFunctionParameters(Hiero::internal::HexConverter::hexToBytes(functionParameters));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(contractExecuteTransaction, SdkClient::getClient());
+  }
+
+  const TransactionReceipt txReceipt =
+    contractExecuteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
+
+  return {
+    {"status", gStatusToString.at(txReceipt.mStatus)}
   };
 }
 
