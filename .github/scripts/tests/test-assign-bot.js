@@ -15,7 +15,7 @@ const script = require("../bot-on-comment.js");
 // MOCK GITHUB API
 // =============================================================================
 
-function createMockGithub(options = {}) {
+function createMockGithub(options = {}, issueFromPayload = null) {
   const {
     completedIssueCount = 0,
     completedIssueCounts = {},
@@ -30,6 +30,7 @@ function createMockGithub(options = {}) {
     reactionShouldFail = false,
     issueGetShouldFail = false,
     issueAssignees = null,
+    issueLabels = null,
   } = options;
 
   const calls = {
@@ -94,19 +95,28 @@ function createMockGithub(options = {}) {
           if (issueGetShouldFail) {
             throw new Error("Simulated issues.get failure");
           }
+          const freshLabels = Array.isArray(issueLabels)
+            ? issueLabels
+            : Array.isArray(issueFromPayload?.labels)
+              ? issueFromPayload.labels
+              : [];
           if (Array.isArray(issueAssignees)) {
             return {
               data: {
                 assignees: issueAssignees.map((login) => ({ login })),
+                labels: freshLabels,
               },
             };
           }
           if (options.issueAlreadyAssignedTo) {
             return {
-              data: { assignees: [{ login: options.issueAlreadyAssignedTo }] },
+              data: {
+                assignees: [{ login: options.issueAlreadyAssignedTo }],
+                labels: freshLabels,
+              },
             };
           }
-          return { data: { assignees: [] } };
+          return { data: { assignees: [], labels: freshLabels } };
         },
         listForRepo: async (params) => {
           calls.restCalls.push(
@@ -278,6 +288,95 @@ const scenarios = [
     expectedAssignee: null,
     expectedComments: [
       `👋 Hi @third-user! This issue is already assigned to @first-user, @second-user.\n\n👉 **Find another issue to work on:**\n[Browse unassigned issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)\n\nOnce you find one you like, comment \`/assign\` to get started!`,
+    ],
+  },
+  {
+    name: "Race Condition - Ready Label Removed While Queued",
+    description:
+      "Fresh fetch no longer has ready-for-dev label; bot must abort assignment",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 124,
+          assignees: [],
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 1025,
+          body: "/assign",
+          user: { login: "stale-ready-user", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: { issueLabels: [{ name: LABELS.GOOD_FIRST_ISSUE }] },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @stale-ready-user! This issue is not ready for development yet.\n\nIssues must have the \`status: ready for dev\` label before they can be assigned.\n\n👉 **Find an issue that's ready:**\n[Browse ready issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee+label%3A%22status%3A+ready+for+dev%22)\n\nOnce you find one you like, comment \`/assign\` to get started!`,
+    ],
+  },
+  {
+    name: "Race Condition - Skill Label Removed While Queued",
+    description:
+      "Fresh fetch no longer has any skill label; bot must abort and tag maintainers",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 125,
+          assignees: [],
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 1026,
+          body: "/assign",
+          user: { login: "stale-skill-user", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: { issueLabels: [{ name: LABELS.READY_FOR_DEV }] },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @stale-skill-user! This issue doesn't have a skill level label yet.\n\n@hiero-ledger/hiero-sdk-cpp-maintainers — could you please add one of the following labels?\n- \`skill: good first issue\`\n- \`skill: beginner\`\n- \`skill: intermediate\`\n- \`skill: advanced\`\n\n@stale-skill-user, once a maintainer adds the label, comment \`/assign\` again to request assignment.`,
+    ],
+  },
+  {
+    name: "Race Condition - Skill Label Changed to Different Level While Queued",
+    description:
+      "Fresh fetch shows a different skill level; bot must abort since prerequisite gates were run against stale level",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 126,
+          assignees: [],
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 1027,
+          body: "/assign",
+          user: { login: "skill-changed-user", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: {
+      issueLabels: [{ name: LABELS.READY_FOR_DEV }, { name: LABELS.BEGINNER }],
+    },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @skill-changed-user! The skill level for this issue changed while your assignment request was being processed.\n\n**Current label:** \`${LABELS.BEGINNER}\`\n**Previous label:** \`${LABELS.GOOD_FIRST_ISSUE}\`\n\nPlease comment \`/assign\` again to request assignment with the updated skill requirements.`,
     ],
   },
   {
@@ -1353,7 +1452,10 @@ async function runTest(scenario, index) {
   console.log(`Description: ${scenario.description}`);
   console.log("=".repeat(70));
 
-  const mockGithub = createMockGithub(scenario.githubOptions);
+  const mockGithub = createMockGithub(
+    scenario.githubOptions,
+    scenario.context?.payload?.issue,
+  );
 
   try {
     await script({ github: mockGithub, context: scenario.context });
