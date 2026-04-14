@@ -17,7 +17,8 @@ const {
   addAssignees,
   postComment,
   acknowledgeComment,
-} = require("../helpers");
+  getHighestIssueSkillLevel,
+} = require('../helpers');
 
 const {
   MAX_OPEN_ASSIGNMENTS,
@@ -29,6 +30,7 @@ const {
   buildNotReadyComment,
   buildPrerequisiteNotMetComment,
   buildNoSkillLevelComment,
+  buildSkillLevelChangedComment,
   buildAssignmentLimitExceededComment,
   buildGfiLimitExceededComment,
   buildApiErrorComment,
@@ -51,21 +53,6 @@ const logger = createDelegatingLogger();
  */
 function formatThresholdedCount(count, threshold) {
   return count >= threshold ? `${threshold}+` : String(count);
-}
-
-/**
- * Returns the skill-level label on an issue, checking in ascending order:
- * Good First Issue -> Beginner -> Intermediate -> Advanced.
- * Returns the first match, or null if the issue has no skill-level label.
- *
- * @param {{ labels: Array<string|{ name: string }> }} issue - The issue object from the GitHub payload.
- * @returns {string|null} The matching LABELS constant (e.g. LABELS.BEGINNER), or null.
- */
-function getIssueSkillLevel(issue) {
-  for (const level of SKILL_HIERARCHY) {
-    if (hasLabel(issue, level)) return level;
-  }
-  return null;
 }
 
 /**
@@ -417,7 +404,7 @@ async function validateIssueState(botContext, requesterUsername) {
     return null;
   }
 
-  const skillLevel = getIssueSkillLevel(botContext.issue);
+  const skillLevel = getHighestIssueSkillLevel(botContext.issue);
   if (!skillLevel) {
     logger.log("Exit: issue has no skill level label");
     await postComment(botContext, buildNoSkillLevelComment(requesterUsername));
@@ -554,6 +541,47 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
     return;
   }
 
+  // Revalidate labels from the fresh issue snapshot to prevent stale-event
+  // payload eligibility checks when labels change while this run is queued.
+  if (!hasLabel(freshIssue, LABELS.READY_FOR_DEV)) {
+    logger.log("Exit: fresh issue state is missing ready for dev label");
+    await postComment(
+      botContext,
+      buildNotReadyComment(
+        requesterUsername,
+        botContext.owner,
+        botContext.repo,
+      ),
+    );
+    return;
+  }
+
+  const freshSkillLevel = getIssueSkillLevel(freshIssue);
+  if (!freshSkillLevel) {
+    logger.log("Exit: fresh issue state has no skill level label");
+    await postComment(botContext, buildNoSkillLevelComment(requesterUsername));
+    return;
+  }
+
+  // If the skill level changed while this run was queued, the earlier prerequisite
+  // and GFI-cap gates were run against a stale label. Abort and ask user to retry.
+  if (freshSkillLevel !== skillLevel) {
+    logger.log("Exit: skill level changed while queued", {
+      stalePayloadLevel: skillLevel,
+      freshReadLevel: freshSkillLevel,
+    });
+    await postComment(
+      botContext,
+      buildSkillLevelChangedComment(
+        requesterUsername,
+        skillLevel,
+        freshSkillLevel,
+      ),
+    );
+    logger.log("Posted skill-level-changed comment");
+    return;
+  }
+
   const assignResult = await addAssignees(botContext, [requesterUsername]);
   if (!assignResult.success) {
     await postComment(
@@ -566,7 +594,7 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
 
   await postComment(
     botContext,
-    buildWelcomeComment(requesterUsername, skillLevel),
+    buildWelcomeComment(requesterUsername, freshSkillLevel),
   );
   logger.log("Posted welcome comment");
   await updateLabels(botContext, requesterUsername);
@@ -586,7 +614,9 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
  *   7. GFI cap reached (skill: good first issue only)? -> GFI-limit-exceeded comment.
  *   8. Skill prerequisites not met? -> prerequisite-not-met comment.
  *   9. Issue snatched while queued (fresh fetch)? -> already-assigned comment.
- *   10. Assignment API failure? -> assignment-failure comment (tags maintainers).
+ *   10. Fresh labels invalid while queued? -> not-ready/no-skill-level comment.
+ *   11. Skill level changed while queued? -> skill-level-changed comment (ask to retry).
+ *   12. Assignment API failure? -> assignment-failure comment (tags maintainers).
  *
  * If all checks pass, the bot assigns the issue, posts a welcome comment,
  * and swaps the "status: ready for dev" label with "status: in progress".
@@ -601,7 +631,9 @@ async function handleAssign(botContext) {
 
   const ack = await acknowledgeComment(botContext, botContext.comment.id);
   if (!ack.success) {
-    logger.log('Aborting /assign: triggering comment was deleted or could not be acknowledged');
+    logger.log(
+      "Aborting /assign: triggering comment was deleted or could not be acknowledged",
+    );
     return;
   }
 

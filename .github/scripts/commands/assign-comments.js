@@ -233,6 +233,31 @@ function buildNoSkillLevelComment(requesterUsername) {
 }
 
 /**
+ * Builds the comment posted when the issue's skill level changes while the
+ * assignment request is queued. Tells the requester to retry so eligibility
+ * checks run against the latest label state.
+ *
+ * @param {string} requesterUsername - The GitHub username who commented /assign.
+ * @param {string} previousSkillLevel - The skill level from the event payload.
+ * @param {string} currentSkillLevel - The skill level from the fresh issue snapshot.
+ * @returns {string} The formatted Markdown comment body.
+ */
+function buildSkillLevelChangedComment(
+  requesterUsername,
+  previousSkillLevel,
+  currentSkillLevel,
+) {
+  return [
+    `👋 Hi @${requesterUsername}! The skill level for this issue changed while your assignment request was being processed.`,
+    "",
+    `**Current label:** \`${currentSkillLevel}\``,
+    `**Previous label:** \`${previousSkillLevel}\``,
+    "",
+    "Please comment `/assign` again to request assignment with the updated skill requirements.",
+  ].join("\n");
+}
+
+/**
  * Builds a GitHub Issues search URL for the given repository and query string.
  *
  * @param {string} owner - Repository owner.
@@ -421,6 +446,7 @@ module.exports = {
   buildNotReadyComment,
   buildPrerequisiteNotMetComment,
   buildNoSkillLevelComment,
+  buildSkillLevelChangedComment,
   buildAssignmentLimitExceededComment,
   buildGfiLimitExceededComment,
   buildApiErrorComment,
