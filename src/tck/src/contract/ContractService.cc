@@ -34,6 +34,19 @@
 #include <string>
 #include <vector>
 
+namespace
+{
+std::string stripHexPrefix(std::string hex)
+{
+  if (hex.rfind("0x", 0) == 0 || hex.rfind("0X", 0) == 0)
+  {
+    hex = hex.substr(2);
+  }
+
+  return hex;
+}
+} // namespace
+
 namespace Hiero::TCK::ContractService
 {
 //-----
@@ -59,12 +72,7 @@ nlohmann::json createContract(const CreateContractParams& params)
 
   if (params.mConstructorParameters.has_value())
   {
-    std::string constructorParameters = params.mConstructorParameters.value();
-
-    if (constructorParameters.rfind("0x", 0) == 0 || constructorParameters.rfind("0X", 0) == 0)
-    {
-      constructorParameters = constructorParameters.substr(2);
-    }
+    std::string constructorParameters = stripHexPrefix(params.mConstructorParameters.value());
 
     contractCreateTransaction.setConstructorParameters(internal::HexConverter::hexToBytes(constructorParameters));
   }
@@ -159,7 +167,7 @@ nlohmann::json deleteContract(const DeleteContractParams& params)
   return {
     {"status",
      gStatusToString.at(
-       contractDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+        contractDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -213,12 +221,7 @@ nlohmann::json contractCallQuery(const ContractCallQueryParams& params)
 
     if (params.mFunctionParameters.has_value())
     {
-      std::string functionParameters = params.mFunctionParameters.value();
-
-      if (functionParameters.rfind("0x", 0) == 0 || functionParameters.rfind("0X", 0) == 0)
-      {
-        functionParameters = functionParameters.substr(2);
-      }
+      std::string functionParameters = stripHexPrefix(params.mFunctionParameters.value());
 
       std::vector<std::byte> callData = contractCallQuery.getFunctionParameters();
       std::vector<std::byte> encodedParameters = internal::HexConverter::hexToBytes(functionParameters);
@@ -229,12 +232,7 @@ nlohmann::json contractCallQuery(const ContractCallQueryParams& params)
   }
   else if (params.mFunctionParameters.has_value())
   {
-    std::string functionParameters = params.mFunctionParameters.value();
-
-    if (functionParameters.rfind("0x", 0) == 0 || functionParameters.rfind("0X", 0) == 0)
-    {
-      functionParameters = functionParameters.substr(2);
-    }
+    std::string functionParameters = stripHexPrefix(params.mFunctionParameters.value());
 
     contractCallQuery.setFunctionParameters(internal::HexConverter::hexToBytes(functionParameters));
   }
@@ -267,6 +265,7 @@ nlohmann::json contractCallQuery(const ContractCallQueryParams& params)
   }
   catch (const std::exception&)
   {
+    // result.getAddress(0) throws if the result contains no addresses; omit the field in that case
   }
 
   return response;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-#ifndef HIERO_TCK_CPP_BYTE_CODE_QUERY_PARAMS_H_
-#define HIERO_TCK_CPP_BYTE_CODE_QUERY_PARAMS_H_
+#ifndef HIERO_TCK_CPP_CONTRACT_BYTE_CODE_QUERY_PARAMS_H_
+#define HIERO_TCK_CPP_CONTRACT_BYTE_CODE_QUERY_PARAMS_H_
 
 #include "json/JsonUtils.h"
 
@@ -20,8 +20,14 @@ struct ContractByteCodeQueryParams
    */
   std::optional<std::string> mContractId;
 
+  /**
+   * The maximum payment amount willing to be paid for this query in tinybars.
+   */
   std::optional<std::string> mMaxQueryPayment;
 
+  /**
+   * The explicit payment amount for this query in tinybars.
+   */
   std::optional<std::string> mQueryPayment;
 };
 } // namespace Hiero::TCK::ContractService
@@ -51,4 +57,4 @@ struct [[maybe_unused]] adl_serializer<Hiero::TCK::ContractService::ContractByte
 };
 } // namespace nlohmann
 
-#endif // HIERO_TCK_CPP_BYTE_CODE_QUERY_PARAMS_H_
+#endif // HIERO_TCK_CPP_CONTRACT_BYTE_CODE_QUERY_PARAMS_H_
