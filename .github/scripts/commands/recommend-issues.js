@@ -216,7 +216,7 @@ async function getRecommendedIssues(botContext, username, skillLevel) {
 }
 
 /**
- * Builds a comment when no suitable issues are found.
+ * Builds a comment when no recommendations are available.
  *
  * @param {string} username
  * @param {string} skillLevel
@@ -226,11 +226,9 @@ function buildNoIssuesComment(username, skillLevel) {
     return [
         `👋 Hi @${username}! Great work on your recent contribution! 🎉`,
         '',
-        `I couldn't find any open issues at your current level right now.`,
+        `I couldn't find any open issues for your current level (${skillLevel}) right now.`,
         '',
-        `${MAINTAINER_TEAM} — it looks like our queue for **${skillLevel}** (and related) issues is empty!`,
-        '',
-        `Feel free to check back later or explore the repository for other ways to contribute.`,
+        `Keep an eye on the issue tracker, or check back later!`,
     ].join('\n');
 }
 
@@ -239,17 +237,18 @@ function buildNoIssuesComment(username, skillLevel) {
  *
  * - Determines skill level
  * - Fetches recommended issues
- * - Posts a comment if results exist
- *
- * Skips silently if context is incomplete or no results found.
- * Returns early on API failure .
+ * - Posts a recommendation comment if results exist
+ * - Posts a replenishment comment via {@link buildNoIssuesComment} if no results found, 
+ * logging 'recommendation.empty'
+ * * If {@link postComment} fails during the empty result flow, it logs 
+ * 'recommendation.postEmptyCommentFailed'.
  *
  * @param {{
- *   github: object,
- *   owner: string,
- *   repo: string,
- *   issue: object,
- *   sender: { login: string }
+ * github: object,
+ * owner: string,
+ * repo: string,
+ * issue: object,
+ * sender: { login: string }
  * }} botContext
  * @returns {Promise<void>}
  */
@@ -289,7 +288,6 @@ async function handleRecommendIssues(botContext) {
 
     if (issues.length === 0) {
         logger.log('recommendation.empty', { user: username });
-        
         const emptyComment = buildNoIssuesComment(username, skillLevel);
         const result = await postComment(botContext, emptyComment);
         
