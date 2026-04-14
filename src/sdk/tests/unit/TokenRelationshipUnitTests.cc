@@ -17,25 +17,24 @@ protected:
   [[nodiscard]] inline int getTestKycStatus() const { return mKycStatus; }
   [[nodiscard]] inline int getTestFreezeStatus() const { return mFreezeStatus; }
   [[nodiscard]] inline bool getTestAutomaticAssociation() const { return mAutomaticAssociation; }
-  
-  TokenRelationship createWithStatuses(int kyc, int freeze) {
-    return TokenRelationship(
-      getTestTokenId(), 
-      getTestSymbol(), 
-      getTestBalance(), 
-      getTestDecimals(), 
-      kyc, 
-      freeze, 
-      getTestAutomaticAssociation()
-    );
+
+  TokenRelationship createWithStatuses(int kyc, int freeze)
+  {
+    return TokenRelationship(getTestTokenId(),
+                             getTestSymbol(),
+                             getTestBalance(),
+                             getTestDecimals(),
+                             kyc,
+                             freeze,
+                             getTestAutomaticAssociation());
   }
 
 private:
   const TokenId mTokenId = TokenId(10ULL);
   const std::string mSymbol = "";
   const uint64_t mBalance = 3000LL;
-  const uint32_t mDecimals = 0; 
-  const int mKycStatus = 0;    
+  const uint32_t mDecimals = 0;
+  const int mKycStatus = 0;
   const int mFreezeStatus = 0;
   const bool mAutomaticAssociation = false;
 };
@@ -60,11 +59,13 @@ TEST_F(TokenRelationshipUnitTests, DefaultConstruction)
 TEST_F(TokenRelationshipUnitTests, ConstructWithParameters)
 {
   // Given / When
-  const TokenRelationship tokenRelationship(
-    getTestTokenId(), getTestSymbol(), getTestBalance(), 
-    getTestDecimals(), getTestKycStatus(), getTestFreezeStatus(), 
-    getTestAutomaticAssociation()
-  );
+  const TokenRelationship tokenRelationship(getTestTokenId(),
+                                            getTestSymbol(),
+                                            getTestBalance(),
+                                            getTestDecimals(),
+                                            getTestKycStatus(),
+                                            getTestFreezeStatus(),
+                                            getTestAutomaticAssociation());
 
   // Then
   EXPECT_EQ(tokenRelationship.mTokenId, getTestTokenId());
@@ -97,9 +98,9 @@ TEST_F(TokenRelationshipUnitTests, FromProtobuf)
   EXPECT_EQ(rel.mSymbol, getTestSymbol());
   EXPECT_EQ(rel.mBalance, getTestBalance());
   EXPECT_EQ(rel.mDecimals, getTestDecimals());
-  EXPECT_TRUE(rel.mKycStatus.has_value());
+  ASSERT_TRUE(rel.mKycStatus.has_value());
   EXPECT_TRUE(rel.mKycStatus.value());
-  EXPECT_TRUE(rel.mFreezeStatus.has_value());
+  ASSERT_TRUE(rel.mFreezeStatus.has_value());
   EXPECT_TRUE(rel.mFreezeStatus.value());
   EXPECT_TRUE(rel.mAutomaticAssociation);
 
@@ -112,9 +113,13 @@ TEST_F(TokenRelationshipUnitTests, FromProtobuf)
 TEST_F(TokenRelationshipUnitTests, ToProtobuf)
 {
   // Given
-  TokenRelationship rel(getTestTokenId(), getTestSymbol(), getTestBalance(), 
-    getTestDecimals(), getTestKycStatus(), getTestFreezeStatus(), getTestAutomaticAssociation()
-  );
+  TokenRelationship rel(getTestTokenId(),
+                        getTestSymbol(),
+                        getTestBalance(),
+                        getTestDecimals(),
+                        getTestKycStatus(),
+                        getTestFreezeStatus(),
+                        getTestAutomaticAssociation());
 
   // When
   auto protoRel = rel.toProtobuf();
@@ -152,7 +157,7 @@ TEST_F(TokenRelationshipUnitTests, ToStringDefaultValues)
 TEST_F(TokenRelationshipUnitTests, ToStringWithStatuses)
 {
   // Given
-  TokenRelationship rel = createWithStatuses(1,1);
+  TokenRelationship rel = createWithStatuses(1, 1);
 
   // When
   std::string result = rel.toString();
@@ -169,21 +174,16 @@ TEST_F(TokenRelationshipUnitTests, SetGetFreezeStatus)
   TokenRelationship relFrozen = createWithStatuses(getTestKycStatus(), 1);
   TokenRelationship relUnfrozen = createWithStatuses(getTestKycStatus(), 2);
   TokenRelationship relNotApplicable = createWithStatuses(getTestKycStatus(), 0);
-  
+
   // Then
-  EXPECT_TRUE(relFrozen.mFreezeStatus.has_value());
+  ASSERT_TRUE(relFrozen.mFreezeStatus.has_value());
   EXPECT_TRUE(relFrozen.mFreezeStatus.value());
-  EXPECT_TRUE(relUnfrozen.mFreezeStatus.has_value());
+  ASSERT_TRUE(relUnfrozen.mFreezeStatus.has_value());
   EXPECT_FALSE(relUnfrozen.mFreezeStatus.value());
   EXPECT_FALSE(relNotApplicable.mFreezeStatus.has_value());
-  EXPECT_THROW(
-    TokenRelationship relInvalidFreeze = createWithStatuses(getTestKycStatus(), 3);
-    , std::invalid_argument
-  );
-  EXPECT_THROW(
-    TokenRelationship relInvalidFreeze1 = createWithStatuses(getTestKycStatus(), -1);
-    , std::invalid_argument
-  );
+  EXPECT_THROW(TokenRelationship relInvalidFreeze = createWithStatuses(getTestKycStatus(), 3);, std::invalid_argument);
+  EXPECT_THROW(TokenRelationship relInvalidFreeze1 = createWithStatuses(getTestKycStatus(), -1);
+               , std::invalid_argument);
 }
 
 //-----
@@ -193,19 +193,14 @@ TEST_F(TokenRelationshipUnitTests, SetGetKycStatus)
   TokenRelationship relGranted = createWithStatuses(1, getTestFreezeStatus());
   TokenRelationship relRevoked = createWithStatuses(2, getTestFreezeStatus());
   TokenRelationship relNotApplicable = createWithStatuses(0, getTestFreezeStatus());
-  
+
   // Then
-  EXPECT_TRUE(relGranted.mKycStatus.has_value());
+  ASSERT_TRUE(relGranted.mKycStatus.has_value());
   EXPECT_TRUE(relGranted.mKycStatus.value());
-  EXPECT_TRUE(relRevoked.mKycStatus.has_value());
+  ASSERT_TRUE(relRevoked.mKycStatus.has_value());
   EXPECT_FALSE(relRevoked.mKycStatus.value());
-  EXPECT_FALSE(relNotApplicable.mKycStatus.has_value( ));
-  EXPECT_THROW(
-    TokenRelationship relInvalidKyc = createWithStatuses(3, getTestFreezeStatus());
-    , std::invalid_argument
-  );
-  EXPECT_THROW(
-    TokenRelationship relInvalidKyc1 = createWithStatuses(-1, getTestFreezeStatus());
-    , std::invalid_argument
-  );
+  EXPECT_FALSE(relNotApplicable.mKycStatus.has_value());
+  EXPECT_THROW(TokenRelationship relInvalidKyc = createWithStatuses(3, getTestFreezeStatus());, std::invalid_argument);
+  EXPECT_THROW(TokenRelationship relInvalidKyc1 = createWithStatuses(-1, getTestFreezeStatus());
+               , std::invalid_argument);
 }
