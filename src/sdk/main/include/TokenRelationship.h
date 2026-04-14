@@ -28,7 +28,7 @@ namespace Hiero
 class TokenRelationship
 {
 public:
-  TokenRelationship() = default;
+  TokenRelationship();
 
   /**
    * Constructor for TokenRelationship.
