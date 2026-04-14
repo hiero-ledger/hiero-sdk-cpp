@@ -51,6 +51,7 @@ add_executable(${TEST_PROJECT_NAME}
         EvmHookSpecUnitTests.cc
         ExchangeRateUnitTests.cc
         FeeAssessmentMethodUnitTests.cc
+        FeeComponentsUnitTests.cc
         FileAppendTransactionUnitTests.cc
         FileContentsQueryUnitTests.cc
         FileCreateTransactionUnitTests.cc
