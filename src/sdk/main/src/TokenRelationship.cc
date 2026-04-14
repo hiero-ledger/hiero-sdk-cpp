@@ -7,6 +7,18 @@
 using namespace Hiero;
 
 //-----
+TokenRelationship::TokenRelationship()
+  : mTokenId()
+  , mSymbol("")
+  , mBalance(0)
+  , mDecimals(0)
+  , mKycStatus()
+  , mFreezeStatus()
+  , mAutomaticAssociation(false)
+{
+}
+
+//-----
 TokenRelationship::TokenRelationship(const TokenId& tokenId,
                                      const std::string& symbol,
                                      uint64_t balance,

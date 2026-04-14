@@ -43,12 +43,12 @@ private:
 TEST_F(TokenRelationshipUnitTests, DefaultConstruction)
 {
   // Given / When
-  const TokenRelationship tokenRelationship;
+  TokenRelationship tokenRelationship;
 
   // Then
   EXPECT_EQ(tokenRelationship.mTokenId, TokenId());
   EXPECT_EQ(tokenRelationship.mSymbol, "");
-  EXPECT_EQ(tokenRelationship.mBalance, 0LL);
+  EXPECT_EQ(tokenRelationship.mBalance, 0);
   EXPECT_EQ(tokenRelationship.mDecimals, 0);
   EXPECT_FALSE(tokenRelationship.mKycStatus.has_value());
   EXPECT_FALSE(tokenRelationship.mFreezeStatus.has_value());
