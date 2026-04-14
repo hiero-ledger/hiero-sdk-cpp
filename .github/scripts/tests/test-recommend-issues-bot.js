@@ -9,7 +9,6 @@ const { runTestSuite } = require('./test-utils');
 const { LABELS, SKILL_HIERARCHY, MAINTAINER_TEAM } = require('../helpers/constants');
 const {
   handleRecommendIssues,
-  getIssueSkillLevel,
   getNextLevel,
   getFallbackLevel,
   getRecommendedIssues,
@@ -74,38 +73,6 @@ const TOP      = SKILL_HIERARCHY[SKILL_HIERARCHY.length - 1];
 // =============================================================================
 
 const unitTests = [
-
-  // ---------------------------------------------------------------------------
-  // getIssueSkillLevel
-  // ---------------------------------------------------------------------------
-  {
-    name: 'getIssueSkillLevel: issue with one skill label → returns that level',
-    test: () => {
-      const issue = makeIssue([BEGINNER, LABELS.READY_FOR_DEV]);
-      return getIssueSkillLevel(issue) === BEGINNER;
-    },
-  },
-  {
-    name: 'getIssueSkillLevel: issue with no skill labels → returns null',
-    test: () => {
-      const issue = makeIssue(['bug', 'enhancement']);
-      return getIssueSkillLevel(issue) === null;
-    },
-  },
-  {
-    name: 'getIssueSkillLevel: issue with multiple skill labels → returns highest',
-    test: () => {
-      // recommend-issues iterates reversed, so highest wins
-      const issue = makeIssue([GFI, BEGINNER, MID]);
-      return getIssueSkillLevel(issue) === MID;
-    },
-  },
-  {
-    name: 'getIssueSkillLevel: issue with empty labels → returns null',
-    test: () => {
-      return getIssueSkillLevel(makeIssue([])) === null;
-    },
-  },
 
   // ---------------------------------------------------------------------------
   // getNextLevel

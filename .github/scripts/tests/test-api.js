@@ -14,6 +14,7 @@ const {
   swapStatusLabel,
   hasLabel,
   resolveLinkedIssue,
+  getHighestIssueSkillLevel,
 } = require('../helpers/api');
 const { LABELS } = require('../helpers/constants');
 const { isSafeSearchToken } = require('../helpers/validation');
@@ -404,9 +405,9 @@ const unitTests = [
     },
   },
   {
-    name: 'resolveLinkedIssue: single linked issue → returns it',
+    name: 'resolveLinkedIssue: single linked issue with skill label → returns it',
     test: async () => {
-      const issueData = { number: 10, title: 'Fix bug', labels: [] };
+      const issueData = { number: 10, title: 'Fix bug', labels: [{ name: LABELS.BEGINNER }] };
       const { botContext } = createMockBotContext({
         graphql: async () => ({
           repository: {
@@ -422,7 +423,28 @@ const unitTests = [
     },
   },
   {
-    name: 'resolveLinkedIssue: multiple linked issues → returns highest skill level',
+    name: 'resolveLinkedIssue: single linked issue with no skill label → returns null',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: {
+                nodes: [{ number: 7 }],
+              },
+            },
+          },
+        }),
+        issues: {
+          7: { number: 7, title: 'Issue 7', labels: [{ name: 'bug' }] },
+        },
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result === null;
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: multiple linked issues with skill label → returns highest skill level',
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -445,7 +467,7 @@ const unitTests = [
     },
   },
   {
-    name: 'resolveLinkedIssue: multiple issues, none with skill label → returns first fetched issue',
+    name: 'resolveLinkedIssue: multiple linked issues with no skill label → returns null',
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -463,8 +485,7 @@ const unitTests = [
         },
       });
       const result = await resolveLinkedIssue(botContext);
-      // No skill labels — reduce stays on first, so issue 4
-      return result !== null && result.number === 4;
+      return result === null;
     },
   },
   {
@@ -600,8 +621,39 @@ const unitTests = [
     name: 'isSafeSearchToken: string with multiple brackets → false',
     test: () => isSafeSearchToken('bad[[admin]') === false,
   },
-];
 
+  // ---------------------------------------------------------------------------
+  // getHighestIssueSkillLevel
+  // ---------------------------------------------------------------------------
+  {
+    name: 'getHighestIssueSkillLevel: issue with one skill label → returns that level',
+    test: () => {
+      const issue = { number: 1, title: 'Test', labels: [{ name: LABELS.BEGINNER }, { name: LABELS.READY_FOR_DEV }] };
+      return getHighestIssueSkillLevel(issue) === LABELS.BEGINNER;
+    },
+  },
+  {
+    name: 'getHighestIssueSkillLevel: issue with no skill labels → returns null',
+    test: () => {
+      const issue = { number: 1, title: 'Test', labels: [{ name: 'bug' }, { name: 'enhancement' }] };
+      return getHighestIssueSkillLevel(issue) === null;
+    },
+  },
+  {
+    name: 'getHighestIssueSkillLevel: issue with multiple skill labels → returns highest',
+    test: () => {
+      const issue = { number: 1, title: 'Test', labels: [{ name: LABELS.GOOD_FIRST_ISSUE }, { name: LABELS.BEGINNER }, { name: LABELS.INTERMEDIATE }] };
+      return getHighestIssueSkillLevel(issue) === LABELS.INTERMEDIATE;
+    },
+  },
+  {
+    name: 'getHighestIssueSkillLevel: issue with empty labels → returns null',
+    test: () => {
+      const issue = { number: 1, title: 'Test', labels: [] };
+      return getHighestIssueSkillLevel(issue) === null;
+    },
+  },
+];
 // =============================================================================
 // TEST RUNNER
 // =============================================================================

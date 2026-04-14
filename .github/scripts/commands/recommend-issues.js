@@ -13,6 +13,7 @@ const {
     hasLabel,
     postComment,
     getLogger,
+    getHighestIssueSkillLevel,
 } = require('../helpers');
 
 // Logger delegation 
@@ -20,21 +21,6 @@ const logger = {
     log: (...args) => getLogger().log(...args),
     error: (...args) => getLogger().error(...args),
 };
-
-/**
- * Returns the highest difficulty level of an issue based on its labels.
- *
- * Checks labels against SKILL_HIERARCHY in descending order and returns the first match.
- *
- * @param {{ labels: Array<string|{ name: string }> }} issue
- * @returns {string|null} Matching level or null if none found.
- */
-function getIssueSkillLevel(issue) {
-    for (const level of [...SKILL_HIERARCHY].reverse()) {
-        if (hasLabel(issue, level)) return level;
-    }
-    return null;
-}
 
 /**
  * Returns the next difficulty level in the hierarchy.
@@ -246,7 +232,7 @@ async function handleRecommendIssues(botContext) {
         return;
     }
 
-    const skillLevel = getIssueSkillLevel(botContext.issue);
+    const skillLevel = getHighestIssueSkillLevel(botContext.issue);
     if (!skillLevel) {
         logger.log('No skill level found, skipping recommendation', {
             issueNumber: botContext.issue?.number,
@@ -293,7 +279,6 @@ async function handleRecommendIssues(botContext) {
 
 module.exports = { 
     handleRecommendIssues,
-    getIssueSkillLevel,
     getNextLevel,
     getFallbackLevel,
     getRecommendedIssues,

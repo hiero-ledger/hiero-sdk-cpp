@@ -3407,8 +3407,10 @@ TEST_F(TransactionUnitTests, ChunkedTransactionConstructorRejectsMixedTypes)
   tx2.set_signedtransactionbytes(signedTx2.SerializeAsString());
 
   std::map<TransactionId, std::map<AccountId, proto::Transaction>> transactions;
-  const auto txIdKey1 = TransactionId::withValidStart(AccountId(201), std::chrono::system_clock::from_time_t(1700000020));
-  const auto txIdKey2 = TransactionId::withValidStart(AccountId(201), std::chrono::system_clock::from_time_t(1700000021));
+  const auto txIdKey1 =
+    TransactionId::withValidStart(AccountId(201), std::chrono::system_clock::from_time_t(1700000020));
+  const auto txIdKey2 =
+    TransactionId::withValidStart(AccountId(201), std::chrono::system_clock::from_time_t(1700000021));
   transactions[txIdKey1][AccountId(3)] = tx1;
   transactions[txIdKey2][AccountId(3)] = tx2;
 
