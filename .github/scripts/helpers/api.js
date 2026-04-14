@@ -23,7 +23,7 @@ const { buildBotComment } = require('./comments');
  *
  * @param {{ github: object, context: object }} args - The arguments from the workflow.
  * @returns {{ github: object, owner: string, repo: string, eventType: string, ... }}
- *   - pull_request / pull_request_target: also number, pr
+ *   - pull_request / pull_request_target / pull_request_review: also number, pr
  *   - issues: also number, issue
  *   - issue_comment: also number, issue, comment
  * @throws {Error} If input is invalid or event type is unsupported.
@@ -51,7 +51,8 @@ function buildBotContext({ github, context }) {
   let payloadPart;
   switch (eventType) {
     case 'pull_request':
-    case 'pull_request_target': {
+    case 'pull_request_target':
+    case 'pull_request_review': {
       const pr = payload.pull_request;
       requireObject(pr, 'context.payload.pull_request');
       requirePositiveInt(pr.number, 'pull_request.number');
