@@ -556,7 +556,7 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
     return;
   }
 
-  const freshSkillLevel = getIssueSkillLevel(freshIssue);
+  const freshSkillLevel = getHighestIssueSkillLevel(freshIssue);
   if (!freshSkillLevel) {
     logger.log("Exit: fresh issue state has no skill level label");
     await postComment(botContext, buildNoSkillLevelComment(requesterUsername));
