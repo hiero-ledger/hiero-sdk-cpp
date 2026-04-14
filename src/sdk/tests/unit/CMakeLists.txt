@@ -124,6 +124,7 @@ add_executable(${TEST_PROJECT_NAME}
         TokenNftTransferUnitTests.cc
         TokenPauseTransactionUnitTests.cc
         TokenRejectTransactionUnitTests.cc
+        TokenRelationshipUnitTests.cc
         TokenRevokeKycTransactionUnitTests.cc
         TokenSupplyTypeUnitTests.cc
         TokenTransferHookUnitTests.cc
