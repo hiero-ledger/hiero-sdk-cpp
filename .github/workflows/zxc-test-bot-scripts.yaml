@@ -60,3 +60,6 @@ jobs:
 
       - name: Run On-Comment (Assign) Bot Tests
         run: node .github/scripts/tests/test-assign-bot.js
+
+      - name: Run On-PR-Review Bot Tests
+        run: node .github/scripts/tests/test-on-pr-review-bot.js

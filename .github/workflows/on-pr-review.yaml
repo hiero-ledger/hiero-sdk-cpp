@@ -1,0 +1,36 @@
+name: Bot - On PR Review
+
+on:
+  pull_request_review:
+    types:
+      - submitted
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  on-pr-review:
+    runs-on: hiero-client-sdk-linux-large
+    if: github.event.pull_request.draft == false
+
+    concurrency:
+      group: pr-bot-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout Repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run Bot
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const script = require('./.github/scripts/bot-on-pr-review.js');
+            await script({ github, context });
