@@ -192,13 +192,13 @@ nlohmann::json executeContract(const ExecuteContractParams& params)
   if (params.mAmount.has_value())
   {
     contractExecuteTransaction.setPayableAmount(
-      Hbar::fromTinybars(Hiero::internal::EntityIdHelper::getNum<int64_t>(params.mAmount.value())));
+      Hbar::fromTinybars(internal::EntityIdHelper::getNum<int64_t>(params.mAmount.value())));
   }
 
   if (params.mFunctionParameters.has_value())
   {
     std::string functionParameters = stripHexPrefix(params.mFunctionParameters.value());
-    contractExecuteTransaction.setFunctionParameters(Hiero::internal::HexConverter::hexToBytes(functionParameters));
+    contractExecuteTransaction.setFunctionParameters(internal::HexConverter::hexToBytes(functionParameters));
   }
 
   if (params.mCommonTxParams.has_value())
