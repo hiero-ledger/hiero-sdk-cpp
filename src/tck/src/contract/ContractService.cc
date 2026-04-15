@@ -53,71 +53,6 @@ std::string stripHexPrefix(std::string hex)
 
 namespace Hiero::TCK::ContractService
 {
-namespace
-{
-void applyUpdateContractCoreFields(const UpdateContractParams& params, ContractUpdateTransaction& transaction)
-{
-  if (params.mContractId.has_value())
-  {
-    transaction.setContractId(ContractId::fromString(params.mContractId.value()));
-  }
-
-  if (params.mAdminKey.has_value())
-  {
-    transaction.setAdminKey(KeyService::getHieroKey(params.mAdminKey.value()));
-  }
-
-  if (params.mExpirationTime.has_value())
-  {
-    transaction.setExpirationTime(
-      std::chrono::system_clock::from_time_t(0) +
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(params.mExpirationTime.value())));
-  }
-
-  if (params.mAutoRenewAccountId.has_value())
-  {
-    transaction.setAutoRenewAccountId(AccountId::fromString(params.mAutoRenewAccountId.value()));
-  }
-}
-
-void applyUpdateContractRenewalFields(const UpdateContractParams& params, ContractUpdateTransaction& transaction)
-{
-  if (params.mAutoRenewPeriod.has_value())
-  {
-    transaction.setAutoRenewPeriod(
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(params.mAutoRenewPeriod.value())));
-  }
-
-  if (params.mMemo.has_value())
-  {
-    transaction.setContractMemo(params.mMemo.value());
-  }
-
-  if (params.mMaxAutomaticTokenAssociations.has_value())
-  {
-    transaction.setMaxAutomaticTokenAssociations(params.mMaxAutomaticTokenAssociations.value());
-  }
-}
-
-void applyUpdateContractStakingFields(const UpdateContractParams& params, ContractUpdateTransaction& transaction)
-{
-  if (params.mStakedAccountId.has_value())
-  {
-    transaction.setStakedAccountId(AccountId::fromString(params.mStakedAccountId.value()));
-  }
-
-  if (params.mStakedNodeId.has_value())
-  {
-    transaction.setStakedNodeId(internal::EntityIdHelper::getNum<int64_t>(params.mStakedNodeId.value()));
-  }
-
-  if (params.mDeclineStakingReward.has_value())
-  {
-    transaction.setDeclineStakingReward(params.mDeclineStakingReward.value());
-  }
-}
-} // namespace
-
 //-----
 nlohmann::json createContract(const CreateContractParams& params)
 {
@@ -197,8 +132,8 @@ nlohmann::json createContract(const CreateContractParams& params)
     contractCreateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
 
   return {
-    { "contractId", txReceipt.mContractId.value().toString() },
-    { "status",     gStatusToString.at(txReceipt.mStatus)    }
+    {"contractId", txReceipt.mContractId.value().toString()},
+    { "status",    gStatusToString.at(txReceipt.mStatus)   }
   };
 }
 
@@ -234,9 +169,9 @@ nlohmann::json deleteContract(const DeleteContractParams& params)
   }
 
   return {
-    { "status",
+    {"status",
      gStatusToString.at(
-        contractDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
+        contractDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
@@ -246,9 +181,58 @@ nlohmann::json updateContract(const UpdateContractParams& params)
   ContractUpdateTransaction contractUpdateTransaction;
   contractUpdateTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
 
-  applyUpdateContractCoreFields(params, contractUpdateTransaction);
-  applyUpdateContractRenewalFields(params, contractUpdateTransaction);
-  applyUpdateContractStakingFields(params, contractUpdateTransaction);
+  if (params.mContractId.has_value())
+  {
+    contractUpdateTransaction.setContractId(ContractId::fromString(params.mContractId.value()));
+  }
+
+  if (params.mAdminKey.has_value())
+  {
+    contractUpdateTransaction.setAdminKey(KeyService::getHieroKey(params.mAdminKey.value()));
+  }
+
+  if (params.mExpirationTime.has_value())
+  {
+    contractUpdateTransaction.setExpirationTime(
+      std::chrono::system_clock::from_time_t(0) +
+      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(params.mExpirationTime.value())));
+  }
+
+  if (params.mAutoRenewAccountId.has_value())
+  {
+    contractUpdateTransaction.setAutoRenewAccountId(AccountId::fromString(params.mAutoRenewAccountId.value()));
+  }
+
+  if (params.mAutoRenewPeriod.has_value())
+  {
+    contractUpdateTransaction.setAutoRenewPeriod(
+      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(params.mAutoRenewPeriod.value())));
+  }
+
+  if (params.mMemo.has_value())
+  {
+    contractUpdateTransaction.setContractMemo(params.mMemo.value());
+  }
+
+  if (params.mMaxAutomaticTokenAssociations.has_value())
+  {
+    contractUpdateTransaction.setMaxAutomaticTokenAssociations(params.mMaxAutomaticTokenAssociations.value());
+  }
+
+  if (params.mStakedAccountId.has_value())
+  {
+    contractUpdateTransaction.setStakedAccountId(AccountId::fromString(params.mStakedAccountId.value()));
+  }
+
+  if (params.mStakedNodeId.has_value())
+  {
+    contractUpdateTransaction.setStakedNodeId(internal::EntityIdHelper::getNum<int64_t>(params.mStakedNodeId.value()));
+  }
+
+  if (params.mDeclineStakingReward.has_value())
+  {
+    contractUpdateTransaction.setDeclineStakingReward(params.mDeclineStakingReward.value());
+  }
 
   if (params.mCommonTxParams.has_value())
   {
@@ -259,7 +243,7 @@ nlohmann::json updateContract(const UpdateContractParams& params)
     contractUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
 
   return {
-    { "status", gStatusToString.at(txReceipt.mStatus) }
+    {"status", gStatusToString.at(txReceipt.mStatus)}
   };
 }
 
@@ -300,7 +284,7 @@ nlohmann::json executeContract(const ExecuteContractParams& params)
     contractExecuteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
 
   return {
-    { "status", gStatusToString.at(txReceipt.mStatus) }
+    {"status", gStatusToString.at(txReceipt.mStatus)}
   };
 }
 
@@ -328,7 +312,7 @@ nlohmann::json contractByteCodeQuery(const ContractByteCodeQueryParams& params)
   const ContractByteCode byteCode = contractByteCodeQuery.execute(SdkClient::getClient());
 
   return {
-    { "bytecode", internal::HexConverter::bytesToHex(byteCode) }
+    {"bytecode", internal::HexConverter::bytesToHex(byteCode)}
   };
 }
 
@@ -383,13 +367,13 @@ nlohmann::json contractCallQuery(const ContractCallQueryParams& params)
   const ContractFunctionResult result = contractCallQuery.execute(SdkClient::getClient());
 
   nlohmann::json response = {
-    { "contractId",   result.mContractId.toString()                                  },
-    { "rawResult",    internal::HexConverter::bytesToHex(result.mContractCallResult) },
-    { "gasUsed",      std::to_string(result.mGasUsed)                                },
-    { "errorMessage", result.mErrorMessage                                           },
-    { "bloom",        internal::HexConverter::bytesToHex(result.mBloom)              },
-    { "gas",          std::to_string(result.mGas)                                    },
-    { "amount",       std::to_string(result.mHbarAmount.toTinybars())                }
+    {"contractId",    result.mContractId.toString()                                 },
+    { "rawResult",    internal::HexConverter::bytesToHex(result.mContractCallResult)},
+    { "gasUsed",      std::to_string(result.mGasUsed)                               },
+    { "errorMessage", result.mErrorMessage                                          },
+    { "bloom",        internal::HexConverter::bytesToHex(result.mBloom)             },
+    { "gas",          std::to_string(result.mGas)                                   },
+    { "amount",       std::to_string(result.mHbarAmount.toTinybars())               }
   };
 
   try
