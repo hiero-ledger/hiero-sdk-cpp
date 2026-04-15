@@ -18,6 +18,7 @@
 #include "contract/params/ContractInfoQueryParams.h"
 #include "contract/params/CreateContractParams.h"
 #include "contract/params/DeleteContractParams.h"
+#include "contract/params/ExecuteContractParams.h"
 #include "file/FileService.h"
 #include "file/params/AppendFileParams.h"
 #include "file/params/CreateFileParams.h"
@@ -120,6 +121,7 @@ TckServer::TckServer(int port)
   mJsonRpcParser.addMethod("contractCallQuery", getHandle(ContractService::contractCallQuery));
   mJsonRpcParser.addMethod("contractInfoQuery", getHandle(ContractService::contractInfoQuery));
   mJsonRpcParser.addMethod("deleteContract", getHandle(ContractService::deleteContract));
+  mJsonRpcParser.addMethod("executeContract", getHandle(ContractService::executeContract));
 
   // Add the FileService functions.
   mJsonRpcParser.addMethod("appendFile", getHandle(FileService::appendFile));
@@ -207,6 +209,8 @@ template TckServer::MethodHandle TckServer::getHandle<ContractService::ContractI
   nlohmann::json (*method)(const ContractService::ContractInfoQueryParams&));
 template TckServer::MethodHandle TckServer::getHandle<ContractService::DeleteContractParams>(
   nlohmann::json (*method)(const ContractService::DeleteContractParams&));
+template TckServer::MethodHandle TckServer::getHandle<ContractService::ExecuteContractParams>(
+  nlohmann::json (*method)(const ContractService::ExecuteContractParams&));
 template TckServer::MethodHandle TckServer::getHandle<KeyService::GenerateKeyParams>(
   nlohmann::json (*method)(const KeyService::GenerateKeyParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::CreateTokenParams>(

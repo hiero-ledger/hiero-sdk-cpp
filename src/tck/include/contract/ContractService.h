@@ -14,6 +14,7 @@ struct CreateContractParams;
 struct ContractByteCodeQueryParams;
 struct ContractCallQueryParams;
 struct ContractInfoQueryParams;
+struct ExecuteContractParams;
 
 /**
  * Delete a contract.
@@ -54,6 +55,14 @@ nlohmann::json contractCallQuery(const ContractCallQueryParams& params);
  * @return A JSON response containing contract metadata fields.
  */
 nlohmann::json contractInfoQuery(const ContractInfoQueryParams& params);
+
+/**
+ * Execute a contract function.
+ *
+ * @param params The parameters to use to execute a contract function.
+ * @return A JSON response containing the status of the contract execute.
+ */
+nlohmann::json executeContract(const ExecuteContractParams& params);
 } // namespace Hiero::TCK::ContractService
 
 #endif // HIERO_TCK_CPP_CONTRACT_SERVICE_H_
