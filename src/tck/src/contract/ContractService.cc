@@ -53,6 +53,71 @@ std::string stripHexPrefix(std::string hex)
 
 namespace Hiero::TCK::ContractService
 {
+namespace
+{
+void applyUpdateContractCoreFields(const UpdateContractParams& params, ContractUpdateTransaction& transaction)
+{
+  if (params.mContractId.has_value())
+  {
+    transaction.setContractId(ContractId::fromString(params.mContractId.value()));
+  }
+
+  if (params.mAdminKey.has_value())
+  {
+    transaction.setAdminKey(KeyService::getHieroKey(params.mAdminKey.value()));
+  }
+
+  if (params.mExpirationTime.has_value())
+  {
+    transaction.setExpirationTime(
+      std::chrono::system_clock::from_time_t(0) +
+      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(params.mExpirationTime.value())));
+  }
+
+  if (params.mAutoRenewAccountId.has_value())
+  {
+    transaction.setAutoRenewAccountId(AccountId::fromString(params.mAutoRenewAccountId.value()));
+  }
+}
+
+void applyUpdateContractRenewalFields(const UpdateContractParams& params, ContractUpdateTransaction& transaction)
+{
+  if (params.mAutoRenewPeriod.has_value())
+  {
+    transaction.setAutoRenewPeriod(
+      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(params.mAutoRenewPeriod.value())));
+  }
+
+  if (params.mMemo.has_value())
+  {
+    transaction.setContractMemo(params.mMemo.value());
+  }
+
+  if (params.mMaxAutomaticTokenAssociations.has_value())
+  {
+    transaction.setMaxAutomaticTokenAssociations(params.mMaxAutomaticTokenAssociations.value());
+  }
+}
+
+void applyUpdateContractStakingFields(const UpdateContractParams& params, ContractUpdateTransaction& transaction)
+{
+  if (params.mStakedAccountId.has_value())
+  {
+    transaction.setStakedAccountId(AccountId::fromString(params.mStakedAccountId.value()));
+  }
+
+  if (params.mStakedNodeId.has_value())
+  {
+    transaction.setStakedNodeId(internal::EntityIdHelper::getNum<int64_t>(params.mStakedNodeId.value()));
+  }
+
+  if (params.mDeclineStakingReward.has_value())
+  {
+    transaction.setDeclineStakingReward(params.mDeclineStakingReward.value());
+  }
+}
+} // namespace
+
 //-----
 nlohmann::json createContract(const CreateContractParams& params)
 {
@@ -181,58 +246,9 @@ nlohmann::json updateContract(const UpdateContractParams& params)
   ContractUpdateTransaction contractUpdateTransaction;
   contractUpdateTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
 
-  if (params.mContractId.has_value())
-  {
-    contractUpdateTransaction.setContractId(ContractId::fromString(params.mContractId.value()));
-  }
-
-  if (params.mAdminKey.has_value())
-  {
-    contractUpdateTransaction.setAdminKey(KeyService::getHieroKey(params.mAdminKey.value()));
-  }
-
-  if (params.mExpirationTime.has_value())
-  {
-    contractUpdateTransaction.setExpirationTime(
-      std::chrono::system_clock::from_time_t(0) +
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(params.mExpirationTime.value())));
-  }
-
-  if (params.mAutoRenewAccountId.has_value())
-  {
-    contractUpdateTransaction.setAutoRenewAccountId(AccountId::fromString(params.mAutoRenewAccountId.value()));
-  }
-
-  if (params.mAutoRenewPeriod.has_value())
-  {
-    contractUpdateTransaction.setAutoRenewPeriod(
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(params.mAutoRenewPeriod.value())));
-  }
-
-  if (params.mMemo.has_value())
-  {
-    contractUpdateTransaction.setContractMemo(params.mMemo.value());
-  }
-
-  if (params.mMaxAutomaticTokenAssociations.has_value())
-  {
-    contractUpdateTransaction.setMaxAutomaticTokenAssociations(params.mMaxAutomaticTokenAssociations.value());
-  }
-
-  if (params.mStakedAccountId.has_value())
-  {
-    contractUpdateTransaction.setStakedAccountId(AccountId::fromString(params.mStakedAccountId.value()));
-  }
-
-  if (params.mStakedNodeId.has_value())
-  {
-    contractUpdateTransaction.setStakedNodeId(internal::EntityIdHelper::getNum<int64_t>(params.mStakedNodeId.value()));
-  }
-
-  if (params.mDeclineStakingReward.has_value())
-  {
-    contractUpdateTransaction.setDeclineStakingReward(params.mDeclineStakingReward.value());
-  }
+  applyUpdateContractCoreFields(params, contractUpdateTransaction);
+  applyUpdateContractRenewalFields(params, contractUpdateTransaction);
+  applyUpdateContractStakingFields(params, contractUpdateTransaction);
 
   if (params.mCommonTxParams.has_value())
   {
