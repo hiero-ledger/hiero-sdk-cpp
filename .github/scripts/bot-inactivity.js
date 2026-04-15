@@ -269,8 +269,15 @@ function buildWarningComment(assigneeLogins, itemType) {
  * @returns {string}
  */
 function buildClosureComment(itemType) {
+  if (itemType === 'issue') {
+    return [
+      '⏱️ This issue has been unassigned and reset to `status: ready for dev` due to 7 days of inactivity.',
+      '',
+      "If you'd like to continue working on this, feel free to comment `/assign` to be reassigned.",
+    ].join('\n');
+  }
   return [
-    `⏱️ This ${itemType} has been closed due to 7 days of inactivity.`,
+    '⏱️ This PR has been closed due to 7 days of inactivity.',
     '',
     'It has been unassigned and reset to `status: ready for dev` so another contributor can pick it up.',
     '',
@@ -361,8 +368,12 @@ async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemTy
   const assigneeLogins = (item.assignees || []).map(a => a.login);
 
   if (elapsed >= CLOSE_AFTER_MS) {
-    logger.log(`#${item.number} (${itemType}): closing after ${days} days inactive`);
-    await closeItem(ctx);
+    if (itemType === 'issue') {
+      logger.log(`#${item.number} (${itemType}): resetting after ${days} days inactive`);
+    } else {
+      logger.log(`#${item.number} (${itemType}): closing after ${days} days inactive`);
+      await closeItem(ctx);
+    }
     await resetItem(github, owner, repo, item);
     await postComment(ctx, buildClosureComment(itemType));
     return 'closed';

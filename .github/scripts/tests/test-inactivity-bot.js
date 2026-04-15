@@ -265,16 +265,16 @@ const scenarios = [
 
   // ── 4 ──────────────────────────────────────────────────────────────────────
   {
-    name: 'Issue: 8 days inactive — closed and reset',
-    description: 'An issue with no activity for 8 days should be closed and reset.',
+    name: 'Issue: 8 days inactive — reset (not closed)',
+    description: 'An issue with no activity for 8 days should be reset but remain open.',
     github: createMockGithub({
       assignedIssues: [
         makeIssue(30, { createdAt: daysAgo(8), assignees: ['alice'], labels: [LABELS.IN_PROGRESS] }),
       ],
     }),
     expect: {
-      itemsClosed: [30],
-      closureCommentOn: [30],
+      itemsClosed: [],
+      resetCommentOn: [30],
       labelsAdded: [{ issue_number: 30, labels: [LABELS.READY_FOR_DEV] }],
       labelsRemoved: [{ issue_number: 30, name: LABELS.IN_PROGRESS }],
       assigneesRemoved: [{ issue_number: 30, assignees: ['alice'] }],
@@ -303,7 +303,7 @@ const scenarios = [
 
   // ── 6 ──────────────────────────────────────────────────────────────────────
   {
-    name: 'Issue: 8 days old, non-assignee commented — clock not reset, closed',
+    name: 'Issue: 8 days old, non-assignee commented — clock not reset, reset (not closed)',
     description: 'A comment by a non-assignee (e.g. maintainer) should not reset the clock.',
     github: createMockGithub({
       assignedIssues: [
@@ -314,8 +314,8 @@ const scenarios = [
       },
     }),
     expect: {
-      itemsClosed: [50],
-      closureCommentOn: [50],
+      itemsClosed: [],
+      resetCommentOn: [50],
       assigneesRemoved: [{ issue_number: 50, assignees: ['alice'] }],
     },
   },
@@ -519,8 +519,8 @@ const scenarios = [
 
   // ── 16 ─────────────────────────────────────────────────────────────────────
   {
-    name: 'Issue: unblocked 8 days ago — closed and reset',
-    description: 'If the unblocked date is still more than 7 days ago, the issue should be closed.',
+    name: 'Issue: unblocked 8 days ago — reset (not closed)',
+    description: 'If the unblocked date is still more than 7 days ago, the issue should be reset but remain open.',
     github: createMockGithub({
       assignedIssues: [
         makeIssue(150, { createdAt: daysAgo(10), assignees: ['kate'], labels: [LABELS.IN_PROGRESS] }),
@@ -530,8 +530,8 @@ const scenarios = [
       },
     }),
     expect: {
-      itemsClosed: [150],
-      closureCommentOn: [150],
+      itemsClosed: [],
+      resetCommentOn: [150],
       assigneesRemoved: [{ issue_number: 150, assignees: ['kate'] }],
     },
   },
@@ -694,12 +694,22 @@ async function runScenario(scenario, index) {
     }
   }
 
-  // closureCommentOn — check that closure comment appears for these items
+  // closureCommentOn — check that PR closure comment appears for these items
   if (expected.closureCommentOn) {
     for (const num of expected.closureCommentOn) {
       const found = calls.commentsCreated.some(c => c.issue_number === num && c.body.includes('closed due to'));
       if (!found) {
         failures.push(`Expected closure comment on #${num}`);
+      }
+    }
+  }
+
+  // resetCommentOn — check that issue reset comment appears for these items (not closed)
+  if (expected.resetCommentOn) {
+    for (const num of expected.resetCommentOn) {
+      const found = calls.commentsCreated.some(c => c.issue_number === num && c.body.includes('unassigned and reset'));
+      if (!found) {
+        failures.push(`Expected reset comment on #${num}`);
       }
     }
   }
