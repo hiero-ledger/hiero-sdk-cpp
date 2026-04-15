@@ -132,8 +132,8 @@ nlohmann::json createContract(const CreateContractParams& params)
     contractCreateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
 
   return {
-    {"contractId", txReceipt.mContractId.value().toString()},
-    { "status",    gStatusToString.at(txReceipt.mStatus)   }
+    { "contractId", txReceipt.mContractId.value().toString() },
+    { "status",     gStatusToString.at(txReceipt.mStatus)    }
   };
 }
 
@@ -169,9 +169,9 @@ nlohmann::json deleteContract(const DeleteContractParams& params)
   }
 
   return {
-    {"status",
+    { "status",
      gStatusToString.at(
-        contractDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+        contractDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) }
   };
 }
 
@@ -226,8 +226,7 @@ nlohmann::json updateContract(const UpdateContractParams& params)
 
   if (params.mStakedNodeId.has_value())
   {
-    contractUpdateTransaction.setStakedNodeId(
-      internal::EntityIdHelper::getNum<int64_t>(params.mStakedNodeId.value()));
+    contractUpdateTransaction.setStakedNodeId(internal::EntityIdHelper::getNum<int64_t>(params.mStakedNodeId.value()));
   }
 
   if (params.mDeclineStakingReward.has_value())
@@ -244,7 +243,7 @@ nlohmann::json updateContract(const UpdateContractParams& params)
     contractUpdateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
 
   return {
-    {"status", gStatusToString.at(txReceipt.mStatus)}
+    { "status", gStatusToString.at(txReceipt.mStatus) }
   };
 }
 
@@ -285,7 +284,7 @@ nlohmann::json executeContract(const ExecuteContractParams& params)
     contractExecuteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
 
   return {
-    {"status", gStatusToString.at(txReceipt.mStatus)}
+    { "status", gStatusToString.at(txReceipt.mStatus) }
   };
 }
 
@@ -313,7 +312,7 @@ nlohmann::json contractByteCodeQuery(const ContractByteCodeQueryParams& params)
   const ContractByteCode byteCode = contractByteCodeQuery.execute(SdkClient::getClient());
 
   return {
-    {"bytecode", internal::HexConverter::bytesToHex(byteCode)}
+    { "bytecode", internal::HexConverter::bytesToHex(byteCode) }
   };
 }
 
@@ -368,13 +367,13 @@ nlohmann::json contractCallQuery(const ContractCallQueryParams& params)
   const ContractFunctionResult result = contractCallQuery.execute(SdkClient::getClient());
 
   nlohmann::json response = {
-    {"contractId",    result.mContractId.toString()                                 },
-    { "rawResult",    internal::HexConverter::bytesToHex(result.mContractCallResult)},
-    { "gasUsed",      std::to_string(result.mGasUsed)                               },
-    { "errorMessage", result.mErrorMessage                                          },
-    { "bloom",        internal::HexConverter::bytesToHex(result.mBloom)             },
-    { "gas",          std::to_string(result.mGas)                                   },
-    { "amount",       std::to_string(result.mHbarAmount.toTinybars())               }
+    { "contractId",   result.mContractId.toString()                                  },
+    { "rawResult",    internal::HexConverter::bytesToHex(result.mContractCallResult) },
+    { "gasUsed",      std::to_string(result.mGasUsed)                                },
+    { "errorMessage", result.mErrorMessage                                           },
+    { "bloom",        internal::HexConverter::bytesToHex(result.mBloom)              },
+    { "gas",          std::to_string(result.mGas)                                    },
+    { "amount",       std::to_string(result.mHbarAmount.toTinybars())                }
   };
 
   try
