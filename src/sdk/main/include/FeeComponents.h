@@ -326,7 +326,7 @@ private:
   int64_t mResponseDiskByte = 0LL;
 
   /**
-   * Compare to FeeComponents instances and determine if they represent an equivalent set of fees.
+   * Compare two FeeComponents instances and determine if they represent an equivalent set of fees.
    *
    * @param lhs The left-hand side FeeComponents to compare.
    * @param rhs The right-hand side FeeComponents to compare.
