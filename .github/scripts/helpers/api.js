@@ -577,6 +577,87 @@ async function runAllChecksAndComment(botContext, precomputed = {}) {
 }
 
 /**
+ * Fetches all issue/PR events (paginated). Useful for detecting label changes
+ * (e.g. when "status: blocked" was removed).
+ * @param {object} botContext - Bot context (github, owner, repo, number).
+ * @returns {Promise<Array>}
+ */
+async function fetchIssueEvents(botContext) {
+  const events = [];
+  let page = 1;
+  const perPage = 100;
+
+  while (true) {
+    const { data } = await botContext.github.rest.issues.listEvents({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      issue_number: botContext.number,
+      per_page: perPage,
+      page,
+    });
+
+    events.push(...data);
+
+    if (data.length < perPage) break;
+    page++;
+  }
+
+  getLogger().log(`Fetched ${events.length} events for #${botContext.number}`);
+  return events;
+}
+
+/**
+ * Fetches all comments for an issue or PR (paginated).
+ * @param {object} botContext - Bot context (github, owner, repo, number).
+ * @returns {Promise<Array>}
+ */
+async function fetchComments(botContext) {
+  const comments = [];
+  let page = 1;
+  const perPage = 100;
+
+  while (true) {
+    const { data } = await botContext.github.rest.issues.listComments({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      issue_number: botContext.number,
+      per_page: perPage,
+      page,
+    });
+
+    comments.push(...data);
+
+    if (data.length < perPage) break;
+    page++;
+  }
+
+  getLogger().log(`Fetched ${comments.length} comments for #${botContext.number}`);
+  return comments;
+}
+
+/**
+ * Closes an issue or PR.
+ * @param {object} botContext - Bot context (github, owner, repo, number).
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+async function closeItem(botContext) {
+  try {
+    await botContext.github.rest.issues.update({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      issue_number: botContext.number,
+      state: 'closed',
+    });
+
+    getLogger().log(`Closed #${botContext.number}`);
+    return { success: true };
+  } catch (error) {
+    getLogger().error(`Could not close #${botContext.number}: ${error.message}`);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Resolves the primary issue linked to a PR.
  *
  * Strategy:
@@ -683,5 +764,8 @@ module.exports = {
   runAllChecksAndComment,
   resolveLinkedIssue,
   acknowledgeComment,
+  fetchComments,
+  fetchIssueEvents,
+  closeItem,
   getHighestIssueSkillLevel,
 };
