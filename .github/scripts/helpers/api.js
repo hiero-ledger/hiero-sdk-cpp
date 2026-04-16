@@ -744,6 +744,126 @@ function getHighestIssueSkillLevel(issue) {
   return null;
 }
 
+/**
+ * Fetches the number of issues assigned to a specific user that match a given
+ * state and optional label using the GitHub REST API.
+ *
+ * Note: When state is OPEN and no label filter is provided, issues with the
+ * "status: blocked" label are explicitly EXCLUDED from the count.
+ * The search is constrained to the repo specified in the context.
+ *
+ * @param {object} github - Octokit GitHub API client (must support github.rest).
+ * @param {string} owner - Repository owner (e.g. 'hiero-ledger').
+ * @param {string} repo - Repository name (e.g. 'hiero-sdk-cpp').
+ * @param {string} username - GitHub username to search for.
+ * @param {string} state - Issue state filter: ISSUE_STATE.OPEN or ISSUE_STATE.CLOSED.
+ * @param {string|null} [label=null] - Optional label filter (e.g. 'skill: good first issue').
+ * @param {number|null} [threshold=null] - Optional threshold to short-circuit pagination.
+ *   When provided, the function returns a capped count (the threshold value)
+ *   once that threshold is reached.
+ * @returns {Promise<number|null>} Matching issue count, or null if inputs are invalid or the API call fails.
+ *   When threshold is provided and reached, returns the threshold value (capped),
+ *   not necessarily the exact total.
+ */
+async function countIssuesByAssignee(
+  github,
+  owner,
+  repo,
+  username,
+  state,
+  label = null,
+  threshold = null,
+) {
+  if (
+    !isSafeSearchToken(owner) ||
+    !isSafeSearchToken(repo) ||
+    !isSafeSearchToken(username)
+  ) {
+    logger.log("[assign] Invalid search inputs:", {
+      owner,
+      repo,
+      username,
+      label,
+    });
+    return null;
+  }
+  if (state !== ISSUE_STATE.OPEN && state !== ISSUE_STATE.CLOSED) {
+    logger.log("[assign] Invalid state:", { state });
+    return null;
+  }
+  if (
+    label &&
+    (typeof label !== "string" || !label.trim() || label.includes('"'))
+  ) {
+    logger.log("[assign] Invalid label parameter:", { label });
+    return null;
+  }
+
+  try {
+    let page = 1;
+    let matchingIssuesCount = 0;
+    const perPage = 100;
+
+    logger.log(`[assign] Fetching ${state} assigned issues via REST...`);
+    while (true) {
+      const params = {
+        owner,
+        repo,
+        state: state.toLowerCase(),
+        assignee: username,
+        per_page: perPage,
+        page,
+      };
+      if (label) params.labels = label;
+
+      const result = await github.rest.issues.listForRepo(params);
+      // Filter out Pull Requests (which are returned by the issues endpoint)
+      const actualIssues = result.data.filter((item) => !item.pull_request);
+
+      let pageMatchCount = 0;
+      if (state === ISSUE_STATE.OPEN && !label) {
+        pageMatchCount = actualIssues.filter(
+          (issue) =>
+            !issue.labels?.some((l) => (l.name || l) === LABELS.BLOCKED),
+        ).length;
+      } else {
+        pageMatchCount = actualIssues.length;
+      }
+
+      matchingIssuesCount += pageMatchCount;
+
+      if (threshold !== null && matchingIssuesCount >= threshold) {
+        logger.log(
+          `[assign] Reached threshold (${threshold}), short-circuiting fetch.`,
+        );
+        matchingIssuesCount = threshold; // Cap at threshold logically for callers
+        break;
+      }
+
+      // Pagination must evaluate the raw result size, not the filtered size.
+      if (result.data.length < perPage) break;
+      page++;
+    }
+
+    if (label) {
+      logger.log(
+        `[assign] ${state} assigned issues for ${username} with label ${label}: ${matchingIssuesCount}`,
+      );
+    } else {
+      logger.log(
+        `[assign] ${state} assigned issues for ${username}${state === ISSUE_STATE.OPEN ? " (excluding blocked)" : ""}: ${matchingIssuesCount}`,
+      );
+    }
+    return matchingIssuesCount;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.log(
+      `[assign] Failed to count ${state} issues for ${username}: ${message}`,
+    );
+    return null;
+  }
+}
+
 module.exports = {
   buildBotContext,
   addLabels,
@@ -768,4 +888,5 @@ module.exports = {
   fetchIssueEvents,
   closeItem,
   getHighestIssueSkillLevel,
+  countIssuesByAssignee,
 };
