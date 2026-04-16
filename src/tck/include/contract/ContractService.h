@@ -15,6 +15,7 @@ struct ContractByteCodeQueryParams;
 struct ContractCallQueryParams;
 struct ContractInfoQueryParams;
 struct ExecuteContractParams;
+struct UpdateContractParams;
 
 /**
  * Delete a contract.
@@ -23,6 +24,14 @@ struct ExecuteContractParams;
  * @return A JSON response containing the status of the contract deletion.
  */
 nlohmann::json deleteContract(const DeleteContractParams& params);
+
+/**
+ * Update a contract.
+ *
+ * @param params The parameters to use to update a contract.
+ * @return A JSON response containing the status of the contract update.
+ */
+nlohmann::json updateContract(const UpdateContractParams& params);
 
 /**
  * Create a contract.
