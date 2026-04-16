@@ -10,10 +10,12 @@ const {
     MAINTAINER_TEAM,
     LABELS,
     SKILL_HIERARCHY,
+    SKILL_PREREQUISITES,
     hasLabel,
     postComment,
     getLogger,
     getHighestIssueSkillLevel,
+    countIssuesByAssignee,
 } = require('../helpers');
 
 // Logger delegation 
@@ -163,24 +165,121 @@ function buildRecommendationErrorComment(username) {
 }
 
 /**
- * Returns recommended issues based on priority:
- * next → same → fallback.
+ * Determines the highest skill level a user is genuinely eligible for,
+ * by walking the prerequisite chain upward from their current level and
+ * verifying each step against their actual closed-issue history.
  *
- * Uses a single API call and filters results locally.
+ * Starts at currentLevel (trusted — the user just closed an issue at that
+ * level) and attempts to advance upward. Stops at the first level whose
+ * prerequisites are unmet or when a GitHub API call fails, returning the
+ * highest level fully verified so far.
+ *
+ * Example progression check for a user at BEGINNER:
+ *   BEGINNER   → no requiredLabel      → eligible by default, continue
+ *   INTERMEDIATE → needs 3 Beginner   → count closed Beginner issues
+ *     ≥ 3 → verifiedLevel = INTERMEDIATE, continue
+ *     < 3 → stop, return BEGINNER
  *
  * @param {object} botContext
  * @param {string} username
- * @param {string} skillLevel
+ * @param {string} currentLevel - Skill label from the triggering PR/issue.
+ * @returns {Promise<string>}   - Highest verified eligible level label.
+ */
+async function resolveEligibleLevel(botContext, username, currentLevel) {
+    const { github, owner, repo } = botContext;
+    let verifiedLevel = currentLevel;
+
+    // Slice the hierarchy at currentLevel so we only walk upward from
+    // where the user already is, skipping levels they've clearly passed.
+    const startIndex = SKILL_HIERARCHY.indexOf(currentLevel);
+    for (const candidate of SKILL_HIERARCHY.slice(startIndex)) {
+        const prereq = SKILL_PREREQUISITES[candidate];
+
+        // Guard against labels that exist in SKILL_HIERARCHY but have no
+        // corresponding entry in SKILL_PREREQUISITES (misconfiguration).
+        if (!prereq) {
+            logger.log('resolveEligibleLevel: unknown candidate, stopping walk', { candidate });
+            break;
+        }
+
+        // Some levels (e.g. Good First Issue) have no prerequisite —
+        // the user is eligible just by reaching them.
+        if (!prereq.requiredLabel) {
+            verifiedLevel = candidate;
+            continue;
+        }
+
+        // Count closed issues the user completed at the required prerequisite
+        // level. Pass requiredCount as the threshold so the API call
+        // short-circuits as soon as the bar is cleared — no over-fetching.
+        const count = await countIssuesByAssignee(
+            github, owner, repo, username,
+            'closed',
+            prereq.requiredLabel,
+            prereq.requiredCount,
+        );
+
+        if (count === null) {
+            // API failure — degrade gracefully by keeping whatever level
+            // has been verified so far rather than crashing the whole walk.
+            logger.log('resolveEligibleLevel: countIssuesByAssignee failed, stopping walk', {
+                candidate, user: username,
+            });
+            break;
+        }
+
+        if (count >= prereq.requiredCount) {
+            // Prerequisites met — promote and try the next level.
+            verifiedLevel = candidate;
+        } else {
+            // Prerequisites not met — the chain is strict, so no higher
+            // level can be eligible either. Stop here.
+            logger.log('resolveEligibleLevel: prerequisites not met, stopping walk', {
+                candidate, required: prereq.requiredCount, actual: count, user: username,
+            });
+            break;
+        }
+    }
+
+    if (verifiedLevel !== currentLevel) {
+        logger.log('resolveEligibleLevel: resolved to higher level', {
+            user: username, from: currentLevel, to: verifiedLevel,
+        });
+    }
+
+    return verifiedLevel;
+}
+
+/**
+ * Returns recommended issues based on priority: next → same → fallback.
+ *
+ * Uses a single batch API call for issues and filters locally.
+ * The level anchor is now the user's *verified* eligible level (resolved via
+ * closed-issue history) rather than the raw label on the triggering issue.
+ *
+ * @param {object} botContext
+ * @param {string} username
+ * @param {string} skillLevel  - Level label from the closed PR/issue.
  * @returns {Promise<Array<{ title: string, html_url: string }>|null>}
  */
 async function getRecommendedIssues(botContext, username, skillLevel) {
-    const fallback = getFallbackLevel(skillLevel);
-    const nextLevel = getNextLevel(skillLevel);
+    // Resolve the user's actual eligible level via prerequisite history.
+    const eligibleLevel = await resolveEligibleLevel(botContext, username, skillLevel);
 
+    logger.log('getRecommendedIssues: using eligible level', {
+        user: username,
+        labelLevel: skillLevel,
+        eligibleLevel,
+    });
+
+    const fallback = getFallbackLevel(eligibleLevel);
+    const nextLevel = getNextLevel(eligibleLevel);
+
+    // Priority: next (if different) → current eligible → one step down (unless already beginner).
     const levelsPriority = [
-        nextLevel !== skillLevel ? nextLevel : null,
-        skillLevel,
-        skillLevel !== LABELS.BEGINNER ? fallback : null,
+        nextLevel !== eligibleLevel ? nextLevel : null,
+        eligibleLevel,
+        eligibleLevel !== LABELS.BEGINNER ? fallback : null,
     ].filter(Boolean);
 
     const issues = await fetchIssuesBatch(
@@ -282,4 +381,5 @@ module.exports = {
     getNextLevel,
     getFallbackLevel,
     getRecommendedIssues,
+    resolveEligibleLevel,
 };
