@@ -51,7 +51,6 @@ add_executable(${TEST_PROJECT_NAME}
         EvmHookSpecUnitTests.cc
         ExchangeRateUnitTests.cc
         FeeAssessmentMethodUnitTests.cc
-        FeeComponentsUnitTests.cc
         FileAppendTransactionUnitTests.cc
         FileContentsQueryUnitTests.cc
         FileCreateTransactionUnitTests.cc
@@ -124,7 +123,6 @@ add_executable(${TEST_PROJECT_NAME}
         TokenNftTransferUnitTests.cc
         TokenPauseTransactionUnitTests.cc
         TokenRejectTransactionUnitTests.cc
-        TokenRelationshipUnitTests.cc
         TokenRevokeKycTransactionUnitTests.cc
         TokenSupplyTypeUnitTests.cc
         TokenTransferHookUnitTests.cc

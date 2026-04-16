@@ -86,6 +86,15 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const ContractFunctionResult& result);
 
   /**
+   * Compare two ContractFunctionResult objects for equality.
+   *
+   * @param lhs The left-hand-side ContractFunctionResult.
+   * @param rhs The right-hand-side ContractFunctionResult.
+   * @return \c TRUE if both objects contain the same values, otherwise \c FALSE.
+   */
+  [[nodiscard]] friend bool operator==(const ContractFunctionResult& lhs, const ContractFunctionResult& rhs);
+
+  /**
    * Get the value at the input index as a string.
    *
    * @param index The index at which to retrieve the string.
