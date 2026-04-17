@@ -801,6 +801,34 @@ const scenarios = [
 
   // ── 27 ─────────────────────────────────────────────────────────────────────
   {
+    name: 'PR: status: needs revision labeled 8 days ago, author commented 2 days ago — no action',
+    description: 'Author activity after the label is applied resets the clock; the bot should not close an actively-engaged PR.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(261, {
+          createdAt: daysAgo(10),
+          assignees: ['wren'],
+          authorLogin: 'wren',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      commentsByNumber: {
+        261: [makeComment('wren', daysAgo(2))],
+      },
+      eventsByNumber: {
+        261: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 28 ─────────────────────────────────────────────────────────────────────
+  {
     name: 'PR: status: needs revision applied twice — clock uses most recent application',
     description: 'Back-and-forth review cycles must not penalize contributors; the clock resets on each new needs-revision application.',
     github: createMockGithub({

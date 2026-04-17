@@ -604,9 +604,8 @@ module.exports = async function ({ github, context, getNow = () => Date.now() })
     let lastActivity;
     if (hasLabel(pr, LABELS.NEEDS_REVISION)) {
       const revisionLabeledAt = await getLastNeedsRevisionLabeledDate(github, owner, repo, pr.number);
-      lastActivity = revisionLabeledAt !== null
-        ? revisionLabeledAt
-        : await computePRLastActivity(github, owner, repo, pr);
+      const prActivity = await computePRLastActivity(github, owner, repo, pr);
+      lastActivity = latestOf(prActivity, revisionLabeledAt);
     } else {
       lastActivity = await computePRLastActivity(github, owner, repo, pr);
     }
