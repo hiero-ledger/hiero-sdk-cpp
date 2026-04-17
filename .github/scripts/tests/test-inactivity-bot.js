@@ -185,6 +185,10 @@ function makeUnlabeledEvent(labelName, createdAt) {
   return { event: 'unlabeled', created_at: createdAt, label: { name: labelName } };
 }
 
+function makeAssignedEvent(createdAt) {
+  return { event: 'assigned', created_at: createdAt };
+}
+
 function makeComment(userLogin, createdAt, { isBot = false } = {}) {
   return {
     id: Math.floor(Math.random() * 100000),
@@ -236,6 +240,9 @@ const scenarios = [
       assignedIssues: [
         makeIssue(10, { createdAt: daysAgo(3), assignees: ['alice'], labels: [LABELS.IN_PROGRESS] }),
       ],
+      eventsByNumber: {
+        10: [makeAssignedEvent(daysAgo(3))],
+      },
     }),
     expect: {
       itemsClosed: [],
@@ -253,6 +260,9 @@ const scenarios = [
       assignedIssues: [
         makeIssue(20, { createdAt: daysAgo(6), assignees: ['alice'], labels: [LABELS.IN_PROGRESS] }),
       ],
+      eventsByNumber: {
+        20: [makeAssignedEvent(daysAgo(6))],
+      },
     }),
     expect: {
       itemsClosed: [],
@@ -271,6 +281,9 @@ const scenarios = [
       assignedIssues: [
         makeIssue(30, { createdAt: daysAgo(8), assignees: ['alice'], labels: [LABELS.IN_PROGRESS] }),
       ],
+      eventsByNumber: {
+        30: [makeAssignedEvent(daysAgo(8))],
+      },
     }),
     expect: {
       itemsClosed: [],
@@ -292,6 +305,9 @@ const scenarios = [
       commentsByNumber: {
         40: [makeComment('bob', daysAgo(2))],
       },
+      eventsByNumber: {
+        40: [makeAssignedEvent(daysAgo(8))],
+      },
     }),
     expect: {
       itemsClosed: [],
@@ -311,6 +327,9 @@ const scenarios = [
       ],
       commentsByNumber: {
         50: [makeComment('maintainer', daysAgo(1))],
+      },
+      eventsByNumber: {
+        50: [makeAssignedEvent(daysAgo(8))],
       },
     }),
     expect: {
@@ -359,6 +378,9 @@ const scenarios = [
       ],
       commitsByPRNumber: {
         71: [makeCommit('carol', daysAgo(1))],
+      },
+      eventsByNumber: {
+        70: [makeAssignedEvent(daysAgo(8))],
       },
     }),
     expect: {
@@ -506,7 +528,7 @@ const scenarios = [
         makeIssue(140, { createdAt: daysAgo(8), assignees: ['judy'], labels: [LABELS.IN_PROGRESS] }),
       ],
       eventsByNumber: {
-        140: [makeUnlabeledEvent(LABELS.BLOCKED, daysAgo(3))],
+        140: [makeAssignedEvent(daysAgo(8)), makeUnlabeledEvent(LABELS.BLOCKED, daysAgo(3))],
       },
     }),
     expect: {
@@ -526,7 +548,7 @@ const scenarios = [
         makeIssue(150, { createdAt: daysAgo(10), assignees: ['kate'], labels: [LABELS.IN_PROGRESS] }),
       ],
       eventsByNumber: {
-        150: [makeUnlabeledEvent(LABELS.BLOCKED, daysAgo(8))],
+        150: [makeAssignedEvent(daysAgo(10)), makeUnlabeledEvent(LABELS.BLOCKED, daysAgo(8))],
       },
     }),
     expect: {
@@ -632,6 +654,46 @@ const scenarios = [
     expect: {
       itemsClosed: [],
       checkinPostedOn: [190],
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 21 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'Issue: created 30 days ago but assigned 2 days ago — no action',
+    description: 'The inactivity clock starts from the assignment date, not creation date.',
+    github: createMockGithub({
+      assignedIssues: [
+        makeIssue(200, { createdAt: daysAgo(30), assignees: ['pat'], labels: [LABELS.IN_PROGRESS] }),
+      ],
+      eventsByNumber: {
+        200: [makeAssignedEvent(daysAgo(2))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 22 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'Issue: no assigned event — skipped without error',
+    description: 'If the events API returns no assigned event, the issue is skipped entirely.',
+    github: createMockGithub({
+      assignedIssues: [
+        makeIssue(210, { createdAt: daysAgo(10), assignees: ['quinn'], labels: [LABELS.IN_PROGRESS] }),
+      ],
+      eventsByNumber: {
+        210: [],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
       assigneesRemoved: 0,
     },
   },
