@@ -21,8 +21,8 @@
 //   - Issues linked to open PRs with recent activity are not flagged.
 //   - When a PR is closed for inactivity, its linked issues are also reset.
 
-const { createLogger } = require('./helpers/logger');
-const { LABELS } = require('./helpers/constants');
+const { createLogger } = require("./helpers/logger");
+const { LABELS } = require("./helpers/constants");
 const {
   hasLabel,
   removeLabel,
@@ -34,17 +34,17 @@ const {
   fetchIssueEvents,
   fetchPRCommits,
   closeItem,
-} = require('./helpers/api');
-const { parseIssueNumbers } = require('./helpers/checks');
+} = require("./helpers/api");
+const { parseIssueNumbers } = require("./helpers/checks");
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const WARN_AFTER_MS           = 5 * 24 * 60 * 60 * 1000;  // 5 days
-const CLOSE_AFTER_MS          = 7 * 24 * 60 * 60 * 1000;  // 7 days
+const WARN_AFTER_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
+const CLOSE_AFTER_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const BLOCKED_CHECKIN_AFTER_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-const WARN_MARKER           = '<!-- bot:inactivity-warning -->';
-const BLOCKED_CHECKIN_MARKER = '<!-- bot:blocked-checkin -->';
+const WARN_MARKER = "<!-- bot:inactivity-warning -->";
+const BLOCKED_CHECKIN_MARKER = "<!-- bot:blocked-checkin -->";
 
 // ─── Context builder ─────────────────────────────────────────────────────────
 
@@ -81,7 +81,7 @@ function latestOf(current, candidate) {
  * @returns {Set<string>}
  */
 function collectParticipants(item) {
-  const logins = (item.assignees || []).map(a => a.login.toLowerCase());
+  const logins = (item.assignees || []).map((a) => a.login.toLowerCase());
   if (item.user?.login) logins.push(item.user.login.toLowerCase());
   return new Set(logins);
 }
@@ -116,13 +116,19 @@ function extractCommitDate(commit) {
  * @param {Set<string>} relevantLogins - Lowercased usernames to consider.
  * @returns {Promise<number|null>}
  */
-async function getLastRelevantCommentDate(github, owner, repo, number, relevantLogins) {
+async function getLastRelevantCommentDate(
+  github,
+  owner,
+  repo,
+  number,
+  relevantLogins,
+) {
   const ctx = buildCtx(github, owner, repo, number);
   const comments = await fetchComments(ctx);
 
   let latest = null;
   for (const c of comments) {
-    if (!c.user || c.user.type === 'Bot') continue;
+    if (!c.user || c.user.type === "Bot") continue;
     if (!relevantLogins.has(c.user.login.toLowerCase())) continue;
     const t = new Date(c.created_at).getTime();
     latest = latestOf(latest === null ? -Infinity : latest, t);
@@ -141,7 +147,13 @@ async function getLastRelevantCommentDate(github, owner, repo, number, relevantL
  * @param {string} authorLogin
  * @returns {Promise<number|null>}
  */
-async function getLastAuthorCommitDate(github, owner, repo, prNumber, authorLogin) {
+async function getLastAuthorCommitDate(
+  github,
+  owner,
+  repo,
+  prNumber,
+  authorLogin,
+) {
   const ctx = buildCtx(github, owner, repo, prNumber);
   const commits = await fetchPRCommits(ctx);
   const login = authorLogin.toLowerCase();
@@ -150,7 +162,10 @@ async function getLastAuthorCommitDate(github, owner, repo, prNumber, authorLogi
   for (const c of commits) {
     if (!isAuthorLogin(c, login)) continue;
     const dateStr = extractCommitDate(c);
-    latest = latestOf(latest === null ? -Infinity : latest, dateStr ? new Date(dateStr).getTime() : -Infinity);
+    latest = latestOf(
+      latest === null ? -Infinity : latest,
+      dateStr ? new Date(dateStr).getTime() : -Infinity,
+    );
   }
   return latest === null || latest === -Infinity ? null : latest;
 }
@@ -166,7 +181,13 @@ async function getLastAuthorCommitDate(github, owner, repo, prNumber, authorLogi
  * @param {function} predicate - Called with each event object; return true to include.
  * @returns {Promise<number|null>}
  */
-async function getLastMatchingEventDate(github, owner, repo, number, predicate) {
+async function getLastMatchingEventDate(
+  github,
+  owner,
+  repo,
+  number,
+  predicate,
+) {
   const ctx = buildCtx(github, owner, repo, number);
   const events = await fetchIssueEvents(ctx);
 
@@ -190,8 +211,13 @@ async function getLastMatchingEventDate(github, owner, repo, number, predicate) 
  * @returns {Promise<number|null>}
  */
 async function getLastUnblockedDate(github, owner, repo, number) {
-  return getLastMatchingEventDate(github, owner, repo, number,
-    e => e.event === 'unlabeled' && e.label?.name === LABELS.BLOCKED);
+  return getLastMatchingEventDate(
+    github,
+    owner,
+    repo,
+    number,
+    (e) => e.event === "unlabeled" && e.label?.name === LABELS.BLOCKED,
+  );
 }
 
 /**
@@ -205,8 +231,13 @@ async function getLastUnblockedDate(github, owner, repo, number) {
  * @returns {Promise<number|null>}
  */
 async function getLastAssignedDate(github, owner, repo, number) {
-  return getLastMatchingEventDate(github, owner, repo, number,
-    e => e.event === 'assigned');
+  return getLastMatchingEventDate(
+    github,
+    owner,
+    repo,
+    number,
+    (e) => e.event === "assigned",
+  );
 }
 
 // ─── Activity computation ────────────────────────────────────────────────────
@@ -229,16 +260,31 @@ async function computePRLastActivity(github, owner, repo, pr) {
   const participants = collectParticipants(pr);
 
   if (participants.size > 0) {
-    const d = await getLastRelevantCommentDate(github, owner, repo, pr.number, participants);
+    const d = await getLastRelevantCommentDate(
+      github,
+      owner,
+      repo,
+      pr.number,
+      participants,
+    );
     latest = latestOf(latest, d);
   }
 
   if (pr.user?.login) {
-    const d = await getLastAuthorCommitDate(github, owner, repo, pr.number, pr.user.login);
+    const d = await getLastAuthorCommitDate(
+      github,
+      owner,
+      repo,
+      pr.number,
+      pr.user.login,
+    );
     latest = latestOf(latest, d);
   }
 
-  return latestOf(latest, await getLastUnblockedDate(github, owner, repo, pr.number));
+  return latestOf(
+    latest,
+    await getLastUnblockedDate(github, owner, repo, pr.number),
+  );
 }
 
 /**
@@ -253,22 +299,47 @@ async function computePRLastActivity(github, owner, repo, pr) {
  * @param {object[]} linkedOpenPRs - Open PR objects whose bodies reference this issue.
  * @returns {Promise<number>}
  */
-async function computeIssueLastActivity(github, owner, repo, issue, linkedOpenPRs) {
-  const assignedAt = await getLastAssignedDate(github, owner, repo, issue.number);
+async function computeIssueLastActivity(
+  github,
+  owner,
+  repo,
+  issue,
+  linkedOpenPRs,
+) {
+  const assignedAt = await getLastAssignedDate(
+    github,
+    owner,
+    repo,
+    issue.number,
+  );
   if (assignedAt === null) return null;
 
   let latest = assignedAt;
-  const assigneeLogins = new Set((issue.assignees || []).map(a => a.login.toLowerCase()));
+  const assigneeLogins = new Set(
+    (issue.assignees || []).map((a) => a.login.toLowerCase()),
+  );
 
   if (assigneeLogins.size > 0) {
-    const d = await getLastRelevantCommentDate(github, owner, repo, issue.number, assigneeLogins);
+    const d = await getLastRelevantCommentDate(
+      github,
+      owner,
+      repo,
+      issue.number,
+      assigneeLogins,
+    );
     latest = latestOf(latest, d);
   }
 
-  latest = latestOf(latest, await getLastUnblockedDate(github, owner, repo, issue.number));
+  latest = latestOf(
+    latest,
+    await getLastUnblockedDate(github, owner, repo, issue.number),
+  );
 
   for (const pr of linkedOpenPRs) {
-    latest = latestOf(latest, await computePRLastActivity(github, owner, repo, pr));
+    latest = latestOf(
+      latest,
+      await computePRLastActivity(github, owner, repo, pr),
+    );
   }
 
   return latest;
@@ -283,18 +354,19 @@ async function computeIssueLastActivity(github, owner, repo, issue, linkedOpenPR
  * @returns {string}
  */
 function buildWarningComment(assigneeLogins, itemType) {
-  const mentions = assigneeLogins.length > 0
-    ? assigneeLogins.map(l => `@${l}`).join(', ')
-    : 'there';
+  const mentions =
+    assigneeLogins.length > 0
+      ? assigneeLogins.map((l) => `@${l}`).join(", ")
+      : "there";
 
   return [
     WARN_MARKER,
     `👋 Hey ${mentions}! This ${itemType} has been inactive for 5 days.`,
-    '',
-    'Are you still working on this? We will close this in 2 days if we see no further activity.',
-    '',
+    "",
+    "Are you still working on this? We will close this in 2 days if we see no further activity.",
+    "",
     "If you're still on it, leave a comment to let us know! If you'd like to step down, comment `/unassign`.",
-  ].join('\n');
+  ].join("\n");
 }
 
 /**
@@ -303,20 +375,20 @@ function buildWarningComment(assigneeLogins, itemType) {
  * @returns {string}
  */
 function buildClosureComment(itemType) {
-  if (itemType === 'issue') {
+  if (itemType === "issue") {
     return [
-      '⏱️ This issue has been unassigned and reset to `status: ready for dev` due to 7 days of inactivity.',
-      '',
+      "⏱️ This issue has been unassigned and reset to `status: ready for dev` due to 7 days of inactivity.",
+      "",
       "If you'd like to continue working on this, feel free to comment `/assign` to be reassigned.",
-    ].join('\n');
+    ].join("\n");
   }
   return [
-    '⏱️ This PR has been closed due to 7 days of inactivity.',
-    '',
-    'It has been unassigned and reset to `status: ready for dev` so another contributor can pick it up.',
-    '',
+    "⏱️ This PR has been closed due to 7 days of inactivity.",
+    "",
+    "It has been unassigned and reset to `status: ready for dev` so another contributor can pick it up.",
+    "",
     "If you'd like to continue working on this, feel free to comment `/assign` to be reassigned.",
-  ].join('\n');
+  ].join("\n");
 }
 
 /**
@@ -325,12 +397,12 @@ function buildClosureComment(itemType) {
  */
 function buildLinkedPRClosedComment() {
   return [
-    '🔗 The pull request linked to this issue was closed due to inactivity.',
-    '',
-    'This issue has been unassigned and reset to `status: ready for dev`.',
-    '',
+    "🔗 The pull request linked to this issue was closed due to inactivity.",
+    "",
+    "This issue has been unassigned and reset to `status: ready for dev`.",
+    "",
     "If you'd like to continue working on this, feel free to comment `/assign` to be reassigned.",
-  ].join('\n');
+  ].join("\n");
 }
 
 /**
@@ -340,20 +412,21 @@ function buildLinkedPRClosedComment() {
  * @returns {string}
  */
 function buildBlockedCheckinComment(assigneeLogins, itemType) {
-  const mentions = assigneeLogins.length > 0
-    ? assigneeLogins.map(l => `@${l}`).join(', ')
-    : 'there';
+  const mentions =
+    assigneeLogins.length > 0
+      ? assigneeLogins.map((l) => `@${l}`).join(", ")
+      : "there";
 
   return [
     BLOCKED_CHECKIN_MARKER,
     `👋 Hey ${mentions}, just checking in! Is this ${itemType} still blocked?`,
-    '',
-    'If it has been unblocked, please remove the `status: blocked` label so we can track progress.',
-  ].join('\n');
+    "",
+    "If it has been unblocked, please remove the `status: blocked` label so we can track progress.",
+  ].join("\n");
 }
 
 /**
- * Returns the most recently created bot comment that starts with marker.
+ * Returns the most recently created bot-authored comment that starts with marker.
  *
  * @param {object[]} comments
  * @param {string} marker
@@ -361,7 +434,9 @@ function buildBlockedCheckinComment(assigneeLogins, itemType) {
  */
 function getLatestBotMarkerComment(comments, marker) {
   const matching = comments
-    .filter(c => c.body && c.body.startsWith(marker))
+    .filter(
+      (c) => c.user?.type === "Bot" && c.body && c.body.startsWith(marker),
+    )
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   return matching[0] || null;
@@ -381,7 +456,7 @@ function getLatestBotMarkerComment(comments, marker) {
  */
 async function resetItem(github, owner, repo, item) {
   const ctx = buildCtx(github, owner, repo, item.number);
-  const assigneeLogins = (item.assignees || []).map(a => a.login);
+  const assigneeLogins = (item.assignees || []).map((a) => a.login);
 
   if (assigneeLogins.length > 0) {
     await removeAssignees(ctx, assigneeLogins);
@@ -410,22 +485,35 @@ async function resetItem(github, owner, repo, item) {
  * @param {number} nowMs - Current time in ms (injectable for testing).
  * @returns {Promise<'closed'|'warned'|'none'>}
  */
-async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemType, logger, nowMs) {
+async function handleStaleItem(
+  github,
+  owner,
+  repo,
+  item,
+  lastActivityMs,
+  itemType,
+  logger,
+  nowMs,
+) {
   const ctx = buildCtx(github, owner, repo, item.number);
   const elapsed = nowMs - lastActivityMs;
   const days = Math.floor(elapsed / (24 * 60 * 60 * 1000));
-  const assigneeLogins = (item.assignees || []).map(a => a.login);
+  const assigneeLogins = (item.assignees || []).map((a) => a.login);
 
   if (elapsed >= CLOSE_AFTER_MS) {
-    if (itemType === 'issue') {
-      logger.log(`#${item.number} (${itemType}): resetting after ${days} days inactive`);
+    if (itemType === "issue") {
+      logger.log(
+        `#${item.number} (${itemType}): resetting after ${days} days inactive`,
+      );
     } else {
-      logger.log(`#${item.number} (${itemType}): closing after ${days} days inactive`);
+      logger.log(
+        `#${item.number} (${itemType}): closing after ${days} days inactive`,
+      );
       await closeItem(ctx);
     }
     await resetItem(github, owner, repo, item);
     await postComment(ctx, buildClosureComment(itemType));
-    return 'closed';
+    return "closed";
   }
 
   if (elapsed >= WARN_AFTER_MS) {
@@ -435,23 +523,27 @@ async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemTy
     // Post a fresh warning only when no prior warning exists, or when there
     // has been meaningful activity since the last warning was posted.
     if (!latestWarning) {
-      logger.log(`#${item.number} (${itemType}): warning after ${days} days inactive`);
+      logger.log(
+        `#${item.number} (${itemType}): warning after ${days} days inactive`,
+      );
       await postComment(ctx, buildWarningComment(assigneeLogins, itemType));
-      return 'warned';
+      return "warned";
     }
 
     const warningCreatedMs = new Date(latestWarning.created_at).getTime();
     if (lastActivityMs > warningCreatedMs) {
-      logger.log(`#${item.number} (${itemType}): warning re-posted after activity reset`);
+      logger.log(
+        `#${item.number} (${itemType}): warning re-posted after activity reset`,
+      );
       await postComment(ctx, buildWarningComment(assigneeLogins, itemType));
-      return 'warned';
+      return "warned";
     }
 
     logger.log(`#${item.number} (${itemType}): existing warning still valid`);
-    return 'none';
+    return "none";
   }
 
-  return 'none';
+  return "none";
 }
 
 /**
@@ -467,23 +559,42 @@ async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemTy
  * @param {object} logger
  * @returns {Promise<void>}
  */
-async function handleBlockedItem(github, owner, repo, item, itemType, nowMs, logger) {
+async function handleBlockedItem(
+  github,
+  owner,
+  repo,
+  item,
+  itemType,
+  nowMs,
+  logger,
+) {
   const ctx = buildCtx(github, owner, repo, item.number);
   const comments = await fetchComments(ctx);
 
   // Find the most recently updated check-in comment (there should be at most one).
   const checkinComment = comments
-    .filter(c => c.body && c.body.startsWith(BLOCKED_CHECKIN_MARKER))
-    .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))[0];
+    .filter((c) => c.body && c.body.startsWith(BLOCKED_CHECKIN_MARKER))
+    .sort(
+      (a, b) =>
+        new Date(b.updated_at || b.created_at) -
+        new Date(a.updated_at || a.created_at),
+    )[0];
 
   const lastCheckinMs = checkinComment
     ? new Date(checkinComment.updated_at || checkinComment.created_at).getTime()
     : null;
 
-  if (lastCheckinMs === null || (nowMs - lastCheckinMs) >= BLOCKED_CHECKIN_AFTER_MS) {
+  if (
+    lastCheckinMs === null ||
+    nowMs - lastCheckinMs >= BLOCKED_CHECKIN_AFTER_MS
+  ) {
     logger.log(`#${item.number} (${itemType}): posting blocked check-in`);
-    const assigneeLogins = (item.assignees || []).map(a => a.login);
-    await postOrUpdateComment(ctx, BLOCKED_CHECKIN_MARKER, buildBlockedCheckinComment(assigneeLogins, itemType));
+    const assigneeLogins = (item.assignees || []).map((a) => a.login);
+    await postOrUpdateComment(
+      ctx,
+      BLOCKED_CHECKIN_MARKER,
+      buildBlockedCheckinComment(assigneeLogins, itemType),
+    );
   } else {
     logger.log(`#${item.number} (${itemType}): blocked check-in not due yet`);
   }
@@ -509,13 +620,13 @@ async function fetchAssignedIssues(github, owner, repo) {
     const { data } = await github.rest.issues.listForRepo({
       owner,
       repo,
-      state: 'open',
-      assignee: '*',
+      state: "open",
+      assignee: "*",
       per_page: perPage,
       page,
     });
     // issues.listForRepo returns both issues and PRs — filter to issues only
-    items.push(...data.filter(item => !item.pull_request));
+    items.push(...data.filter((item) => !item.pull_request));
     if (data.length < perPage) break;
     page++;
   }
@@ -540,7 +651,7 @@ async function fetchOpenPRs(github, owner, repo) {
     const { data } = await github.rest.pulls.list({
       owner,
       repo,
-      state: 'open',
+      state: "open",
       per_page: perPage,
       page,
     });
@@ -562,7 +673,7 @@ async function fetchOpenPRs(github, owner, repo) {
 function buildIssueToPRsMap(openPRs) {
   const map = new Map();
   for (const pr of openPRs) {
-    const issueNums = parseIssueNumbers(pr.body || '');
+    const issueNums = parseIssueNumbers(pr.body || "");
     for (const num of issueNums) {
       if (!map.has(num)) map.set(num, []);
       map.get(num).push(pr);
@@ -579,12 +690,18 @@ function buildIssueToPRsMap(openPRs) {
  * @param {{ github: object, context: object, getNow?: () => number }} args
  *   - getNow is injectable for testing; defaults to Date.now.
  */
-module.exports = async function ({ github, context, getNow = () => Date.now() }) {
-  const logger = createLogger('[inactivity-bot]');
+module.exports = async function ({
+  github,
+  context,
+  getNow = () => Date.now(),
+}) {
+  const logger = createLogger("[inactivity-bot]");
   const { owner, repo } = context.repo;
   const nowMs = getNow();
 
-  logger.log(`Starting inactivity check (now=${new Date(nowMs).toISOString()})`);
+  logger.log(
+    `Starting inactivity check (now=${new Date(nowMs).toISOString()})`,
+  );
 
   // ── Fetch data ────────────────────────────────────────────────────────────
 
@@ -593,41 +710,61 @@ module.exports = async function ({ github, context, getNow = () => Date.now() })
     fetchOpenPRs(github, owner, repo),
   ]);
 
-  const assignedOpenPRs = allOpenPRs.filter(pr => (pr.assignees || []).length > 0);
-  const issueToOpenPRs  = buildIssueToPRsMap(allOpenPRs);
+  const assignedOpenPRs = allOpenPRs.filter(
+    (pr) => (pr.assignees || []).length > 0,
+  );
+  const issueToOpenPRs = buildIssueToPRsMap(allOpenPRs);
 
   logger.log(
     `Found ${assignedIssues.length} assigned issues, ` +
-    `${assignedOpenPRs.length} assigned open PRs`
+      `${assignedOpenPRs.length} assigned open PRs`,
   );
 
   // ── Process assigned PRs ──────────────────────────────────────────────────
 
   for (const pr of assignedOpenPRs) {
     if (hasLabel(pr, LABELS.BLOCKED)) {
-      await handleBlockedItem(github, owner, repo, pr, 'PR', nowMs, logger);
+      await handleBlockedItem(github, owner, repo, pr, "PR", nowMs, logger);
       continue;
     }
 
     const lastActivity = await computePRLastActivity(github, owner, repo, pr);
-    const result = await handleStaleItem(github, owner, repo, pr, lastActivity, 'PR', logger, nowMs);
+    const result = await handleStaleItem(
+      github,
+      owner,
+      repo,
+      pr,
+      lastActivity,
+      "PR",
+      logger,
+      nowMs,
+    );
 
-    if (result === 'closed') {
+    if (result === "closed") {
       // Clean up issues linked to this PR immediately
-      const linkedIssueNums = parseIssueNumbers(pr.body || '');
+      const linkedIssueNums = parseIssueNumbers(pr.body || "");
       for (const issueNum of linkedIssueNums) {
         try {
           const { data: linkedIssue } = await github.rest.issues.get({
-            owner, repo, issue_number: issueNum,
+            owner,
+            repo,
+            issue_number: issueNum,
           });
-          if (linkedIssue.state === 'open' && (linkedIssue.assignees || []).length > 0) {
-            logger.log(`Cleaning up linked issue #${issueNum} (PR #${pr.number} closed for inactivity)`);
+          if (
+            linkedIssue.state === "open" &&
+            (linkedIssue.assignees || []).length > 0
+          ) {
+            logger.log(
+              `Cleaning up linked issue #${issueNum} (PR #${pr.number} closed for inactivity)`,
+            );
             await resetItem(github, owner, repo, linkedIssue);
             const ctx = buildCtx(github, owner, repo, issueNum);
             await postComment(ctx, buildLinkedPRClosedComment());
           }
         } catch (err) {
-          logger.error(`Could not clean up linked issue #${issueNum}: ${err.message}`);
+          logger.error(
+            `Could not clean up linked issue #${issueNum}: ${err.message}`,
+          );
         }
       }
     }
@@ -637,23 +774,48 @@ module.exports = async function ({ github, context, getNow = () => Date.now() })
 
   for (const issue of assignedIssues) {
     if (hasLabel(issue, LABELS.BLOCKED)) {
-      await handleBlockedItem(github, owner, repo, issue, 'issue', nowMs, logger);
+      await handleBlockedItem(
+        github,
+        owner,
+        repo,
+        issue,
+        "issue",
+        nowMs,
+        logger,
+      );
       continue;
     }
 
     if (!hasLabel(issue, LABELS.IN_PROGRESS)) {
-      logger.log(`#${issue.number}: skipping (no in-progress or blocked label)`);
+      logger.log(
+        `#${issue.number}: skipping (no in-progress or blocked label)`,
+      );
       continue;
     }
 
     const linkedPRs = issueToOpenPRs.get(issue.number) || [];
-    const lastActivity = await computeIssueLastActivity(github, owner, repo, issue, linkedPRs);
+    const lastActivity = await computeIssueLastActivity(
+      github,
+      owner,
+      repo,
+      issue,
+      linkedPRs,
+    );
     if (lastActivity === null) {
       logger.log(`#${issue.number}: skipping (no assigned event found)`);
       continue;
     }
-    await handleStaleItem(github, owner, repo, issue, lastActivity, 'issue', logger, nowMs);
+    await handleStaleItem(
+      github,
+      owner,
+      repo,
+      issue,
+      lastActivity,
+      "issue",
+      logger,
+      nowMs,
+    );
   }
 
-  logger.log('Inactivity check complete');
+  logger.log("Inactivity check complete");
 };
