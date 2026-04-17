@@ -5,17 +5,22 @@
 // Bot context builder and GitHub API wrappers (labels, assignees, comments,
 // commit/issue fetching, and label swap helpers).
 
-const { getLogger } = require('./logger');
+const { getLogger } = require("./logger");
 const {
   isSafeSearchToken,
   requireObject,
   requireNonEmptyString,
   requirePositiveInt,
   requireSafeUsername,
-} = require('./validation');
-const { LABELS, SKILL_HIERARCHY } = require('./constants');
-const { checkDCO, checkGPG, checkMergeConflict, checkIssueLink } = require('./checks');
-const { buildBotComment } = require('./comments');
+} = require("./validation");
+const { LABELS, SKILL_HIERARCHY } = require("./constants");
+const {
+  checkDCO,
+  checkGPG,
+  checkMergeConflict,
+  checkIssueLink,
+} = require("./checks");
+const { buildBotComment } = require("./comments");
 
 /**
  * Builds the bot context for any bot. Validates github, context, and payload; throws if invalid.
@@ -29,38 +34,42 @@ const { buildBotComment } = require('./comments');
  * @throws {Error} If input is invalid or event type is unsupported.
  */
 function buildBotContext({ github, context }) {
-  requireObject(github, 'github');
-  requireObject(context, 'context');
-  requireObject(context.repo, 'context.repo');
-  requireObject(context.payload, 'context.payload');
+  requireObject(github, "github");
+  requireObject(context, "context");
+  requireObject(context.repo, "context.repo");
+  requireObject(context.payload, "context.payload");
 
   const owner = context.repo.owner;
   const repo = context.repo.repo;
-  requireNonEmptyString(owner, 'context.repo.owner');
-  requireNonEmptyString(repo, 'context.repo.repo');
+  requireNonEmptyString(owner, "context.repo.owner");
+  requireNonEmptyString(repo, "context.repo.repo");
   if (!isSafeSearchToken(owner) || !isSafeSearchToken(repo)) {
-    throw new Error('Bot context invalid: owner or repo contains invalid characters');
+    throw new Error(
+      "Bot context invalid: owner or repo contains invalid characters",
+    );
   }
 
   const base = { github, owner, repo };
 
-  requireNonEmptyString(context.eventName, 'context.eventName');
+  requireNonEmptyString(context.eventName, "context.eventName");
   const eventType = context.eventName;
 
   const { payload } = context;
   let payloadPart;
   switch (eventType) {
-    case 'pull_request':
-    case 'pull_request_target':
-    case 'pull_request_review': {
+    case "pull_request":
+    case "pull_request_target":
+    case "pull_request_review": {
       const pr = payload.pull_request;
-      requireObject(pr, 'context.payload.pull_request');
-      requirePositiveInt(pr.number, 'pull_request.number');
+      requireObject(pr, "context.payload.pull_request");
+      requirePositiveInt(pr.number, "pull_request.number");
 
       if (pr.user) {
-        requireNonEmptyString(pr.user.login, 'pull_request.user.login');
+        requireNonEmptyString(pr.user.login, "pull_request.user.login");
         if (!isSafeSearchToken(pr.user.login)) {
-          throw new Error('Bot context invalid: pull_request.user.login contains invalid characters');
+          throw new Error(
+            "Bot context invalid: pull_request.user.login contains invalid characters",
+          );
         }
       }
 
@@ -68,35 +77,42 @@ function buildBotContext({ github, context }) {
       break;
     }
 
-    case 'issues':
-    case 'issue_comment': {
+    case "issues":
+    case "issue_comment": {
       const issue = payload.issue;
-      requireObject(issue, 'context.payload.issue');
-      requirePositiveInt(issue.number, 'issue.number');
+      requireObject(issue, "context.payload.issue");
+      requirePositiveInt(issue.number, "issue.number");
       payloadPart = { number: issue.number, issue };
 
-      if (eventType === 'issue_comment') {
+      if (eventType === "issue_comment") {
         const comment = payload.comment;
-        requireObject(comment, 'context.payload.comment');
-        requireObject(comment.user, 'context.payload.comment.user');
-        requireNonEmptyString(comment.user.login, 'context.payload.comment.user.login');
+        requireObject(comment, "context.payload.comment");
+        requireObject(comment.user, "context.payload.comment.user");
+        requireNonEmptyString(
+          comment.user.login,
+          "context.payload.comment.user.login",
+        );
 
         // Flag bot users early so callers can skip processing without
         // hitting the stricter username validation below.
-        const isBot = comment.user.type === 'Bot';
+        const isBot = comment.user.type === "Bot";
         if (!isBot && !isSafeSearchToken(comment.user.login)) {
-          throw new Error('Bot context invalid: comment.user.login contains invalid characters');
+          throw new Error(
+            "Bot context invalid: comment.user.login contains invalid characters",
+          );
         }
-        if (typeof comment.body !== 'string') {
-          throw new Error('Bot context invalid: comment.body must be a string');
+        if (typeof comment.body !== "string") {
+          throw new Error("Bot context invalid: comment.body must be a string");
         }
-        
+
         payloadPart = { ...payloadPart, comment, isBot };
       }
       break;
     }
     default:
-      throw new Error(`Bot context invalid: unsupported event type "${eventType}"`);
+      throw new Error(
+        `Bot context invalid: unsupported event type "${eventType}"`,
+      );
   }
   return { ...base, eventType, ...payloadPart };
 }
@@ -109,9 +125,9 @@ function buildBotContext({ github, context }) {
  */
 async function addLabels(botContext, labels) {
   if (!Array.isArray(labels)) {
-    return { success: false, error: 'labels must be an array' };
+    return { success: false, error: "labels must be an array" };
   }
-  
+
   try {
     for (let i = 0; i < labels.length; i++) {
       requireNonEmptyString(labels[i], `labels[${i}]`);
@@ -124,10 +140,12 @@ async function addLabels(botContext, labels) {
       labels,
     });
 
-    getLogger().log(`Added labels: ${labels.join(', ')}`);
+    getLogger().log(`Added labels: ${labels.join(", ")}`);
     return { success: true };
   } catch (error) {
-    getLogger().error(`Could not add labels "${labels.join(', ')}": ${error.message}`);
+    getLogger().error(
+      `Could not add labels "${labels.join(", ")}": ${error.message}`,
+    );
     return { success: false, error: error.message };
   }
 }
@@ -140,7 +158,7 @@ async function addLabels(botContext, labels) {
  */
 async function removeLabel(botContext, labelName) {
   try {
-    requireNonEmptyString(labelName, 'labelName');
+    requireNonEmptyString(labelName, "labelName");
 
     await botContext.github.rest.issues.removeLabel({
       owner: botContext.owner,
@@ -152,7 +170,9 @@ async function removeLabel(botContext, labelName) {
     getLogger().log(`Removed label: ${labelName}`);
     return { success: true };
   } catch (error) {
-    getLogger().error(`Could not remove label "${labelName}": ${error.message}`);
+    getLogger().error(
+      `Could not remove label "${labelName}": ${error.message}`,
+    );
     return { success: false, error: error.message };
   }
 }
@@ -165,7 +185,7 @@ async function removeLabel(botContext, labelName) {
  */
 async function addAssignees(botContext, assignees) {
   if (!Array.isArray(assignees)) {
-    return { success: false, error: 'assignees must be an array' };
+    return { success: false, error: "assignees must be an array" };
   }
 
   try {
@@ -180,10 +200,12 @@ async function addAssignees(botContext, assignees) {
       assignees,
     });
 
-    getLogger().log(`Added assignees: ${assignees.join(', ')}`);
+    getLogger().log(`Added assignees: ${assignees.join(", ")}`);
     return { success: true };
   } catch (error) {
-    getLogger().error(`Could not add assignees "${assignees.join(', ')}": ${error.message}`);
+    getLogger().error(
+      `Could not add assignees "${assignees.join(", ")}": ${error.message}`,
+    );
     return { success: false, error: error.message };
   }
 }
@@ -196,7 +218,7 @@ async function addAssignees(botContext, assignees) {
  */
 async function removeAssignees(botContext, assignees) {
   if (!Array.isArray(assignees)) {
-    return { success: false, error: 'assignees must be an array' };
+    return { success: false, error: "assignees must be an array" };
   }
 
   try {
@@ -211,10 +233,12 @@ async function removeAssignees(botContext, assignees) {
       assignees,
     });
 
-    getLogger().log(`Removed assignees: ${assignees.join(', ')}`);
+    getLogger().log(`Removed assignees: ${assignees.join(", ")}`);
     return { success: true };
   } catch (error) {
-    getLogger().error(`Could not remove assignees "${assignees.join(', ')}": ${error.message}`);
+    getLogger().error(
+      `Could not remove assignees "${assignees.join(", ")}": ${error.message}`,
+    );
     return { success: false, error: error.message };
   }
 }
@@ -227,7 +251,7 @@ async function removeAssignees(botContext, assignees) {
  */
 async function postComment(botContext, body) {
   try {
-    requireNonEmptyString(body, 'comment body');
+    requireNonEmptyString(body, "comment body");
 
     await botContext.github.rest.issues.createComment({
       owner: botContext.owner,
@@ -235,7 +259,7 @@ async function postComment(botContext, body) {
       issue_number: botContext.number,
       body,
     });
-    getLogger().log('Posted comment');
+    getLogger().log("Posted comment");
     return { success: true };
   } catch (error) {
     getLogger().error(`Could not post comment: ${error.message}`);
@@ -255,8 +279,10 @@ function hasLabel(issueOrPr, labelName) {
   }
 
   return issueOrPr.labels.some((label) => {
-    const name = typeof label === 'string' ? label : label?.name;
-    return typeof name === 'string' && name.toLowerCase() === labelName.toLowerCase();
+    const name = typeof label === "string" ? label : label?.name;
+    return (
+      typeof name === "string" && name.toLowerCase() === labelName.toLowerCase()
+    );
   });
 }
 
@@ -270,7 +296,7 @@ function hasLabel(issueOrPr, labelName) {
  */
 function getLabelsByPrefix(issueOrPr, prefix) {
   return (issueOrPr.labels || [])
-    .map((l) => (typeof l === 'string' ? l : l?.name || ''))
+    .map((l) => (typeof l === "string" ? l : l?.name || ""))
     .filter((name) => name.toLowerCase().startsWith(prefix.toLowerCase()));
 }
 
@@ -296,11 +322,11 @@ async function swapLabels(botContext, fromLabel, toLabel) {
     errors.push(`Failed to add '${toLabel}': ${addResult.error}`);
   }
 
-  return { success: errors.length === 0, errorDetails: errors.join('; ') };
+  return { success: errors.length === 0, errorDetails: errors.join("; ") };
 }
 
 /**
- * Fetches an existing comment identified by an HTML marker.
+ * Fetches an existing bot-authored comment identified by an HTML marker.
  * Paginates through all comments to find a match.
  * @param {object} botContext
  * @param {string} marker - HTML comment marker (e.g. '<!-- bot:pr-helper -->').
@@ -311,16 +337,18 @@ async function getBotComment(botContext, marker) {
   const perPage = 100;
 
   while (true) {
-    const { data: comments } = await botContext.github.rest.issues.listComments({
-      owner: botContext.owner,
-      repo: botContext.repo,
-      issue_number: botContext.number,
-      per_page: perPage,
-      page,
-    });
+    const { data: comments } = await botContext.github.rest.issues.listComments(
+      {
+        owner: botContext.owner,
+        repo: botContext.repo,
+        issue_number: botContext.number,
+        per_page: perPage,
+        page,
+      },
+    );
 
     for (const c of comments) {
-      if (c.body && c.body.startsWith(marker)) {
+      if (c.user?.type === "Bot" && c.body && c.body.startsWith(marker)) {
         return c;
       }
     }
@@ -342,14 +370,14 @@ async function getBotComment(botContext, marker) {
  */
 async function postOrUpdateComment(botContext, marker, body) {
   try {
-    requireNonEmptyString(marker, 'marker');
-    requireNonEmptyString(body, 'comment body');
+    requireNonEmptyString(marker, "marker");
+    requireNonEmptyString(body, "comment body");
 
     const existingComment = await getBotComment(botContext, marker);
 
     if (existingComment) {
       if (existingComment.body.trim() === body.trim()) {
-        getLogger().log('Existing bot comment is up-to-date');
+        getLogger().log("Existing bot comment is up-to-date");
       } else {
         await botContext.github.rest.issues.updateComment({
           owner: botContext.owner,
@@ -357,7 +385,7 @@ async function postOrUpdateComment(botContext, marker, body) {
           comment_id: existingComment.id,
           body,
         });
-        getLogger().log('Updated existing bot comment');
+        getLogger().log("Updated existing bot comment");
       }
     } else {
       await botContext.github.rest.issues.createComment({
@@ -366,7 +394,7 @@ async function postOrUpdateComment(botContext, marker, body) {
         issue_number: botContext.number,
         body,
       });
-      getLogger().log('Created new bot comment');
+      getLogger().log("Created new bot comment");
     }
     return { success: true };
   } catch (error) {
@@ -400,7 +428,9 @@ async function fetchPRCommits(botContext) {
     page++;
   }
 
-  getLogger().log(`Fetched ${commits.length} commits for PR #${botContext.number}`);
+  getLogger().log(
+    `Fetched ${commits.length} commits for PR #${botContext.number}`,
+  );
   return commits;
 }
 
@@ -418,7 +448,7 @@ async function fetchOpenPRs(botContext) {
     const response = await botContext.github.rest.pulls.list({
       owner: botContext.owner,
       repo: botContext.repo,
-      state: 'open',
+      state: "open",
       per_page: perPage,
       page,
     });
@@ -469,10 +499,13 @@ async function fetchClosingIssueNumbers(botContext) {
       repo: botContext.repo,
       number: botContext.number,
     });
-    const nodes = result.repository.pullRequest.closingIssuesReferences.nodes || [];
-    return nodes.map(n => n.number);
+    const nodes =
+      result.repository.pullRequest.closingIssuesReferences.nodes || [];
+    return nodes.map((n) => n.number);
   } catch (error) {
-    getLogger().error(`GraphQL closingIssuesReferences failed: ${error.message}`);
+    getLogger().error(
+      `GraphQL closingIssuesReferences failed: ${error.message}`,
+    );
     return [];
   }
 }
@@ -520,12 +553,12 @@ async function acknowledgeComment(botContext, commentId) {
       owner: botContext.owner,
       repo: botContext.repo,
       comment_id: commentId,
-      content: '+1',
+      content: "+1",
     });
-    getLogger().log('Added thumbs-up reaction to comment');
+    getLogger().log("Added thumbs-up reaction to comment");
     return { success: true };
   } catch (error) {
-    getLogger().log('Could not add reaction:', error.message);
+    getLogger().log("Could not add reaction:", error.message);
     return { success: false };
   }
 }
@@ -544,33 +577,54 @@ async function runAllChecksAndComment(botContext, precomputed = {}) {
   try {
     commits = await fetchPRCommits(botContext);
   } catch (e) {
-    getLogger().error('Failed to fetch PR commits:', e.message);
+    getLogger().error("Failed to fetch PR commits:", e.message);
     dco = { error: true, errorMessage: e.message };
     gpg = { error: true, errorMessage: e.message };
   }
 
   if (!dco) {
-    try { dco = checkDCO(commits); }
-    catch (e) { dco = { error: true, errorMessage: e.message }; }
+    try {
+      dco = checkDCO(commits);
+    } catch (e) {
+      dco = { error: true, errorMessage: e.message };
+    }
   }
 
   if (!gpg) {
-    try { gpg = checkGPG(commits); }
-    catch (e) { gpg = { error: true, errorMessage: e.message }; }
+    try {
+      gpg = checkGPG(commits);
+    } catch (e) {
+      gpg = { error: true, errorMessage: e.message };
+    }
   }
 
   if (!merge) {
-    try { merge = await checkMergeConflict(botContext); }
-    catch (e) { merge = { error: true, errorMessage: e.message }; }
+    try {
+      merge = await checkMergeConflict(botContext);
+    } catch (e) {
+      merge = { error: true, errorMessage: e.message };
+    }
   }
 
   if (!issueLink) {
-    try { issueLink = await checkIssueLink(botContext, { fetchIssue, fetchClosingIssueNumbers }); }
-    catch (e) { issueLink = { error: true, errorMessage: e.message }; }
+    try {
+      issueLink = await checkIssueLink(botContext, {
+        fetchIssue,
+        fetchClosingIssueNumbers,
+      });
+    } catch (e) {
+      issueLink = { error: true, errorMessage: e.message };
+    }
   }
 
   const prAuthor = botContext.pr?.user?.login;
-  const { marker, body, allPassed } = buildBotComment({ prAuthor, dco, gpg, merge, issueLink });
+  const { marker, body, allPassed } = buildBotComment({
+    prAuthor,
+    dco,
+    gpg,
+    merge,
+    issueLink,
+  });
   await postOrUpdateComment(botContext, marker, body);
 
   return { allPassed };
@@ -631,7 +685,9 @@ async function fetchComments(botContext) {
     page++;
   }
 
-  getLogger().log(`Fetched ${comments.length} comments for #${botContext.number}`);
+  getLogger().log(
+    `Fetched ${comments.length} comments for #${botContext.number}`,
+  );
   return comments;
 }
 
@@ -646,13 +702,15 @@ async function closeItem(botContext) {
       owner: botContext.owner,
       repo: botContext.repo,
       issue_number: botContext.number,
-      state: 'closed',
+      state: "closed",
     });
 
     getLogger().log(`Closed #${botContext.number}`);
     return { success: true };
   } catch (error) {
-    getLogger().error(`Could not close #${botContext.number}: ${error.message}`);
+    getLogger().error(
+      `Could not close #${botContext.number}: ${error.message}`,
+    );
     return { success: false, error: error.message };
   }
 }
@@ -673,60 +731,72 @@ async function closeItem(botContext) {
  * @returns {Promise<object|null>}
  */
 async function resolveLinkedIssue(botContext) {
-    try {
-        const issueNumbers = await fetchClosingIssueNumbers(botContext);
+  try {
+    const issueNumbers = await fetchClosingIssueNumbers(botContext);
 
-        if (!issueNumbers.length) {
-            getLogger().log('No linked issue found', {
-                prNumber: botContext.number,
-            });
-            return null;
-        }
+    if (!issueNumbers.length) {
+      getLogger().log("No linked issue found", {
+        prNumber: botContext.number,
+      });
+      return null;
+    }
 
-        if (issueNumbers.length === 1) {
-            const issue = await fetchIssue(botContext, issueNumbers[0]);
-            if (!issue || SKILL_HIERARCHY.findIndex(level => hasLabel(issue, level)) === -1) {
-                getLogger().log('Single linked issue has no skill label', { issueNumber: issueNumbers[0] });
-                return null;
-            }
-            return issue;
-        }
-
-        const issues = await Promise.all(
-            issueNumbers.map(n => fetchIssue(botContext, n))
-        );
-        const valid = issues.filter(Boolean);
-
-        if (!valid.length) {
-            getLogger().log('All linked issue fetches returned empty', { issueNumbers });
-            return null;
-        }
-
-        const selected = valid.reduce((best, issue) => {
-            const bestIndex = SKILL_HIERARCHY.findIndex(level => hasLabel(best, level));
-            const currIndex = SKILL_HIERARCHY.findIndex(level => hasLabel(issue, level));
-            return currIndex > bestIndex ? issue : best;
-        });
-
-        const selectedIndex = SKILL_HIERARCHY.findIndex(level => hasLabel(selected, level));
-        if (selectedIndex === -1) {
-            getLogger().log('No linked issues have a skill label', { issueNumbers });
-            return null;
-        }
-
-        getLogger().log('Multiple linked issues found (using highest level)', {
-            issueNumbers,
-            selected: selected.number,
-        });
-
-        return selected;
-
-    } catch (error) {
-        getLogger().error('Failed to resolve linked issue:', {
-            message: error.message,
+    if (issueNumbers.length === 1) {
+      const issue = await fetchIssue(botContext, issueNumbers[0]);
+      if (
+        !issue ||
+        SKILL_HIERARCHY.findIndex((level) => hasLabel(issue, level)) === -1
+      ) {
+        getLogger().log("Single linked issue has no skill label", {
+          issueNumber: issueNumbers[0],
         });
         return null;
+      }
+      return issue;
     }
+
+    const issues = await Promise.all(
+      issueNumbers.map((n) => fetchIssue(botContext, n)),
+    );
+    const valid = issues.filter(Boolean);
+
+    if (!valid.length) {
+      getLogger().log("All linked issue fetches returned empty", {
+        issueNumbers,
+      });
+      return null;
+    }
+
+    const selected = valid.reduce((best, issue) => {
+      const bestIndex = SKILL_HIERARCHY.findIndex((level) =>
+        hasLabel(best, level),
+      );
+      const currIndex = SKILL_HIERARCHY.findIndex((level) =>
+        hasLabel(issue, level),
+      );
+      return currIndex > bestIndex ? issue : best;
+    });
+
+    const selectedIndex = SKILL_HIERARCHY.findIndex((level) =>
+      hasLabel(selected, level),
+    );
+    if (selectedIndex === -1) {
+      getLogger().log("No linked issues have a skill label", { issueNumbers });
+      return null;
+    }
+
+    getLogger().log("Multiple linked issues found (using highest level)", {
+      issueNumbers,
+      selected: selected.number,
+    });
+
+    return selected;
+  } catch (error) {
+    getLogger().error("Failed to resolve linked issue:", {
+      message: error.message,
+    });
+    return null;
+  }
 }
 
 /**

@@ -433,13 +433,26 @@ function buildBlockedCheckinComment(assigneeLogins, itemType) {
  * @returns {object|null}
  */
 function getLatestBotMarkerComment(comments, marker) {
-  const matching = comments
-    .filter(
-      (c) => c.user?.type === "Bot" && c.body && c.body.startsWith(marker),
-    )
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  let latestComment = null;
+  let latestCreatedAt = -Infinity;
 
-  return matching[0] || null;
+  for (const comment of comments) {
+    if (
+      comment.user?.type !== "Bot" ||
+      !comment.body ||
+      !comment.body.startsWith(marker)
+    ) {
+      continue;
+    }
+
+    const createdAt = Date.parse(comment.created_at);
+    if (createdAt > latestCreatedAt) {
+      latestCreatedAt = createdAt;
+      latestComment = comment;
+    }
+  }
+
+  return latestComment;
 }
 
 // ─── State mutation ───────────────────────────────────────────────────────────

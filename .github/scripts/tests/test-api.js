@@ -5,7 +5,7 @@
 // Unit tests for helpers/api.js (postOrUpdateComment, fetchPRCommits, swapStatusLabel, etc.).
 // Run with: node .github/scripts/tests/test-api.js
 
-const { runTestSuite } = require('./test-utils');
+const { runTestSuite } = require("./test-utils");
 const {
   getBotComment,
   postOrUpdateComment,
@@ -17,9 +17,9 @@ const {
   hasLabel,
   resolveLinkedIssue,
   getHighestIssueSkillLevel,
-} = require('../helpers/api');
-const { LABELS } = require('../helpers/constants');
-const { isSafeSearchToken } = require('../helpers/validation');
+} = require("../helpers/api");
+const { LABELS } = require("../helpers/constants");
+const { isSafeSearchToken } = require("../helpers/validation");
 
 // =============================================================================
 // MOCK FACTORY
@@ -57,7 +57,7 @@ function createMockBotContext(overrides = {}) {
             },
             get: async ({ issue_number }) => {
               const issue = (overrides.issues || {})[issue_number];
-              if (!issue) throw new Error('Not Found');
+              if (!issue) throw new Error("Not Found");
               return { data: issue };
             },
           },
@@ -86,8 +86,8 @@ function createMockBotContext(overrides = {}) {
             },
           })),
       },
-      owner: 'test',
-      repo: 'repo',
+      owner: "test",
+      repo: "repo",
       number: 1,
       pr: overrides.pr || { labels: [] },
     },
@@ -104,32 +104,32 @@ const unitTests = [
   // hasLabel
   // ---------------------------------------------------------------------------
   {
-    name: 'hasLabel: PR with matching label object → true',
+    name: "hasLabel: PR with matching label object → true",
     test: () => {
       const pr = {
-        labels: [{ name: 'status: needs review' }],
+        labels: [{ name: "status: needs review" }],
       };
       return hasLabel(pr, LABELS.NEEDS_REVIEW) === true;
     },
   },
   {
-    name: 'hasLabel: PR with no matching label → false',
+    name: "hasLabel: PR with no matching label → false",
     test: () => {
       const pr = {
-        labels: [{ name: 'bug' }, { name: 'enhancement' }],
+        labels: [{ name: "bug" }, { name: "enhancement" }],
       };
       return hasLabel(pr, LABELS.NEEDS_REVIEW) === false;
     },
   },
   {
-    name: 'hasLabel: PR with no labels → false',
+    name: "hasLabel: PR with no labels → false",
     test: () => {
       const pr = { labels: [] };
       return hasLabel(pr, LABELS.NEEDS_REVIEW) === false;
     },
   },
   {
-    name: 'hasLabel: PR with null/undefined labels → false',
+    name: "hasLabel: PR with null/undefined labels → false",
     test: () => {
       return (
         hasLabel({ labels: null }, LABELS.NEEDS_REVIEW) === false &&
@@ -138,19 +138,19 @@ const unitTests = [
     },
   },
   {
-    name: 'hasLabel: case insensitive match → true',
+    name: "hasLabel: case insensitive match → true",
     test: () => {
       const pr = {
-        labels: [{ name: 'STATUS: NEEDS REVIEW' }],
+        labels: [{ name: "STATUS: NEEDS REVIEW" }],
       };
-      return hasLabel(pr, 'status: needs review') === true;
+      return hasLabel(pr, "status: needs review") === true;
     },
   },
   {
-    name: 'hasLabel: string labels → true',
+    name: "hasLabel: string labels → true",
     test: () => {
       const pr = {
-        labels: ['status: needs review', 'bug'],
+        labels: ["status: needs review", "bug"],
       };
       return hasLabel(pr, LABELS.NEEDS_REVIEW) === true;
     },
@@ -160,13 +160,17 @@ const unitTests = [
   // getBotComment
   // ---------------------------------------------------------------------------
   {
-    name: 'getBotComment: returns comment matched by marker',
+    name: "getBotComment: returns comment matched by marker",
     test: async () => {
-      const marker = '<!-- bot:test -->';
+      const marker = "<!-- bot:test -->";
       const { botContext } = createMockBotContext({
         comments: [
-          { id: 1, body: 'User comment 1' },
-          { id: 2, body: '<!-- bot:test -->\nBot comment' },
+          { id: 1, body: "User comment 1", user: { type: "User" } },
+          {
+            id: 2,
+            body: "<!-- bot:test -->\nBot comment",
+            user: { type: "Bot" },
+          },
         ],
       });
       const result = await getBotComment(botContext, marker);
@@ -174,12 +178,27 @@ const unitTests = [
     },
   },
   {
-    name: 'getBotComment: returns null if no marker match',
+    name: "getBotComment: returns null if no marker match",
     test: async () => {
-      const marker = '<!-- bot:test -->';
+      const marker = "<!-- bot:test -->";
+      const { botContext } = createMockBotContext({
+        comments: [{ id: 1, body: "User comment 1", user: { type: "User" } }],
+      });
+      const result = await getBotComment(botContext, marker);
+      return result === null;
+    },
+  },
+  {
+    name: "getBotComment: ignores non-bot marker comment",
+    test: async () => {
+      const marker = "<!-- bot:test -->";
       const { botContext } = createMockBotContext({
         comments: [
-          { id: 1, body: 'User comment 1' },
+          {
+            id: 1,
+            body: "<!-- bot:test -->\nHuman marker",
+            user: { type: "User" },
+          },
         ],
       });
       const result = await getBotComment(botContext, marker);
@@ -187,11 +206,23 @@ const unitTests = [
     },
   },
   {
-    name: 'getBotComment: searches across pages',
+    name: "getBotComment: searches across pages",
     test: async () => {
-      const marker = '<!-- bot:paged -->';
-      const page1 = Array(100).fill(null).map((_, i) => ({ id: i + 1, body: `Comment ${i}` }));
-      const page2 = [{ id: 101, body: '<!-- bot:paged -->\nFound on page 2' }];
+      const marker = "<!-- bot:paged -->";
+      const page1 = Array(100)
+        .fill(null)
+        .map((_, i) => ({
+          id: i + 1,
+          body: `Comment ${i}`,
+          user: { type: "User" },
+        }));
+      const page2 = [
+        {
+          id: 101,
+          body: "<!-- bot:paged -->\nFound on page 2",
+          user: { type: "Bot" },
+        },
+      ];
       const { botContext } = createMockBotContext({
         comments: [...page1, ...page2],
       });
@@ -204,13 +235,13 @@ const unitTests = [
   // postOrUpdateComment
   // ---------------------------------------------------------------------------
   {
-    name: 'postOrUpdateComment: no existing comment → creates new',
+    name: "postOrUpdateComment: no existing comment → creates new",
     test: async () => {
       const { botContext, calls } = createMockBotContext({
         comments: [],
       });
-      const marker = '<!-- bot:test -->';
-      const body = '<!-- bot:test -->\nHello';
+      const marker = "<!-- bot:test -->";
+      const body = "<!-- bot:test -->\nHello";
       const result = await postOrUpdateComment(botContext, marker, body);
       return (
         result.success === true &&
@@ -221,15 +252,19 @@ const unitTests = [
     },
   },
   {
-    name: 'postOrUpdateComment: existing comment with marker → updates',
+    name: "postOrUpdateComment: existing comment with marker → updates",
     test: async () => {
-      const marker = '<!-- bot:test -->';
+      const marker = "<!-- bot:test -->";
       const { botContext, calls } = createMockBotContext({
         comments: [
-          { id: 999, body: '<!-- bot:test -->\nOld content' },
+          {
+            id: 999,
+            body: "<!-- bot:test -->\nOld content",
+            user: { type: "Bot" },
+          },
         ],
       });
-      const body = '<!-- bot:test -->\nNew content';
+      const body = "<!-- bot:test -->\nNew content";
       const result = await postOrUpdateComment(botContext, marker, body);
       return (
         result.success === true &&
@@ -241,17 +276,21 @@ const unitTests = [
     },
   },
   {
-    name: 'postOrUpdateComment: multiple comments, one has marker → updates correct one',
+    name: "postOrUpdateComment: multiple comments, one has marker → updates correct one",
     test: async () => {
-      const marker = '<!-- bot:test -->';
+      const marker = "<!-- bot:test -->";
       const { botContext, calls } = createMockBotContext({
         comments: [
-          { id: 1, body: 'User comment 1' },
-          { id: 2, body: '<!-- bot:test -->\nBot comment' },
-          { id: 3, body: 'User comment 2' },
+          { id: 1, body: "User comment 1", user: { type: "User" } },
+          {
+            id: 2,
+            body: "<!-- bot:test -->\nBot comment",
+            user: { type: "Bot" },
+          },
+          { id: 3, body: "User comment 2", user: { type: "User" } },
         ],
       });
-      const body = '<!-- bot:test -->\nUpdated bot';
+      const body = "<!-- bot:test -->\nUpdated bot";
       const result = await postOrUpdateComment(botContext, marker, body);
       return (
         result.success === true &&
@@ -261,33 +300,45 @@ const unitTests = [
     },
   },
   {
-    name: 'postOrUpdateComment: empty comment list → creates new',
+    name: "postOrUpdateComment: empty comment list → creates new",
     test: async () => {
       const { botContext, calls } = createMockBotContext({
         comments: [],
       });
       const result = await postOrUpdateComment(
         botContext,
-        '<!-- bot:x -->',
-        '<!-- bot:x -->\nEmpty'
+        "<!-- bot:x -->",
+        "<!-- bot:x -->\nEmpty",
       );
-      return result.success === true && calls.created.length === 1 && calls.updated.length === 0;
+      return (
+        result.success === true &&
+        calls.created.length === 1 &&
+        calls.updated.length === 0
+      );
     },
   },
   {
-    name: 'postOrUpdateComment: comment on second page → finds and updates',
+    name: "postOrUpdateComment: comment on second page → finds and updates",
     test: async () => {
-      const marker = '<!-- bot:paged -->';
+      const marker = "<!-- bot:paged -->";
       const page1 = Array(100)
         .fill(null)
-        .map((_, i) => ({ id: i + 1, body: `Comment ${i}` }));
+        .map((_, i) => ({
+          id: i + 1,
+          body: `Comment ${i}`,
+          user: { type: "User" },
+        }));
       const page2 = [
-        { id: 101, body: '<!-- bot:paged -->\nFound on page 2' },
+        {
+          id: 101,
+          body: "<!-- bot:paged -->\nFound on page 2",
+          user: { type: "Bot" },
+        },
       ];
       const { botContext, calls } = createMockBotContext({
         comments: [...page1, ...page2],
       });
-      const body = '<!-- bot:paged -->\nUpdated';
+      const body = "<!-- bot:paged -->\nUpdated";
       const result = await postOrUpdateComment(botContext, marker, body);
       return (
         result.success === true &&
@@ -301,24 +352,24 @@ const unitTests = [
   // fetchPRCommits
   // ---------------------------------------------------------------------------
   {
-    name: 'fetchPRCommits: single page (< 100 commits) → returns all',
+    name: "fetchPRCommits: single page (< 100 commits) → returns all",
     test: async () => {
       const commits = [
-        { sha: 'a1', commit: { message: 'First' } },
-        { sha: 'b2', commit: { message: 'Second' } },
+        { sha: "a1", commit: { message: "First" } },
+        { sha: "b2", commit: { message: "Second" } },
       ];
       const { botContext } = createMockBotContext({ commits });
       const result = await fetchPRCommits(botContext);
       return (
         Array.isArray(result) &&
         result.length === 2 &&
-        result[0].sha === 'a1' &&
-        result[1].sha === 'b2'
+        result[0].sha === "a1" &&
+        result[1].sha === "b2"
       );
     },
   },
   {
-    name: 'fetchPRCommits: multiple pages → paginates and returns all',
+    name: "fetchPRCommits: multiple pages → paginates and returns all",
     test: async () => {
       const commits = Array(150)
         .fill(null)
@@ -329,7 +380,7 @@ const unitTests = [
     },
   },
   {
-    name: 'fetchPRCommits: empty PR → returns []',
+    name: "fetchPRCommits: empty PR → returns []",
     test: async () => {
       const { botContext } = createMockBotContext({ commits: [] });
       const result = await fetchPRCommits(botContext);
@@ -341,11 +392,11 @@ const unitTests = [
   // fetchOpenPRs
   // ---------------------------------------------------------------------------
   {
-    name: 'fetchOpenPRs: single page (< 100 PRs) → returns all',
+    name: "fetchOpenPRs: single page (< 100 PRs) → returns all",
     test: async () => {
       const openPRs = [
-        { number: 1, title: 'First PR' },
-        { number: 2, title: 'Second PR' },
+        { number: 1, title: "First PR" },
+        { number: 2, title: "Second PR" },
       ];
       const { botContext } = createMockBotContext({ openPRs });
       const result = await fetchOpenPRs(botContext);
@@ -358,7 +409,7 @@ const unitTests = [
     },
   },
   {
-    name: 'fetchOpenPRs: multiple pages → paginates and returns all',
+    name: "fetchOpenPRs: multiple pages → paginates and returns all",
     test: async () => {
       const openPRs = Array(150)
         .fill(null)
@@ -369,7 +420,7 @@ const unitTests = [
     },
   },
   {
-    name: 'fetchOpenPRs: zero PRs → returns []',
+    name: "fetchOpenPRs: zero PRs → returns []",
     test: async () => {
       const { botContext } = createMockBotContext({ openPRs: [] });
       const result = await fetchOpenPRs(botContext);
@@ -381,25 +432,25 @@ const unitTests = [
   // fetchIssue
   // ---------------------------------------------------------------------------
   {
-    name: 'fetchIssue: valid issue → returns issue data',
+    name: "fetchIssue: valid issue → returns issue data",
     test: async () => {
-      const issueData = { number: 5, title: 'Bug report', state: 'open' };
+      const issueData = { number: 5, title: "Bug report", state: "open" };
       const { botContext } = createMockBotContext({
         issues: { 5: issueData },
       });
       const result = await fetchIssue(botContext, 5);
-      return result.number === 5 && result.title === 'Bug report';
+      return result.number === 5 && result.title === "Bug report";
     },
   },
   {
-    name: 'fetchIssue: missing issue (API throws) → throws',
+    name: "fetchIssue: missing issue (API throws) → throws",
     test: async () => {
       const { botContext } = createMockBotContext({ issues: {} });
       try {
         await fetchIssue(botContext, 999);
         return false;
       } catch (err) {
-        return err.message === 'Not Found';
+        return err.message === "Not Found";
       }
     },
   },
@@ -408,7 +459,7 @@ const unitTests = [
   // fetchClosingIssueNumbers
   // ---------------------------------------------------------------------------
   {
-    name: 'fetchClosingIssueNumbers: 1 closing reference → returns [number]',
+    name: "fetchClosingIssueNumbers: 1 closing reference → returns [number]",
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -426,7 +477,7 @@ const unitTests = [
     },
   },
   {
-    name: 'fetchClosingIssueNumbers: 0 references → returns []',
+    name: "fetchClosingIssueNumbers: 0 references → returns []",
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -442,7 +493,7 @@ const unitTests = [
     },
   },
   {
-    name: 'fetchClosingIssueNumbers: multiple references → returns all',
+    name: "fetchClosingIssueNumbers: multiple references → returns all",
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -465,11 +516,11 @@ const unitTests = [
     },
   },
   {
-    name: 'fetchClosingIssueNumbers: GraphQL fails → returns [] (graceful)',
+    name: "fetchClosingIssueNumbers: GraphQL fails → returns [] (graceful)",
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => {
-          throw new Error('GraphQL error');
+          throw new Error("GraphQL error");
         },
       });
       const result = await fetchClosingIssueNumbers(botContext);
@@ -481,7 +532,7 @@ const unitTests = [
   // resolveLinkedIssue
   // ---------------------------------------------------------------------------
   {
-    name: 'resolveLinkedIssue: no linked issues → returns null',
+    name: "resolveLinkedIssue: no linked issues → returns null",
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -497,9 +548,13 @@ const unitTests = [
     },
   },
   {
-    name: 'resolveLinkedIssue: single linked issue with skill label → returns it',
+    name: "resolveLinkedIssue: single linked issue with skill label → returns it",
     test: async () => {
-      const issueData = { number: 10, title: 'Fix bug', labels: [{ name: LABELS.BEGINNER }] };
+      const issueData = {
+        number: 10,
+        title: "Fix bug",
+        labels: [{ name: LABELS.BEGINNER }],
+      };
       const { botContext } = createMockBotContext({
         graphql: async () => ({
           repository: {
@@ -515,7 +570,7 @@ const unitTests = [
     },
   },
   {
-    name: 'resolveLinkedIssue: single linked issue with no skill label → returns null',
+    name: "resolveLinkedIssue: single linked issue with no skill label → returns null",
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -528,7 +583,7 @@ const unitTests = [
           },
         }),
         issues: {
-          7: { number: 7, title: 'Issue 7', labels: [{ name: 'bug' }] },
+          7: { number: 7, title: "Issue 7", labels: [{ name: "bug" }] },
         },
       });
       const result = await resolveLinkedIssue(botContext);
@@ -536,7 +591,7 @@ const unitTests = [
     },
   },
   {
-    name: 'resolveLinkedIssue: multiple linked issues with skill label → returns highest skill level',
+    name: "resolveLinkedIssue: multiple linked issues with skill label → returns highest skill level",
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -549,9 +604,21 @@ const unitTests = [
           },
         }),
         issues: {
-          1: { number: 1, title: 'GFI issue',          labels: [{ name: LABELS.GOOD_FIRST_ISSUE }] },
-          2: { number: 2, title: 'Intermediate issue',  labels: [{ name: LABELS.INTERMEDIATE }] },
-          3: { number: 3, title: 'Beginner issue',      labels: [{ name: LABELS.BEGINNER }] },
+          1: {
+            number: 1,
+            title: "GFI issue",
+            labels: [{ name: LABELS.GOOD_FIRST_ISSUE }],
+          },
+          2: {
+            number: 2,
+            title: "Intermediate issue",
+            labels: [{ name: LABELS.INTERMEDIATE }],
+          },
+          3: {
+            number: 3,
+            title: "Beginner issue",
+            labels: [{ name: LABELS.BEGINNER }],
+          },
         },
       });
       const result = await resolveLinkedIssue(botContext);
@@ -559,7 +626,7 @@ const unitTests = [
     },
   },
   {
-    name: 'resolveLinkedIssue: multiple linked issues with no skill label → returns null',
+    name: "resolveLinkedIssue: multiple linked issues with no skill label → returns null",
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -572,8 +639,8 @@ const unitTests = [
           },
         }),
         issues: {
-          4: { number: 4, title: 'Issue 4', labels: [{ name: 'bug' }] },
-          5: { number: 5, title: 'Issue 5', labels: [{ name: 'enhancement' }] },
+          4: { number: 4, title: "Issue 4", labels: [{ name: "bug" }] },
+          5: { number: 5, title: "Issue 5", labels: [{ name: "enhancement" }] },
         },
       });
       const result = await resolveLinkedIssue(botContext);
@@ -581,17 +648,19 @@ const unitTests = [
     },
   },
   {
-    name: 'resolveLinkedIssue: GraphQL fails → returns null gracefully',
+    name: "resolveLinkedIssue: GraphQL fails → returns null gracefully",
     test: async () => {
       const { botContext } = createMockBotContext({
-        graphql: async () => { throw new Error('GraphQL error'); },
+        graphql: async () => {
+          throw new Error("GraphQL error");
+        },
       });
       const result = await resolveLinkedIssue(botContext);
       return result === null;
     },
   },
   {
-    name: 'resolveLinkedIssue: issue fetch fails for all linked issues → returns null',
+    name: "resolveLinkedIssue: issue fetch fails for all linked issues → returns null",
     test: async () => {
       const { botContext } = createMockBotContext({
         graphql: async () => ({
@@ -614,7 +683,7 @@ const unitTests = [
   // swapStatusLabel
   // ---------------------------------------------------------------------------
   {
-    name: 'swapStatusLabel: allPassed true, has NEEDS_REVISION → removes revision, adds review',
+    name: "swapStatusLabel: allPassed true, has NEEDS_REVISION → removes revision, adds review",
     test: async () => {
       const { botContext, calls } = createMockBotContext({
         pr: { labels: [{ name: LABELS.NEEDS_REVISION }] },
@@ -630,7 +699,7 @@ const unitTests = [
     },
   },
   {
-    name: 'swapStatusLabel: allPassed true, has NEEDS_REVIEW → no-op',
+    name: "swapStatusLabel: allPassed true, has NEEDS_REVIEW → no-op",
     test: async () => {
       const { botContext, calls } = createMockBotContext({
         pr: { labels: [{ name: LABELS.NEEDS_REVIEW }] },
@@ -640,17 +709,17 @@ const unitTests = [
     },
   },
   {
-    name: 'swapStatusLabel: allPassed true, no status label → no-op',
+    name: "swapStatusLabel: allPassed true, no status label → no-op",
     test: async () => {
       const { botContext, calls } = createMockBotContext({
-        pr: { labels: [{ name: 'bug' }] },
+        pr: { labels: [{ name: "bug" }] },
       });
       await swapStatusLabel(botContext, true);
       return calls.labelsRemoved.length === 0 && calls.labelsAdded.length === 0;
     },
   },
   {
-    name: 'swapStatusLabel: allPassed false, has NEEDS_REVIEW → removes review, adds revision',
+    name: "swapStatusLabel: allPassed false, has NEEDS_REVIEW → removes review, adds revision",
     test: async () => {
       const { botContext, calls } = createMockBotContext({
         pr: { labels: [{ name: LABELS.NEEDS_REVIEW }] },
@@ -666,7 +735,7 @@ const unitTests = [
     },
   },
   {
-    name: 'swapStatusLabel: allPassed false, has NEEDS_REVISION → no-op',
+    name: "swapStatusLabel: allPassed false, has NEEDS_REVISION → no-op",
     test: async () => {
       const { botContext, calls } = createMockBotContext({
         pr: { labels: [{ name: LABELS.NEEDS_REVISION }] },
@@ -676,7 +745,7 @@ const unitTests = [
     },
   },
   {
-    name: 'swapStatusLabel: allPassed false, no status label → no-op',
+    name: "swapStatusLabel: allPassed false, no status label → no-op",
     test: async () => {
       const { botContext, calls } = createMockBotContext({
         pr: { labels: [] },
@@ -690,58 +759,74 @@ const unitTests = [
   // SafeSearchToken
   // ---------------------------------------------------------------------------
   {
-    name: 'isSafeSearchToken: dependabot[bot] → true',
-    test: () => isSafeSearchToken('dependabot[bot]') === true,
+    name: "isSafeSearchToken: dependabot[bot] → true",
+    test: () => isSafeSearchToken("dependabot[bot]") === true,
   },
   {
-    name: 'isSafeSearchToken: string with spaces → false',
-    test: () => isSafeSearchToken('bad username') === false,
+    name: "isSafeSearchToken: string with spaces → false",
+    test: () => isSafeSearchToken("bad username") === false,
   },
   {
-    name: 'isSafeSearchToken: string with angle brackets → false',
-    test: () => isSafeSearchToken('bad<username>') === false,
+    name: "isSafeSearchToken: string with angle brackets → false",
+    test: () => isSafeSearchToken("bad<username>") === false,
   },
   {
-    name: 'isSafeSearchToken: string with semicolon → false',
-    test: () => isSafeSearchToken('bad;username') === false,
+    name: "isSafeSearchToken: string with semicolon → false",
+    test: () => isSafeSearchToken("bad;username") === false,
   },
   {
-    name: 'isSafeSearchToken: string with brackets but not bot inside → false',
-    test: () => isSafeSearchToken('bad[admin]') === false,
+    name: "isSafeSearchToken: string with brackets but not bot inside → false",
+    test: () => isSafeSearchToken("bad[admin]") === false,
   },
   {
-    name: 'isSafeSearchToken: string with multiple brackets → false',
-    test: () => isSafeSearchToken('bad[[admin]') === false,
+    name: "isSafeSearchToken: string with multiple brackets → false",
+    test: () => isSafeSearchToken("bad[[admin]") === false,
   },
 
   // ---------------------------------------------------------------------------
   // getHighestIssueSkillLevel
   // ---------------------------------------------------------------------------
   {
-    name: 'getHighestIssueSkillLevel: issue with one skill label → returns that level',
+    name: "getHighestIssueSkillLevel: issue with one skill label → returns that level",
     test: () => {
-      const issue = { number: 1, title: 'Test', labels: [{ name: LABELS.BEGINNER }, { name: LABELS.READY_FOR_DEV }] };
+      const issue = {
+        number: 1,
+        title: "Test",
+        labels: [{ name: LABELS.BEGINNER }, { name: LABELS.READY_FOR_DEV }],
+      };
       return getHighestIssueSkillLevel(issue) === LABELS.BEGINNER;
     },
   },
   {
-    name: 'getHighestIssueSkillLevel: issue with no skill labels → returns null',
+    name: "getHighestIssueSkillLevel: issue with no skill labels → returns null",
     test: () => {
-      const issue = { number: 1, title: 'Test', labels: [{ name: 'bug' }, { name: 'enhancement' }] };
+      const issue = {
+        number: 1,
+        title: "Test",
+        labels: [{ name: "bug" }, { name: "enhancement" }],
+      };
       return getHighestIssueSkillLevel(issue) === null;
     },
   },
   {
-    name: 'getHighestIssueSkillLevel: issue with multiple skill labels → returns highest',
+    name: "getHighestIssueSkillLevel: issue with multiple skill labels → returns highest",
     test: () => {
-      const issue = { number: 1, title: 'Test', labels: [{ name: LABELS.GOOD_FIRST_ISSUE }, { name: LABELS.BEGINNER }, { name: LABELS.INTERMEDIATE }] };
+      const issue = {
+        number: 1,
+        title: "Test",
+        labels: [
+          { name: LABELS.GOOD_FIRST_ISSUE },
+          { name: LABELS.BEGINNER },
+          { name: LABELS.INTERMEDIATE },
+        ],
+      };
       return getHighestIssueSkillLevel(issue) === LABELS.INTERMEDIATE;
     },
   },
   {
-    name: 'getHighestIssueSkillLevel: issue with empty labels → returns null',
+    name: "getHighestIssueSkillLevel: issue with empty labels → returns null",
     test: () => {
-      const issue = { number: 1, title: 'Test', labels: [] };
+      const issue = { number: 1, title: "Test", labels: [] };
       return getHighestIssueSkillLevel(issue) === null;
     },
   },
@@ -751,8 +836,8 @@ const unitTests = [
 // =============================================================================
 
 async function runUnitTests() {
-  console.log('🔬 UNIT TESTS (api)');
-  console.log('='.repeat(70));
+  console.log("🔬 UNIT TESTS (api)");
+  console.log("=".repeat(70));
   let passed = 0;
   let failed = 0;
   for (const test of unitTests) {
@@ -770,11 +855,11 @@ async function runUnitTests() {
       failed++;
     }
   }
-  console.log('\n' + '-'.repeat(70));
+  console.log("\n" + "-".repeat(70));
   console.log(`Unit Tests: ${passed} passed, ${failed} failed`);
   return { total: unitTests.length, passed, failed };
 }
 
-runTestSuite('API HELPERS TEST SUITE', [], async () => true, [
-  { label: 'Unit Tests', run: runUnitTests },
+runTestSuite("API HELPERS TEST SUITE", [], async () => true, [
+  { label: "Unit Tests", run: runUnitTests },
 ]);

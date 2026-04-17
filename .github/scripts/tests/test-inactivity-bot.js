@@ -1019,6 +1019,78 @@ const scenarios = [
       assigneesRemoved: 0,
     },
   },
+
+  // ── 28 ─────────────────────────────────────────────────────────────────────
+  {
+    name: "PR: warning exists, activity happened after warning, now inactive again — new warning posted",
+    description:
+      "A PR should receive a fresh warning when activity after the previous warning reset the clock.",
+    github: createMockGithub({
+      openPRs: [
+        makePR(270, {
+          createdAt: daysAgo(14),
+          assignees: ["will"],
+          authorLogin: "will",
+        }),
+      ],
+      commentsByNumber: {
+        270: [
+          {
+            id: 9801,
+            user: { login: "github-actions[bot]", type: "Bot" },
+            body: "<!-- bot:inactivity-warning -->\n👋 Hey @will! This PR has been inactive for 5 days.",
+            created_at: daysAgo(10),
+            updated_at: daysAgo(10),
+          },
+        ],
+      },
+      commitsByPRNumber: {
+        270: [makeCommit("will", daysAgo(6))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreatedCount: 1,
+      warningPostedOn: [270],
+      commentsUpdated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 29 ─────────────────────────────────────────────────────────────────────
+  {
+    name: "PR: warning exists, no activity since warning — no duplicate warning",
+    description:
+      "If no activity happened since an existing PR warning, the bot should not post another warning.",
+    github: createMockGithub({
+      openPRs: [
+        makePR(280, {
+          createdAt: daysAgo(6),
+          assignees: ["xena"],
+          authorLogin: "xena",
+        }),
+      ],
+      commentsByNumber: {
+        280: [
+          {
+            id: 9901,
+            user: { login: "github-actions[bot]", type: "Bot" },
+            body: "<!-- bot:inactivity-warning -->\n👋 Hey @xena! This PR has been inactive for 5 days.",
+            created_at: daysAgo(5),
+            updated_at: daysAgo(5),
+          },
+        ],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      commentsUpdated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
 ];
 
 // =============================================================================
