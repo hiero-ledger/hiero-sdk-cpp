@@ -697,6 +697,72 @@ const scenarios = [
       assigneesRemoved: 0,
     },
   },
+
+  // ── 23 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'Issue: warning exists, activity happened after warning, now inactive again — new warning posted',
+    description: 'A fresh warning should be posted when the clock was reset after the previous warning.',
+    github: createMockGithub({
+      assignedIssues: [
+        makeIssue(220, { createdAt: daysAgo(14), assignees: ['riley'], labels: [LABELS.IN_PROGRESS] }),
+      ],
+      commentsByNumber: {
+        220: [
+          {
+            id: 9201,
+            user: { login: 'github-actions[bot]', type: 'Bot' },
+            body: '<!-- bot:inactivity-warning -->\n👋 Hey @riley! This issue has been inactive for 5 days.',
+            created_at: daysAgo(10),
+            updated_at: daysAgo(10),
+          },
+          makeComment('riley', daysAgo(6)),
+        ],
+      },
+      eventsByNumber: {
+        220: [makeAssignedEvent(daysAgo(14))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreatedCount: 1,
+      warningPostedOn: [220],
+      commentsUpdated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 24 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'Issue: warning exists, no activity since warning — no duplicate warning',
+    description: 'If no activity occurred after the existing warning, the bot should not post another warning.',
+    github: createMockGithub({
+      assignedIssues: [
+        makeIssue(230, { createdAt: daysAgo(6), assignees: ['sam'], labels: [LABELS.IN_PROGRESS] }),
+      ],
+      commentsByNumber: {
+        230: [
+          {
+            id: 9301,
+            user: { login: 'github-actions[bot]', type: 'Bot' },
+            body: '<!-- bot:inactivity-warning -->\n👋 Hey @sam! This issue has been inactive for 5 days.',
+            created_at: daysAgo(5),
+            updated_at: daysAgo(5),
+          },
+        ],
+      },
+      eventsByNumber: {
+        230: [makeAssignedEvent(daysAgo(6))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      commentsUpdated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
 ];
 
 // =============================================================================

@@ -352,6 +352,21 @@ function buildBlockedCheckinComment(assigneeLogins, itemType) {
   ].join('\n');
 }
 
+/**
+ * Returns the most recently created bot comment that starts with marker.
+ *
+ * @param {object[]} comments
+ * @param {string} marker
+ * @returns {object|null}
+ */
+function getLatestBotMarkerComment(comments, marker) {
+  const matching = comments
+    .filter(c => c.body && c.body.startsWith(marker))
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  return matching[0] || null;
+}
+
 // ─── State mutation ───────────────────────────────────────────────────────────
 
 /**
@@ -414,9 +429,26 @@ async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemTy
   }
 
   if (elapsed >= WARN_AFTER_MS) {
-    logger.log(`#${item.number} (${itemType}): warning after ${days} days inactive`);
-    await postOrUpdateComment(ctx, WARN_MARKER, buildWarningComment(assigneeLogins, itemType));
-    return 'warned';
+    const comments = await fetchComments(ctx);
+    const latestWarning = getLatestBotMarkerComment(comments, WARN_MARKER);
+
+    // Post a fresh warning only when no prior warning exists, or when there
+    // has been meaningful activity since the last warning was posted.
+    if (!latestWarning) {
+      logger.log(`#${item.number} (${itemType}): warning after ${days} days inactive`);
+      await postComment(ctx, buildWarningComment(assigneeLogins, itemType));
+      return 'warned';
+    }
+
+    const warningCreatedMs = new Date(latestWarning.created_at).getTime();
+    if (lastActivityMs > warningCreatedMs) {
+      logger.log(`#${item.number} (${itemType}): warning re-posted after activity reset`);
+      await postComment(ctx, buildWarningComment(assigneeLogins, itemType));
+      return 'warned';
+    }
+
+    logger.log(`#${item.number} (${itemType}): existing warning still valid`);
+    return 'none';
   }
 
   return 'none';
