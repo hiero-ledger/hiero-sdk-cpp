@@ -156,6 +156,30 @@ async function getLastAuthorCommitDate(github, owner, repo, prNumber, authorLogi
 }
 
 /**
+ * Returns the timestamp (ms) of the most recent event matching predicate,
+ * or null if no matching event is found.
+ *
+ * @param {object} github
+ * @param {string} owner
+ * @param {string} repo
+ * @param {number} number
+ * @param {function} predicate - Called with each event object; return true to include.
+ * @returns {Promise<number|null>}
+ */
+async function getLastMatchingEventDate(github, owner, repo, number, predicate) {
+  const ctx = buildCtx(github, owner, repo, number);
+  const events = await fetchIssueEvents(ctx);
+
+  let latest = null;
+  for (const e of events) {
+    if (!predicate(e)) continue;
+    const t = new Date(e.created_at).getTime();
+    latest = latestOf(latest === null ? -Infinity : latest, t);
+  }
+  return latest === null || latest === -Infinity ? null : latest;
+}
+
+/**
  * Returns the timestamp (ms) of the most recent time "status: blocked" was
  * removed from the item, or null if it has never been unblocked.
  *
@@ -166,16 +190,23 @@ async function getLastAuthorCommitDate(github, owner, repo, prNumber, authorLogi
  * @returns {Promise<number|null>}
  */
 async function getLastUnblockedDate(github, owner, repo, number) {
-  const ctx = buildCtx(github, owner, repo, number);
-  const events = await fetchIssueEvents(ctx);
+  return getLastMatchingEventDate(github, owner, repo, number,
+    e => e.event === 'unlabeled' && e.label?.name === LABELS.BLOCKED);
+}
 
-  let latest = null;
-  for (const e of events) {
-    if (e.event !== 'unlabeled' || e.label?.name !== LABELS.BLOCKED) continue;
-    const t = new Date(e.created_at).getTime();
-    latest = latestOf(latest === null ? -Infinity : latest, t);
-  }
-  return latest === null || latest === -Infinity ? null : latest;
+/**
+ * Returns the timestamp (ms) of the most recent time the item was assigned,
+ * or null if no assigned event is found.
+ *
+ * @param {object} github
+ * @param {string} owner
+ * @param {string} repo
+ * @param {number} number
+ * @returns {Promise<number|null>}
+ */
+async function getLastAssignedDate(github, owner, repo, number) {
+  return getLastMatchingEventDate(github, owner, repo, number,
+    e => e.event === 'assigned');
 }
 
 // ─── Activity computation ────────────────────────────────────────────────────
@@ -223,7 +254,10 @@ async function computePRLastActivity(github, owner, repo, pr) {
  * @returns {Promise<number>}
  */
 async function computeIssueLastActivity(github, owner, repo, issue, linkedOpenPRs) {
-  let latest = new Date(issue.created_at).getTime();
+  const assignedAt = await getLastAssignedDate(github, owner, repo, issue.number);
+  if (assignedAt === null) return null;
+
+  let latest = assignedAt;
   const assigneeLogins = new Set((issue.assignees || []).map(a => a.login.toLowerCase()));
 
   if (assigneeLogins.size > 0) {
@@ -582,6 +616,10 @@ module.exports = async function ({ github, context, getNow = () => Date.now() })
 
     const linkedPRs = issueToOpenPRs.get(issue.number) || [];
     const lastActivity = await computeIssueLastActivity(github, owner, repo, issue, linkedPRs);
+    if (lastActivity === null) {
+      logger.log(`#${issue.number}: skipping (no assigned event found)`);
+      continue;
+    }
     await handleStaleItem(github, owner, repo, issue, lastActivity, 'issue', logger, nowMs);
   }
 
