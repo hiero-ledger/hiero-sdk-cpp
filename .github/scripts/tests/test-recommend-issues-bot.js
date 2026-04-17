@@ -12,6 +12,7 @@ const {
   getNextLevel,
   getFallbackLevel,
   getRecommendedIssues,
+  resolveEligibleLevel,
 } = require('../commands/recommend-issues');
 
 // =============================================================================
