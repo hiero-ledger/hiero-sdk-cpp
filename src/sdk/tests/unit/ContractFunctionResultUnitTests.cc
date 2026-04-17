@@ -228,7 +228,7 @@ TEST_F(ContractFunctionResultUnitTests, OperatorEqualsIdenticallyConstructed)
 }
 
 //-----
-TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentFields)
+TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentContractFields)
 {
   // Given
   const ContractFunctionResult lhs = getPopulatedResult();
@@ -257,7 +257,15 @@ TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentFields)
     rhs.mBloom = { std::byte(0xAA) };
     EXPECT_FALSE(lhs == rhs);
   }
+}
 
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentGasFields)
+{
+  // Given
+  const ContractFunctionResult lhs = getPopulatedResult();
+
+  // Then
   {
     ContractFunctionResult rhs = lhs;
     rhs.mGasUsed = lhs.mGasUsed + 1ULL;
@@ -272,13 +280,21 @@ TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentFields)
 
   {
     ContractFunctionResult rhs = lhs;
-    rhs.mEvmAddress = EvmAddress::fromString("0x1111111111111111111111111111111111111111");
+    rhs.mGas = lhs.mGas + 1ULL;
     EXPECT_FALSE(lhs == rhs);
   }
+}
 
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentAddressFields)
+{
+  // Given
+  const ContractFunctionResult lhs = getPopulatedResult();
+
+  // Then
   {
     ContractFunctionResult rhs = lhs;
-    rhs.mGas = lhs.mGas + 1ULL;
+    rhs.mEvmAddress = EvmAddress::fromString("0x1111111111111111111111111111111111111111");
     EXPECT_FALSE(lhs == rhs);
   }
 
@@ -287,7 +303,15 @@ TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentFields)
     rhs.mHbarAmount = Hbar(lhs.mHbarAmount.toTinybars() + 1LL);
     EXPECT_FALSE(lhs == rhs);
   }
+}
 
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentOtherFields)
+{
+  // Given
+  const ContractFunctionResult lhs = getPopulatedResult();
+
+  // Then
   {
     ContractFunctionResult rhs = lhs;
     rhs.mFunctionParameters = { std::byte(0x00) };
