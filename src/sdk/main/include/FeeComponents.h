@@ -324,6 +324,15 @@ private:
    * The price of bandwidth for data retrieved from disk for a response, measured in bytes.
    */
   int64_t mResponseDiskByte = 0LL;
+
+  /**
+   * Compare two FeeComponents instances and determine if they represent an equivalent set of fees.
+   *
+   * @param lhs The left-hand side FeeComponents to compare.
+   * @param rhs The right-hand side FeeComponents to compare.
+   * @return \c TRUE if \p lhs and \p rhs represent equivalent fee component values, otherwise \c FALSE.
+   */
+  [[nodiscard]] friend bool operator==(const FeeComponents& lhs, const FeeComponents& rhs);
 };
 
 } // namespace Hiero
