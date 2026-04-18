@@ -402,6 +402,7 @@ const scenarios = [
       existingComments: [
         {
           id: 999,
+          user: { login: 'github-actions[bot]', type: 'Bot' },
           body: `${MARKER}\n\nOld comment content`,
         },
       ],
