@@ -156,131 +156,134 @@ function buildRecommendationErrorComment(username) {
 }
 
 /**
- * Determines the highest skill level a user is genuinely eligible for,
- * mirroring the two-step eligibility check used by the assignment bot.
+ * Checks whether a contributor qualifies for a level via bypass.
  *
- * Walks the hierarchy top-down (Advanced → … → Good First Issue), stopping
- * at the first level where the contributor passes either check:
+ * A contributor passes the bypass check if they have at least one closed
+ * issue at the candidate level or any higher level. This indicates prior
+ * experience at that difficulty, so prerequisite counts are not required.
  *
- *   Bypass check  — contributor already has ≥ 1 closed issue at this level
- *                   or higher. Prior demonstrated competence skips the normal
- *                   prerequisite count entirely.
+ * Iterates through all labels at or above the candidate level and stops
+ * as soon as a qualifying issue is found.
  *
- *   Normal check  — contributor has accumulated at least requiredCount closed
- *                   issues at the prerequisite level defined in
- *                   SKILL_PREREQUISITES.
+ * API failures are treated as non-qualifying and skipped.
  *
- * Levels with no requiredLabel (i.e. Good First Issue) are always eligible
- * and act as the guaranteed floor — the walk always resolves to at least GFI.
+ * @param {object} github
+ * @param {string} owner
+ * @param {string} repo
+ * @param {string} username
+ * @param {string} candidate - Skill level being evaluated
+ * @returns {Promise<boolean>} True if bypass condition is satisfied
+ */
+async function passesBypassCheck(github, owner, repo, username, candidate) {
+    const candidateIndex = SKILL_HIERARCHY.indexOf(candidate);
+    const atOrAboveLabels = SKILL_HIERARCHY.slice(candidateIndex);
+
+    for (const label of atOrAboveLabels) {
+        const count = await countIssuesByAssignee(
+            github, owner, repo, username,
+            'closed',
+            label,
+            1,
+        );
+        // Skip on API failure
+        if (count === null) continue;
+
+        if (count >= 1) return true;
+    }
+    return false;
+}
+
+/**
+ * Checks whether a contributor qualifies for a level via prerequisite count.
  *
- * The walk is entirely history-based and does not depend on the triggering
- * issue's label. Eligibility is determined solely from previously closed issues.
+ * A contributor passes the normal check if they have completed at least
+ * `requiredCount` issues at the prerequisite level.
  *
- * API failures degrade gracefully: if countIssuesByAssignee returns null the
- * candidate is skipped and the walk continues downward.
+ * The threshold is passed to countIssuesByAssignee so the query can stop
+ * early once the requirement is satisfied.
  *
- * Example (contributor has 2 closed GFIs, 0 Beginner):
- *   ADVANCED     → bypass: 0 closed Advanced+ → fail
- *                  normal: needs 3 Intermediate closed → 0 → fail → skip
- *   INTERMEDIATE → bypass: 0 closed Intermediate+ → fail
- *                  normal: needs 3 Beginner closed → 0 → fail → skip
- *   BEGINNER     → bypass: 0 closed Beginner+ → fail
- *                  normal: needs 2 GFI closed → 2 → pass ✓ → return BEGINNER
+ * @param {object} github
+ * @param {string} owner
+ * @param {string} repo
+ * @param {string} username
+ * @param {{ requiredLabel: string, requiredCount: number }} prereq
+ * @returns {Promise<boolean|null>}
+ *   - true  → requirement met
+ *   - false → requirement not met
+ *   - null  → API failure
+ */
+async function passesNormalCheck(github, owner, repo, username, prereq) {
+    const count = await countIssuesByAssignee(
+        github, owner, repo, username,
+        'closed',
+        prereq.requiredLabel,
+        prereq.requiredCount,
+    );
+
+    if (count === null) return null;
+
+    return count >= prereq.requiredCount;
+}
+
+/**
+ * Determines the highest skill level a contributor is eligible for
+ * based on their completed issues.
+ *
+ * The hierarchy is evaluated from highest to lowest level, returning
+ * the first level that satisfies either of the following:
+ *
+ *   - Bypass check:
+ *       The contributor has at least one closed issue at the candidate
+ *       level or any higher level. This indicates prior experience, so
+ *       prerequisite counts are not required.
+ *
+ *   - Normal check:
+ *       The contributor has completed at least `requiredCount` issues
+ *       at the prerequisite level defined in SKILL_PREREQUISITES.
+ *
+ * The two checks are delegated to helper functions:
+ *   - passesBypassCheck
+ *   - passesNormalCheck
+ *
+ * Levels without a prerequisite label (e.g. Good First Issue) act as
+ * the floor and are always considered eligible.
+ *
+ * If an API call fails during evaluation, that candidate level is skipped
+ * and the next lower level is considered.
  *
  * @param {object} botContext
  * @param {string} username
- * @returns {Promise<string>} The highest verified eligible level label.
+ * @returns {Promise<string>} The highest eligible skill level label
  */
 async function resolveEligibleLevel(botContext, username) {
     const { github, owner, repo } = botContext;
-
-    // Walk from highest to lowest so we always return the best eligible level.
     const topDown = [...SKILL_HIERARCHY].reverse();
 
     for (const candidate of topDown) {
         const prereq = SKILL_PREREQUISITES[candidate];
 
-        // Guard against misconfiguration — a label in the hierarchy with no
-        // corresponding prerequisites entry.
-        if (!prereq) {
-            logger.log('resolveEligibleLevel: unknown candidate, skipping', { candidate });
-            continue;
-        }
+        if (!prereq) continue;
 
-        // Floor level — no prerequisites, always eligible.
-        // Reached only if every higher level failed both checks.
-        if (!prereq.requiredLabel) {
-            logger.log('resolveEligibleLevel: floor level reached, eligible by default', {
-                user: username, candidate,
-            });
-            return candidate;
-        }
+        // Floor level
+        if (!prereq.requiredLabel) return candidate;
 
-        // ── Bypass check ────────────────────────────────────────────────────
-        // A single closed issue at the candidate level or above proves the
-        // contributor can already handle this difficulty. Threshold: 1.
-        const candidateIndex = SKILL_HIERARCHY.indexOf(candidate);
-        const atOrAboveLabels = SKILL_HIERARCHY.slice(candidateIndex);
+        // Bypass check
+        const bypass = await passesBypassCheck(
+            github, owner, repo, username, candidate
+        );
+        if (bypass) return candidate;
 
-        for (const bypassLabel of atOrAboveLabels) {
-            const bypassCount = await countIssuesByAssignee(
-                github, owner, repo, username,
-                'closed',
-                bypassLabel,
-                1,
-            );
-
-            if (bypassCount === null) {
-                logger.log('resolveEligibleLevel: bypass countIssuesByAssignee failed, skipping label', {
-                    candidate, bypassLabel, user: username,
-                });
-                continue;
-            }
-
-            if (bypassCount >= 1) {
-                logger.log('resolveEligibleLevel: bypass check passed', {
-                    user: username, candidate, bypassLabel, bypassCount,
-                });
-                return candidate;
-            }
-        }
-
-        // ── Normal check ────────────────────────────────────────────────────
-        // Contributor must have completed at least requiredCount closed issues
-        // at the prerequisite level.
-        //
-        // countIssuesByAssignee caps results at the provided threshold, so
-        // passing requiredCount allows early exit once eligibility is proven,
-        // avoiding unnecessary pagination.
-        const count = await countIssuesByAssignee(
-            github, owner, repo, username,
-            'closed',
-            prereq.requiredLabel,
-            prereq.requiredCount,
+        // Normal check
+        const normal = await passesNormalCheck(
+            github, owner, repo, username, prereq
         );
 
-        if (count === null) {
-            logger.log('resolveEligibleLevel: normal countIssuesByAssignee failed, skipping candidate', {
-                candidate, user: username,
-            });
-            continue;
-        }
+        // Skip candidate if API failed
+        if (normal === null) continue;
 
-        if (count >= prereq.requiredCount) {
-            logger.log('resolveEligibleLevel: normal check passed', {
-                user: username, candidate, required: prereq.requiredCount, actual: count,
-            });
-            return candidate;
-        }
-
-        logger.log('resolveEligibleLevel: both checks failed, trying lower level', {
-            candidate, required: prereq.requiredCount, actual: count, user: username,
-        });
+        if (normal) return candidate;
     }
 
-    // Should be unreachable — the floor level always returns above — but
-    // defend against an empty or misconfigured SKILL_HIERARCHY.
-    logger.log('resolveEligibleLevel: hierarchy exhausted, defaulting to GFI', { user: username });
     return LABELS.GOOD_FIRST_ISSUE;
 }
 
