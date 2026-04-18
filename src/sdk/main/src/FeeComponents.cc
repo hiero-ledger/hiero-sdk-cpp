@@ -84,8 +84,8 @@ bool operator==(const FeeComponents& lhs, const FeeComponents& rhs)
          (lhs.mTransactionRamByteHour == rhs.mTransactionRamByteHour) &&
          (lhs.mTransactionStorageByteHour == rhs.mTransactionStorageByteHour) &&
          (lhs.mContractTransactionGas == rhs.mContractTransactionGas) &&
-         (lhs.mTransferVolumeHbar == rhs.mTransferVolumeHbar) &&
-         (lhs.mResponseMemoryByte == rhs.mResponseMemoryByte) && (lhs.mResponseDiskByte == rhs.mResponseDiskByte);
+         (lhs.mTransferVolumeHbar == rhs.mTransferVolumeHbar) && (lhs.mResponseMemoryByte == rhs.mResponseMemoryByte) &&
+         (lhs.mResponseDiskByte == rhs.mResponseDiskByte);
 }
 
 } // namespace Hiero
