@@ -13,7 +13,7 @@ const {
   requirePositiveInt,
   requireSafeUsername,
 } = require('./validation');
-const { LABELS, SKILL_HIERARCHY } = require('./constants');
+const { LABELS, SKILL_HIERARCHY, ISSUE_STATE } = require('./constants');
 const { checkDCO, checkGPG, checkMergeConflict, checkIssueLink } = require('./checks');
 const { buildBotComment } = require('./comments');
 
@@ -779,7 +779,7 @@ async function countIssuesByAssignee(
     !isSafeSearchToken(repo) ||
     !isSafeSearchToken(username)
   ) {
-    logger.log("[assign] Invalid search inputs:", {
+    getLogger().log("[assign] Invalid search inputs:", {
       owner,
       repo,
       username,
@@ -788,14 +788,14 @@ async function countIssuesByAssignee(
     return null;
   }
   if (state !== ISSUE_STATE.OPEN && state !== ISSUE_STATE.CLOSED) {
-    logger.log("[assign] Invalid state:", { state });
+    getLogger().log("[assign] Invalid state:", { state });
     return null;
   }
   if (
     label &&
     (typeof label !== "string" || !label.trim() || label.includes('"'))
   ) {
-    logger.log("[assign] Invalid label parameter:", { label });
+    getLogger().log("[assign] Invalid label parameter:", { label });
     return null;
   }
 
@@ -804,7 +804,7 @@ async function countIssuesByAssignee(
     let matchingIssuesCount = 0;
     const perPage = 100;
 
-    logger.log(`[assign] Fetching ${state} assigned issues via REST...`);
+    getLogger().log(`[assign] Fetching ${state} assigned issues via REST...`);
     while (true) {
       const params = {
         owner,
@@ -833,7 +833,7 @@ async function countIssuesByAssignee(
       matchingIssuesCount += pageMatchCount;
 
       if (threshold !== null && matchingIssuesCount >= threshold) {
-        logger.log(
+        getLogger().log(
           `[assign] Reached threshold (${threshold}), short-circuiting fetch.`,
         );
         matchingIssuesCount = threshold; // Cap at threshold logically for callers
@@ -846,18 +846,18 @@ async function countIssuesByAssignee(
     }
 
     if (label) {
-      logger.log(
+      getLogger().log(
         `[assign] ${state} assigned issues for ${username} with label ${label}: ${matchingIssuesCount}`,
       );
     } else {
-      logger.log(
+      getLogger().log(
         `[assign] ${state} assigned issues for ${username}${state === ISSUE_STATE.OPEN ? " (excluding blocked)" : ""}: ${matchingIssuesCount}`,
       );
     }
     return matchingIssuesCount;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.log(
+    getLogger().log(
       `[assign] Failed to count ${state} issues for ${username}: ${message}`,
     );
     return null;
