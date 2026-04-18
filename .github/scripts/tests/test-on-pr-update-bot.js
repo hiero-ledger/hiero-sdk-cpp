@@ -300,7 +300,7 @@ const syncScenarios = [
       commits: passingCommits(2),
       mergeable: true,
       comments: [
-        { id: 999, body: `${MARKER}\nOld content with DCO fail` },
+        { id: 999, user: { login: 'github-actions[bot]', type: 'Bot' }, body: `${MARKER}\nOld content with DCO fail` },
       ],
       prLabels: [{ name: LABELS.NEEDS_REVISION }],
       prUser: { login: 'henry', type: 'User' },
@@ -357,7 +357,7 @@ const syncScenarios = [
       commits: passingCommits(),
       mergeable: true,
       comments: [
-        { id: 111, body: `${MARKER}\nPrevious bot comment` },
+        { id: 111, user: { login: 'github-actions[bot]', type: 'Bot' }, body: `${MARKER}\nPrevious bot comment` },
       ],
       prLabels: [],
       prUser: { login: 'jane', type: 'User' },
@@ -733,7 +733,7 @@ const editScenarios = [
       issues: { 42: { title: 'Bug', assignees: [{ login: 'contributor' }] } },
       graphqlClosingIssues: [],
       existingComments: [
-        { id: 999, body: `${MARKER}\n\nOld comment content` },
+        { id: 999, user: { login: 'github-actions[bot]', type: 'Bot' }, body: `${MARKER}\n\nOld comment content` },
       ],
     },
     expect: {
