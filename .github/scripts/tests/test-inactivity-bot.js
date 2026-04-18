@@ -938,6 +938,52 @@ const scenarios = [
       assigneesRemoved: 0,
     },
   },
+
+  // ── 30 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'Issue: two prior warning comments — only the latest is used for activity comparison',
+    description: 'When multiple warning comments exist, getLatestBotMarkerComment must pick the most recent one or else activity timing is wrong. With recent warning (daysAgo(4)) and activity (daysAgo(6)) between the warnings, correct code finds activity BEFORE recent warning (no re-post); wrong code using old warning would find activity AFTER it (re-post bug).',
+    github: createMockGithub({
+      assignedIssues: [
+        makeIssue(290, { createdAt: daysAgo(10), assignees: ['yuki'], labels: [LABELS.IN_PROGRESS] }),
+      ],
+      commentsByNumber: {
+        290: [
+          {
+            id: 9501,
+            user: { login: 'github-actions[bot]', type: 'Bot' },
+            body: '<!-- bot:inactivity-warning -->\n👋 Hey @yuki! This issue has been inactive for 5 days.',
+            created_at: daysAgo(10),
+            updated_at: daysAgo(10),
+          },
+          {
+            id: 9502,
+            user: { login: 'yuki', type: 'User' },
+            body: 'Still working on this!',
+            created_at: daysAgo(6),
+            updated_at: daysAgo(6),
+          },
+          {
+            id: 9503,
+            user: { login: 'github-actions[bot]', type: 'Bot' },
+            body: '<!-- bot:inactivity-warning -->\n👋 Hey @yuki! This issue has been inactive for 5 days.',
+            created_at: daysAgo(4),
+            updated_at: daysAgo(4),
+          },
+        ],
+      },
+      eventsByNumber: {
+        290: [makeAssignedEvent(daysAgo(10))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      commentsUpdated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
 ];
 
 // =============================================================================
