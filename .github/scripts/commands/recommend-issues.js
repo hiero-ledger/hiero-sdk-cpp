@@ -3,8 +3,8 @@
 // commands/recommend-issues.js
 //
 // Issue recommendation command: suggests relevant issues to contributors
-// after a PR is closed. Uses skill progression logic to recommend the next
-// suitable issues based on difficulty level.
+// after a PR is closed. Uses a history-based eligibility model to recommend issues strictly
+// at the highest level the contributor is currently allowed to claim.
 
 const {
     MAINTAINER_TEAM,
@@ -173,9 +173,8 @@ function buildRecommendationErrorComment(username) {
  * Levels with no requiredLabel (i.e. Good First Issue) are always eligible
  * and act as the guaranteed floor — the walk always resolves to at least GFI.
  *
- * The walk is entirely history-based and ignores the triggering issue's label,
- * so a contributor who completes a GFI after already having three closed
- * Intermediate issues is correctly resolved to Intermediate, not GFI.
+ * The walk is entirely history-based and does not depend on the triggering
+ * issue's label. Eligibility is determined solely from previously closed issues.
  *
  * API failures degrade gracefully: if countIssuesByAssignee returns null the
  * candidate is skipped and the walk continues downward.
@@ -248,8 +247,11 @@ async function resolveEligibleLevel(botContext, username) {
 
         // ── Normal check ────────────────────────────────────────────────────
         // Contributor must have completed at least requiredCount closed issues
-        // at the prerequisite level. Pass requiredCount as the threshold so
-        // the API short-circuits as soon as the bar is cleared.
+        // at the prerequisite level.
+        //
+        // countIssuesByAssignee caps results at the provided threshold, so
+        // passing requiredCount allows early exit once eligibility is proven,
+        // avoiding unnecessary pagination.
         const count = await countIssuesByAssignee(
             github, owner, repo, username,
             'closed',
@@ -283,29 +285,20 @@ async function resolveEligibleLevel(botContext, username) {
 }
 
 /**
- * Checks whether the just-completed issue pushed the contributor over the
- * threshold into the level directly above `currentLevel`.
+ * Checks whether the just-completed issue caused the contributor to reach
+ * the threshold required to unlock the level directly above `currentLevel`.
  *
- * The trigger condition (from the issue spec): after this PR merged, the
- * contributor's closed-issue count at `currentLevel` equals exactly the
- * requiredCount that unlocks the next level. That exact count means this was
- * the contribution that crossed the line for the first time.
+ * The count is evaluated using a capped query (threshold = requiredCount + 1),
+ * allowing the function to distinguish between:
+ *   - reaching the threshold exactly for the first time
+ *   - having already exceeded it earlier
  *
- * Only inspects the single step immediately above `currentLevel` — higher
- * promotions would have been earned in prior sessions and should not be
- * re-announced.
- *
- * Returns null if:
- *   - currentLevel is already the top of the hierarchy
- *   - the level above has a different requiredLabel than currentLevel
- *     (shouldn't occur with the current config, but guards against gaps)
- *   - the count doesn't land exactly on the threshold
- *   - the API call fails
+ * Only the immediate next level is considered.
  *
  * @param {object} botContext
  * @param {string} username
- * @param {string} currentLevel - Skill label from the triggering PR/issue.
- * @returns {Promise<string|null>} The newly unlocked level label, or null.
+ * @param {string} currentLevel
+ * @returns {Promise<string|null>}
  */
 async function detectUnlockedLevel(botContext, username, currentLevel) {
     const { github, owner, repo } = botContext;
@@ -324,7 +317,7 @@ async function detectUnlockedLevel(botContext, username, currentLevel) {
         github, owner, repo, username,
         'closed',
         currentLevel,
-        nextPrereq.requiredCount,
+        nextPrereq.requiredCount + 1,
     );
 
     if (count === null) {
@@ -348,10 +341,9 @@ async function detectUnlockedLevel(botContext, username, currentLevel) {
  * Returns recommended issues for the contributor based on their true
  * eligibility level, determined by a history-based top-down walk.
  *
- * Issues are fetched in a single batch and filtered locally. Recommendations
- * target the contributor's resolved eligible level — the same level they would
- * be permitted to self-assign via the assignment bot — so every suggestion is
- * immediately actionable.
+ * Issues are fetched in a single batch and filtered locally.
+ * Recommendations are restricted to the contributor's resolved eligible level,
+ * so all suggested issues are immediately assignable.
  *
  * Also runs a focused threshold check (detectUnlockedLevel) to determine
  * whether this specific completion crossed a new level boundary, so the caller
@@ -391,8 +383,7 @@ async function getRecommendedIssues(botContext, username, currentLevel) {
         return null;
     }
 
-    // Target the contributor's resolved eligible level directly. No next/fallback
-    // priority list — every recommended issue should be one they can actually claim.
+    // Filter issues to the resolved eligible level so all results are actionable.
     const grouped = groupIssuesByLevel(issues, [eligibleLevel]);
     return {
         issues: pickFirstAvailableLevel(grouped, [eligibleLevel]),
