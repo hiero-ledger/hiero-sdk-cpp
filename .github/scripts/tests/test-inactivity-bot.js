@@ -697,6 +697,45 @@ const scenarios = [
       assigneesRemoved: 0,
     },
   },
+
+  // ── 23 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR + issue both stale — issue not double-commented after PR loop resets it',
+    description: 'When the PR loop resets a linked issue, the issues loop should skip it — no duplicate comment.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(90, {
+          createdAt: daysAgo(8),
+          assignees: ['eve'],
+          authorLogin: 'eve',
+          body: 'Fixes #91',
+        }),
+      ],
+      assignedIssues: [
+        makeIssue(91, {
+          createdAt: daysAgo(8),
+          assignees: ['eve'],
+          labels: [LABELS.IN_PROGRESS],
+        }),
+      ],
+      issuesByNumber: {
+        91: {
+          number: 91,
+          state: 'open',
+          assignees: [{ login: 'eve' }],
+          labels: [{ name: LABELS.IN_PROGRESS }],
+          created_at: daysAgo(8),
+        },
+      },
+    }),
+    expect: {
+      itemsClosed: [90],
+      closureCommentOn: [90],
+      linkedIssueCleaned: [91],
+      assigneesRemovedOn: [90, 91],
+      commentsCreatedCount: 2,
+    },
+  },
 ];
 
 // =============================================================================
