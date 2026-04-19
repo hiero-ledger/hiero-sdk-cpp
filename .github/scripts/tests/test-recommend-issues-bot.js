@@ -200,6 +200,21 @@ const unitTests = [
     },
   },
   {
+    name: 'resolveEligibleLevel: API failure at top level → falls through to next eligible level',
+    test: async () => {
+      const midPrereq = SKILL_PREREQUISITES[MID];
+      const { botContext } = createMockBotContext({
+        closedCounts: {
+          // Simulate failure for the TOP-level check, pass for MID.
+          [`${TOP}:contributor`]: null,
+          [`${midPrereq.requiredLabel}:contributor`]: midPrereq.requiredCount,
+        },
+      });
+      const level = await resolveEligibleLevel(botContext, 'contributor');
+      return level === MID;
+    },
+  },
+  {
     name: 'resolveEligibleLevel: meets prereq for MID but not TOP → returns MID',
     test: async () => {
       const midPrereq = SKILL_PREREQUISITES[MID];
