@@ -418,7 +418,7 @@ function buildPermissionCheckErrorComment(username) {
  */
 function buildSuccessComment(username, skillLevel, priorityLabel) {
   const prefix = SKILL_TITLE_PREFIXES[skillLevel] || '';
-  const displayLevel = prefix.replace(/[\[\]:]/g, '').trim();
+  const displayLevel = prefix.replace(/[\][:]/g, '').trim();
   return [
     `✅ Issue finalized by @${username}!`,
     '',

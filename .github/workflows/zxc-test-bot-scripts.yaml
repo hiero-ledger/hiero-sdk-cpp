@@ -40,6 +40,12 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Lint bot scripts
+        working-directory: .github/scripts
+        run: |
+          npm ci
+          npx eslint . --ext .js
+
       - name: Run Check Helpers Tests
         run: node .github/scripts/tests/test-checks.js
 
