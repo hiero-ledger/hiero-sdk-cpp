@@ -253,6 +253,7 @@ const scenarios = [
       commentsCreated: 0,
       labelsAdded: 0,
       assigneesRemoved: 0,
+      summaryLogs: ['#10 (issue): last activity 3d ago (assigned: alice), no action needed'],
     },
   },
 
@@ -274,6 +275,7 @@ const scenarios = [
       warningPostedOn: [20],
       labelsAdded: 0,
       assigneesRemoved: 0,
+      summaryLogs: ['#20 (issue): last activity 6d ago (assigned: alice), posting inactivity warning'],
     },
   },
 
@@ -295,6 +297,7 @@ const scenarios = [
       labelsAdded: [{ issue_number: 30, labels: [LABELS.READY_FOR_DEV] }],
       labelsRemoved: [{ issue_number: 30, name: LABELS.IN_PROGRESS }],
       assigneesRemoved: [{ issue_number: 30, assignees: ['alice'] }],
+      summaryLogs: ['#30 (issue): last activity 8d ago (assigned: alice), unassigning and resetting issue'],
     },
   },
 
@@ -410,6 +413,7 @@ const scenarios = [
       warningPostedOn: [80],
       labelsAdded: 0,
       assigneesRemoved: 0,
+      summaryLogs: ['#80 (PR): last activity 6d ago (assigned: dave), posting inactivity warning'],
     },
   },
 
@@ -441,6 +445,7 @@ const scenarios = [
       closureCommentOn: [90],
       linkedIssueCleaned: [91],
       assigneesRemovedOn: [90, 91],
+      summaryLogs: ['#90 (PR): last activity 8d ago (assigned: eve), closing PR'],
     },
   },
 
@@ -870,13 +875,29 @@ async function runScenario(scenario, index) {
   console.log(`[${index}] ${name}`);
   if (description) console.log(`    ${description}`);
 
+  const capturedLogs = [];
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+  console.log = (...args) => {
+    capturedLogs.push(args.map(a => String(a)).join(' '));
+    originalConsoleLog(...args);
+  };
+  console.error = (...args) => {
+    capturedLogs.push(args.map(a => String(a)).join(' '));
+    originalConsoleError(...args);
+  };
+
   try {
     await script({ github, context: defaultContext, getNow: () => NOW });
   } catch (err) {
+    console.log = originalConsoleLog;
+    console.error = originalConsoleError;
     console.error(`❌ Script threw: ${err.message}`);
     console.error(err.stack);
     return false;
   }
+  console.log = originalConsoleLog;
+  console.error = originalConsoleError;
 
   const { calls } = github;
   const failures = [];
@@ -1028,6 +1049,15 @@ async function runScenario(scenario, index) {
   if (expected.commentsUpdated !== undefined) {
     if (calls.commentsUpdated.length !== expected.commentsUpdated) {
       failures.push(`commentsUpdated count: expected ${expected.commentsUpdated}, got ${calls.commentsUpdated.length}`);
+    }
+  }
+
+  if (expected.summaryLogs) {
+    for (const expectedLine of expected.summaryLogs) {
+      const found = capturedLogs.some(line => line.includes(expectedLine));
+      if (!found) {
+        failures.push(`Expected summary log line: ${expectedLine}`);
+      }
     }
   }
 

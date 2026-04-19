@@ -399,6 +399,31 @@ async function resetItem(github, owner, repo, item) {
 // ─── Stale and blocked handlers ───────────────────────────────────────────────
 
 /**
+ * Formats a one-line per-item activity summary log.
+ *
+ * @param {object} item - Issue or PR object with .number and .assignees.
+ * @param {string} itemType - 'issue' or 'PR'
+ * @param {number} lastActivityMs - Timestamp of last meaningful activity.
+ * @param {number} nowMs - Current time in ms.
+ * @param {'closed'|'warned'|'none'} result
+ * @returns {string}
+ */
+function formatActivitySummary(item, itemType, lastActivityMs, nowMs, result) {
+  const days = Math.floor((nowMs - lastActivityMs) / (24 * 60 * 60 * 1000));
+  const assigneeLogins = (item.assignees || []).map(a => a.login);
+  const assignees = assigneeLogins.length > 0 ? assigneeLogins.join(', ') : 'none';
+
+  let action = 'no action needed';
+  if (result === 'warned') {
+    action = 'posting inactivity warning';
+  } else if (result === 'closed') {
+    action = itemType === 'PR' ? 'closing PR' : 'unassigning and resetting issue';
+  }
+
+  return `#${item.number} (${itemType}): last activity ${days}d ago (assigned: ${assignees}), ${action}`;
+}
+
+/**
  * Applies the appropriate stale action to an item.
  * - If >= 7 days inactive: close, post closure comment, reset.
  * - If >= 5 days inactive: post or update warning comment.
@@ -410,21 +435,17 @@ async function resetItem(github, owner, repo, item) {
  * @param {object} item - Issue or PR object.
  * @param {number} lastActivityMs - Timestamp of last meaningful activity.
  * @param {string} itemType - 'issue' or 'PR'
- * @param {object} logger
  * @param {number} nowMs - Current time in ms (injectable for testing).
  * @returns {Promise<'closed'|'warned'|'none'>}
  */
-async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemType, logger, nowMs) {
+async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemType, nowMs) {
   const ctx = buildCtx(github, owner, repo, item.number);
   const elapsed = nowMs - lastActivityMs;
-  const days = Math.floor(elapsed / (24 * 60 * 60 * 1000));
   const assigneeLogins = (item.assignees || []).map(a => a.login);
 
   if (elapsed >= CLOSE_AFTER_MS) {
     if (itemType === 'issue') {
-      logger.log(`#${item.number} (${itemType}): resetting after ${days} days inactive`);
     } else {
-      logger.log(`#${item.number} (${itemType}): closing after ${days} days inactive`);
       await closeItem(ctx);
     }
     await resetItem(github, owner, repo, item);
@@ -433,7 +454,6 @@ async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemTy
   }
 
   if (elapsed >= WARN_AFTER_MS) {
-    logger.log(`#${item.number} (${itemType}): warning after ${days} days inactive`);
     await postOrUpdateComment(ctx, WARN_MARKER, buildWarningComment(assigneeLogins, itemType));
     return 'warned';
   }
@@ -610,7 +630,8 @@ module.exports = async function ({ github, context, getNow = () => Date.now() })
       lastActivity = await computePRLastActivity(github, owner, repo, pr);
     }
 
-    const result = await handleStaleItem(github, owner, repo, pr, lastActivity, 'PR', logger, nowMs);
+    const result = await handleStaleItem(github, owner, repo, pr, lastActivity, 'PR', nowMs);
+    logger.log(formatActivitySummary(pr, 'PR', lastActivity, nowMs, result));
 
     if (result === 'closed') {
       // Clean up issues linked to this PR immediately
@@ -652,7 +673,8 @@ module.exports = async function ({ github, context, getNow = () => Date.now() })
       logger.log(`#${issue.number}: skipping (no assigned event found)`);
       continue;
     }
-    await handleStaleItem(github, owner, repo, issue, lastActivity, 'issue', logger, nowMs);
+    const result = await handleStaleItem(github, owner, repo, issue, lastActivity, 'issue', nowMs);
+    logger.log(formatActivitySummary(issue, 'issue', lastActivity, nowMs, result));
   }
 
   logger.log('Inactivity check complete');
