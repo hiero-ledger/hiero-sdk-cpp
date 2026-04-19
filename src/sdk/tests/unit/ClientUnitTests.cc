@@ -237,3 +237,21 @@ TEST_F(ClientUnitTests, DefaultValuesRespectConstraint)
   EXPECT_NO_THROW(client.setGrpcDeadline(DEFAULT_GRPC_DEADLINE));
   EXPECT_NO_THROW(client.setRequestTimeout(DEFAULT_REQUEST_TIMEOUT));
 }
+
+//-----
+TEST_F(ClientUnitTests, AllowReceiptNodeFailoverDefaultIsFalse)
+{
+  Client client;
+  EXPECT_FALSE(client.getAllowReceiptNodeFailover());
+}
+
+//-----
+TEST_F(ClientUnitTests, SetAllowReceiptNodeFailover)
+{
+  Client client;
+  client.setAllowReceiptNodeFailover(true);
+  EXPECT_TRUE(client.getAllowReceiptNodeFailover());
+
+  client.setAllowReceiptNodeFailover(false);
+  EXPECT_FALSE(client.getAllowReceiptNodeFailover());
+}

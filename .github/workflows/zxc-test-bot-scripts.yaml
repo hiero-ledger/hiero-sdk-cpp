@@ -7,8 +7,7 @@ on:
       - reopened
       - synchronize
     paths:
-      - ".github/scripts/bot-*.js"
-      - ".github/scripts/test-*.js"
+      - ".github/scripts/**"
       - ".github/workflows/zxc-test-bot-scripts.yaml"
   workflow_dispatch:
 
@@ -29,7 +28,7 @@ jobs:
     runs-on: hiero-client-sdk-linux-large
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
         with:
           egress-policy: audit
 
@@ -37,9 +36,33 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: "20"
 
-      - name: Run Bot Script Tests
-        run: node .github/scripts/test-assign-bot.js
+      - name: Run Check Helpers Tests
+        run: node .github/scripts/tests/test-checks.js
+
+      - name: Run Comment Helpers Tests
+        run: node .github/scripts/tests/test-comments.js
+
+      - name: Run API Helpers Tests
+        run: node .github/scripts/tests/test-api.js
+
+      - name: Run Recommend Issues Bot Tests
+        run: node .github/scripts/tests/test-recommend-issues-bot.js
+
+      - name: Run On-PR-Open Bot Tests
+        run: node .github/scripts/tests/test-on-pr-open-bot.js
+
+      - name: Run On-PR-Update Bot Tests
+        run: node .github/scripts/tests/test-on-pr-update-bot.js
+
+      - name: Run On-Comment (Assign) Bot Tests
+        run: node .github/scripts/tests/test-assign-bot.js
+
+      - name: Run Inactivity Bot Tests
+        run: node .github/scripts/tests/test-inactivity-bot.js
+        
+      - name: Run On-PR-Review Bot Tests
+        run: node .github/scripts/tests/test-on-pr-review-bot.js

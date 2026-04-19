@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "NftId.h"
+#include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
 #include <limits>
@@ -89,4 +90,38 @@ TEST_F(NftIdUnitTests, ToString)
   nftId.mTokenId = getTestTokenId();
   nftId.mSerialNum = getTestSerialNum();
   EXPECT_EQ(nftId.toString(), getTestTokenId().toString() + '/' + std::to_string(getTestSerialNum()));
+}
+
+//-----
+TEST_F(NftIdUnitTests, FromBytes)
+{
+  // Given
+  proto::NftID protoNftId;
+  protoNftId.set_allocated_token_id(getTestTokenId().toProtobuf().release());
+  protoNftId.set_serial_number(static_cast<int64_t>(getTestSerialNum()));
+
+  // When
+  const NftId nftId = NftId::fromBytes(internal::Utilities::stringToByteVector(protoNftId.SerializeAsString()));
+
+  // Then
+  EXPECT_EQ(nftId.mSerialNum, getTestSerialNum());
+  EXPECT_EQ(nftId.mTokenId, getTestTokenId());
+}
+
+//-----
+TEST_F(NftIdUnitTests, ToBytes)
+{
+  // Given
+  proto::NftID protoNftId;
+  protoNftId.set_allocated_token_id(getTestTokenId().toProtobuf().release());
+  protoNftId.set_serial_number(static_cast<int64_t>(getTestSerialNum()));
+
+  const std::vector<std::byte> protoBytes = internal::Utilities::stringToByteVector(protoNftId.SerializeAsString());
+  const NftId nftId(getTestTokenId(), getTestSerialNum());
+
+  // When
+  const std::vector<std::byte> bytes = nftId.toBytes();
+
+  // Then
+  EXPECT_EQ(protoBytes, bytes);
 }

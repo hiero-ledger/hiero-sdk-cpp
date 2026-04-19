@@ -5,8 +5,8 @@
 #include "NodeAddress.h"
 #include "impl/Utilities.h"
 
-#include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
+#include <services/basic_types.pb.h>
 #include <string>
 #include <vector>
 

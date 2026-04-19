@@ -3,9 +3,9 @@
 #include "ContractLogInfo.h"
 #include "impl/Utilities.h"
 
-#include <services/contract_call_local.pb.h>
 #include <cstddef>
 #include <gtest/gtest.h>
+#include <services/contract_call_local.pb.h>
 #include <vector>
 
 using namespace Hiero;

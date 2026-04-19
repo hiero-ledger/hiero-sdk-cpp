@@ -57,6 +57,12 @@ void PendingAirdropId::validateChecksum(const Client& client) const
     mNft.value().mTokenId.validateChecksum(client);
   }
 }
+
+//-----
+bool PendingAirdropId::operator==(const PendingAirdropId& other) const
+{
+  return (mSender == other.mSender) && (mReceiver == other.mReceiver) && (mFt == other.mFt) && (mNft == other.mNft);
+}
 //-----
 std::unique_ptr<proto::PendingAirdropId> PendingAirdropId::toProtobuf() const
 {

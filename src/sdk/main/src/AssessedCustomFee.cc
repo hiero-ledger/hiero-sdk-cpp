@@ -92,4 +92,11 @@ std::ostream& operator<<(std::ostream& os, const AssessedCustomFee& fee)
   return os;
 }
 
+//-----
+bool AssessedCustomFee::operator==(const AssessedCustomFee& other) const
+{
+  return (mAmount == other.mAmount) && (mTokenId == other.mTokenId) &&
+         (mFeeCollectorAccountId == other.mFeeCollectorAccountId) && (mPayerAccountIdList == other.mPayerAccountIdList);
+}
+
 } // namespace Hiero

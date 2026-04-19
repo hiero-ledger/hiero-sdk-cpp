@@ -14,7 +14,7 @@ namespace Hiero::internal::asn1
 {
 ASN1ECPublicKey::ASN1ECPublicKey(const std::vector<std::byte>& bytes)
 {
-  if (bytes.size() >= MAX_ENCRYPTED_KEY_LENGHT)
+  if (bytes.size() >= MAX_ENCRYPTED_KEY_LENGTH)
   {
     throw BadKeyException("Over maximum possible input bytes for EC Key!");
   }

@@ -195,7 +195,7 @@ private:
   uint64_t mAmount = 0ULL;
 
   /**
-   * Applicable to tokens of type NON_FUNGIBLE_UNIQUE. THe list of serial numbers to be wiped from the account.
+   * Applicable to tokens of type NON_FUNGIBLE_UNIQUE. The list of serial numbers to be wiped from the account.
    */
   std::vector<uint64_t> mSerialNumbers;
 };

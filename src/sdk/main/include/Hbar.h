@@ -5,7 +5,9 @@
 #include "HbarUnit.h"
 
 #include <cmath>
+#include <cstdint>
 #include <regex>
+#include <string>
 
 namespace Hiero
 {
@@ -59,7 +61,7 @@ public:
    * @param unit The unit to convert to from Hbar.
    * @return An int64_t representing the converted value.
    */
-  inline int64_t to(const HbarUnit& unit) const { return mValueInTinybar / unit.getTinybars(); }
+  [[nodiscard]] inline int64_t to(const HbarUnit& unit) const { return mValueInTinybar / unit.getTinybars(); }
 
   /**
    * Compare this Hbar to another Hbar and determine if they represent the same amount.
@@ -72,7 +74,7 @@ public:
   /**
    * Add another Hbar to this Hbar.
    *
-   * @param other THe other Hbar to add to this Hbar.
+   * @param other The other Hbar to add to this Hbar.
    * @return A new Hbar object with the new value.
    */
   Hbar operator+(const Hbar& other) const { return Hbar(mValueInTinybar + other.mValueInTinybar, HbarUnit::TINYBAR()); }
@@ -119,7 +121,7 @@ public:
    *
    * @return A string representing the Hbar value.
    */
-  std::string toString() const;
+  [[nodiscard]] std::string toString() const;
 
   /**
    * Returns an Hbar whose value is negative this Hbar.

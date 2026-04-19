@@ -98,3 +98,18 @@ TEST_F(NetworkVersionInfoUnitTests, ToBytes)
   // Then
   EXPECT_EQ(bytes, internal::Utilities::stringToByteVector(networkVersionInfo.toProtobuf()->SerializeAsString()));
 }
+
+//-----
+TEST_F(NetworkVersionInfoUnitTests, ToString)
+{
+  // Given
+  const NetworkVersionInfo networkVersionInfo(getTestHapiVersion(), getTestServicesVersion());
+
+  // When
+  const std::string result = networkVersionInfo.toString();
+
+  // Then
+  EXPECT_FALSE(result.empty());
+  EXPECT_NE(result.find(getTestHapiVersion().toString()), std::string::npos);
+  EXPECT_NE(result.find(getTestServicesVersion().toString()), std::string::npos);
+}

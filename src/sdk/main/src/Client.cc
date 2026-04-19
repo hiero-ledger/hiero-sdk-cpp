@@ -96,6 +96,11 @@ struct Client::ClientImpl
   // Should this Client automatically validate entity checksums?
   bool mAutoValidateChecksums = false;
 
+  // Should this Client allow receipt/record queries to fail over to other nodes when the submitting
+  // node is unavailable? When true, queries start with the submitting node and advance to others on
+  // failure. Defaults to false (strict single-node pinning).
+  bool mAllowReceiptNodeFailover = false;
+
   // Has this Client made its initial network update? This is utilized in case
   // the user updates the network update period before the initial update is
   // made, as it prevents the update period from being overwritten.
@@ -669,6 +674,21 @@ bool Client::isAutoValidateChecksumsEnabled() const
 {
   std::unique_lock lock(mImpl->mMutex);
   return mImpl->mAutoValidateChecksums;
+}
+
+//-----
+Client& Client::setAllowReceiptNodeFailover(bool allow)
+{
+  std::unique_lock lock(mImpl->mMutex);
+  mImpl->mAllowReceiptNodeFailover = allow;
+  return *this;
+}
+
+//-----
+bool Client::getAllowReceiptNodeFailover() const
+{
+  std::unique_lock lock(mImpl->mMutex);
+  return mImpl->mAllowReceiptNodeFailover;
 }
 
 //-----

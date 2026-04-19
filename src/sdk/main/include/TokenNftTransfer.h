@@ -4,6 +4,7 @@
 
 #include "AccountId.h"
 #include "NftId.h"
+#include "hooks/NftHookCall.h"
 
 #include <cstddef>
 #include <memory>
@@ -31,12 +32,30 @@ public:
   /**
    * Construct with an nft ID, sender account ID, receiver account ID, and approval.
    *
-   * @param nftId The ID of the NFT.
-   * @param sender The ID of the account sending the NFT.
+   * @param nftId    The ID of the NFT.
+   * @param sender   The ID of the account sending the NFT.
    * @param receiver The ID of the account receiving the NFT.
    * @param approved \c TRUE if this is an approved allowance NFT transfer, otherwise \c FALSE.
    */
   TokenNftTransfer(NftId nftId, AccountId sender, AccountId receiver, bool approved);
+
+  /**
+   * Construct with an nft ID, sender account ID, receiver account ID, approval, sender hook call, and receiver hook
+   * call.
+   *
+   * @param nftId            The ID of the NFT.
+   * @param sender           The ID of the account sending the NFT.
+   * @param receiver         The ID of the account receiving the NFT.
+   * @param approved         \c TRUE if this is an approved allowance NFT transfer, otherwise \c FALSE.
+   * @param senderHookCall   A hook call associated with the sender of this NFT transfer.
+   * @param receiverHookCall A hook call associated with the receiver of this NFT transfer.
+   */
+  TokenNftTransfer(NftId nftId,
+                   AccountId sender,
+                   AccountId receiver,
+                   bool approved,
+                   const NftHookCall& senderHookCall,
+                   const NftHookCall& receiverHookCall);
 
   /**
    * Construct a TokenNftTransfer object from an NftTransfer protobuf object and a TokenId object.
@@ -94,6 +113,15 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const TokenNftTransfer& transfer);
 
   /**
+   * Compare two TokenNftTransfer objects and determine if they represent the same transfer.
+   *
+   * @param lhs The first TokenNftTransfer.
+   * @param rhs The second TokenNftTransfer.
+   * @return \c TRUE if the two transfers are the same, otherwise \c FALSE.
+   */
+  [[nodiscard]] friend bool operator==(const TokenNftTransfer& lhs, const TokenNftTransfer& rhs);
+
+  /**
    * The ID of the NFT.
    */
   NftId mNftId;
@@ -113,6 +141,16 @@ public:
    * owner.
    */
   bool mIsApproval = false;
+
+  /**
+   * A hook call associated with the sender of this NFT transfer.
+   */
+  NftHookCall mSenderHookCall;
+
+  /**
+   * A hook call associated with the receiver of this NFT transfer.
+   */
+  NftHookCall mReceiverHookCall;
 };
 
 } // namespace Hiero

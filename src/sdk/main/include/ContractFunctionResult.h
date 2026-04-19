@@ -10,6 +10,7 @@
 #include "Hbar.h"
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <ostream>
@@ -83,6 +84,15 @@ public:
    * @return The output stream with this ContractFunctionResult written to it.
    */
   friend std::ostream& operator<<(std::ostream& os, const ContractFunctionResult& result);
+
+  /**
+   * Compare two ContractFunctionResult objects for equality.
+   *
+   * @param lhs The left-hand-side ContractFunctionResult.
+   * @param rhs The right-hand-side ContractFunctionResult.
+   * @return \c TRUE if both objects contain the same values, otherwise \c FALSE.
+   */
+  [[nodiscard]] friend bool operator==(const ContractFunctionResult& lhs, const ContractFunctionResult& rhs);
 
   /**
    * Get the value at the input index as a string.
