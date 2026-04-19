@@ -560,6 +560,8 @@ module.exports = async function ({ github, context, getNow = () => Date.now() })
     fetchAssignedIssues(github, owner, repo),
     fetchOpenPRs(github, owner, repo),
   ]);
+ 
+  const processedIssueNumbers = new Set();
 
   const assignedOpenPRs = allOpenPRs.filter(pr => (pr.assignees || []).length > 0);
   const issueToOpenPRs  = buildIssueToPRsMap(allOpenPRs);
@@ -593,6 +595,7 @@ module.exports = async function ({ github, context, getNow = () => Date.now() })
             await resetItem(github, owner, repo, linkedIssue);
             const ctx = buildCtx(github, owner, repo, issueNum);
             await postComment(ctx, buildLinkedPRClosedComment());
+            processedIssueNumbers.add(issueNum); 
           }
         } catch (err) {
           logger.error(`Could not clean up linked issue #${issueNum}: ${err.message}`);
@@ -604,6 +607,10 @@ module.exports = async function ({ github, context, getNow = () => Date.now() })
   // ── Process assigned issues ───────────────────────────────────────────────
 
   for (const issue of assignedIssues) {
+    if (processedIssueNumbers.has(issue.number)) {
+       logger.log(`#${issue.number}: skipping (already handled via PR loop)`);
+       continue;
+    }
     if (hasLabel(issue, LABELS.BLOCKED)) {
       await handleBlockedItem(github, owner, repo, issue, 'issue', nowMs, logger);
       continue;
