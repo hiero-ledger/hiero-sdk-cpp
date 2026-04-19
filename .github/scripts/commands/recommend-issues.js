@@ -11,6 +11,7 @@ const {
     LABELS,
     SKILL_HIERARCHY,
     SKILL_PREREQUISITES,
+    ISSUE_STATE,
     hasLabel,
     postComment,
     getLogger,
@@ -181,7 +182,7 @@ async function passesBypassCheck(github, owner, repo, username, candidate) {
     for (const label of atOrAboveLabels) {
         const count = await countIssuesByAssignee(
             github, owner, repo, username,
-            'closed',
+            ISSUE_STATE.CLOSED,
             label,
             1,
         );
@@ -215,7 +216,7 @@ async function passesBypassCheck(github, owner, repo, username, candidate) {
 async function passesNormalCheck(github, owner, repo, username, prereq) {
     const count = await countIssuesByAssignee(
         github, owner, repo, username,
-        'closed',
+        ISSUE_STATE.CLOSED,
         prereq.requiredLabel,
         prereq.requiredCount,
     );
@@ -318,7 +319,7 @@ async function detectUnlockedLevel(botContext, username, currentLevel) {
 
     const count = await countIssuesByAssignee(
         github, owner, repo, username,
-        'closed',
+        ISSUE_STATE.CLOSED,
         currentLevel,
         nextPrereq.requiredCount + 1,
     );
