@@ -361,7 +361,7 @@ public:
   /**
    * Get this TransactionId's nonce value.
    *
-   * @return The nonce value for of TransactionId.
+   * @return The nonce value of TransactionId.
    */
   [[nodiscard]] inline int getNonce() const { return mNonce; }
 
