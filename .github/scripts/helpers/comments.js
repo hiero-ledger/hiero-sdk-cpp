@@ -74,7 +74,7 @@ function buildGPGSection(gpg) {
     ':x: **GPG Signature** -- Heads up! The following commits don\'t have a verified GPG signature:',
     failList,
     '',
-    `You\'ll need to sign your commits with GPG (e.g. \`git commit -S\`). See the [Signing Guide](${SIGNING_GUIDE}) for a step-by-step walkthrough.`,
+    `You'll need to sign your commits with GPG (e.g. \`git commit -S\`). See the [Signing Guide](${SIGNING_GUIDE}) for a step-by-step walkthrough.`,
   ].join('\n');
 }
 
@@ -89,7 +89,7 @@ function buildMergeSection(merge) {
   return [
     ':x: **Merge Conflicts** -- Oh no, this PR has merge conflicts with the base branch.',
     '',
-    `Let\'s get this sorted! Update your branch (e.g. rebase or merge from base) and push. See the [Merge Conflicts Guide](${MERGE_CONFLICTS_GUIDE}) if you need a hand.`,
+    `Let's get this sorted! Update your branch (e.g. rebase or merge from base) and push. See the [Merge Conflicts Guide](${MERGE_CONFLICTS_GUIDE}) if you need a hand.`,
   ].join('\n');
 }
 

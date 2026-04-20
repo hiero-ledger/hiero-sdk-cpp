@@ -191,7 +191,7 @@ function createMockGithub(options = {}, issueFromPayload = null) {
         },
       },
     },
-    graphql: async (query, variables) => {
+    graphql: async () => {
       // Stubbed just in case other things call it, though we rely on REST now
       return { search: { issueCount: 0 } };
     },
