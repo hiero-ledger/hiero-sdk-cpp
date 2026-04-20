@@ -87,6 +87,8 @@ async function fetchIssuesBatch(github, owner, repo) {
         const result = await github.rest.search.issuesAndPullRequests({
             q: query,
             per_page: 50,
+            sort: 'created',
+            order: 'asc',
         });
 
         return result.data.items || [];
