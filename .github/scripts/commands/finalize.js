@@ -119,8 +119,6 @@ function formatLabelList(labels) {
  *   - status: awaiting triage must be present
  *   - exactly 1 skill: label
  *   - exactly 1 priority: label
- *   - Bug / Task: exactly 1 kind: label
- *   - Feature: 0 kind: labels
  *   - issue type must be Bug, Feature, or Task
  *
  * @param {object} issue - The issue object from the GitHub payload.
@@ -131,7 +129,7 @@ function collectLabelViolations(issue) {
 
   const skillLabels = getLabelsByPrefix(issue, 'skill:');
   const priorityLabels = getLabelsByPrefix(issue, 'priority:');
-  const kindLabels = getLabelsByPrefix(issue, 'kind:');
+
   const issueTypeName = getIssueTypeName(issue);
 
   // 1. status: awaiting triage must be present
@@ -165,28 +163,11 @@ function collectLabelViolations(issue) {
     );
   }
 
-  // 4. Issue type + kind: label enforcement
+  // 4. Issue type must be recognized
   if (!issueTypeName) {
     errors.push(
       `The issue type (Bug, Feature, or Task) could not be determined. Ensure the issue was submitted using one of the official issue templates.`
     );
-  } else if (issueTypeName === 'Feature') {
-    if (kindLabels.length > 0) {
-      errors.push(
-        `Feature issues should not have a \`kind:\` label. Found: ${formatLabelList(kindLabels)}. Please remove it.`
-      );
-    }
-  } else {
-    // Bug or Task: exactly 1 kind: label required
-    if (kindLabels.length === 0) {
-      errors.push(
-        `${issueTypeName} issues require exactly one \`kind:\` label (e.g. \`kind: maintenance\`). None found.`
-      );
-    } else if (kindLabels.length > 1) {
-      errors.push(
-        `${issueTypeName} issues require exactly one \`kind:\` label. Found ${kindLabels.length}: ${formatLabelList(kindLabels)}. Please remove all but one.`
-      );
-    }
   }
 
   return errors;
