@@ -13,6 +13,10 @@
 //   - A commit pushed to a PR branch by the PR author
 //   - Removal of the "status: blocked" label (unblocking counts as activity)
 //
+// PR review state:
+//   - "status: needs review"   → skipped entirely (waiting on maintainers)
+//   - "status: needs revision" → clock starts from when label was last applied
+//
 // Blocked items ("status: blocked" label):
 //   - Exempt from the inactivity close/warn flow
 //   - Receive a friendly check-in comment every 30 days instead
@@ -192,6 +196,21 @@ async function getLastMatchingEventDate(github, owner, repo, number, predicate) 
 async function getLastUnblockedDate(github, owner, repo, number) {
   return getLastMatchingEventDate(github, owner, repo, number,
     e => e.event === 'unlabeled' && e.label?.name === LABELS.BLOCKED);
+}
+
+/**
+ * Returns the timestamp (ms) of the most recent time "status: needs revision"
+ * was applied to the item, or null if it has never been applied.
+ *
+ * @param {object} github
+ * @param {string} owner
+ * @param {string} repo
+ * @param {number} number
+ * @returns {Promise<number|null>}
+ */
+async function getLastNeedsRevisionLabeledDate(github, owner, repo, number) {
+  return getLastMatchingEventDate(github, owner, repo, number,
+    e => e.event === 'labeled' && e.label?.name === LABELS.NEEDS_REVISION);
 }
 
 /**
@@ -577,7 +596,20 @@ module.exports = async function ({ github, context, getNow = () => Date.now() })
       continue;
     }
 
-    const lastActivity = await computePRLastActivity(github, owner, repo, pr);
+    if (hasLabel(pr, LABELS.NEEDS_REVIEW)) {
+      logger.log(`#${pr.number} (PR): skipping (status: needs review)`);
+      continue;
+    }
+
+    let lastActivity;
+    if (hasLabel(pr, LABELS.NEEDS_REVISION)) {
+      const revisionLabeledAt = await getLastNeedsRevisionLabeledDate(github, owner, repo, pr.number);
+      const prActivity = await computePRLastActivity(github, owner, repo, pr);
+      lastActivity = latestOf(prActivity, revisionLabeledAt);
+    } else {
+      lastActivity = await computePRLastActivity(github, owner, repo, pr);
+    }
+
     const result = await handleStaleItem(github, owner, repo, pr, lastActivity, 'PR', logger, nowMs);
 
     if (result === 'closed') {
