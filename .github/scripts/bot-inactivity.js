@@ -444,8 +444,7 @@ async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemTy
   const assigneeLogins = (item.assignees || []).map(a => a.login);
 
   if (elapsed >= CLOSE_AFTER_MS) {
-    if (itemType === 'issue') {
-    } else {
+    if (itemType === 'PR') {
       await closeItem(ctx);
     }
     await resetItem(github, owner, repo, item);

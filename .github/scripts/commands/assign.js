@@ -11,7 +11,6 @@ const {
   ISSUE_STATE,
   createDelegatingLogger,
   isNonNegativeInteger,
-  isSafeSearchToken,
   hasLabel,
   swapLabels,
   addAssignees,
