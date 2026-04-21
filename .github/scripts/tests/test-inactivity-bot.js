@@ -872,7 +872,7 @@ const scenarios = [
           {
             id: 9201,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @riley! This issue has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n👋 Hey @riley! This issue has been inactive for 5 days.',
             created_at: daysAgo(10),
             updated_at: daysAgo(10),
           },
@@ -906,7 +906,7 @@ const scenarios = [
           {
             id: 9301,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @sam2! This issue has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n👋 Hey @sam2! This issue has been inactive for 5 days.',
             created_at: daysAgo(5),
             updated_at: daysAgo(5),
           },
@@ -938,7 +938,7 @@ const scenarios = [
           {
             id: 9401,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @tom! This issue has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n👋 Hey @tom! This issue has been inactive for 5 days.',
             created_at: daysAgo(5),
             updated_at: daysAgo(5),
           },
@@ -1011,7 +1011,7 @@ const scenarios = [
           {
             id: 34101,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @vera2! This issue has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n👋 Hey @vera2! This issue has been inactive for 5 days.',
             created_at: daysAgo(5),
             updated_at: daysAgo(5),
           },
@@ -1047,7 +1047,7 @@ const scenarios = [
           {
             id: 9801,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @will! This PR has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n👋 Hey @will! This PR has been inactive for 5 days.',
             created_at: daysAgo(10),
             updated_at: daysAgo(10),
           },
@@ -1084,7 +1084,7 @@ const scenarios = [
           {
             id: 9901,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @xena! This PR has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n👋 Hey @xena! This PR has been inactive for 5 days.',
             created_at: daysAgo(5),
             updated_at: daysAgo(5),
           },
@@ -1113,7 +1113,7 @@ const scenarios = [
           {
             id: 9701,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @yuki! This issue has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n👋 Hey @yuki! This issue has been inactive for 5 days.',
             created_at: daysAgo(10),
             updated_at: daysAgo(10),
           },
@@ -1127,7 +1127,7 @@ const scenarios = [
           {
             id: 9703,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @yuki! This issue has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n👋 Hey @yuki! This issue has been inactive for 5 days.',
             created_at: daysAgo(4),
             updated_at: daysAgo(4),
           },
