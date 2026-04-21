@@ -63,7 +63,7 @@ function createMockBotContext(overrides = {}) {
  * Builds a mock of `github.rest.issues.listForRepo` used by
  * countIssuesByAssignee.
  *
- * For a given (state, assignee, label), the mock returns a list of synthetic
+ * For a given (assignee, label), the mock returns a list of synthetic
  * issues whose size is determined by `closedCounts["label:username"]`.
  *
  * Behavior:
@@ -79,7 +79,7 @@ function createMockBotContext(overrides = {}) {
  * function respects pagination limits.
  */
 function buildListForRepo(closedCounts) {
-  return async ({ state, assignee, labels, per_page }) => {
+  return async ({ assignee, labels, per_page }) => {
     // Simulate full API outage.
     if (closedCounts === null) {
       throw new Error('listForRepo API error');
