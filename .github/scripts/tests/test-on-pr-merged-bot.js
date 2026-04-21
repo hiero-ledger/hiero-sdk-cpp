@@ -8,7 +8,7 @@
 
 const { runTestSuite, createMockGithub } = require('./test-utils');
 const onPrMergedBot = require('../bot-on-pr-merged');
-const { MARKER, buildMergeConflictNotificationComment } = require('../helpers/comments');
+const { MARKER } = require('../helpers/comments');
 
 // =============================================================================
 // SCENARIOS
