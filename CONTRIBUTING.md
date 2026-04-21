@@ -8,7 +8,6 @@ code contributions.
 **Jump To:**
 - [Code Contributions](#code-contributions)
 - [Submitting an Issue](#submitting-an-issue)
-- [Release New Version](#release-new-version)
 - [Blog Posts](#blog-posts)
 
 
@@ -102,55 +101,6 @@ improvements, CI/CD changes, test coverage, or enhancements to existing features
 All three templates automatically apply `status: awaiting triage`. A maintainer will review the issue, apply the
 appropriate skill level and priority labels, and run `/finalize` to prepare it for contributors. Once finalized,
 the issue will have `status: ready for dev` and can be claimed via `/assign`.
-
-## Release New Version
-
-### Step 1 - Populate New Tag
-
-Prepare a new git `tag` and push it to `origin`.
-
-Add a new git `tag` using the following command in terminal where `v0.3.0` is the name of the newly added tag:
-
-> git tag -s v0.3.0
-
-Then execute:
-
-> git push origin v0.3.0
-
-It will populate the newly added tag in `origin`.
-
-### Step 2 - Draft Release in GitHub
-
-Open [Hiero C++ SDK](https://github.com/hiero-ledger/hiero-sdk-cpp) and search for `Create a new release` link.
-Select tag `v0.3.0` from the dropdown list. Enter the Release title to be same as the release number which is been
-prepared (for example: `v0.3.0`).
-
-### Step 3 - Notes
-
-It's a good decision to tap directly on button `Generate release notes` to get an automatically generated notes which
-can be used as a basis.
-
-#### What's New
-
-This section should be filled with all of the issues which have been completed and merged into `main` branch. Use the
-emoji ➡️ followed by a description in plain English for each over-arching new feature and a bug fix.
-
-#### Examples
-
-This section should list all of the newly added examples. Each of them should represent a link to the implementation (
-for example: [TransferTokensExample.cpp](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/src/sdk/examples/TransferTokensExample.cpp) ). It's a good idea also to add prefix with ➡️ before
-each line.
-
-#### Notes
-
-Section to write any kind of important notes. For example, if there are any files which are not included in the build
-and should not be used, then it's better all of them to be listed here.
-
-#### Added
-
-Here should be listed all of the Pull Requests (PRs) which are part of the release. Use the following format
-
-> (pull-request-title) by (@author) in (#link)
 
 [issues]: https://github.com/hiero-ledger/hiero-sdk-cpp/issues
 [mwe]: https://en.wikipedia.org/wiki/Minimal_Working_Example
