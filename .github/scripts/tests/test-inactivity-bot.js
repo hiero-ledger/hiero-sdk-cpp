@@ -185,6 +185,10 @@ function makeUnlabeledEvent(labelName, createdAt) {
   return { event: 'unlabeled', created_at: createdAt, label: { name: labelName } };
 }
 
+function makeLabeledEvent(labelName, createdAt) {
+  return { event: 'labeled', created_at: createdAt, label: { name: labelName } };
+}
+
 function makeAssignedEvent(createdAt) {
   return { event: 'assigned', created_at: createdAt };
 }
@@ -698,35 +702,24 @@ const scenarios = [
     },
   },
 
+
   // ── 23 ─────────────────────────────────────────────────────────────────────
   {
-    name: 'Issue: warning exists, activity happened after warning, now inactive again — new warning posted',
-    description: 'A fresh warning should be posted when the clock was reset after the previous warning.',
+    name: 'PR: status: needs review — skipped entirely',
+    description: 'PRs waiting on maintainer review are exempt from inactivity tracking.',
     github: createMockGithub({
-      assignedIssues: [
-        makeIssue(220, { createdAt: daysAgo(14), assignees: ['riley'], labels: [LABELS.IN_PROGRESS] }),
+      openPRs: [
+        makePR(220, {
+          createdAt: daysAgo(8),
+          assignees: ['rose'],
+          authorLogin: 'rose',
+          labels: [LABELS.NEEDS_REVIEW],
+        }),
       ],
-      commentsByNumber: {
-        220: [
-          {
-            id: 9201,
-            user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n👋 Hey @riley! This issue has been inactive for 5 days.',
-            created_at: daysAgo(10),
-            updated_at: daysAgo(10),
-          },
-          makeComment('riley', daysAgo(6)),
-        ],
-      },
-      eventsByNumber: {
-        220: [makeAssignedEvent(daysAgo(14))],
-      },
     }),
     expect: {
       itemsClosed: [],
-      commentsCreatedCount: 1,
-      warningPostedOn: [220],
-      commentsUpdated: 0,
+      commentsCreated: 0,
       labelsAdded: 0,
       assigneesRemoved: 0,
     },
@@ -734,31 +727,24 @@ const scenarios = [
 
   // ── 24 ─────────────────────────────────────────────────────────────────────
   {
-    name: 'Issue: warning exists, no activity since warning — no duplicate warning',
-    description: 'If no activity occurred after the existing warning, the bot should not post another warning.',
+    name: 'PR: status: needs revision labeled 2 days ago — no action',
+    description: 'Inactivity clock starts from when needs-revision was last applied; 2 days is under threshold.',
     github: createMockGithub({
-      assignedIssues: [
-        makeIssue(230, { createdAt: daysAgo(6), assignees: ['sam'], labels: [LABELS.IN_PROGRESS] }),
+      openPRs: [
+        makePR(230, {
+          createdAt: daysAgo(10),
+          assignees: ['sam'],
+          authorLogin: 'sam',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
       ],
-      commentsByNumber: {
-        230: [
-          {
-            id: 9301,
-            user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n👋 Hey @sam! This issue has been inactive for 5 days.',
-            created_at: daysAgo(5),
-            updated_at: daysAgo(5),
-          },
-        ],
-      },
       eventsByNumber: {
-        230: [makeAssignedEvent(daysAgo(6))],
+        230: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(2))],
       },
     }),
     expect: {
       itemsClosed: [],
       commentsCreated: 0,
-      commentsUpdated: 0,
       labelsAdded: 0,
       assigneesRemoved: 0,
     },
@@ -766,26 +752,168 @@ const scenarios = [
 
   // ── 25 ─────────────────────────────────────────────────────────────────────
   {
-    name: 'Issue: activity after warning but still under 5 days — no action',
-    description: 'If activity happens after the warning yet the item has not crossed 5 inactive days again, the bot should stay quiet.',
+    name: 'PR: status: needs revision labeled 6 days ago — warning posted',
+    description: 'Six days since needs-revision was applied triggers the 5-day warning.',
     github: createMockGithub({
-      assignedIssues: [
-        makeIssue(240, { createdAt: daysAgo(10), assignees: ['tom'], labels: [LABELS.IN_PROGRESS] }),
+      openPRs: [
+        makePR(240, {
+          createdAt: daysAgo(10),
+          assignees: ['taylor'],
+          authorLogin: 'taylor',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      eventsByNumber: {
+        240: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(6))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreatedCount: 1,
+      warningPostedOn: [240],
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 26 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision labeled 8 days ago — closed and reset',
+    description: 'Eight days since needs-revision was applied exceeds the 7-day close threshold.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(250, {
+          createdAt: daysAgo(10),
+          assignees: ['uri'],
+          authorLogin: 'uri',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      eventsByNumber: {
+        250: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8))],
+      },
+    }),
+    expect: {
+      itemsClosed: [250],
+      closureCommentOn: [250],
+      assigneesRemoved: [{ issue_number: 250, assignees: ['uri'] }],
+    },
+  },
+
+  // ── 27 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision labeled 8 days ago, author commented 2 days ago — no action',
+    description: 'Author activity after the label is applied resets the clock; the bot should not close an actively-engaged PR.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(261, {
+          createdAt: daysAgo(10),
+          assignees: ['wren'],
+          authorLogin: 'wren',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
       ],
       commentsByNumber: {
-        240: [
+        261: [makeComment('wren', daysAgo(2))],
+      },
+      eventsByNumber: {
+        261: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 28 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision applied twice — clock uses most recent application',
+    description: 'Back-and-forth review cycles must not penalize contributors; the clock resets on each new needs-revision application.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(260, {
+          createdAt: daysAgo(12),
+          assignees: ['vera'],
+          authorLogin: 'vera',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      eventsByNumber: {
+        260: [
+          makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(10)),
+          makeUnlabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8)),
+          makeLabeledEvent(LABELS.NEEDS_REVIEW, daysAgo(8)),
+          makeUnlabeledEvent(LABELS.NEEDS_REVIEW, daysAgo(2)),
+          makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(2)),
+        ],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 29 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'Issue: warning exists, activity happened after warning, now inactive again — new warning posted',
+    description: 'A fresh warning should be posted when the clock was reset after the previous warning.',
+    github: createMockGithub({
+      assignedIssues: [
+        makeIssue(300, { createdAt: daysAgo(14), assignees: ['riley'], labels: [LABELS.IN_PROGRESS] }),
+      ],
+      commentsByNumber: {
+        300: [
           {
-            id: 9401,
+            id: 9201,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n👋 Hey @tom! This issue has been inactive for 5 days.',
-            created_at: daysAgo(5),
-            updated_at: daysAgo(5),
+            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @riley! This issue has been inactive for 5 days.',
+            created_at: daysAgo(10),
+            updated_at: daysAgo(10),
           },
-          makeComment('tom', daysAgo(4)),
+          makeComment('riley', daysAgo(6)),
         ],
       },
       eventsByNumber: {
-        240: [makeAssignedEvent(daysAgo(10))],
+        300: [makeAssignedEvent(daysAgo(14))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreatedCount: 1,
+      warningPostedOn: [300],
+      commentsUpdated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 30 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'Issue: warning exists, no activity since warning — no duplicate warning',
+    description: 'If no activity occurred after the existing warning, the bot should not post another warning.',
+    github: createMockGithub({
+      assignedIssues: [
+        makeIssue(310, { createdAt: daysAgo(6), assignees: ['sam2'], labels: [LABELS.IN_PROGRESS] }),
+      ],
+      commentsByNumber: {
+        310: [
+          {
+            id: 9301,
+            user: { login: 'github-actions[bot]', type: 'Bot' },
+            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @sam2! This issue has been inactive for 5 days.',
+            created_at: daysAgo(5),
+            updated_at: daysAgo(5),
+          },
+        ],
+      },
+      eventsByNumber: {
+        310: [makeAssignedEvent(daysAgo(6))],
       },
     }),
     expect: {
@@ -797,16 +925,49 @@ const scenarios = [
     },
   },
 
-  // ── 26 ─────────────────────────────────────────────────────────────────────
+  // ── 31 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'Issue: activity after warning but still under 5 days — no action',
+    description: 'If activity happens after the warning yet the item has not crossed 5 inactive days again, the bot should stay quiet.',
+    github: createMockGithub({
+      assignedIssues: [
+        makeIssue(320, { createdAt: daysAgo(10), assignees: ['tom'], labels: [LABELS.IN_PROGRESS] }),
+      ],
+      commentsByNumber: {
+        320: [
+          {
+            id: 9401,
+            user: { login: 'github-actions[bot]', type: 'Bot' },
+            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @tom! This issue has been inactive for 5 days.',
+            created_at: daysAgo(5),
+            updated_at: daysAgo(5),
+          },
+          makeComment('tom', daysAgo(4)),
+        ],
+      },
+      eventsByNumber: {
+        320: [makeAssignedEvent(daysAgo(10))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      commentsUpdated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 32 ─────────────────────────────────────────────────────────────────────
   {
     name: 'Issue: non-bot marker comment is ignored',
     description: 'A user comment that happens to include the warning marker should not suppress the bot warning.',
     github: createMockGithub({
       assignedIssues: [
-        makeIssue(250, { createdAt: daysAgo(6), assignees: ['uma'], labels: [LABELS.IN_PROGRESS] }),
+        makeIssue(330, { createdAt: daysAgo(6), assignees: ['uma'], labels: [LABELS.IN_PROGRESS] }),
       ],
       commentsByNumber: {
-        250: [
+        330: [
           {
             id: 9501,
             user: { login: 'maintainer', type: 'User' },
@@ -817,47 +978,47 @@ const scenarios = [
         ],
       },
       eventsByNumber: {
-        250: [makeAssignedEvent(daysAgo(6))],
+        330: [makeAssignedEvent(daysAgo(6))],
       },
     }),
     expect: {
       itemsClosed: [],
       commentsCreatedCount: 1,
-      warningPostedOn: [250],
+      warningPostedOn: [330],
       commentsUpdated: 0,
       labelsAdded: 0,
       assigneesRemoved: 0,
     },
   },
 
-  // ── 27 ─────────────────────────────────────────────────────────────────────
+  // ── 33 ─────────────────────────────────────────────────────────────────────
   {
     name: 'Issue: warning comment on second page is still found',
     description: 'The bot should inspect paginated comments and respect a warning that lives on page 2.',
     github: createMockGithub({
       assignedIssues: [
-        makeIssue(260, { createdAt: daysAgo(6), assignees: ['vera'], labels: [LABELS.IN_PROGRESS] }),
+        makeIssue(340, { createdAt: daysAgo(6), assignees: ['vera2'], labels: [LABELS.IN_PROGRESS] }),
       ],
       commentsByNumber: {
-        260: [
+        340: [
           ...Array.from({ length: 100 }, (_, i) => ({
-            id: 26000 + i,
+            id: 34000 + i,
             user: { login: 'user' + i, type: 'User' },
             body: 'Comment ' + i,
             created_at: daysAgo(5),
             updated_at: daysAgo(5),
           })),
           {
-            id: 26101,
+            id: 34101,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n👋 Hey @vera! This issue has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @vera2! This issue has been inactive for 5 days.',
             created_at: daysAgo(5),
             updated_at: daysAgo(5),
           },
         ],
       },
       eventsByNumber: {
-        260: [makeAssignedEvent(daysAgo(6))],
+        340: [makeAssignedEvent(daysAgo(6))],
       },
     }),
     expect: {
@@ -869,61 +1030,61 @@ const scenarios = [
     },
   },
 
-  // ── 28 ─────────────────────────────────────────────────────────────────────
+  // ── 34 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR: warning exists, activity happened after warning, now inactive again — new warning posted',
     description: 'A PR should receive a fresh warning when activity after the previous warning reset the clock.',
     github: createMockGithub({
       openPRs: [
-        makePR(270, {
+        makePR(350, {
           createdAt: daysAgo(14),
           assignees: ['will'],
           authorLogin: 'will',
         }),
       ],
       commentsByNumber: {
-        270: [
+        350: [
           {
             id: 9801,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n👋 Hey @will! This PR has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @will! This PR has been inactive for 5 days.',
             created_at: daysAgo(10),
             updated_at: daysAgo(10),
           },
         ],
       },
       commitsByPRNumber: {
-        270: [makeCommit('will', daysAgo(6))],
+        350: [makeCommit('will', daysAgo(6))],
       },
     }),
     expect: {
       itemsClosed: [],
       commentsCreatedCount: 1,
-      warningPostedOn: [270],
+      warningPostedOn: [350],
       commentsUpdated: 0,
       labelsAdded: 0,
       assigneesRemoved: 0,
     },
   },
 
-  // ── 29 ─────────────────────────────────────────────────────────────────────
+  // ── 35 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR: warning exists, no activity since warning — no duplicate warning',
     description: 'If no activity happened since an existing PR warning, the bot should not post another warning.',
     github: createMockGithub({
       openPRs: [
-        makePR(280, {
+        makePR(360, {
           createdAt: daysAgo(6),
           assignees: ['xena'],
           authorLogin: 'xena',
         }),
       ],
       commentsByNumber: {
-        280: [
+        360: [
           {
             id: 9901,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n👋 Hey @xena! This PR has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @xena! This PR has been inactive for 5 days.',
             created_at: daysAgo(5),
             updated_at: daysAgo(5),
           },
@@ -939,41 +1100,41 @@ const scenarios = [
     },
   },
 
-  // ── 30 ─────────────────────────────────────────────────────────────────────
+  // ── 36 ─────────────────────────────────────────────────────────────────────
   {
     name: 'Issue: two prior warning comments — only the latest is used for activity comparison',
     description: 'When multiple warning comments exist, getLatestBotMarkerComment must pick the most recent one or else activity timing is wrong. With recent warning (daysAgo(4)) and activity (daysAgo(6)) between the warnings, correct code finds activity BEFORE recent warning (no re-post); wrong code using old warning would find activity AFTER it (re-post bug).',
     github: createMockGithub({
       assignedIssues: [
-        makeIssue(290, { createdAt: daysAgo(10), assignees: ['yuki'], labels: [LABELS.IN_PROGRESS] }),
+        makeIssue(370, { createdAt: daysAgo(10), assignees: ['yuki'], labels: [LABELS.IN_PROGRESS] }),
       ],
       commentsByNumber: {
-        290: [
+        370: [
           {
-            id: 9501,
+            id: 9701,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n👋 Hey @yuki! This issue has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @yuki! This issue has been inactive for 5 days.',
             created_at: daysAgo(10),
             updated_at: daysAgo(10),
           },
           {
-            id: 9502,
+            id: 9702,
             user: { login: 'yuki', type: 'User' },
             body: 'Still working on this!',
             created_at: daysAgo(6),
             updated_at: daysAgo(6),
           },
           {
-            id: 9503,
+            id: 9703,
             user: { login: 'github-actions[bot]', type: 'Bot' },
-            body: '<!-- bot:inactivity-warning -->\n👋 Hey @yuki! This issue has been inactive for 5 days.',
+            body: '<!-- bot:inactivity-warning -->\n\u{1F44B} Hey @yuki! This issue has been inactive for 5 days.',
             created_at: daysAgo(4),
             updated_at: daysAgo(4),
           },
         ],
       },
       eventsByNumber: {
-        290: [makeAssignedEvent(daysAgo(10))],
+        370: [makeAssignedEvent(daysAgo(10))],
       },
     }),
     expect: {
@@ -985,7 +1146,6 @@ const scenarios = [
     },
   },
 ];
-
 // =============================================================================
 // TEST RUNNER
 // =============================================================================

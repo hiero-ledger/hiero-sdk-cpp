@@ -56,6 +56,26 @@ protected:
     return internal::HexConverter::hexToBytes(STRING_ARRAY_RESULT_HEX);
   }
 
+  [[nodiscard]] ContractFunctionResult getPopulatedResult() const
+  {
+    ContractFunctionResult result;
+    result.mContractId = getTestContractId();
+    result.mContractCallResult = getTestContractCallResult();
+    result.mErrorMessage = getTestErrorMessage();
+    result.mBloom = getTestBloom();
+    result.mGasUsed = getTestGasUsed();
+    result.mLogs = getTestLogs();
+    result.mEvmAddress = getTestEvmAddress();
+    result.mGas = getTestGas();
+    result.mHbarAmount = getTestAmount();
+    result.mFunctionParameters = getTestFunctionParameters();
+    result.mSenderAccountId = getTestSenderAccountId();
+    result.mContractNonces = { ContractNonceInfo(getTestContractId(), getTestNonce()) };
+    result.mSignerNonce = getTestNonce();
+
+    return result;
+  }
+
 private:
   const ContractId mTestContractId = ContractId(1ULL);
   const std::vector<std::byte> mTestContractCallResult = {
@@ -183,4 +203,199 @@ TEST_F(ContractFunctionResultUnitTests, GetStringArray)
   {
     EXPECT_EQ(str, "random bytes");
   }
+}
+
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorEqualsDefaultConstructed)
+{
+  // Given
+  ContractFunctionResult lhs;
+  ContractFunctionResult rhs;
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorEqualsIdenticallyConstructed)
+{
+  // Given
+  const ContractFunctionResult lhs = getPopulatedResult();
+  const ContractFunctionResult rhs = getPopulatedResult();
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentContractFields)
+{
+  // Given
+  const ContractFunctionResult lhs = getPopulatedResult();
+
+  // Then
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mContractId = ContractId(999ULL);
+    EXPECT_FALSE(lhs == rhs);
+  }
+
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mContractCallResult = { std::byte(0xFF) };
+    EXPECT_FALSE(lhs == rhs);
+  }
+
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mErrorMessage = "different error message";
+    EXPECT_FALSE(lhs == rhs);
+  }
+
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mBloom = { std::byte(0xAA) };
+    EXPECT_FALSE(lhs == rhs);
+  }
+}
+
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentGasFields)
+{
+  // Given
+  const ContractFunctionResult lhs = getPopulatedResult();
+
+  // Then
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mGasUsed = lhs.mGasUsed + 1ULL;
+    EXPECT_FALSE(lhs == rhs);
+  }
+
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mLogs.clear();
+    EXPECT_FALSE(lhs == rhs);
+  }
+
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mGas = lhs.mGas + 1ULL;
+    EXPECT_FALSE(lhs == rhs);
+  }
+}
+
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentAddressFields)
+{
+  // Given
+  const ContractFunctionResult lhs = getPopulatedResult();
+
+  // Then
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mEvmAddress = EvmAddress::fromString("0x1111111111111111111111111111111111111111");
+    EXPECT_FALSE(lhs == rhs);
+  }
+
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mHbarAmount = Hbar(lhs.mHbarAmount.toTinybars() + 1LL);
+    EXPECT_FALSE(lhs == rhs);
+  }
+}
+
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentOtherFields)
+{
+  // Given
+  const ContractFunctionResult lhs = getPopulatedResult();
+
+  // Then
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mFunctionParameters = { std::byte(0x00) };
+    EXPECT_FALSE(lhs == rhs);
+  }
+
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mSenderAccountId = AccountId(999ULL);
+    EXPECT_FALSE(lhs == rhs);
+  }
+
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mContractNonces = { ContractNonceInfo(ContractId(999ULL), getTestNonce()) };
+    EXPECT_FALSE(lhs == rhs);
+  }
+
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mSignerNonce = lhs.mSignerNonce.value() + 1L;
+    EXPECT_FALSE(lhs == rhs);
+  }
+}
+
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorEqualsWithoutOptionalFields)
+{
+  // Given
+  ContractFunctionResult lhs = getPopulatedResult();
+  ContractFunctionResult rhs = getPopulatedResult();
+  lhs.mEvmAddress.reset();
+  rhs.mEvmAddress.reset();
+  lhs.mSignerNonce.reset();
+  rhs.mSignerNonce.reset();
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentOptionalFieldPresence)
+{
+  // Given
+  const ContractFunctionResult lhs = getPopulatedResult();
+
+  // Then
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mEvmAddress.reset();
+    EXPECT_FALSE(lhs == rhs);
+  }
+
+  {
+    ContractFunctionResult rhs = lhs;
+    rhs.mSignerNonce.reset();
+    EXPECT_FALSE(lhs == rhs);
+  }
+}
+
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentLogContents)
+{
+  // Given
+  const ContractFunctionResult lhs = getPopulatedResult();
+  ContractFunctionResult rhs = lhs;
+
+  // When
+  rhs.mLogs.front().mBloom.push_back(std::byte(0xAA));
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(ContractFunctionResultUnitTests, OperatorNotEqualsDifferentContractNonceOrder)
+{
+  // Given
+  ContractFunctionResult lhs = getPopulatedResult();
+  ContractFunctionResult rhs = getPopulatedResult();
+
+  lhs.mContractNonces = { ContractNonceInfo(ContractId(1ULL), 1L), ContractNonceInfo(ContractId(2ULL), 2L) };
+  rhs.mContractNonces = { ContractNonceInfo(ContractId(2ULL), 2L), ContractNonceInfo(ContractId(1ULL), 1L) };
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
 }

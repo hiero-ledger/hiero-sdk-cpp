@@ -60,12 +60,6 @@ function withMergeFailed(data = allPassing()) {
   };
 }
 
-function withMergeError(data = allPassing()) {
-  return {
-    ...data,
-    merge: { passed: false, error: true, errorMessage: 'Merge check failed' },
-  };
-}
 
 function withIssueLinkNoIssue(data = allPassing()) {
   return {
@@ -85,12 +79,6 @@ function withIssueLinkNotAssigned(data = allPassing()) {
   };
 }
 
-function withIssueLinkError(data = allPassing()) {
-  return {
-    ...data,
-    issueLink: { passed: false, error: true, errorMessage: 'Could not fetch issues' },
-  };
-}
 
 // =============================================================================
 // UNIT TESTS
