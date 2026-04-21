@@ -157,3 +157,90 @@ TEST_F(AccountInfoUnitTests, ToString)
   EXPECT_NE(result.find(getTestBalance().toString()), std::string::npos);
   EXPECT_NE(result.find(getTestMemo()), std::string::npos);
 }
+
+//-----
+TEST_F(AccountInfoUnitTests, OperatorEqualsDefault)
+{
+  // Given
+  AccountInfo lhs;
+  AccountInfo rhs;
+
+  // Synchronize expiration times since default is system_clock::now()
+  rhs.mExpirationTime = lhs.mExpirationTime;
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(AccountInfoUnitTests, OperatorEqualsSameValues)
+{
+  // Given
+  const auto now = std::chrono::system_clock::now();
+  const auto period = std::chrono::hours(4);
+
+  AccountInfo lhs;
+  lhs.mAccountId = getTestAccountId();
+  lhs.mContractAccountId = getTestContractAccountId();
+  lhs.mIsDeleted = getTestIsDeleted();
+  lhs.mProxyReceived = getTestProxyReceived();
+  lhs.mBalance = getTestBalance();
+  lhs.mReceiverSignatureRequired = getTestReceiverSignatureRequired();
+  lhs.mExpirationTime = now;
+  lhs.mAutoRenewPeriod = period;
+  lhs.mMemo = getTestMemo();
+  lhs.mOwnedNfts = getTestOwnedNfts();
+  lhs.mMaxAutomaticTokenAssociations = getTestMaxAutomaticTokenAssociations();
+  lhs.mLedgerId = getTestLedgerId();
+
+  AccountInfo rhs;
+  rhs.mAccountId = getTestAccountId();
+  rhs.mContractAccountId = getTestContractAccountId();
+  rhs.mIsDeleted = getTestIsDeleted();
+  rhs.mProxyReceived = getTestProxyReceived();
+  rhs.mBalance = getTestBalance();
+  rhs.mReceiverSignatureRequired = getTestReceiverSignatureRequired();
+  rhs.mExpirationTime = now;
+  rhs.mAutoRenewPeriod = period;
+  rhs.mMemo = getTestMemo();
+  rhs.mOwnedNfts = getTestOwnedNfts();
+  rhs.mMaxAutomaticTokenAssociations = getTestMaxAutomaticTokenAssociations();
+  rhs.mLedgerId = getTestLedgerId();
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(AccountInfoUnitTests, OperatorNotEqualsDifferentMemo)
+{
+  // Given
+  AccountInfo lhs;
+  AccountInfo rhs;
+
+  // Synchronize expiration times since default is system_clock::now()
+  rhs.mExpirationTime = lhs.mExpirationTime;
+
+  lhs.mMemo = "memo A";
+  rhs.mMemo = "memo B";
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(AccountInfoUnitTests, OperatorNotEqualsDifferentOwnedNfts)
+{
+  // Given
+  AccountInfo lhs;
+  AccountInfo rhs;
+
+  // Synchronize expiration times since default is system_clock::now()
+  rhs.mExpirationTime = lhs.mExpirationTime;
+
+  lhs.mOwnedNfts = 10ULL;
+  rhs.mOwnedNfts = 20ULL;
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
