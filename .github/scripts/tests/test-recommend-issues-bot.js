@@ -79,7 +79,7 @@ function createMockBotContext(overrides = {}) {
  * function respects pagination limits.
  */
 function buildListForRepo(closedCounts) {
-  return async ({ state, assignee, labels, per_page }) => {
+  return async ({ assignee, labels, per_page }) => {
     // Simulate full API outage.
     if (closedCounts === null) {
       throw new Error('listForRepo API error');
