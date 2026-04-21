@@ -94,6 +94,23 @@ function buildMergeSection(merge) {
 }
 
 /**
+ * Builds a standalone notification comment to alert a PR author that a
+ * recently merged PR has introduced a merge conflict in their PR.
+ * This is posted once when the conflict state changes from clean to
+ * conflicted — it does NOT replace the dashboard comment.
+ *
+ * @param {string} prAuthor - GitHub username of the PR author.
+ * @param {number} mergedPRNumber - The PR number whose merge caused the conflict.
+ * @returns {string}
+ */
+function buildMergeConflictNotificationComment(prAuthor, mergedPRNumber) {
+  return [
+    `Hi @${prAuthor} :wave: — the recent merge of PR #${mergedPRNumber} has introduced a merge conflict in this PR.`,
+    `Please resolve the merge conflict so that this PR can be reviewed again. Thank you!`,
+  ].join(' ');
+}
+
+/**
  * @param {{ passed: boolean, reason?: string, issues?: Array<{ number: number, title: string, isAssigned: boolean }>, error?: boolean, errorMessage?: string }} issueLink
  * @returns {string}
  */
@@ -189,4 +206,5 @@ module.exports = {
   buildBotComment,
   buildChecksSection,
   allChecksPassed,
+  buildMergeConflictNotificationComment,
 };

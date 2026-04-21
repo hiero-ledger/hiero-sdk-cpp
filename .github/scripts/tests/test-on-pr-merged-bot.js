@@ -39,8 +39,8 @@ const scenarios = [
       // Override pulls.list to return PR 20 and 30
       mockGithub.rest.pulls.list = async () => ({
         data: [
-          { number: 20, draft: false },
-          { number: 30, draft: false },
+          { number: 20, draft: false, user: { login: 'contributor-20' } },
+          { number: 30, draft: false, user: { login: 'contributor-30' } },
           { number: 40, draft: true } // skipped
         ]
       });
@@ -77,14 +77,17 @@ const scenarios = [
 
       await onPrMergedBot({ github: mockGithub, context });
 
-      // What should happen?
-      // PR 20: mergeable=true. Comment body doesn't say "Merge Conflicts". Match! No update.
-      // PR 30: mergeable=false. Comment body doesn't say "Merge Conflicts". Mismatch! Update!
-      // Draft PR 40: Skipped.
-      
       // So commentsUpdated should have length 1, for PR 30
-      if (mockGithub.calls.commentsCreated.length > 0) {
-        console.log('Expected no comments created, got:', mockGithub.calls.commentsCreated);
+      // And commentsCreated should have length 1 (the notification for PR 30)
+      if (mockGithub.calls.commentsCreated.length !== 1) {
+        console.log('Expected 1 notification comment created, got:', mockGithub.calls.commentsCreated.length);
+        return false;
+      }
+
+      // Verify the notification mentions the PR author and merged PR number
+      const notification = mockGithub.calls.commentsCreated[0];
+      if (!notification.includes('@contributor-30') || !notification.includes('#10')) {
+        console.log('Notification should tag PR author and reference merged PR. Got:', notification);
         return false;
       }
 
@@ -243,6 +246,140 @@ const scenarios = [
       const update = mockGithub.calls.commentsUpdated[0];
       if (update.body.includes(':x: **Merge Conflicts**')) {
         console.log('Update body should NOT contain Merge Conflicts error. Got:', update.body);
+        return false;
+      }
+
+      return true;
+    }
+  },
+  {
+    name: 'New conflict detected → notification comment posted tagging PR author',
+    run: async () => {
+      const mockGithub = createMockGithub();
+
+      mockGithub.rest.pulls.list = async () => ({
+        data: [{ number: 80, draft: false, user: { login: 'alice' } }]
+      });
+
+      mockGithub.rest.pulls.get = async () => ({
+        data: { mergeable: false, mergeable_state: 'dirty' }
+      });
+
+      // Dashboard currently shows clean (no conflict marker)
+      mockGithub.rest.issues.listComments = async () => {
+        return { data: [{ id: 801, body: `${MARKER}\nAll good` }] };
+      };
+
+      const context = {
+        eventName: 'pull_request',
+        repo: { owner: 'test', repo: 'repo' },
+        payload: { pull_request: { number: 10, merged: true, user: { login: 'merger' } } }
+      };
+
+      await onPrMergedBot({ github: mockGithub, context });
+
+      // Dashboard should be updated
+      if (mockGithub.calls.commentsUpdated.length !== 1) {
+        console.log('Expected 1 comment updated, got:', mockGithub.calls.commentsUpdated.length);
+        return false;
+      }
+
+      // Notification comment should be posted
+      if (mockGithub.calls.commentsCreated.length !== 1) {
+        console.log('Expected 1 notification comment, got:', mockGithub.calls.commentsCreated.length);
+        return false;
+      }
+
+      const notification = mockGithub.calls.commentsCreated[0];
+      if (!notification.includes('@alice')) {
+        console.log('Notification should tag PR author @alice. Got:', notification);
+        return false;
+      }
+      if (!notification.includes('#10')) {
+        console.log('Notification should reference merged PR #10. Got:', notification);
+        return false;
+      }
+
+      return true;
+    }
+  },
+  {
+    name: 'Conflict resolving (dirty → clean) → no notification comment posted',
+    run: async () => {
+      const mockGithub = createMockGithub({
+        existingComments: [
+          { id: 901, body: `${MARKER}\n:x: **Merge Conflicts**` }
+        ],
+      });
+
+      mockGithub.rest.pulls.list = async () => ({
+        data: [{ number: 90, draft: false, user: { login: 'bob' } }]
+      });
+
+      mockGithub.rest.pulls.get = async () => ({
+        data: { mergeable: true, mergeable_state: 'clean' }
+      });
+
+      mockGithub.rest.issues.listComments = async () => {
+        return { data: [{ id: 901, body: `${MARKER}\n:x: **Merge Conflicts**` }] };
+      };
+
+      const context = {
+        eventName: 'pull_request',
+        repo: { owner: 'test', repo: 'repo' },
+        payload: { pull_request: { number: 10, merged: true, user: { login: 'merger' } } }
+      };
+
+      await onPrMergedBot({ github: mockGithub, context });
+
+      // Dashboard should be updated (conflict resolved)
+      if (mockGithub.calls.commentsUpdated.length !== 1) {
+        console.log('Expected 1 comment updated, got:', mockGithub.calls.commentsUpdated.length);
+        return false;
+      }
+
+      // NO notification comment should be posted for conflict resolution
+      if (mockGithub.calls.commentsCreated.length !== 0) {
+        console.log('Expected 0 notification comments for conflict resolution, got:', mockGithub.calls.commentsCreated.length);
+        return false;
+      }
+
+      return true;
+    }
+  },
+  {
+    name: 'Conflict status unchanged (still conflicted) → no notification comment',
+    run: async () => {
+      const mockGithub = createMockGithub();
+
+      mockGithub.rest.pulls.list = async () => ({
+        data: [{ number: 100, draft: false, user: { login: 'charlie' } }]
+      });
+
+      mockGithub.rest.pulls.get = async () => ({
+        data: { mergeable: false, mergeable_state: 'dirty' }
+      });
+
+      // Dashboard already shows conflict
+      mockGithub.rest.issues.listComments = async () => {
+        return { data: [{ id: 1001, body: `${MARKER}\n:x: **Merge Conflicts**` }] };
+      };
+
+      const context = {
+        eventName: 'pull_request',
+        repo: { owner: 'test', repo: 'repo' },
+        payload: { pull_request: { number: 10, merged: true, user: { login: 'merger' } } }
+      };
+
+      await onPrMergedBot({ github: mockGithub, context });
+
+      // No updates or notifications expected
+      if (mockGithub.calls.commentsUpdated.length !== 0) {
+        console.log('Expected 0 comment updates, got:', mockGithub.calls.commentsUpdated.length);
+        return false;
+      }
+      if (mockGithub.calls.commentsCreated.length !== 0) {
+        console.log('Expected 0 notification comments, got:', mockGithub.calls.commentsCreated.length);
         return false;
       }
 
