@@ -29,14 +29,29 @@ function parseComment(body) {
   if (typeof body !== 'string') {
     return { commands: [] };
   }
-  if (/^\s*\/assign\s*$/i.test(body)) {
+
+  const trimmed = body.trim();
+
+  if (/^\/assign$/i.test(trimmed)) {
     logger.log('parseComment: detected /assign');
     return { commands: ['assign'] };
   }
-  if (/^\s*\/unassign\s*$/i.test(body)) { 
+
+  if (/^\/unassign$/i.test(trimmed)) {
     logger.log('parseComment: detected /unassign');
     return { commands: ['unassign'] };
   }
+
+  if (/^\/assign\s+/i.test(trimmed)) {
+    logger.log('parseComment: near miss /assign');
+    return { nearMiss: 'assign' };
+  }
+
+  if (/^\/unassign\s+/i.test(trimmed)) {
+    logger.log('parseComment: near miss /unassign');
+    return { nearMiss: 'unassign' };
+  }
+
   logger.log('parseComment: no known command', { body: body.substring(0, 80) });
   return { commands: [] };
 }
@@ -64,10 +79,21 @@ module.exports = async ({ github, context }) => {
     }
 
     const parsed = parseComment(botContext.comment.body);
-    if (parsed.commands.length === 0) {
-      logger.log('Exit: no known command');
-      return;
-    }
+    if (parsed.nearMiss) {
+      logger = createLogger(`on-${parsed.nearMiss}`);
+
+    await botContext.postComment(
+      `⚠️ The command \`/${parsed.nearMiss}\` must be used alone.\n\nPlease comment exactly:\n\`/${parsed.nearMiss}\``
+    );
+
+    return;
+  }
+
+  if (parsed.commands.length === 0) {
+    logger.log('Exit: no known command');
+    return;
+  }
+    
 
     for (const command of parsed.commands) {
       // Update logger prefix to the command name so helper functions
