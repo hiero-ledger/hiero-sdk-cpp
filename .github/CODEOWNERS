@@ -11,8 +11,8 @@
 # NOTE: Must be placed last to ensure enforcement over all other rules
 
 # Protection Rules for Github Configuration Files and Actions Workflows
-/.github/**/*.yml                               @hiero-ledger/github-maintainers
-/.github/**/*.yaml                              @hiero-ledger/github-maintainers
+/.github/                                       @hiero-ledger/github-maintainers
+/.github/scripts/                               @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
 /.github/workflows/                             @hiero-ledger/github-maintainers @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
 
 # Cmake project files and inline plugins
