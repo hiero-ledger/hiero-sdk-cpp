@@ -201,7 +201,7 @@ bool operator==(const AccountInfo& lhs, const AccountInfo& rhs)
   }
 
   // StakingInfo does not implement operator==, compare via serialized protobuf bytes.
-  if (lhs.mStakingInfo.toBytes() != rhs.mStakingInfo.toBytes())
+  if (lhs.mStakingInfo.toProtobuf()->SerializeAsString() != rhs.mStakingInfo.toProtobuf()->SerializeAsString())
   {
     return false;
   }

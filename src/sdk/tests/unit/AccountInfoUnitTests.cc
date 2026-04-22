@@ -244,3 +244,66 @@ TEST_F(AccountInfoUnitTests, OperatorNotEqualsDifferentOwnedNfts)
   // Then
   EXPECT_FALSE(lhs == rhs);
 }
+
+//-----
+TEST_F(AccountInfoUnitTests, OperatorNotEqualsDifferentEvmAddressAliasHasValue)
+{
+  // Given
+  AccountInfo lhs;
+  AccountInfo rhs;
+  rhs.mExpirationTime = lhs.mExpirationTime;
+
+  lhs.mEvmAddressAlias = EvmAddress::fromString("0000000000000000000000000000000000000001");
+  // rhs has no mEvmAddressAlias (nullopt)
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(AccountInfoUnitTests, OperatorNotEqualsDifferentEvmAddressAliasValue)
+{
+  // Given
+  AccountInfo lhs;
+  AccountInfo rhs;
+  rhs.mExpirationTime = lhs.mExpirationTime;
+
+  lhs.mEvmAddressAlias = EvmAddress::fromString("0000000000000000000000000000000000000001");
+  rhs.mEvmAddressAlias = EvmAddress::fromString("0000000000000000000000000000000000000002");
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(AccountInfoUnitTests, OperatorNotEqualsDifferentStakingInfo)
+{
+  // Given
+  AccountInfo lhs;
+  AccountInfo rhs;
+  rhs.mExpirationTime = lhs.mExpirationTime;
+
+  lhs.mStakingInfo.mDeclineRewards = true;
+  lhs.mStakingInfo.mPendingReward = Hbar(100LL);
+
+  rhs.mStakingInfo.mDeclineRewards = false;
+  rhs.mStakingInfo.mPendingReward = Hbar(200LL);
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(AccountInfoUnitTests, OperatorNotEqualsDifferentTokenRelationships)
+{
+  // Given
+  AccountInfo lhs;
+  AccountInfo rhs;
+  rhs.mExpirationTime = lhs.mExpirationTime;
+
+  // lhs has one token relationship, rhs has none
+  lhs.mTokenRelationships[TokenId(1ULL, 2ULL, 3ULL)] = TokenRelationship();
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
