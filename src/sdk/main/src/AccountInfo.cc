@@ -179,12 +179,12 @@ std::string AccountInfo::toString() const
 // concrete Key type, which is not available here.
 bool operator==(const AccountInfo& lhs, const AccountInfo& rhs)
 {
-  if ((lhs.mAccountId != rhs.mAccountId) || (lhs.mContractAccountId != rhs.mContractAccountId) ||
-      (lhs.mIsDeleted != rhs.mIsDeleted) || (lhs.mProxyReceived != rhs.mProxyReceived) ||
-      (lhs.mBalance != rhs.mBalance) || (lhs.mReceiverSignatureRequired != rhs.mReceiverSignatureRequired) ||
+  if (!(lhs.mAccountId == rhs.mAccountId) || (lhs.mContractAccountId != rhs.mContractAccountId) ||
+      (lhs.mIsDeleted != rhs.mIsDeleted) || !(lhs.mProxyReceived == rhs.mProxyReceived) ||
+      !(lhs.mBalance == rhs.mBalance) || (lhs.mReceiverSignatureRequired != rhs.mReceiverSignatureRequired) ||
       (lhs.mExpirationTime != rhs.mExpirationTime) || (lhs.mAutoRenewPeriod != rhs.mAutoRenewPeriod) ||
       (lhs.mMemo != rhs.mMemo) || (lhs.mOwnedNfts != rhs.mOwnedNfts) ||
-      (lhs.mMaxAutomaticTokenAssociations != rhs.mMaxAutomaticTokenAssociations) || (lhs.mLedgerId != rhs.mLedgerId))
+      (lhs.mMaxAutomaticTokenAssociations != rhs.mMaxAutomaticTokenAssociations) || !(lhs.mLedgerId == rhs.mLedgerId))
   {
     return false;
   }
