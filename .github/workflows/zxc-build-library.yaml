@@ -12,7 +12,13 @@ on:
         description: "Select this option when you want to run the MacOS builds."
         type: boolean
         required: false
-        default: false
+        default: false 
+       
+      upload-artifacts:
+        description: "Select this option when you want to upload the artifacts."
+        type: boolean
+        required: false
+        default: true
 
   workflow_dispatch:
     inputs:
@@ -26,7 +32,13 @@ on:
         description: "Select this option when you want to run the MacOS builds."
         type: boolean
         required: false
-        default: false
+        default: false 
+         
+      upload-artifacts:
+        description: "Select this option when you want to upload the artifacts."
+        type: boolean 
+        required: false
+        default: true
 
 defaults:
   run:
@@ -273,7 +285,8 @@ jobs:
           $short = $sha.Substring(0, 8)
           Add-Content -Path $env:GITHUB_OUTPUT -Value "short=$short"
 
-      - name: Attach Artifact
+      - name: Attach Artifact 
+        if: ${{ inputs.upload-artifacts }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
@@ -316,7 +329,8 @@ jobs:
         id: sha
         run: echo "short=$(echo -n "${{ github.sha }}" | cut -c1-8)" >> $GITHUB_OUTPUT
 
-      - name: Attach Artifact
+      - name: Attach Artifact 
+        if: ${{ inputs.upload-artifacts }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
