@@ -13,7 +13,7 @@
 //   - Ignores bot users to prevent loops
 
 const { createLogger, buildBotContext, resolveLinkedIssue } = require('./helpers');
-const { handleRecommendIssues } = require('./commands/recommend-issues');
+const { handleRecommendIssues } = require('./bot/bot-recommend-issues');
 
 let logger = createLogger('on-pr-close');
 
