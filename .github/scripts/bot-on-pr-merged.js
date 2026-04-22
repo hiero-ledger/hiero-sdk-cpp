@@ -12,10 +12,11 @@ const {
   fetchOpenPRs, 
   getBotComment, 
   runAllChecksAndComment, 
-  swapStatusLabel 
+  swapStatusLabel,
+  postComment 
 } = require('./helpers');
 const { checkMergeConflict } = require('./helpers/checks');
-const { MARKER } = require('./helpers/comments');
+const { MARKER, buildMergeConflictNotificationComment } = require('./helpers/comments');
 
 const logger = createLogger('on-pr-merged');
 
@@ -52,6 +53,15 @@ async function checkSiblingConflictsOnMerge(globalBotContext) {
       logger.log(`PR #${pr.number} conflict status changed to ${actuallyHasConflict ? 'conflicted' : 'clean'}, updating...`);
       const { allPassed } = await runAllChecksAndComment(prContext, { merge: mergeResult });
       await swapStatusLabel(prContext, allPassed);
+
+      // Post a standalone notification when a conflict is newly introduced
+      if (!currentlyShowsConflict && actuallyHasConflict) {
+        const prAuthor = pr.user?.login;
+        if (prAuthor) {
+          const notification = buildMergeConflictNotificationComment(prAuthor, mergedPRNumber);
+          await postComment(prContext, notification);
+        }
+      }
     } else {
       logger.log(`PR #${pr.number} conflict status unchanged (${actuallyHasConflict ? 'conflicted' : 'clean'}), skipping...`);
     }
