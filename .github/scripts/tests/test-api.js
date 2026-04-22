@@ -7,12 +7,16 @@
 
 const { runTestSuite } = require('./test-utils');
 const {
+  getBotComment,
   postOrUpdateComment,
   fetchPRCommits,
+  fetchOpenPRs,
   fetchIssue,
   fetchClosingIssueNumbers,
   swapStatusLabel,
   hasLabel,
+  resolveLinkedIssue,
+  getHighestIssueSkillLevel,
 } = require('../helpers/api');
 const { LABELS } = require('../helpers/constants');
 const { isSafeSearchToken } = require('../helpers/validation');
@@ -58,6 +62,12 @@ function createMockBotContext(overrides = {}) {
             },
           },
           pulls: {
+            list: async ({ page, per_page }) => {
+              const allPRs = overrides.openPRs || [];
+              const start = (page - 1) * per_page;
+              const slice = allPRs.slice(start, start + per_page);
+              return { data: slice };
+            },
             listCommits: async ({ page, per_page }) => {
               const allCommits = overrides.commits || [];
               const start = (page - 1) * per_page;
@@ -143,6 +153,50 @@ const unitTests = [
         labels: ['status: needs review', 'bug'],
       };
       return hasLabel(pr, LABELS.NEEDS_REVIEW) === true;
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // getBotComment
+  // ---------------------------------------------------------------------------
+  {
+    name: 'getBotComment: returns comment matched by marker',
+    test: async () => {
+      const marker = '<!-- bot:test -->';
+      const { botContext } = createMockBotContext({
+        comments: [
+          { id: 1, body: 'User comment 1' },
+          { id: 2, body: '<!-- bot:test -->\nBot comment' },
+        ],
+      });
+      const result = await getBotComment(botContext, marker);
+      return result !== null && result.id === 2;
+    },
+  },
+  {
+    name: 'getBotComment: returns null if no marker match',
+    test: async () => {
+      const marker = '<!-- bot:test -->';
+      const { botContext } = createMockBotContext({
+        comments: [
+          { id: 1, body: 'User comment 1' },
+        ],
+      });
+      const result = await getBotComment(botContext, marker);
+      return result === null;
+    },
+  },
+  {
+    name: 'getBotComment: searches across pages',
+    test: async () => {
+      const marker = '<!-- bot:paged -->';
+      const page1 = Array(100).fill(null).map((_, i) => ({ id: i + 1, body: `Comment ${i}` }));
+      const page2 = [{ id: 101, body: '<!-- bot:paged -->\nFound on page 2' }];
+      const { botContext } = createMockBotContext({
+        comments: [...page1, ...page2],
+      });
+      const result = await getBotComment(botContext, marker);
+      return result !== null && result.id === 101;
     },
   },
 
@@ -284,6 +338,46 @@ const unitTests = [
   },
 
   // ---------------------------------------------------------------------------
+  // fetchOpenPRs
+  // ---------------------------------------------------------------------------
+  {
+    name: 'fetchOpenPRs: single page (< 100 PRs) → returns all',
+    test: async () => {
+      const openPRs = [
+        { number: 1, title: 'First PR' },
+        { number: 2, title: 'Second PR' },
+      ];
+      const { botContext } = createMockBotContext({ openPRs });
+      const result = await fetchOpenPRs(botContext);
+      return (
+        Array.isArray(result) &&
+        result.length === 2 &&
+        result[0].number === 1 &&
+        result[1].number === 2
+      );
+    },
+  },
+  {
+    name: 'fetchOpenPRs: multiple pages → paginates and returns all',
+    test: async () => {
+      const openPRs = Array(150)
+        .fill(null)
+        .map((_, i) => ({ number: i + 1, title: `PR ${i + 1}` }));
+      const { botContext } = createMockBotContext({ openPRs });
+      const result = await fetchOpenPRs(botContext);
+      return result.length === 150;
+    },
+  },
+  {
+    name: 'fetchOpenPRs: zero PRs → returns []',
+    test: async () => {
+      const { botContext } = createMockBotContext({ openPRs: [] });
+      const result = await fetchOpenPRs(botContext);
+      return Array.isArray(result) && result.length === 0;
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // fetchIssue
   // ---------------------------------------------------------------------------
   {
@@ -384,6 +478,139 @@ const unitTests = [
   },
 
   // ---------------------------------------------------------------------------
+  // resolveLinkedIssue
+  // ---------------------------------------------------------------------------
+  {
+    name: 'resolveLinkedIssue: no linked issues → returns null',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: { nodes: [] },
+            },
+          },
+        }),
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result === null;
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: single linked issue with skill label → returns it',
+    test: async () => {
+      const issueData = { number: 10, title: 'Fix bug', labels: [{ name: LABELS.BEGINNER }] };
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: { nodes: [{ number: 10 }] },
+            },
+          },
+        }),
+        issues: { 10: issueData },
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result !== null && result.number === 10;
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: single linked issue with no skill label → returns null',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: {
+                nodes: [{ number: 7 }],
+              },
+            },
+          },
+        }),
+        issues: {
+          7: { number: 7, title: 'Issue 7', labels: [{ name: 'bug' }] },
+        },
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result === null;
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: multiple linked issues with skill label → returns highest skill level',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: {
+                nodes: [{ number: 1 }, { number: 2 }, { number: 3 }],
+              },
+            },
+          },
+        }),
+        issues: {
+          1: { number: 1, title: 'GFI issue',          labels: [{ name: LABELS.GOOD_FIRST_ISSUE }] },
+          2: { number: 2, title: 'Intermediate issue',  labels: [{ name: LABELS.INTERMEDIATE }] },
+          3: { number: 3, title: 'Beginner issue',      labels: [{ name: LABELS.BEGINNER }] },
+        },
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result !== null && result.number === 2; // INTERMEDIATE is highest
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: multiple linked issues with no skill label → returns null',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: {
+                nodes: [{ number: 4 }, { number: 5 }],
+              },
+            },
+          },
+        }),
+        issues: {
+          4: { number: 4, title: 'Issue 4', labels: [{ name: 'bug' }] },
+          5: { number: 5, title: 'Issue 5', labels: [{ name: 'enhancement' }] },
+        },
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result === null;
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: GraphQL fails → returns null gracefully',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => { throw new Error('GraphQL error'); },
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result === null;
+    },
+  },
+  {
+    name: 'resolveLinkedIssue: issue fetch fails for all linked issues → returns null',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        graphql: async () => ({
+          repository: {
+            pullRequest: {
+              closingIssuesReferences: {
+                nodes: [{ number: 999 }, { number: 998 }],
+              },
+            },
+          },
+        }),
+        issues: {}, // no issues → fetchIssue throws for all
+      });
+      const result = await resolveLinkedIssue(botContext);
+      return result === null;
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // swapStatusLabel
   // ---------------------------------------------------------------------------
   {
@@ -471,11 +698,11 @@ const unitTests = [
     test: () => isSafeSearchToken('bad username') === false,
   },
   {
-    name: 'isSafeSearchToken: string with bad characters → false',
+    name: 'isSafeSearchToken: string with angle brackets → false',
     test: () => isSafeSearchToken('bad<username>') === false,
   },
   {
-    name: 'isSafeSearchToken: string with bad characters → false',
+    name: 'isSafeSearchToken: string with semicolon → false',
     test: () => isSafeSearchToken('bad;username') === false,
   },
   {
@@ -486,8 +713,39 @@ const unitTests = [
     name: 'isSafeSearchToken: string with multiple brackets → false',
     test: () => isSafeSearchToken('bad[[admin]') === false,
   },
-];
 
+  // ---------------------------------------------------------------------------
+  // getHighestIssueSkillLevel
+  // ---------------------------------------------------------------------------
+  {
+    name: 'getHighestIssueSkillLevel: issue with one skill label → returns that level',
+    test: () => {
+      const issue = { number: 1, title: 'Test', labels: [{ name: LABELS.BEGINNER }, { name: LABELS.READY_FOR_DEV }] };
+      return getHighestIssueSkillLevel(issue) === LABELS.BEGINNER;
+    },
+  },
+  {
+    name: 'getHighestIssueSkillLevel: issue with no skill labels → returns null',
+    test: () => {
+      const issue = { number: 1, title: 'Test', labels: [{ name: 'bug' }, { name: 'enhancement' }] };
+      return getHighestIssueSkillLevel(issue) === null;
+    },
+  },
+  {
+    name: 'getHighestIssueSkillLevel: issue with multiple skill labels → returns highest',
+    test: () => {
+      const issue = { number: 1, title: 'Test', labels: [{ name: LABELS.GOOD_FIRST_ISSUE }, { name: LABELS.BEGINNER }, { name: LABELS.INTERMEDIATE }] };
+      return getHighestIssueSkillLevel(issue) === LABELS.INTERMEDIATE;
+    },
+  },
+  {
+    name: 'getHighestIssueSkillLevel: issue with empty labels → returns null',
+    test: () => {
+      const issue = { number: 1, title: 'Test', labels: [] };
+      return getHighestIssueSkillLevel(issue) === null;
+    },
+  },
+];
 // =============================================================================
 // TEST RUNNER
 // =============================================================================

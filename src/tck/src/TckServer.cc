@@ -12,6 +12,14 @@
 #include "account/params/GetAccountInfoParams.h"
 #include "account/params/TransferCryptoParams.h"
 #include "account/params/UpdateAccountParams.h"
+#include "contract/ContractService.h"
+#include "contract/params/ContractByteCodeQueryParams.h"
+#include "contract/params/ContractCallQueryParams.h"
+#include "contract/params/ContractInfoQueryParams.h"
+#include "contract/params/CreateContractParams.h"
+#include "contract/params/DeleteContractParams.h"
+#include "contract/params/ExecuteContractParams.h"
+#include "contract/params/UpdateContractParams.h"
 #include "file/FileService.h"
 #include "file/params/AppendFileParams.h"
 #include "file/params/CreateFileParams.h"
@@ -108,6 +116,15 @@ TckServer::TckServer(int port)
   mJsonRpcParser.addMethod("getTopicInfo", getHandle(TopicService::getTopicInfo));
   mJsonRpcParser.addMethod("submitTopicMessage", getHandle(TopicService::submitTopicMessage));
 
+  // Contract Service
+  mJsonRpcParser.addMethod("createContract", getHandle(ContractService::createContract));
+  mJsonRpcParser.addMethod("contractByteCodeQuery", getHandle(ContractService::contractByteCodeQuery));
+  mJsonRpcParser.addMethod("contractCallQuery", getHandle(ContractService::contractCallQuery));
+  mJsonRpcParser.addMethod("contractInfoQuery", getHandle(ContractService::contractInfoQuery));
+  mJsonRpcParser.addMethod("deleteContract", getHandle(ContractService::deleteContract));
+  mJsonRpcParser.addMethod("executeContract", getHandle(ContractService::executeContract));
+  mJsonRpcParser.addMethod("updateContract", getHandle(ContractService::updateContract));
+
   // Add the FileService functions.
   mJsonRpcParser.addMethod("appendFile", getHandle(FileService::appendFile));
   mJsonRpcParser.addMethod("createFile", getHandle(FileService::createFile));
@@ -184,6 +201,20 @@ template TckServer::MethodHandle TckServer::getHandle<AccountService::ApproveAll
   nlohmann::json (*method)(const AccountService::ApproveAllowanceParams&));
 template TckServer::MethodHandle TckServer::getHandle<AccountService::DeleteAllowanceParams>(
   nlohmann::json (*method)(const AccountService::DeleteAllowanceParams&));
+template TckServer::MethodHandle TckServer::getHandle<ContractService::CreateContractParams>(
+  nlohmann::json (*method)(const ContractService::CreateContractParams&));
+template TckServer::MethodHandle TckServer::getHandle<ContractService::ContractByteCodeQueryParams>(
+  nlohmann::json (*method)(const ContractService::ContractByteCodeQueryParams&));
+template TckServer::MethodHandle TckServer::getHandle<ContractService::ContractCallQueryParams>(
+  nlohmann::json (*method)(const ContractService::ContractCallQueryParams&));
+template TckServer::MethodHandle TckServer::getHandle<ContractService::ContractInfoQueryParams>(
+  nlohmann::json (*method)(const ContractService::ContractInfoQueryParams&));
+template TckServer::MethodHandle TckServer::getHandle<ContractService::DeleteContractParams>(
+  nlohmann::json (*method)(const ContractService::DeleteContractParams&));
+template TckServer::MethodHandle TckServer::getHandle<ContractService::ExecuteContractParams>(
+  nlohmann::json (*method)(const ContractService::ExecuteContractParams&));
+template TckServer::MethodHandle TckServer::getHandle<ContractService::UpdateContractParams>(
+  nlohmann::json (*method)(const ContractService::UpdateContractParams&));
 template TckServer::MethodHandle TckServer::getHandle<KeyService::GenerateKeyParams>(
   nlohmann::json (*method)(const KeyService::GenerateKeyParams&));
 template TckServer::MethodHandle TckServer::getHandle<TokenService::CreateTokenParams>(

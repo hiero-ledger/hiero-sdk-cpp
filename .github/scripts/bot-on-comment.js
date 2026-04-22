@@ -3,14 +3,17 @@
 // bot-on-comment.js
 //
 // Handles issue comment events: reads the comment body, parses commands, and dispatches
-// to the appropriate handler. Implemented commands: /assign, /unassign.
+// to the appropriate handler. Implemented commands: /assign, /unassign, /finalize.
 //
-// /assign: see commands/assign.js (skill levels, assignment limits, required labels).
+// /assign:   see commands/assign.js (skill levels, assignment limits, required labels).
 // /unassign: see commands/unassign.js (authorization, label reversion).
+// /finalize: see commands/finalize.js (triage permission required; validates labels,
+//            updates issue title/body with skill-level format, swaps status labels).
 
 const { createLogger, buildBotContext } = require('./helpers');
 const { handleAssign } = require('./commands/assign');
-const { handleUnassign } = require('./commands/unassign'); 
+const { handleUnassign } = require('./commands/unassign');
+const { handleFinalize } = require('./commands/finalize');
 
 let logger = createLogger('on-comment');
 
@@ -23,7 +26,7 @@ let logger = createLogger('on-comment');
  * Commands are recognized by exact match (with optional surrounding whitespace).
  *
  * @param {string} body - The comment body.
- * @returns {{ commands: string[] }} - List of command names (e.g. ['assign'] or []).
+ * @returns {{ commands?: string[], nearMiss?: string }} - List of command names (e.g. ['assign'] or []).
  */
 function parseComment(body) {
   if (typeof body !== 'string') {
@@ -42,6 +45,12 @@ function parseComment(body) {
     return { commands: ['unassign'] };
   }
 
+  if (/^\/finalize$/i.test(trimmed)) {
+    logger.log('parseComment: detected /finalize');
+    return { commands: ['finalize'] };
+  }
+
+  // ⚠️ near miss
   if (/^\/assign\s+/i.test(trimmed)) {
     logger.log('parseComment: near miss /assign');
     return { nearMiss: 'assign' };
@@ -50,6 +59,11 @@ function parseComment(body) {
   if (/^\/unassign\s+/i.test(trimmed)) {
     logger.log('parseComment: near miss /unassign');
     return { nearMiss: 'unassign' };
+  }
+
+  if (/^\/finalize\s+/i.test(trimmed)) {
+    logger.log('parseComment: near miss /finalize');
+    return { nearMiss: 'finalize' };
   }
 
   logger.log('parseComment: no known command', { body: body.substring(0, 80) });
@@ -82,18 +96,18 @@ module.exports = async ({ github, context }) => {
     if (parsed.nearMiss) {
       logger = createLogger(`on-${parsed.nearMiss}`);
 
-    await botContext.postComment(
-      `⚠️ The command \`/${parsed.nearMiss}\` must be used alone.\n\nPlease comment exactly:\n\`/${parsed.nearMiss}\``
-    );
+      await botContext.postComment(
+        `⚠️ The command \`/${parsed.nearMiss}\` must be used alone.\n\nPlease comment exactly:\n\`/${parsed.nearMiss}\``
+      );
 
-    return;
-  }
+      return;
+    }
 
-  if (parsed.commands.length === 0) {
-    logger.log('Exit: no known command');
-    return;
-  }
-    
+    if (!parsed.commands || parsed.commands.length === 0) {
+      logger.log('Exit: no known command');
+      return;
+    }
+
 
     for (const command of parsed.commands) {
       // Update logger prefix to the command name so helper functions
@@ -104,6 +118,8 @@ module.exports = async ({ github, context }) => {
         await handleAssign(botContext);
       } else if (command === 'unassign') {
         await handleUnassign(botContext);
+      } else if (command === 'finalize') {
+        await handleFinalize(botContext);
       } else {
         logger.log('Unknown command:', command);
       }
