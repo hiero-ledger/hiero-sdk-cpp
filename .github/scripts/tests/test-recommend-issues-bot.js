@@ -2,7 +2,7 @@
 //
 // tests/test-recommend-issues-bot.js
 //
-// Unit tests for commands/recommend-issues.js
+// Unit tests for bot/bot-recommend-issues.js
 // Run with: node .github/scripts/tests/test-recommend-issues-bot.js
 
 const { runTestSuite } = require('./test-utils');
@@ -12,7 +12,7 @@ const {
   getRecommendedIssues,
   resolveEligibleLevel,
   detectUnlockedLevel,
-} = require('../commands/recommend-issues');
+} = require('../bot/bot-recommend-issues');
 
 // =============================================================================
 // MOCK FACTORY
