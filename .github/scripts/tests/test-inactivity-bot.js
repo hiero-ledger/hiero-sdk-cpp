@@ -185,6 +185,10 @@ function makeUnlabeledEvent(labelName, createdAt) {
   return { event: 'unlabeled', created_at: createdAt, label: { name: labelName } };
 }
 
+function makeLabeledEvent(labelName, createdAt) {
+  return { event: 'labeled', created_at: createdAt, label: { name: labelName } };
+}
+
 function makeAssignedEvent(createdAt) {
   return { event: 'assigned', created_at: createdAt };
 }
@@ -249,6 +253,7 @@ const scenarios = [
       commentsCreated: 0,
       labelsAdded: 0,
       assigneesRemoved: 0,
+      summaryLogs: ['#10 (issue): last activity 3d ago (assigned: alice), no action needed'],
     },
   },
 
@@ -270,6 +275,7 @@ const scenarios = [
       warningPostedOn: [20],
       labelsAdded: 0,
       assigneesRemoved: 0,
+      summaryLogs: ['#20 (issue): last activity 6d ago (assigned: alice), posting inactivity warning'],
     },
   },
 
@@ -291,6 +297,7 @@ const scenarios = [
       labelsAdded: [{ issue_number: 30, labels: [LABELS.READY_FOR_DEV] }],
       labelsRemoved: [{ issue_number: 30, name: LABELS.IN_PROGRESS }],
       assigneesRemoved: [{ issue_number: 30, assignees: ['alice'] }],
+      summaryLogs: ['#30 (issue): last activity 8d ago (assigned: alice), unassigning and resetting issue'],
     },
   },
 
@@ -406,6 +413,7 @@ const scenarios = [
       warningPostedOn: [80],
       labelsAdded: 0,
       assigneesRemoved: 0,
+      summaryLogs: ['#80 (PR): last activity 6d ago (assigned: dave), posting inactivity warning'],
     },
   },
 
@@ -437,6 +445,7 @@ const scenarios = [
       closureCommentOn: [90],
       linkedIssueCleaned: [91],
       assigneesRemovedOn: [90, 91],
+      summaryLogs: ['#90 (PR): last activity 8d ago (assigned: eve), closing PR'],
     },
   },
 
@@ -697,6 +706,162 @@ const scenarios = [
       assigneesRemoved: 0,
     },
   },
+
+  // ── 23 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: status: needs review — skipped entirely',
+    description: 'PRs waiting on maintainer review are exempt from inactivity tracking.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(220, {
+          createdAt: daysAgo(8),
+          assignees: ['rose'],
+          authorLogin: 'rose',
+          labels: [LABELS.NEEDS_REVIEW],
+        }),
+      ],
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 24 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision labeled 2 days ago — no action',
+    description: 'Inactivity clock starts from when needs-revision was last applied; 2 days is under threshold.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(230, {
+          createdAt: daysAgo(10),
+          assignees: ['sam'],
+          authorLogin: 'sam',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      eventsByNumber: {
+        230: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(2))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 25 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision labeled 6 days ago — warning posted',
+    description: 'Six days since needs-revision was applied triggers the 5-day warning.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(240, {
+          createdAt: daysAgo(10),
+          assignees: ['taylor'],
+          authorLogin: 'taylor',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      eventsByNumber: {
+        240: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(6))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreatedCount: 1,
+      warningPostedOn: [240],
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 26 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision labeled 8 days ago — closed and reset',
+    description: 'Eight days since needs-revision was applied exceeds the 7-day close threshold.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(250, {
+          createdAt: daysAgo(10),
+          assignees: ['uri'],
+          authorLogin: 'uri',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      eventsByNumber: {
+        250: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8))],
+      },
+    }),
+    expect: {
+      itemsClosed: [250],
+      closureCommentOn: [250],
+      assigneesRemoved: [{ issue_number: 250, assignees: ['uri'] }],
+    },
+  },
+
+  // ── 27 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision labeled 8 days ago, author commented 2 days ago — no action',
+    description: 'Author activity after the label is applied resets the clock; the bot should not close an actively-engaged PR.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(261, {
+          createdAt: daysAgo(10),
+          assignees: ['wren'],
+          authorLogin: 'wren',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      commentsByNumber: {
+        261: [makeComment('wren', daysAgo(2))],
+      },
+      eventsByNumber: {
+        261: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 28 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision applied twice — clock uses most recent application',
+    description: 'Back-and-forth review cycles must not penalize contributors; the clock resets on each new needs-revision application.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(260, {
+          createdAt: daysAgo(12),
+          assignees: ['vera'],
+          authorLogin: 'vera',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      eventsByNumber: {
+        260: [
+          makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(10)),
+          makeUnlabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8)),
+          makeLabeledEvent(LABELS.NEEDS_REVIEW, daysAgo(8)),
+          makeUnlabeledEvent(LABELS.NEEDS_REVIEW, daysAgo(2)),
+          makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(2)),
+        ],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
 ];
 
 // =============================================================================
@@ -710,13 +875,29 @@ async function runScenario(scenario, index) {
   console.log(`[${index}] ${name}`);
   if (description) console.log(`    ${description}`);
 
+  const capturedLogs = [];
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+  console.log = (...args) => {
+    capturedLogs.push(args.map(a => String(a)).join(' '));
+    originalConsoleLog(...args);
+  };
+  console.error = (...args) => {
+    capturedLogs.push(args.map(a => String(a)).join(' '));
+    originalConsoleError(...args);
+  };
+
   try {
     await script({ github, context: defaultContext, getNow: () => NOW });
   } catch (err) {
+    console.log = originalConsoleLog;
+    console.error = originalConsoleError;
     console.error(`❌ Script threw: ${err.message}`);
     console.error(err.stack);
     return false;
   }
+  console.log = originalConsoleLog;
+  console.error = originalConsoleError;
 
   const { calls } = github;
   const failures = [];
@@ -868,6 +1049,15 @@ async function runScenario(scenario, index) {
   if (expected.commentsUpdated !== undefined) {
     if (calls.commentsUpdated.length !== expected.commentsUpdated) {
       failures.push(`commentsUpdated count: expected ${expected.commentsUpdated}, got ${calls.commentsUpdated.length}`);
+    }
+  }
+
+  if (expected.summaryLogs) {
+    for (const expectedLine of expected.summaryLogs) {
+      const found = capturedLogs.some(line => line.includes(expectedLine));
+      if (!found) {
+        failures.push(`Expected summary log line: ${expectedLine}`);
+      }
     }
   }
 

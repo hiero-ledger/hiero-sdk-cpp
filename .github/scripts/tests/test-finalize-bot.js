@@ -114,7 +114,6 @@ function makeIssue(overrides = {}) {
       { name: LABELS.AWAITING_TRIAGE },
       { name: LABELS.BEGINNER },
       { name: 'priority: medium' },
-      { name: 'kind: maintenance' },
     ],
     type: { name: 'Task' },
     assignees: [],
@@ -297,10 +296,7 @@ const ERR_MISSING_TRIAGE = `The \`status: awaiting triage\` label must be presen
 const ERR_NO_SKILL = `Exactly one \`skill:\` label is required (e.g. \`skill: beginner\`). None found. Choose from: \`skill: good first issue\`, \`skill: beginner\`, \`skill: intermediate\`, \`skill: advanced\`.`;
 const ERR_MULTIPLE_SKILLS = `Exactly one \`skill:\` label is required. Found 2: \`skill: beginner\`, \`skill: intermediate\`. Please remove all but one.`;
 const ERR_NO_PRIORITY = `Exactly one \`priority:\` label is required (e.g. \`priority: medium\`). None found.`;
-const ERR_TASK_NO_KIND = `Task issues require exactly one \`kind:\` label (e.g. \`kind: maintenance\`). None found.`;
-const ERR_BUG_NO_KIND = `Bug issues require exactly one \`kind:\` label (e.g. \`kind: maintenance\`). None found.`;
-const ERR_FEATURE_WITH_KIND_ENHANCEMENT = `Feature issues should not have a \`kind:\` label. Found: \`kind: enhancement\`. Please remove it.`;
-const ERR_FEATURE_WITH_KIND_MAINTENANCE = `Feature issues should not have a \`kind:\` label. Found: \`kind: maintenance\`. Please remove it.`;
+
 const ERR_UNKNOWN_TYPE = `The issue type (Bug, Feature, or Task) could not be determined. Ensure the issue was submitted using one of the official issue templates.`;
 
 // =============================================================================
@@ -361,7 +357,6 @@ const scenarios = [
         { name: LABELS.READY_FOR_DEV },
         { name: LABELS.BEGINNER },
         { name: 'priority: medium' },
-        { name: 'kind: maintenance' },
       ],
       type: { name: 'Task' },
     })),
@@ -380,7 +375,6 @@ const scenarios = [
       labels: [
         { name: LABELS.AWAITING_TRIAGE },
         { name: 'priority: medium' },
-        { name: 'kind: maintenance' },
       ],
       type: { name: 'Task' },
     })),
@@ -400,7 +394,6 @@ const scenarios = [
         { name: LABELS.BEGINNER },
         { name: LABELS.INTERMEDIATE },
         { name: 'priority: medium' },
-        { name: 'kind: maintenance' },
       ],
       type: { name: 'Task' },
     })),
@@ -418,7 +411,6 @@ const scenarios = [
       labels: [
         { name: LABELS.AWAITING_TRIAGE },
         { name: LABELS.BEGINNER },
-        { name: 'kind: maintenance' },
       ],
       type: { name: 'Task' },
     })),
@@ -430,72 +422,16 @@ const scenarios = [
   },
 
   {
-    name: 'Validation — Task missing kind label',
-    description: 'Task issues require exactly one kind: label',
-    context: makeContext(makeIssue({
-      labels: [
-        { name: LABELS.AWAITING_TRIAGE },
-        { name: LABELS.BEGINNER },
-        { name: 'priority: medium' },
-      ],
-      type: { name: 'Task' },
-    })),
-    githubOptions: { roleName: 'triage' },
-    expectedComments: [validationComment(ERR_TASK_NO_KIND)],
-    assertions: [
-      assert.noIssueUpdate(),
-    ],
-  },
-
-  {
-    name: 'Validation — Bug missing kind label',
-    description: 'Bug issues require exactly one kind: label',
-    context: makeContext(makeIssue({
-      labels: [
-        { name: LABELS.AWAITING_TRIAGE },
-        { name: LABELS.BEGINNER },
-        { name: 'priority: medium' },
-      ],
-      type: { name: 'Bug' },
-    })),
-    githubOptions: { roleName: 'triage' },
-    expectedComments: [validationComment(ERR_BUG_NO_KIND)],
-    assertions: [
-      assert.noIssueUpdate(),
-    ],
-  },
-
-  {
-    name: 'Validation — Feature with kind label',
-    description: 'Feature issues must NOT have a kind: label',
-    context: makeContext(makeIssue({
-      labels: [
-        { name: LABELS.AWAITING_TRIAGE },
-        { name: LABELS.BEGINNER },
-        { name: 'priority: medium' },
-        { name: 'kind: enhancement' },
-      ],
-      type: { name: 'Feature' },
-    })),
-    githubOptions: { roleName: 'triage' },
-    expectedComments: [validationComment(ERR_FEATURE_WITH_KIND_ENHANCEMENT)],
-    assertions: [
-      assert.noIssueUpdate(),
-    ],
-  },
-
-  {
     name: 'Validation — Multiple violations listed in one comment',
-    description: 'All violations (no skill, no priority, wrong kind for feature) reported together',
+    description: 'All violations (no skill, no priority) reported together',
     context: makeContext(makeIssue({
       labels: [
         { name: LABELS.AWAITING_TRIAGE },
-        { name: 'kind: maintenance' },
       ],
       type: { name: 'Feature' },
     })),
     githubOptions: { roleName: 'admin' },
-    expectedComments: [validationComment(ERR_NO_SKILL, ERR_NO_PRIORITY, ERR_FEATURE_WITH_KIND_MAINTENANCE)],
+    expectedComments: [validationComment(ERR_NO_SKILL, ERR_NO_PRIORITY)],
     assertions: [
       assert.noIssueUpdate(),
     ],
@@ -569,7 +505,6 @@ const scenarios = [
         { name: LABELS.AWAITING_TRIAGE },
         { name: LABELS.INTERMEDIATE },
         { name: 'priority: high' },
-        { name: 'kind: security' },
       ],
       type: { name: 'Bug' },
     })),
@@ -594,7 +529,6 @@ const scenarios = [
         { name: LABELS.AWAITING_TRIAGE },
         { name: LABELS.ADVANCED },
         { name: 'priority: medium' },
-        { name: 'kind: maintenance' },
         { name: 'scope: ci' },
       ],
       type: { name: 'Task' },
@@ -620,7 +554,6 @@ const scenarios = [
         { name: LABELS.AWAITING_TRIAGE },
         { name: LABELS.ADVANCED },
         { name: 'priority: medium' },
-        { name: 'kind: maintenance' },
       ],
       type: { name: 'Task' },
     })),
@@ -687,7 +620,6 @@ const scenarios = [
         { name: LABELS.AWAITING_TRIAGE },
         { name: LABELS.BEGINNER },
         { name: 'priority: medium' },
-        { name: 'kind: maintenance' },
       ],
       type: { name: 'Task' },
     })),

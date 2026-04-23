@@ -35,7 +35,6 @@ All of the following must be applied before `/finalize` will succeed:
 |---|---|---|
 | `skill:` | **Exactly 1** — how hard is this to implement? | `skill: beginner`, `skill: advanced` |
 | `priority:` | **Exactly 1** — how urgently should this be done? | `priority: medium`, `priority: high` |
-| `kind:` | **Exactly 1** for Bug and Task; **0** for Feature | `kind: maintenance`, `kind: refactor` |
 | `scope:` | **0 or more** — which part of the SDK is affected? | `scope: api`, `scope: grpc` |
 
 > The `status:` label is managed automatically by the bot and should not be changed manually unless something goes wrong.
@@ -59,17 +58,6 @@ As a quick reference:
 | `skill: advanced` | 3+ days | Experienced contributors |
 
 > **Note:** Time estimates are rough orientation guides, not hard targets — a change's true complexity depends on the contributor's familiarity and the specifics of the issue. See the linked guidelines above for the full criteria used to assign each level.
-
-#### Choosing a kind label (for bugs and tasks)
-
-| Kind | When to use |
-|---|---|
-| `kind: enhancement` | Improving existing functionality without adding new public API |
-| `kind: documentation` | README, guides, API doc comments |
-| `kind: refactor` | Code restructuring without behavior change |
-| `kind: security` | Security-related improvements or hardening |
-| `kind: testing` | Adding or improving tests |
-| `kind: maintenance` | Dependencies, build system, CI/CD |
 
 ### 3. Edit the issue body if needed
 
@@ -114,8 +102,6 @@ Common fixes:
 | No `skill:` label | Apply one of the four skill labels |
 | Multiple `skill:` labels | Remove all but one |
 | No `priority:` label | Apply a priority label |
-| Bug/Task missing `kind:` label | Apply the appropriate kind label |
-| Feature has a `kind:` label | Remove the kind label |
 | `status: awaiting triage` not present | Check that the issue hasn't already been finalized |
 
 After fixing the labels, comment `/finalize` again.

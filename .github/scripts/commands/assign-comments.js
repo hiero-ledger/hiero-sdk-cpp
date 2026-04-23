@@ -10,6 +10,7 @@ const {
   LABELS,
   ISSUE_STATE,
   SKILL_HIERARCHY,
+  SKILL_PREREQUISITES,
 } = require("../helpers");
 
 /**
@@ -25,42 +26,6 @@ const MAX_OPEN_ASSIGNMENTS = 2;
  * @type {number}
  */
 const MAX_GFI_COMPLETIONS = 5;
-
-/**
- * Skill-level prerequisite map. Each key is a LABELS skill-level constant.
- * - requiredLabel: the prerequisite skill label the user must have completed, or null if none.
- * - requiredCount: how many closed issues with requiredLabel the user needs.
- * - displayName: human-readable name for the current skill level.
- * - prerequisiteDisplayName: human-readable plural name for the prerequisite level (used in comments).
- *
- * Progression: Good First Issue (no prereqs) -> Beginner (2 GFI) -> Intermediate (3 Beginner) -> Advanced (3 Intermediate).
- * @type {Object<string, { requiredLabel: string|null, requiredCount: number, displayName: string, prerequisiteDisplayName?: string }>}
- */
-const SKILL_PREREQUISITES = {
-  [LABELS.GOOD_FIRST_ISSUE]: {
-    requiredLabel: null,
-    requiredCount: 0,
-    displayName: "Good First Issue",
-  },
-  [LABELS.BEGINNER]: {
-    requiredLabel: LABELS.GOOD_FIRST_ISSUE,
-    requiredCount: 2,
-    displayName: "Beginner",
-    prerequisiteDisplayName: "Good First Issues",
-  },
-  [LABELS.INTERMEDIATE]: {
-    requiredLabel: LABELS.BEGINNER,
-    requiredCount: 3,
-    displayName: "Intermediate",
-    prerequisiteDisplayName: "Beginner Issues",
-  },
-  [LABELS.ADVANCED]: {
-    requiredLabel: LABELS.INTERMEDIATE,
-    requiredCount: 3,
-    displayName: "Advanced",
-    prerequisiteDisplayName: "Intermediate Issues",
-  },
-};
 
 /**
  * Builds the welcome comment posted after a successful assignment. Returns a
@@ -305,6 +270,8 @@ function formatAssignmentLimitExceededComment(
     );
   }
   lines.push(
+    "",
+    `💡 **Tip:** If all of your open assigned issues have a linked PR with \`${LABELS.NEEDS_REVIEW}\`, the limit is automatically bypassed — you can request a new assignment right away.`,
     "",
     "Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯",
   );

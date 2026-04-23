@@ -6,7 +6,7 @@
 // Run with: node .github/scripts/tests/test-comments.js
 
 const { runTestSuite } = require('./test-utils');
-const { MARKER, buildBotComment, buildChecksSection, allChecksPassed } = require('../helpers/comments');
+const { MARKER, buildBotComment, buildChecksSection, allChecksPassed, buildMergeConflictNotificationComment } = require('../helpers/comments');
 
 // =============================================================================
 // TEST DATA HELPERS
@@ -60,12 +60,6 @@ function withMergeFailed(data = allPassing()) {
   };
 }
 
-function withMergeError(data = allPassing()) {
-  return {
-    ...data,
-    merge: { passed: false, error: true, errorMessage: 'Merge check failed' },
-  };
-}
 
 function withIssueLinkNoIssue(data = allPassing()) {
   return {
@@ -85,12 +79,6 @@ function withIssueLinkNotAssigned(data = allPassing()) {
   };
 }
 
-function withIssueLinkError(data = allPassing()) {
-  return {
-    ...data,
-    issueLink: { passed: false, error: true, errorMessage: 'Could not fetch issues' },
-  };
-}
 
 // =============================================================================
 // UNIT TESTS
@@ -408,6 +396,38 @@ const unitTests = [
       ];
       const { body } = buildBotComment({ prAuthor: 'multi', ...data });
       return body.includes('#1') && body.includes('#2') && body.includes('assigned to you');
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // buildMergeConflictNotificationComment
+  // ---------------------------------------------------------------------------
+  {
+    name: 'Notification comment contains @prAuthor mention',
+    test: () => {
+      const comment = buildMergeConflictNotificationComment('alice', 42);
+      return comment.includes('@alice');
+    },
+  },
+  {
+    name: 'Notification comment references merged PR number',
+    test: () => {
+      const comment = buildMergeConflictNotificationComment('bob', 123);
+      return comment.includes('#123');
+    },
+  },
+  {
+    name: 'Notification comment includes wave emoji',
+    test: () => {
+      const comment = buildMergeConflictNotificationComment('carol', 7);
+      return comment.includes(':wave:');
+    },
+  },
+  {
+    name: 'Notification comment asks to resolve merge conflict',
+    test: () => {
+      const comment = buildMergeConflictNotificationComment('dave', 99);
+      return comment.includes('resolve the merge conflict');
     },
   },
 ];

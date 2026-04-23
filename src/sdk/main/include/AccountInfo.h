@@ -80,6 +80,15 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const AccountInfo& info);
 
   /**
+   * Compare this AccountInfo to another AccountInfo and determine if they represent the same account info.
+   *
+   * @param lhs The first AccountInfo with which to compare.
+   * @param rhs The second AccountInfo with which to compare.
+   * @return \c TRUE if both AccountInfo objects are the same, otherwise \c FALSE.
+   */
+  [[nodiscard]] friend bool operator==(const AccountInfo& lhs, const AccountInfo& rhs);
+
+  /**
    * The ID of the queried account.
    */
   AccountId mAccountId;
@@ -127,7 +136,7 @@ public:
    * The duration of time the queried account uses to automatically extend its expiration period. If it doesn't have
    * enough balance, it extends as long as possible. If it is empty when it expires, then it is deleted.
    */
-  std::chrono::system_clock::duration mAutoRenewPeriod;
+  std::chrono::system_clock::duration mAutoRenewPeriod = std::chrono::system_clock::duration::zero();
 
   /**
    * The queried account's memo.

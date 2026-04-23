@@ -31,7 +31,13 @@ function createMockGithub(options = {}, issueFromPayload = null) {
     issueGetShouldFail = false,
     issueAssignees = null,
     issueLabels = null,
+    openAssignedIssues = null,
+    searchResults = null,
+    searchShouldFail = false,
+    restListOpenFailOnCall = null,
   } = options;
+
+  let openListForRepoCallCount = 0;
 
   const calls = {
     comments: [],
@@ -127,29 +133,51 @@ function createMockGithub(options = {}, issueFromPayload = null) {
           );
 
           if (params.state === "open") {
+            openListForRepoCallCount++;
             if (restListOpenShouldFail) {
               throw new Error(
                 "Simulated REST API failure for open assignments",
               );
             }
+            if (restListOpenFailOnCall === openListForRepoCallCount) {
+              throw new Error(
+                "Simulated REST API failure for open assignments",
+              );
+            }
+            if (openAssignedIssues) {
+              if (params.labels) {
+                return {
+                  data: openAssignedIssues.filter((issue) =>
+                    issue.labels?.some((l) => l.name === params.labels),
+                  ),
+                };
+              }
+              return { data: openAssignedIssues };
+            }
             const effectiveCount = openAssignmentCountExcludingBlocked;
             const issues = [];
             for (let i = 0; i < effectiveCount; i++) {
-              issues.push({ labels: [{ name: "status: ready for dev" }] });
+              issues.push({
+                number: 9000 + i,
+                labels: [{ name: "status: ready for dev" }],
+              });
             }
             const blockedToGenerate = Math.max(
               blockedIssueCount,
               openAssignmentCount - openAssignmentCountExcludingBlocked,
             );
             for (let i = 0; i < blockedToGenerate; i++) {
-              issues.push({ labels: [{ name: LABELS.BLOCKED }] });
+              issues.push({
+                number: 9100 + i,
+                labels: [{ name: LABELS.BLOCKED }],
+              });
             }
             const difference =
               openAssignmentCount -
               (openAssignmentCountExcludingBlocked + blockedToGenerate);
             if (difference > 0) {
               for (let i = 0; i < difference; i++) {
-                issues.push({ labels: [] });
+                issues.push({ number: 9200 + i, labels: [] });
               }
             }
             if (params.labels) {
@@ -190,9 +218,66 @@ function createMockGithub(options = {}, issueFromPayload = null) {
           return { data: [] };
         },
       },
+      search: {
+        issuesAndPullRequests: async (params) => {
+          console.log(`\n🔍 SEARCH API CALL: q=${params.q}`);
+          if (searchShouldFail) {
+            throw new Error("Simulated search API failure");
+          }
+          const linkedMatch = params.q.match(/linked:(\d+)/);
+          const issueNumber = linkedMatch
+            ? parseInt(linkedMatch[1], 10)
+            : null;
+          if (
+            searchResults &&
+            issueNumber !== null &&
+            issueNumber in searchResults
+          ) {
+            return { data: searchResults[issueNumber] };
+          }
+          return { data: { total_count: 0 } };
+        },
+      },
     },
-    graphql: async (query, variables) => {
+    graphql: async (query, vars) => {
       // Stubbed just in case other things call it, though we rely on REST now
+      if (searchShouldFail) {
+        throw new Error("Simulated GraphQL failure");
+      }
+      
+      if (query.includes("closedByPullRequestsReferences")) {
+        const issueNumber = vars.number;
+        const totalCount = (searchResults && issueNumber !== null && issueNumber in searchResults)
+          ? searchResults[issueNumber].total_count
+          : 0;
+
+        let nodes = [];
+        if (totalCount > 0) {
+          // In tests, if totalCount > 0, we just return a matching PR
+          // The hasNeedsReviewPR function checks author matching `username`,
+          // but we don't have the explicit username passed into the mock. 
+          // So we use a special placeholder, or infer from context.
+          // Since the test just wants a match, we can return the author as options.mockUsername
+          // or fallback to 'bypass-review-user-1'.
+          const authorLogin = options.mockUsername || "bypass-review-user-1";
+          nodes.push({
+            state: "OPEN",
+            author: { login: authorLogin },
+            labels: { nodes: [{ name: "status: needs review" }] }
+          });
+        }
+
+        return {
+          repository: {
+            issue: {
+              closedByPullRequestsReferences: {
+                nodes
+              }
+            }
+          }
+        };
+      }
+      
       return { search: { issueCount: 0 } };
     },
   };
@@ -990,6 +1075,8 @@ To help contributors stay focused and ensure issues remain available for others,
 👉 **View your assigned issues:**
 [Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Abusy-contributor%20-label%3A%22status%3A%20blocked%22)
 
+💡 **Tip:** If all of your open assigned issues have a linked PR with \`status: needs review\`, the limit is automatically bypassed — you can request a new assignment right away.
+
 Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
     ],
   },
@@ -1027,6 +1114,8 @@ To help contributors stay focused and ensure issues remain available for others,
 
 👉 **View your assigned issues:**
 [Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Avery-busy-contributor%20-label%3A%22status%3A%20blocked%22)
+
+💡 **Tip:** If all of your open assigned issues have a linked PR with \`status: needs review\`, the limit is automatically bypassed — you can request a new assignment right away.
 
 Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
     ],
@@ -1069,6 +1158,8 @@ To help contributors stay focused and ensure issues remain available for others,
 
 👉 **View your assigned issues:**
 [Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Anow-over-limit-user%20-label%3A%22status%3A%20blocked%22)
+
+💡 **Tip:** If all of your open assigned issues have a linked PR with \`status: needs review\`, the limit is automatically bypassed — you can request a new assignment right away.
 
 Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
     ],
@@ -1115,6 +1206,8 @@ To help contributors stay focused and ensure issues remain available for others,
 
 👉 **View your blocked issues:**
 [Your blocked issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Aat-limit-with-blocked%20label%3A%22status%3A%20blocked%22)
+
+💡 **Tip:** If all of your open assigned issues have a linked PR with \`status: needs review\`, the limit is automatically bypassed — you can request a new assignment right away.
 
 Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
     ],
@@ -1437,6 +1530,242 @@ Error details: Failed to remove 'status: ready for dev': Simulated remove label 
     githubOptions: {},
     expectedAssignee: null,
     expectedComments: [],
+  },
+
+  // ---------------------------------------------------------------------------
+  // NEEDS-REVIEW BYPASS TESTS (6 tests)
+  // Assignment cap bypass when all assigned issues have linked needs-review PRs
+  // ---------------------------------------------------------------------------
+
+  {
+    name: "Bypass Cap - All Issues Have Needs-Review PRs (over limit)",
+    description:
+      "Contributor over the cap but all 3 assigned issues have linked needs-review PRs — bypass allows assignment",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 600,
+          assignees: [],
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 6001,
+          body: "/assign",
+          user: { login: "bypass-review-user-1", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: {
+      mockUsername: "bypass-review-user-1",
+      openAssignedIssues: [
+        { number: 500, labels: [{ name: "status: in progress" }] },
+        { number: 501, labels: [{ name: "status: in progress" }] },
+        { number: 502, labels: [{ name: "status: in progress" }] },
+      ],
+      searchResults: {
+        500: { total_count: 1 },
+        501: { total_count: 1 },
+        502: { total_count: 1 },
+      },
+    },
+    expectedAssignee: "bypass-review-user-1",
+    expectedComments: [
+      `👋 Hi @bypass-review-user-1, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉\n\nYou've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.\n\nThe issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.\n\nIf you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the community pool.\n\nGood luck, and welcome aboard! 🚀`,
+    ],
+  },
+
+  {
+    name: "Bypass Cap - One Issue Missing Needs-Review PR",
+    description:
+      "One assigned issue has a needs-review PR but the other does not — bypass fails, limit-exceeded comment posted",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 601,
+          assignees: [],
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 6002,
+          body: "/assign",
+          user: { login: "bypass-review-user-2", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: {
+      mockUsername: "bypass-review-user-2",
+      openAssignedIssues: [
+        { number: 503, labels: [{ name: "status: in progress" }] },
+        { number: 504, labels: [{ name: "status: in progress" }] },
+      ],
+      searchResults: {
+        503: { total_count: 1 },
+        504: { total_count: 0 },
+      },
+    },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @bypass-review-user-2! Thanks for your enthusiasm to contribute!\n\nTo help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time. Issues labeled \`status: blocked\` are not counted toward this limit.\n\n📊 **Your Current Assignments:** You're currently assigned to **2** open issues.\n\n👉 **View your assigned issues:**\n[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Abypass-review-user-2%20-label%3A%22status%3A%20blocked%22)\n\n💡 **Tip:** If all of your open assigned issues have a linked PR with \`status: needs review\`, the limit is automatically bypassed — you can request a new assignment right away.\n\nOnce you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
+    ],
+  },
+
+  {
+    name: "Bypass Cap - No Issues Have Needs-Review PRs",
+    description:
+      "Neither assigned issue has a needs-review PR — bypass fails, limit-exceeded comment posted",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 602,
+          assignees: [],
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 6003,
+          body: "/assign",
+          user: { login: "bypass-review-user-3", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: {
+      mockUsername: "bypass-review-user-3",
+      openAssignedIssues: [
+        { number: 505, labels: [{ name: "status: in progress" }] },
+        { number: 506, labels: [{ name: "status: in progress" }] },
+      ],
+      searchResults: {
+        505: { total_count: 0 },
+        506: { total_count: 0 },
+      },
+    },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @bypass-review-user-3! Thanks for your enthusiasm to contribute!\n\nTo help contributors stay focused and ensure issues remain available for others, we limit assignments to **2 open issues** at a time. Issues labeled \`status: blocked\` are not counted toward this limit.\n\n📊 **Your Current Assignments:** You're currently assigned to **2** open issues.\n\n👉 **View your assigned issues:**\n[Your open assignments](https://github.com/hiero-ledger/hiero-sdk-cpp/issues?q=is%3Aissue%20is%3Aopen%20assignee%3Abypass-review-user-3%20-label%3A%22status%3A%20blocked%22)\n\n💡 **Tip:** If all of your open assigned issues have a linked PR with \`status: needs review\`, the limit is automatically bypassed — you can request a new assignment right away.\n\nOnce you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯`,
+    ],
+  },
+
+  {
+    name: "Bypass Cap - Search API Error",
+    description:
+      "Search API fails when checking for needs-review PRs — API error comment posted, no bypass",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 603,
+          assignees: [],
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 6004,
+          body: "/assign",
+          user: { login: "bypass-review-user-4", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: {
+      openAssignedIssues: [
+        { number: 507, labels: [{ name: "status: in progress" }] },
+        { number: 508, labels: [{ name: "status: in progress" }] },
+      ],
+      searchShouldFail: true,
+    },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @bypass-review-user-4! I encountered an error while trying to verify your eligibility for this issue.\n\n@hiero-ledger/hiero-sdk-cpp-maintainers — could you please help with this assignment request?\n\n@bypass-review-user-4, a maintainer will review your request and assign you manually if appropriate. Sorry for the inconvenience!`,
+    ],
+  },
+
+  {
+    name: "Bypass Cap - Exactly At Limit With Needs-Review PRs",
+    description:
+      "Contributor at exactly MAX_OPEN_ASSIGNMENTS with all issues having needs-review PRs — bypass succeeds",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 604,
+          assignees: [],
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 6005,
+          body: "/assign",
+          user: { login: "bypass-review-user-5", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: {
+      mockUsername: "bypass-review-user-5",
+      openAssignedIssues: [
+        { number: 509, labels: [{ name: "status: in progress" }] },
+        { number: 510, labels: [{ name: "status: in progress" }] },
+      ],
+      searchResults: {
+        509: { total_count: 1 },
+        510: { total_count: 1 },
+      },
+    },
+    expectedAssignee: "bypass-review-user-5",
+    expectedComments: [
+      `👋 Hi @bypass-review-user-5, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉\n\nYou've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.\n\nThe issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.\n\nIf you realize you cannot complete this issue, simply comment \`/unassign\` to return it to the community pool.\n\nGood luck, and welcome aboard! 🚀`,
+    ],
+  },
+
+  {
+    name: "Bypass Cap - listAssignedIssues API Error",
+    description:
+      "listForRepo fails on the second call (listAssignedIssues) — API error comment posted, no bypass",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 605,
+          assignees: [],
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 6006,
+          body: "/assign",
+          user: { login: "bypass-review-user-6", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: {
+      openAssignmentCount: 2,
+      restListOpenFailOnCall: 2,
+    },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @bypass-review-user-6! I encountered an error while trying to verify your eligibility for this issue.\n\n@hiero-ledger/hiero-sdk-cpp-maintainers — could you please help with this assignment request?\n\n@bypass-review-user-6, a maintainer will review your request and assign you manually if appropriate. Sorry for the inconvenience!`,
+    ],
   },
 ];
 
