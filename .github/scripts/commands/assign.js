@@ -18,6 +18,8 @@ const {
   acknowledgeComment,
   getHighestIssueSkillLevel,
   countIssuesByAssignee,
+  listAssignedIssues,
+  hasNeedsReviewPR,
 } = require('../helpers');
 
 const {
@@ -322,6 +324,72 @@ async function enforceAssignmentLimit(botContext, requesterUsername) {
   }
 
   if (openAssignmentCount >= MAX_OPEN_ASSIGNMENTS) {
+    logger.log("Contributor at or above assignment cap", {
+      maxAllowed: MAX_OPEN_ASSIGNMENTS,
+      currentCount: openAssignmentCount,
+    });
+
+    // --- Needs-review bypass check ---
+    // If every open (non-blocked) assigned issue has an open PR authored by
+    // the contributor with "status: needs review", allow the bypass.
+    const assignedIssues = await listAssignedIssues(
+      botContext.github,
+      botContext.owner,
+      botContext.repo,
+      requesterUsername,
+    );
+
+    if (assignedIssues === null) {
+      logger.log("Exit: could not fetch assigned issues due to API error");
+      await postComment(botContext, buildApiErrorComment(requesterUsername));
+      logger.log("Posted API error comment, tagged maintainers");
+      return false;
+    }
+
+    // Guard against vacuous truth: [].every(fn) === true in JavaScript.
+    // An empty array can occur from eventual consistency or race conditions;
+    // it must NOT silently trigger the bypass.
+    if (assignedIssues.length > 0) {
+      let allHaveNeedsReviewPR = true;
+      for (const issue of assignedIssues) {
+        const result = await hasNeedsReviewPR(
+          botContext.github,
+          botContext.owner,
+          botContext.repo,
+          requesterUsername,
+          issue.number,
+        );
+        if (result === null) {
+          logger.log(
+            `Exit: API error checking needs-review PR for issue #${issue.number}`,
+          );
+          await postComment(
+            botContext,
+            buildApiErrorComment(requesterUsername),
+          );
+          logger.log("Posted API error comment, tagged maintainers");
+          return false;
+        }
+        if (!result) {
+          allHaveNeedsReviewPR = false;
+          break;
+        }
+      }
+
+      if (allHaveNeedsReviewPR) {
+        logger.log(
+          "Bypass: all assigned issues have linked needs-review PRs",
+          { issueCount: assignedIssues.length },
+        );
+        return true;
+      }
+    } else {
+      logger.log(
+        "Bypass skipped: listAssignedIssues returned 0 issues despite count >= limit",
+      );
+    }
+
+    // Fall through to the existing limit-exceeded path
     logger.log("Exit: contributor has too many open assignments", {
       maxAllowed: MAX_OPEN_ASSIGNMENTS,
       currentCount: openAssignmentCount,

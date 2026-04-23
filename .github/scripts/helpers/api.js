@@ -864,6 +864,153 @@ async function countIssuesByAssignee(
   }
 }
 
+/**
+ * Returns the actual open non-blocked issue objects assigned to the given user.
+ * Reuses the same listForRepo pagination pattern as countIssuesByAssignee,
+ * filtering out pull requests and issues with the "status: blocked" label.
+ *
+ * @param {object} github - Octokit GitHub API client (must support github.rest).
+ * @param {string} owner - Repository owner (e.g. 'hiero-ledger').
+ * @param {string} repo - Repository name (e.g. 'hiero-sdk-cpp').
+ * @param {string} username - GitHub username to search for.
+ * @returns {Promise<Array|null>} Array of issue objects, or null if inputs are invalid or the API call fails.
+ */
+async function listAssignedIssues(github, owner, repo, username) {
+  if (
+    !isSafeSearchToken(owner) ||
+    !isSafeSearchToken(repo) ||
+    !isSafeSearchToken(username)
+  ) {
+    getLogger().log("[assign] Invalid search inputs for listAssignedIssues:", {
+      owner,
+      repo,
+      username,
+    });
+    return null;
+  }
+
+  try {
+    let page = 1;
+    const perPage = 100;
+    const issues = [];
+
+    getLogger().log("[assign] Fetching open assigned issues via REST (objects)...");
+    while (true) {
+      const result = await github.rest.issues.listForRepo({
+        owner,
+        repo,
+        state: ISSUE_STATE.OPEN,
+        assignee: username,
+        per_page: perPage,
+        page,
+      });
+
+      // Filter out Pull Requests (which are returned by the issues endpoint)
+      const actualIssues = result.data.filter((item) => !item.pull_request);
+
+      // Exclude issues with the "status: blocked" label
+      const nonBlocked = actualIssues.filter(
+        (issue) =>
+          !issue.labels?.some((l) => (l.name || l) === LABELS.BLOCKED),
+      );
+
+      issues.push(...nonBlocked);
+
+      // Pagination must evaluate the raw result size, not the filtered size.
+      if (result.data.length < perPage) break;
+      page++;
+    }
+
+    getLogger().log(
+      `[assign] Open non-blocked assigned issues for ${username}: ${issues.length}`,
+    );
+    return issues;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    getLogger().log(
+      `[assign] Failed to list assigned issues for ${username}: ${message}`,
+    );
+    return null;
+  }
+}
+
+/**
+ * Checks whether the given issue has an open PR authored by the specified user
+ * that carries the "status: needs review" label and is linked to the issue.
+ * Uses the GitHub GraphQL API to check closedByPullRequestsReferences.
+ *
+ * @param {object} github - Octokit GitHub API client.
+ * @param {string} owner - Repository owner.
+ * @param {string} repo - Repository name.
+ * @param {string} username - GitHub username (PR author).
+ * @param {number} issueNumber - Issue number to check for linked PRs.
+ * @returns {Promise<boolean|null>} true if a matching PR exists, false if none, null on API error.
+ */
+async function hasNeedsReviewPR(github, owner, repo, username, issueNumber) {
+  if (
+    !isSafeSearchToken(owner) ||
+    !isSafeSearchToken(repo) ||
+    !isSafeSearchToken(username)
+  ) {
+    getLogger().log("[assign] Invalid search inputs for hasNeedsReviewPR:", {
+      owner,
+      repo,
+      username,
+      issueNumber,
+    });
+    return null;
+  }
+  if (!Number.isInteger(issueNumber) || issueNumber < 1) {
+    getLogger().log("[assign] Invalid issue number for hasNeedsReviewPR:", {
+      issueNumber,
+    });
+    return null;
+  }
+
+  try {
+    getLogger().log(`[assign] Querying linked PRs for issue #${issueNumber}`);
+    const query = `query($owner:String!,$repo:String!,$number:Int!){
+      repository(owner:$owner,name:$repo){
+        issue(number:$number){
+          closedByPullRequestsReferences(first:50){
+            nodes {
+              state
+              author { login }
+              labels(first:50) {
+                nodes { name }
+              }
+            }
+          }
+        }
+      }
+    }`;
+    const result = await github.graphql(query, {
+      owner,
+      repo,
+      number: issueNumber,
+    });
+
+    const nodes = result.repository?.issue?.closedByPullRequestsReferences?.nodes || [];
+    const hasMatch = nodes.some(pr => {
+      const isAuthor = pr.author && pr.author.login === username;
+      const isOpen = pr.state === 'OPEN';
+      const hasLabel = pr.labels && pr.labels.nodes && pr.labels.nodes.some(l => l.name === LABELS.NEEDS_REVIEW);
+      return isAuthor && isOpen && hasLabel;
+    });
+
+    getLogger().log(
+      `[assign] Needs-review PR search for issue #${issueNumber}: ${hasMatch ? 1 : 0} match(es)`,
+    );
+    return hasMatch;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    getLogger().log(
+      `[assign] Failed to search for needs-review PRs for issue #${issueNumber}: ${message}`,
+    );
+    return null;
+  }
+}
+
 module.exports = {
   buildBotContext,
   addLabels,
@@ -889,4 +1036,6 @@ module.exports = {
   closeItem,
   getHighestIssueSkillLevel,
   countIssuesByAssignee,
+  listAssignedIssues,
+  hasNeedsReviewPR,
 };
