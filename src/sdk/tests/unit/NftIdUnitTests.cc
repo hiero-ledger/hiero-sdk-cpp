@@ -20,6 +20,10 @@ private:
 };
 
 //-----
+// Constructor Tests
+//-----
+
+//-----
 TEST_F(NftIdUnitTests, ConstructWithTokenIdSerialNum)
 {
   // Given / When
@@ -31,66 +35,129 @@ TEST_F(NftIdUnitTests, ConstructWithTokenIdSerialNum)
 }
 
 //-----
+// Comparison Tests
+//-----
+
+//-----
 TEST_F(NftIdUnitTests, CompareNftIds)
 {
+  // Given / When / Then
   EXPECT_TRUE(NftId() == NftId());
   EXPECT_TRUE(NftId(getTestTokenId(), getTestSerialNum()) == NftId(getTestTokenId(), getTestSerialNum()));
 }
 
 //-----
-TEST_F(NftIdUnitTests, ConstructFromString)
+// FromString Tests
+//-----
+
+//-----
+TEST_F(NftIdUnitTests, FromStringWithValidInput)
 {
   // Given
   const std::string testTokenIdStr = getTestTokenId().toString();
-  const std::string testSerialNumSr = std::to_string(getTestSerialNum());
+  const std::string testSerialNumStr = std::to_string(getTestSerialNum());
 
+  // When
   NftId nftId;
-  EXPECT_NO_THROW(nftId = NftId::fromString(testTokenIdStr + '/' + testSerialNumSr));
+  EXPECT_NO_THROW(nftId = NftId::fromString(testTokenIdStr + '/' + testSerialNumStr));
+
+  // Then
   EXPECT_EQ(nftId.mTokenId, getTestTokenId());
   EXPECT_EQ(nftId.mSerialNum, getTestSerialNum());
-
-  EXPECT_THROW(nftId = NftId::fromString(testTokenIdStr + testSerialNumSr), std::invalid_argument);
-  EXPECT_THROW(nftId = NftId::fromString('/' + testTokenIdStr + testSerialNumSr), std::invalid_argument);
-  EXPECT_THROW(nftId = NftId::fromString(testTokenIdStr + testSerialNumSr + '/'), std::invalid_argument);
-  EXPECT_THROW(nftId = NftId::fromString("//" + testTokenIdStr + testSerialNumSr), std::invalid_argument);
-  EXPECT_THROW(nftId = NftId::fromString('/' + testTokenIdStr + '/' + testSerialNumSr), std::invalid_argument);
-  EXPECT_THROW(nftId = NftId::fromString(testTokenIdStr + '/' + testSerialNumSr + '/'), std::invalid_argument);
-  EXPECT_THROW(nftId = NftId::fromString(testTokenIdStr + "//" + testSerialNumSr), std::invalid_argument);
-
-  EXPECT_THROW(nftId = NftId::fromString(testTokenIdStr + "/abc"), std::invalid_argument);
-  EXPECT_THROW(nftId = NftId::fromString(testTokenIdStr + "/o.o.e"), std::invalid_argument);
-  EXPECT_THROW(nftId = NftId::fromString(testTokenIdStr + "/0001!"), std::invalid_argument);
 }
 
 //-----
-TEST_F(NftIdUnitTests, ProtobufNftId)
+TEST_F(NftIdUnitTests, FromStringThrowsWithMissingOrExtraDelimiters)
 {
-  NftId nftId(getTestTokenId(), getTestSerialNum());
+  // Given
+  const std::string testTokenIdStr = getTestTokenId().toString();
+  const std::string testSerialNumStr = std::to_string(getTestSerialNum());
 
-  // Serialize token ID and serial number
+  // When / Then
+  EXPECT_THROW(NftId::fromString(testTokenIdStr + testSerialNumStr), std::invalid_argument);
+  EXPECT_THROW(NftId::fromString('/' + testTokenIdStr + testSerialNumStr), std::invalid_argument);
+  EXPECT_THROW(NftId::fromString(testTokenIdStr + testSerialNumStr + '/'), std::invalid_argument);
+  EXPECT_THROW(NftId::fromString("//" + testTokenIdStr + testSerialNumStr), std::invalid_argument);
+  EXPECT_THROW(NftId::fromString('/' + testTokenIdStr + '/' + testSerialNumStr), std::invalid_argument);
+  EXPECT_THROW(NftId::fromString(testTokenIdStr + '/' + testSerialNumStr + '/'), std::invalid_argument);
+  EXPECT_THROW(NftId::fromString(testTokenIdStr + "//" + testSerialNumStr), std::invalid_argument);
+}
+
+//-----
+TEST_F(NftIdUnitTests, FromStringThrowsWithNonNumericInput)
+{
+  // Given
+  const std::string testTokenIdStr = getTestTokenId().toString();
+
+  // When / Then
+  EXPECT_THROW(NftId::fromString(testTokenIdStr + "/abc"), std::invalid_argument);
+  EXPECT_THROW(NftId::fromString(testTokenIdStr + "/o.o.e"), std::invalid_argument);
+  EXPECT_THROW(NftId::fromString(testTokenIdStr + "/0001!"), std::invalid_argument);
+}
+
+//-----
+// Protobuf Serialization Tests
+//-----
+
+//-----
+TEST_F(NftIdUnitTests, ProtobufSerializeNftId)
+{
+  // Given
+  const NftId nftId(getTestTokenId(), getTestSerialNum());
+
+  // When
   std::unique_ptr<proto::NftID> protoNftID = nftId.toProtobuf();
+
+  // Then
   EXPECT_EQ(TokenId::fromProtobuf(protoNftID->token_id()), getTestTokenId());
   EXPECT_EQ(protoNftID->serial_number(), getTestSerialNum());
-
-  // Adjust protobuf fields
-  protoNftID->set_serial_number(static_cast<int64_t>(getTestSerialNum() - 1ULL));
-
-  // Deserialize token ID and serial number
-  nftId = NftId::fromProtobuf(*protoNftID);
-  EXPECT_EQ(nftId.mTokenId, getTestTokenId());
-  EXPECT_EQ(nftId.mSerialNum, getTestSerialNum() - 1ULL);
 }
 
 //-----
-TEST_F(NftIdUnitTests, ToString)
+TEST_F(NftIdUnitTests, ProtobufDeserializeNftId)
 {
-  NftId nftId;
-  EXPECT_EQ(nftId.toString(), "0.0.0/0");
+  // Given
+  const NftId nftId(getTestTokenId(), getTestSerialNum());
+  std::unique_ptr<proto::NftID> protoNftID = nftId.toProtobuf();
+  protoNftID->set_serial_number(static_cast<int64_t>(getTestSerialNum() - 1ULL));
 
+  // When
+  const NftId deserializedNftId = NftId::fromProtobuf(*protoNftID);
+
+  // Then
+  EXPECT_EQ(deserializedNftId.mTokenId, getTestTokenId());
+  EXPECT_EQ(deserializedNftId.mSerialNum, getTestSerialNum() - 1ULL);
+}
+
+//-----
+// ToString Tests
+//-----
+
+//-----
+TEST_F(NftIdUnitTests, ToStringDefaultNftId)
+{
+  // Given
+  const NftId nftId;
+
+  // When / Then
+  EXPECT_EQ(nftId.toString(), "0.0.0/0");
+}
+
+//-----
+TEST_F(NftIdUnitTests, ToStringWithTokenIdAndSerialNum)
+{
+  // Given
+  NftId nftId;
   nftId.mTokenId = getTestTokenId();
   nftId.mSerialNum = getTestSerialNum();
+
+  // When / Then
   EXPECT_EQ(nftId.toString(), getTestTokenId().toString() + '/' + std::to_string(getTestSerialNum()));
 }
+
+//-----
+// FromBytes / ToBytes Tests
+//-----
 
 //-----
 TEST_F(NftIdUnitTests, FromBytes)

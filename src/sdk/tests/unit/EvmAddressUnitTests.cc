@@ -22,57 +22,117 @@ private:
                                               std::byte('g'), std::byte('h'), std::byte('i'), std::byte('j') };
 };
 
-TEST_F(EvmAddressUnitTests, StringConstructor)
+//-----
+// FromString Tests
+//-----
+
+//-----
+TEST_F(EvmAddressUnitTests, FromStringWithValidInput)
 {
+  // Given / When / Then
   EXPECT_NO_THROW(auto evmAddress = EvmAddress::fromString(getTestString()));
   EXPECT_NO_THROW(auto evmAddress = EvmAddress::fromString("0x" + getTestString()));
+}
 
-  // String too short
+//-----
+TEST_F(EvmAddressUnitTests, FromStringThrowsWithTooShortInput)
+{
+  // Given
   std::string badString = getTestString();
   badString.pop_back();
+
+  // When / Then
   EXPECT_THROW(auto evmAddress = EvmAddress::fromString(badString), std::invalid_argument);
   EXPECT_THROW(auto evmAddress = EvmAddress::fromString("0x" + badString), std::invalid_argument);
+}
 
-  // String contains non-hex characters
+//-----
+TEST_F(EvmAddressUnitTests, FromStringThrowsWithNonHexCharacters)
+{
+  // Given
+  std::string badString = getTestString();
+  badString.pop_back();
   badString.push_back('x');
+
+  // When / Then
   EXPECT_THROW(auto evmAddress = EvmAddress::fromString(badString), std::invalid_argument);
   EXPECT_THROW(auto evmAddress = EvmAddress::fromString("0x" + badString), std::invalid_argument);
+}
 
-  // String contains prefix not at beginning of string
+//-----
+TEST_F(EvmAddressUnitTests, FromStringThrowsWithMisplacedPrefix)
+{
+  // Given
+  std::string badString = getTestString();
   badString.pop_back();
   badString.pop_back();
   badString.insert(badString.size() / 2, "0x");
+
+  // When / Then
   EXPECT_THROW(auto evmAddress = EvmAddress::fromString(badString), std::invalid_argument);
   EXPECT_THROW(auto evmAddress = EvmAddress::fromString("0x" + badString), std::invalid_argument);
 }
 
-TEST_F(EvmAddressUnitTests, ByteConstructor)
+//-----
+// FromBytes Tests
+//-----
+
+//-----
+TEST_F(EvmAddressUnitTests, FromBytesWithValidInput)
 {
+  // Given / When / Then
   EXPECT_NO_THROW(auto evmAddress = EvmAddress::fromBytes(getTestBytes()));
+}
 
+//-----
+TEST_F(EvmAddressUnitTests, FromBytesThrowsWithTooSmallArray)
+{
+  // Given
   std::vector<std::byte> badBytes = getTestBytes();
-
-  // Byte array too small
   badBytes.pop_back();
-  EXPECT_THROW(auto evmAddress = EvmAddress::fromBytes(badBytes), std::invalid_argument);
 
-  // Byte array too big
-  badBytes.push_back(std::byte(255));
-  badBytes.push_back(std::byte(172));
+  // When / Then
   EXPECT_THROW(auto evmAddress = EvmAddress::fromBytes(badBytes), std::invalid_argument);
 }
 
-TEST_F(EvmAddressUnitTests, StringByteEquality)
+//-----
+TEST_F(EvmAddressUnitTests, FromBytesThrowsWithTooBigArray)
 {
+  // Given
+  std::vector<std::byte> badBytes = getTestBytes();
+  badBytes.push_back(std::byte(255));
+  badBytes.push_back(std::byte(172));
+
+  // When / Then
+  EXPECT_THROW(auto evmAddress = EvmAddress::fromBytes(badBytes), std::invalid_argument);
+}
+
+//-----
+// String / Byte Conversion Tests
+//-----
+
+//-----
+TEST_F(EvmAddressUnitTests, StringAndByteConversionsAreConsistent)
+{
+  // Given
   std::string testString = getTestString();
   std::vector<std::byte> testBytes = getTestBytes();
 
+  // When / Then
   EXPECT_EQ(EvmAddress::fromString(testString).toBytes(), testBytes);
   EXPECT_EQ(EvmAddress::fromBytes(testBytes).toString(), testString);
+}
 
+//-----
+TEST_F(EvmAddressUnitTests, StringAndByteConversionsWithModifiedValues)
+{
+  // Given
+  std::string testString = getTestString();
+  std::vector<std::byte> testBytes = getTestBytes();
   testString.front() = '4';
   testBytes.front() = std::byte('@');
 
+  // When / Then
   EXPECT_EQ(EvmAddress::fromString(testString).toBytes(), testBytes);
   EXPECT_EQ(EvmAddress::fromBytes(testBytes).toString(), testString);
 }
