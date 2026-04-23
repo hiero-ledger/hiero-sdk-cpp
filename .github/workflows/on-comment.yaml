@@ -12,6 +12,10 @@ name: Bot - On Comment
 #   /assign — Assign the commenter to the issue (see commands/assign.js
 #             for eligibility checks: skill prerequisites, assignment
 #             limits, required status labels).
+#   /unassign — Unassign the commenter from the issue (see commands/unassign.js
+#               for authorization and label reversion details).
+#   /finalize — Finalize the issue (see commands/finalize.js for triage
+#               permission requirements, label validation, and status updates).
 #
 # Security:
 #   - Checks out the default branch (never the PR branch) to prevent
