@@ -293,9 +293,8 @@ TEST_F(AccountIdUnitTests, FromStringThrowsWithExtraDelimiters)
                std::invalid_argument);
   EXPECT_THROW(AccountId::fromString(testShardNumStr + testRealmNumStr + '.' + testAccountNumStr + '.'),
                std::invalid_argument);
-  EXPECT_THROW(
-    AccountId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + '.' + testAccountNumStr + '.'),
-    std::invalid_argument);
+  EXPECT_THROW(AccountId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + '.' + testAccountNumStr + '.'),
+               std::invalid_argument);
 }
 
 //-----
@@ -312,8 +311,8 @@ TEST_F(AccountIdUnitTests, FromStringWithED25519Alias)
 {
   // Given
   const std::string ed25519AliasStr = getTestEd25519Alias()->toStringDer();
-  const std::string input = std::to_string(getTestShardNum()) + '.' + std::to_string(getTestRealmNum()) + '.' +
-                            ed25519AliasStr;
+  const std::string input =
+    std::to_string(getTestShardNum()) + '.' + std::to_string(getTestRealmNum()) + '.' + ed25519AliasStr;
 
   // When
   AccountId accountId;
@@ -347,8 +346,8 @@ TEST_F(AccountIdUnitTests, FromStringWithECDSASecp256k1Alias)
 {
   // Given
   const std::string ecdsaAliasStr = getTestEcdsaSecp256k1Alias()->toStringDer();
-  const std::string input = std::to_string(getTestShardNum()) + '.' + std::to_string(getTestRealmNum()) + '.' +
-                            ecdsaAliasStr;
+  const std::string input =
+    std::to_string(getTestShardNum()) + '.' + std::to_string(getTestRealmNum()) + '.' + ecdsaAliasStr;
 
   // When
   AccountId accountId;
@@ -382,8 +381,8 @@ TEST_F(AccountIdUnitTests, FromStringWithEvmAddressAlias)
 {
   // Given
   const std::string evmAddressStr = getTestEvmAddressAlias().toString();
-  const std::string input = std::to_string(getTestShardNum()) + '.' + std::to_string(getTestRealmNum()) + '.' +
-                            evmAddressStr;
+  const std::string input =
+    std::to_string(getTestShardNum()) + '.' + std::to_string(getTestRealmNum()) + '.' + evmAddressStr;
 
   // When
   AccountId accountId;

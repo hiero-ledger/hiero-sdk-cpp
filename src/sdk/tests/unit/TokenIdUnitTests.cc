@@ -120,9 +120,8 @@ TEST_F(TokenIdUnitTests, FromStringThrowsWithExtraDelimiters)
   EXPECT_THROW(TokenId::fromString(testShardNumStr + testRealmNumStr + ".." + testTokenNumStr), std::invalid_argument);
   EXPECT_THROW(TokenId::fromString(testShardNumStr + testRealmNumStr + '.' + testTokenNumStr + '.'),
                std::invalid_argument);
-  EXPECT_THROW(
-    TokenId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + '.' + testTokenNumStr + '.'),
-    std::invalid_argument);
+  EXPECT_THROW(TokenId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + '.' + testTokenNumStr + '.'),
+               std::invalid_argument);
 }
 
 //-----

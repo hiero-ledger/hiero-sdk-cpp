@@ -131,9 +131,8 @@ TEST_F(TopicIdUnitTests, FromStringThrowsWithExtraDelimiters)
   EXPECT_THROW(TopicId::fromString(testShardNumStr + testRealmNumStr + ".." + testTopicNumStr), std::invalid_argument);
   EXPECT_THROW(TopicId::fromString(testShardNumStr + testRealmNumStr + '.' + testTopicNumStr + '.'),
                std::invalid_argument);
-  EXPECT_THROW(
-    TopicId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + '.' + testTopicNumStr + '.'),
-    std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + '.' + testTopicNumStr + '.'),
+               std::invalid_argument);
 }
 
 //-----

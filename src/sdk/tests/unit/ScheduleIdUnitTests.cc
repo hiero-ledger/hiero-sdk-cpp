@@ -137,9 +137,8 @@ TEST_F(ScheduleIdUnitTests, FromStringThrowsWithExtraDelimiters)
                std::invalid_argument);
   EXPECT_THROW(ScheduleId::fromString(testShardNumStr + testRealmNumStr + '.' + testScheduleNumStr + '.'),
                std::invalid_argument);
-  EXPECT_THROW(
-    ScheduleId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + '.' + testScheduleNumStr + '.'),
-    std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + '.' + testScheduleNumStr + '.'),
+               std::invalid_argument);
 }
 
 //-----
