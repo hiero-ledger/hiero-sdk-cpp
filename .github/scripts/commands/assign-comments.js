@@ -271,6 +271,8 @@ function formatAssignmentLimitExceededComment(
   }
   lines.push(
     "",
+    `💡 **Tip:** If all of your open assigned issues have a linked PR with \`${LABELS.NEEDS_REVIEW}\`, the limit is automatically bypassed — you can request a new assignment right away.`,
+    "",
     "Once you complete or unassign from one of your current issues, come back and we'll be happy to assign this to you! 🎯",
   );
   return lines.join("\n");
