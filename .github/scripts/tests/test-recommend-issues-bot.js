@@ -262,14 +262,15 @@ const unitTests = [
 
       await handleRecommendIssues(botContext);
 
+      const nextLevel = getNextLevel(BEGINNER);
       const expected = [
         `👋 Hi @user! Great work on your recent contribution! 🎉`,
         '',
-        `I couldn't find any open issues at your current level right now.`,
+        `I couldn't find any open ${nextLevel} issues right now.`,
         '',
-        `${MAINTAINER_TEAM} — it looks like our queue for **${BEGINNER}** (and related) issues is empty!`,
+        `${MAINTAINER_TEAM} - it looks like our queue for **${nextLevel}** issues is empty! Could you add a few more?`,
         '',
-        `Feel free to check back later or explore the repository for other ways to contribute.`,
+        `Feel free to check back later or explore the repository for other ways to contribute!`,
       ].join('\n');
 
       return (
