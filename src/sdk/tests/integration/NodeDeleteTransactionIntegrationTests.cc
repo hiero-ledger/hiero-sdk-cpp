@@ -30,7 +30,7 @@ private:
 };
 
 //-----
-TEST_F(NodeDeleteTransactionIntegrationTests, DISABLED_CanExecuteNodeDeleteTransaction)
+TEST_F(NodeDeleteTransactionIntegrationTests, CanExecuteNodeDeleteTransaction)
 {
   // Given / When / Then
   TransactionResponse txResponse;
