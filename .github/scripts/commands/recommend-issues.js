@@ -202,19 +202,21 @@ async function getRecommendedIssues(botContext, username, skillLevel) {
 }
 
 /**
- * Builds a comment when no recommendations are available.
+ * Builds a comment when no recommendations are available, tagging maintainers.
  *
  * @param {string} username
- * @param {string} skillLevel
+ * @param {string} nextLevel
  * @returns {string}
  */
-function buildNoIssuesComment(username, skillLevel) {
+function buildMaintainerNudgeComment(username, nextLevel) {
     return [
         `👋 Hi @${username}! Great work on your recent contribution! 🎉`,
         '',
-        `I couldn't find any open issues for your current level (${skillLevel}) right now.`,
+        `I couldn't find any open ${nextLevel} issues right now.`,
         '',
-        `Keep an eye on the issue tracker, or check back later!`,
+        `${MAINTAINER_TEAM} - it looks like our queue for **${nextLevel}** issues is empty! Could you add a few more?`,
+        '',
+        `Feel free to check back later or explore the repository for other ways to contribute!`,
     ].join('\n');
 }
 
@@ -224,17 +226,17 @@ function buildNoIssuesComment(username, skillLevel) {
  * - Determines skill level
  * - Fetches recommended issues
  * - Posts a recommendation comment if results exist
- * - Posts a replenishment comment via {@link buildNoIssuesComment} if no results found, 
+ * - Posts a replenishment comment via {@link buildMaintainerNudgeComment} if no results found, 
  * logging 'recommendation.empty'
  * * If {@link postComment} fails during the empty result flow, it logs 
  * 'recommendation.postEmptyCommentFailed'.
  *
  * @param {{
- * github: object,
- * owner: string,
- * repo: string,
- * issue: object,
- * sender: { login: string }
+ *   github: object,
+ *   owner: string,
+ *   repo: string,
+ *   issue: object,
+ *   sender: { login: string }
  * }} botContext
  * @returns {Promise<void>}
  */
@@ -274,7 +276,8 @@ async function handleRecommendIssues(botContext) {
 
     if (issues.length === 0) {
         logger.log('recommendation.empty', { user: username });
-        const emptyComment = buildNoIssuesComment(username, skillLevel);
+        const nextLevel = getNextLevel(skillLevel);
+        const emptyComment = buildMaintainerNudgeComment(username, nextLevel);
         const result = await postComment(botContext, emptyComment);
         
         if (!result.success) {
@@ -305,6 +308,7 @@ async function handleRecommendIssues(botContext) {
 
 module.exports = { 
     handleRecommendIssues,
+    buildMaintainerNudgeComment,
     getNextLevel,
     getFallbackLevel,
     getRecommendedIssues,
