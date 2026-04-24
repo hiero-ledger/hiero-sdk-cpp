@@ -186,7 +186,6 @@ function sortByPriority(issues) {
     });
 }
 
-<<<<<<< HEAD
 /**
  * Sorts issues based on the PRIORITY_HIERARCHY.
  * * If two issues have the same priority, the oldest (earlier created_at)
@@ -209,8 +208,6 @@ function sortByPriority(issues) {
     });
 }
 
-=======
->>>>>>> 23c7aba (feat: implement priority-based sorting for issue recommendations)
 /**
  * Returns recommended issues based on priority:
  * next → same → fallback.
