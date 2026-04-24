@@ -20,8 +20,6 @@ private:
 };
 
 //-----
-// Constructor Tests
-//-----
 
 //-----
 TEST_F(TokenIdUnitTests, ConstructWithTokenNum)
@@ -48,8 +46,6 @@ TEST_F(TokenIdUnitTests, ConstructWithShardRealmTokenNum)
 }
 
 //-----
-// Comparison Tests
-//-----
 
 //-----
 TEST_F(TokenIdUnitTests, CompareTokenIds)
@@ -61,8 +57,6 @@ TEST_F(TokenIdUnitTests, CompareTokenIds)
               TokenId(getTestShardNum(), getTestRealmNum(), getTestTokenNum()));
 }
 
-//-----
-// FromString Tests
 //-----
 
 //-----
@@ -134,8 +128,6 @@ TEST_F(TokenIdUnitTests, FromStringThrowsWithNonNumericInput)
 }
 
 //-----
-// Protobuf Serialization Tests
-//-----
 
 //-----
 TEST_F(TokenIdUnitTests, ProtobufSerializeTokenId)
@@ -175,8 +167,6 @@ TEST_F(TokenIdUnitTests, ProtobufDeserializeTokenId)
   EXPECT_EQ(tokenId.mTokenNum, newToken);
 }
 
-//-----
-// ToString Tests
 //-----
 
 //-----

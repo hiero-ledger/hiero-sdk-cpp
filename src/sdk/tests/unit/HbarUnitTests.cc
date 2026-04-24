@@ -13,8 +13,6 @@ protected:
 };
 
 //-----
-// HbarUnit Constant Tests
-//-----
 
 //-----
 TEST_F(HbarUnitTests, TinybarUnit)
@@ -73,8 +71,6 @@ TEST_F(HbarUnitTests, GigabarUnit)
 }
 
 //-----
-// Hbar Constructor Tests
-//-----
 
 //-----
 TEST_F(HbarUnitTests, DefaultConstructor)
@@ -116,8 +112,6 @@ TEST_F(HbarUnitTests, AmountUnitConstructor)
   EXPECT_EQ(gigabar.toTinybars(), amount * HbarUnit::GIGABAR().getTinybars());
 }
 
-//-----
-// Hbar Operator Tests
 //-----
 
 //-----

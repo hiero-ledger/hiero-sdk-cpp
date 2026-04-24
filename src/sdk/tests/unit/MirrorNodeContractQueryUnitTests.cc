@@ -13,8 +13,6 @@ protected:
 };
 
 //-----
-// Setter/Getter Tests
-//-----
 
 //-----
 TEST_F(MirrorNodeContractQueryUnitTests, SetContractId)
@@ -151,8 +149,6 @@ TEST_F(MirrorNodeContractQueryUnitTests, SetEstimate)
   EXPECT_EQ(query.getEstimate(), estimate);
 }
 
-//-----
-// Serialization Tests
 //-----
 
 //-----

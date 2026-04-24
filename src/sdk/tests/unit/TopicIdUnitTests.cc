@@ -25,8 +25,6 @@ private:
 };
 
 //-----
-// Constructor Tests
-//-----
 
 //-----
 TEST_F(TopicIdUnitTests, ConstructWithTopicNum)
@@ -53,8 +51,6 @@ TEST_F(TopicIdUnitTests, ConstructWithShardRealmTopicNum)
 }
 
 //-----
-// Comparison Tests
-//-----
 
 //-----
 TEST_F(TopicIdUnitTests, CompareTopicIds)
@@ -72,8 +68,6 @@ TEST_F(TopicIdUnitTests, CompareTopicIds)
                TopicId(getTestShardNum(), getTestRealmNum() - 1ULL, getTestTopicNum()));
 }
 
-//-----
-// FromString Tests
 //-----
 
 //-----
@@ -145,8 +139,6 @@ TEST_F(TopicIdUnitTests, FromStringThrowsWithNonNumericInput)
 }
 
 //-----
-// FromSolidityAddress Tests
-//-----
 
 //-----
 TEST_F(TopicIdUnitTests, FromSolidityAddressWithValidAddress)
@@ -191,8 +183,6 @@ TEST_F(TopicIdUnitTests, FromSolidityAddressThrowsWithInvalidAddress)
   EXPECT_THROW(TopicId::fromSolidityAddress(addrNotHex), std::invalid_argument);
 }
 
-//-----
-// Protobuf Serialization Tests
 //-----
 
 //-----
@@ -277,8 +267,6 @@ TEST_F(TopicIdUnitTests, ToBytes)
   EXPECT_EQ(protoBytes, bytes);
 }
 
-//-----
-// ToString Tests
 //-----
 
 //-----

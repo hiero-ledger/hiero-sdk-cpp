@@ -23,8 +23,6 @@ private:
 };
 
 //-----
-// FromString Tests
-//-----
 
 //-----
 TEST_F(EvmAddressUnitTests, FromStringWithValidInput)
@@ -74,8 +72,6 @@ TEST_F(EvmAddressUnitTests, FromStringThrowsWithMisplacedPrefix)
 }
 
 //-----
-// FromBytes Tests
-//-----
 
 //-----
 TEST_F(EvmAddressUnitTests, FromBytesWithValidInput)
@@ -107,8 +103,6 @@ TEST_F(EvmAddressUnitTests, FromBytesThrowsWithTooBigArray)
   EXPECT_THROW(auto evmAddress = EvmAddress::fromBytes(badBytes), std::invalid_argument);
 }
 
-//-----
-// String / Byte Conversion Tests
 //-----
 
 //-----

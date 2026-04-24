@@ -24,8 +24,6 @@ private:
 };
 
 //-----
-// Constructor Tests
-//-----
 
 //-----
 TEST_F(ScheduleIdUnitTests, ConstructWithScheduleNum)
@@ -52,8 +50,6 @@ TEST_F(ScheduleIdUnitTests, ConstructWithShardRealmScheduleNum)
 }
 
 //-----
-// Comparison Tests
-//-----
 
 //-----
 TEST_F(ScheduleIdUnitTests, CompareScheduleIds)
@@ -71,8 +67,6 @@ TEST_F(ScheduleIdUnitTests, CompareScheduleIds)
                ScheduleId(getTestShardNum(), getTestRealmNum() - 1ULL, getTestScheduleNum()));
 }
 
-//-----
-// FromString Tests
 //-----
 
 //-----
@@ -151,8 +145,6 @@ TEST_F(ScheduleIdUnitTests, FromStringThrowsWithNonNumericInput)
 }
 
 //-----
-// Protobuf Serialization Tests
-//-----
 
 //-----
 TEST_F(ScheduleIdUnitTests, FromProtobuf)
@@ -226,8 +218,6 @@ TEST_F(ScheduleIdUnitTests, ToBytes)
   EXPECT_EQ(protoBytes, bytes);
 }
 
-//-----
-// ToString Tests
 //-----
 
 //-----

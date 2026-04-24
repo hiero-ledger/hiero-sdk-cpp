@@ -34,8 +34,6 @@ private:
 };
 
 //-----
-// Constructor Tests
-//-----
 
 //-----
 TEST_F(AccountIdUnitTests, ConstructWithAccountNum)
@@ -158,8 +156,6 @@ TEST_F(AccountIdUnitTests, ConstructWithShardRealmEvmAddress)
 }
 
 //-----
-// Comparison Tests
-//-----
 
 //-----
 TEST_F(AccountIdUnitTests, EqualAccountIdsAreEqual)
@@ -226,8 +222,6 @@ TEST_F(AccountIdUnitTests, DifferentIdentifierTypesAreNotEqual)
                AccountId(getTestShardNum(), getTestRealmNum(), getTestEvmAddressAlias()));
 }
 
-//-----
-// FromString Tests
 //-----
 
 //-----
@@ -412,8 +406,6 @@ TEST_F(AccountIdUnitTests, FromStringThrowsWithEvmAddressInWrongPosition)
 }
 
 //-----
-// FromEvmAddress Tests
-//-----
 
 //-----
 TEST_F(AccountIdUnitTests, FromEvmAddress)
@@ -440,8 +432,6 @@ TEST_F(AccountIdUnitTests, FromEvmAddress)
             accountIdFromEvmAddressStr.mEvmAddressAlias->toBytes());
 }
 
-//-----
-// Protobuf Serialization Tests
 //-----
 
 //-----
@@ -566,8 +556,6 @@ TEST_F(AccountIdUnitTests, ProtobufSerializeDeserializeEvmAddress)
   EXPECT_EQ(accountId.mEvmAddressAlias->toBytes(), testBytes);
 }
 
-//-----
-// ToString Tests
 //-----
 
 //-----
