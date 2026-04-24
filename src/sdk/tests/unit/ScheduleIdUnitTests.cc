@@ -24,32 +24,37 @@ private:
 };
 
 //-----
+
+//-----
 TEST_F(ScheduleIdUnitTests, ConstructWithScheduleNum)
 {
   // Given / When
-  const ScheduleId topicId(getTestScheduleNum());
+  const ScheduleId scheduleId(getTestScheduleNum());
 
   // Then
-  EXPECT_EQ(topicId.mShardNum, 0ULL);
-  EXPECT_EQ(topicId.mRealmNum, 0ULL);
-  EXPECT_EQ(topicId.mScheduleNum, getTestScheduleNum());
+  EXPECT_EQ(scheduleId.mShardNum, 0ULL);
+  EXPECT_EQ(scheduleId.mRealmNum, 0ULL);
+  EXPECT_EQ(scheduleId.mScheduleNum, getTestScheduleNum());
 }
 
 //-----
 TEST_F(ScheduleIdUnitTests, ConstructWithShardRealmScheduleNum)
 {
   // Given / When
-  const ScheduleId topicId(getTestShardNum(), getTestRealmNum(), getTestScheduleNum());
+  const ScheduleId scheduleId(getTestShardNum(), getTestRealmNum(), getTestScheduleNum());
 
   // Then
-  EXPECT_EQ(topicId.mShardNum, getTestShardNum());
-  EXPECT_EQ(topicId.mRealmNum, getTestRealmNum());
-  EXPECT_EQ(topicId.mScheduleNum, getTestScheduleNum());
+  EXPECT_EQ(scheduleId.mShardNum, getTestShardNum());
+  EXPECT_EQ(scheduleId.mRealmNum, getTestRealmNum());
+  EXPECT_EQ(scheduleId.mScheduleNum, getTestScheduleNum());
 }
+
+//-----
 
 //-----
 TEST_F(ScheduleIdUnitTests, CompareScheduleIds)
 {
+  // Given / When / Then
   EXPECT_TRUE(ScheduleId() == ScheduleId());
   EXPECT_TRUE(ScheduleId(getTestScheduleNum()) == ScheduleId(getTestScheduleNum()));
   EXPECT_TRUE(ScheduleId(getTestShardNum(), getTestRealmNum(), getTestScheduleNum()) ==
@@ -63,56 +68,83 @@ TEST_F(ScheduleIdUnitTests, CompareScheduleIds)
 }
 
 //-----
-TEST_F(ScheduleIdUnitTests, FromString)
+
+//-----
+TEST_F(ScheduleIdUnitTests, FromStringWithValidShardRealmNum)
+{
+  // Given
+  const std::string validId = std::to_string(getTestShardNum()) + '.' + std::to_string(getTestRealmNum()) + '.' +
+                              std::to_string(getTestScheduleNum());
+
+  // When
+  ScheduleId scheduleId;
+  EXPECT_NO_THROW(scheduleId = ScheduleId::fromString(validId));
+
+  // Then
+  EXPECT_EQ(scheduleId.mShardNum, getTestShardNum());
+  EXPECT_EQ(scheduleId.mRealmNum, getTestRealmNum());
+  EXPECT_EQ(scheduleId.mScheduleNum, getTestScheduleNum());
+}
+
+//-----
+TEST_F(ScheduleIdUnitTests, FromStringThrowsWithMissingDelimiters)
 {
   // Given
   const std::string testShardNumStr = std::to_string(getTestShardNum());
   const std::string testRealmNumStr = std::to_string(getTestRealmNum());
-  const std::string testAccountNumStr = std::to_string(getTestScheduleNum());
+  const std::string testScheduleNumStr = std::to_string(getTestScheduleNum());
 
-  // When
-  ScheduleId topicId;
-  EXPECT_NO_THROW(topicId = ScheduleId::fromString(testShardNumStr + '.' + testRealmNumStr + '.' + testAccountNumStr));
-
-  EXPECT_THROW(topicId = ScheduleId::fromString(testShardNumStr + testRealmNumStr + testAccountNumStr),
+  // When / Then
+  EXPECT_THROW(ScheduleId::fromString(testShardNumStr + testRealmNumStr + testScheduleNumStr), std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString(testShardNumStr + '.' + testRealmNumStr + testScheduleNumStr),
                std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString('.' + testShardNumStr + testRealmNumStr + testAccountNumStr),
+  EXPECT_THROW(ScheduleId::fromString(testShardNumStr + testRealmNumStr + '.' + testScheduleNumStr),
                std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString(testShardNumStr + '.' + testRealmNumStr + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString(testShardNumStr + testRealmNumStr + '.' + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString(testShardNumStr + testRealmNumStr + testAccountNumStr + '.'),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString(".." + testShardNumStr + testRealmNumStr + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString('.' + testShardNumStr + testRealmNumStr + '.' + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString('.' + testShardNumStr + testRealmNumStr + testAccountNumStr + '.'),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString(testShardNumStr + ".." + testRealmNumStr + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString(testShardNumStr + '.' + testRealmNumStr + testAccountNumStr + '.'),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString(testShardNumStr + testRealmNumStr + ".." + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString(testShardNumStr + testRealmNumStr + '.' + testAccountNumStr + '.'),
-               std::invalid_argument);
-  EXPECT_THROW(topicId =
-                 ScheduleId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + '.' + testAccountNumStr + '.'),
-               std::invalid_argument);
-
-  EXPECT_THROW(topicId = ScheduleId::fromString("abc"), std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString("o.o.e"), std::invalid_argument);
-  EXPECT_THROW(topicId = ScheduleId::fromString("0.0.1!"), std::invalid_argument);
-
-  // Then
-  EXPECT_EQ(topicId.mShardNum, getTestShardNum());
-  EXPECT_EQ(topicId.mRealmNum, getTestRealmNum());
-  EXPECT_EQ(topicId.mScheduleNum, getTestScheduleNum());
 }
+
+//-----
+TEST_F(ScheduleIdUnitTests, FromStringThrowsWithExtraDelimiters)
+{
+  // Given
+  const std::string testShardNumStr = std::to_string(getTestShardNum());
+  const std::string testRealmNumStr = std::to_string(getTestRealmNum());
+  const std::string testScheduleNumStr = std::to_string(getTestScheduleNum());
+
+  // When / Then
+  EXPECT_THROW(ScheduleId::fromString('.' + testShardNumStr + testRealmNumStr + testScheduleNumStr),
+               std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString(testShardNumStr + testRealmNumStr + testScheduleNumStr + '.'),
+               std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString(".." + testShardNumStr + testRealmNumStr + testScheduleNumStr),
+               std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + testScheduleNumStr),
+               std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString('.' + testShardNumStr + testRealmNumStr + '.' + testScheduleNumStr),
+               std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString('.' + testShardNumStr + testRealmNumStr + testScheduleNumStr + '.'),
+               std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString(testShardNumStr + ".." + testRealmNumStr + testScheduleNumStr),
+               std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString(testShardNumStr + '.' + testRealmNumStr + testScheduleNumStr + '.'),
+               std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString(testShardNumStr + testRealmNumStr + ".." + testScheduleNumStr),
+               std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString(testShardNumStr + testRealmNumStr + '.' + testScheduleNumStr + '.'),
+               std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + '.' + testScheduleNumStr + '.'),
+               std::invalid_argument);
+}
+
+//-----
+TEST_F(ScheduleIdUnitTests, FromStringThrowsWithNonNumericInput)
+{
+  // Given / When / Then
+  EXPECT_THROW(ScheduleId::fromString("abc"), std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString("o.o.e"), std::invalid_argument);
+  EXPECT_THROW(ScheduleId::fromString("0.0.1!"), std::invalid_argument);
+}
+
+//-----
 
 //-----
 TEST_F(ScheduleIdUnitTests, FromProtobuf)
@@ -124,12 +156,12 @@ TEST_F(ScheduleIdUnitTests, FromProtobuf)
   protoScheduleId.set_schedulenum(static_cast<int64_t>(getTestScheduleNum()));
 
   // When
-  const ScheduleId topicId = ScheduleId::fromProtobuf(protoScheduleId);
+  const ScheduleId scheduleId = ScheduleId::fromProtobuf(protoScheduleId);
 
   // Then
-  EXPECT_EQ(topicId.mShardNum, getTestShardNum());
-  EXPECT_EQ(topicId.mRealmNum, getTestRealmNum());
-  EXPECT_EQ(topicId.mScheduleNum, getTestScheduleNum());
+  EXPECT_EQ(scheduleId.mShardNum, getTestShardNum());
+  EXPECT_EQ(scheduleId.mRealmNum, getTestRealmNum());
+  EXPECT_EQ(scheduleId.mScheduleNum, getTestScheduleNum());
 }
 
 //-----
@@ -142,23 +174,23 @@ TEST_F(ScheduleIdUnitTests, FromBytes)
   protoScheduleId.set_schedulenum(static_cast<int64_t>(getTestScheduleNum()));
 
   // When
-  const ScheduleId topicId =
+  const ScheduleId scheduleId =
     ScheduleId::fromBytes(internal::Utilities::stringToByteVector(protoScheduleId.SerializeAsString()));
 
   // Then
-  EXPECT_EQ(topicId.mShardNum, getTestShardNum());
-  EXPECT_EQ(topicId.mRealmNum, getTestRealmNum());
-  EXPECT_EQ(topicId.mScheduleNum, getTestScheduleNum());
+  EXPECT_EQ(scheduleId.mShardNum, getTestShardNum());
+  EXPECT_EQ(scheduleId.mRealmNum, getTestRealmNum());
+  EXPECT_EQ(scheduleId.mScheduleNum, getTestScheduleNum());
 }
 
 //-----
 TEST_F(ScheduleIdUnitTests, ToProtobuf)
 {
   // Given
-  const ScheduleId topicId(getTestShardNum(), getTestRealmNum(), getTestScheduleNum());
+  const ScheduleId scheduleId(getTestShardNum(), getTestRealmNum(), getTestScheduleNum());
 
   // When
-  const std::unique_ptr<proto::ScheduleID> protoScheduleId = topicId.toProtobuf();
+  const std::unique_ptr<proto::ScheduleID> protoScheduleId = scheduleId.toProtobuf();
 
   // Then
   EXPECT_EQ(protoScheduleId->shardnum(), getTestShardNum());
@@ -177,27 +209,29 @@ TEST_F(ScheduleIdUnitTests, ToBytes)
 
   const std::vector<std::byte> protoBytes =
     internal::Utilities::stringToByteVector(protoScheduleId.SerializeAsString());
-  const ScheduleId topicId = ScheduleId::fromProtobuf(protoScheduleId);
+  const ScheduleId scheduleId = ScheduleId::fromProtobuf(protoScheduleId);
 
   // When
-  const std::vector<std::byte> bytes = topicId.toBytes();
+  const std::vector<std::byte> bytes = scheduleId.toBytes();
 
   // Then
   EXPECT_EQ(protoBytes, bytes);
 }
 
 //-----
+
+//-----
 TEST_F(ScheduleIdUnitTests, ToString)
 {
   // Given
-  const ScheduleId topicId(getTestShardNum(), getTestRealmNum(), getTestScheduleNum());
+  const ScheduleId scheduleId(getTestShardNum(), getTestRealmNum(), getTestScheduleNum());
 
   // When
-  std::string topicIdStr;
-  EXPECT_NO_THROW(topicIdStr = topicId.toString());
+  std::string scheduleIdStr;
+  EXPECT_NO_THROW(scheduleIdStr = scheduleId.toString());
 
   // Then
-  EXPECT_EQ(topicIdStr,
+  EXPECT_EQ(scheduleIdStr,
             std::to_string(getTestShardNum()) + '.' + std::to_string(getTestRealmNum()) + '.' +
               std::to_string(getTestScheduleNum()));
 }
