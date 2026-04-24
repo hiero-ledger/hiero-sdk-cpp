@@ -163,6 +163,7 @@ function buildRecommendationErrorComment(username) {
     ].join('\n');
 }
 
+
 /**
  * Sorts issues based on the PRIORITY_HIERARCHY.
  * * If two issues have the same priority, the oldest (earlier created_at)
@@ -185,6 +186,31 @@ function sortByPriority(issues) {
     });
 }
 
+<<<<<<< HEAD
+/**
+ * Sorts issues based on the PRIORITY_HIERARCHY.
+ * * If two issues have the same priority, the oldest (earlier created_at)
+ * comes first. Issues without priority labels are moved to the end.
+ *
+ * @param {Array<object>} issues
+ * @returns {Array<object>} Sorted copy of the issues.
+ */
+function sortByPriority(issues) {
+    return [...issues].sort((a, b) => {
+        const ai = PRIORITY_HIERARCHY.findIndex(p => hasLabel(a, p));
+        const bi = PRIORITY_HIERARCHY.findIndex(p => hasLabel(b, p));
+        const aRank = ai === -1 ? PRIORITY_HIERARCHY.length : ai;
+        const bRank = bi === -1 ? PRIORITY_HIERARCHY.length : bi;
+        if (aRank !== bRank) {
+            return aRank - bRank;
+        }
+        // Tiebreaker: Use the creation date (Oldest first)
+        return new Date(a.created_at) - new Date(b.created_at);
+    });
+}
+
+=======
+>>>>>>> 23c7aba (feat: implement priority-based sorting for issue recommendations)
 /**
  * Returns recommended issues based on priority:
  * next → same → fallback.
