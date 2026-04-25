@@ -26,6 +26,12 @@ const LABELS = Object.freeze({
   BEGINNER: 'skill: beginner',
   INTERMEDIATE: 'skill: intermediate',
   ADVANCED: 'skill: advanced',
+
+  // Priority labels
+  PRIORITY_CRITICAL: 'priority: critical',
+  PRIORITY_HIGH: 'priority: high',
+  PRIORITY_MEDIUM: 'priority: medium',
+  PRIORITY_LOW: 'priority: low',
 });
 
 /**
@@ -36,6 +42,16 @@ const SKILL_HIERARCHY = Object.freeze([
     LABELS.BEGINNER,
     LABELS.INTERMEDIATE,
     LABELS.ADVANCED,
+]);
+
+/**
+ * Priority hierarchy for issue recommendations.
+ */
+const PRIORITY_HIERARCHY = Object.freeze([
+    LABELS.PRIORITY_CRITICAL,
+    LABELS.PRIORITY_HIGH,
+    LABELS.PRIORITY_MEDIUM,
+    LABELS.PRIORITY_LOW,
 ]);
 
 /**
@@ -88,4 +104,5 @@ module.exports = {
   ISSUE_STATE,
   SKILL_HIERARCHY,
   SKILL_PREREQUISITES,
+  PRIORITY_HIERARCHY,
 };

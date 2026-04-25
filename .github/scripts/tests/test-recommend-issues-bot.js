@@ -6,7 +6,7 @@
 // Run with: node .github/scripts/tests/test-recommend-issues-bot.js
 
 const { runTestSuite } = require('./test-utils');
-const { LABELS, SKILL_HIERARCHY, SKILL_PREREQUISITES, MAINTAINER_TEAM } = require('../helpers/constants');
+const { LABELS, SKILL_HIERARCHY, SKILL_PREREQUISITES, MAINTAINER_TEAM, PRIORITY_HIERARCHY } = require('../helpers/constants');
 const {
   handleRecommendIssues,
   getRecommendedIssues,
@@ -117,12 +117,13 @@ function buildListForRepo(closedCounts) {
  * Creates a minimal issue object with the given labels.
  * Matches the structure expected by recommendation logic.
  */
-function makeIssue(labels, number = 1) {
+function makeIssue(labels, number = 1, createdAt = '2026-03-01T00:00:00Z') {
   return {
     number,
     title: `Issue ${number}`,
     html_url: `https://github.com/test/repo/issues/${number}`,
     labels: labels.map((name) => ({ name })),
+    created_at: createdAt,
   };
 }
 
@@ -131,6 +132,12 @@ const GFI      = SKILL_HIERARCHY[0]; // good first issue (or equivalent)
 const BEGINNER = SKILL_HIERARCHY[1];
 const MID      = SKILL_HIERARCHY[2];
 const TOP      = SKILL_HIERARCHY[SKILL_HIERARCHY.length - 1];
+
+// Convenience: priority levels
+const CRITICAL = PRIORITY_HIERARCHY[0];
+const HIGH     = PRIORITY_HIERARCHY[1];
+const MEDIUM   = PRIORITY_HIERARCHY[2];
+const LOW      = PRIORITY_HIERARCHY[3];
 
 // =============================================================================
 // UNIT TESTS
@@ -413,6 +420,87 @@ const unitTests = [
       });
       const result = await getRecommendedIssues(botContext, 'contributor', GFI);
       return result !== null && result.unlockedLevel === null;
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // getRecommendedIssues — Priority and Tiebreaker logic
+  // ---------------------------------------------------------------------------
+  {
+    name: 'getRecommendedIssues: Critical > High priority at same level',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        sender: { login: 'user' },
+        closedCounts: { [`${MID}:user`]: 1 },
+        searchItems: [
+          makeIssue([MID, LABELS.READY_FOR_DEV, HIGH], 1),
+          makeIssue([MID, LABELS.READY_FOR_DEV, CRITICAL], 2),
+        ],
+      });
+      const result = await getRecommendedIssues(botContext, 'user', BEGINNER);
+      // Even though Issue 1 was "found" first by search, Issue 2 should be recommended first
+      return result.issues[0].number === 2 && result.issues[1].number === 1;
+    },
+  },
+  {
+    name: 'getRecommendedIssues: High > Medium priority at same level',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        sender: { login: 'user' },
+        closedCounts: { [`${MID}:user`]: 1 },
+        searchItems: [
+          makeIssue([MID, LABELS.READY_FOR_DEV, MEDIUM], 1),
+          makeIssue([MID, LABELS.READY_FOR_DEV, HIGH], 2),
+        ],
+      });
+      const result = await getRecommendedIssues(botContext, 'user', BEGINNER);
+      return result.issues[0].number === 2 && result.issues[1].number === 1;
+    },
+  },
+  {
+    name: 'getRecommendedIssues: Medium > Low priority at same level',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        sender: { login: 'user' },
+        closedCounts: { [`${MID}:user`]: 1 },
+        searchItems: [
+          makeIssue([MID, LABELS.READY_FOR_DEV, LOW], 1),
+          makeIssue([MID, LABELS.READY_FOR_DEV, MEDIUM], 2),
+        ],
+      });
+      const result = await getRecommendedIssues(botContext, 'user', BEGINNER);
+      return result.issues[0].number === 2 && result.issues[1].number === 1;
+    },
+  },
+  {
+    name: 'getRecommendedIssues: Unlabeled issues appear after all priority labels',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        sender: { login: 'user' },
+        closedCounts: { [`${MID}:user`]: 1 },
+        searchItems: [
+          makeIssue([MID, LABELS.READY_FOR_DEV], 1), // No priority label
+          makeIssue([MID, LABELS.READY_FOR_DEV, LOW], 2),
+        ],
+      });
+      const result = await getRecommendedIssues(botContext, 'user', BEGINNER);
+      return result.issues[0].number === 2 && result.issues[1].number === 1;
+    },
+  },
+  {
+    name: 'getRecommendedIssues: Same priority tiebreaker → older issue first',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        sender: { login: 'user' },
+        closedCounts: { [`${MID}:user`]: 1 },
+        searchItems: [
+          makeIssue([MID, LABELS.READY_FOR_DEV, HIGH], 1, '2026-04-01T00:00:00Z'), // Newer
+          makeIssue([MID, LABELS.READY_FOR_DEV, HIGH], 2, '2026-01-01T00:00:00Z'), // Older
+        ],
+      });
+      const result = await getRecommendedIssues(botContext, 'user', BEGINNER);
+      // Issue 2 is older, so it should be the top recommendation
+      return result.issues[0].number === 2 && result.issues[1].number === 1;
     },
   },
 

@@ -25,6 +25,8 @@ private:
 };
 
 //-----
+
+//-----
 TEST_F(TopicIdUnitTests, ConstructWithTopicNum)
 {
   // Given / When
@@ -49,8 +51,11 @@ TEST_F(TopicIdUnitTests, ConstructWithShardRealmTopicNum)
 }
 
 //-----
+
+//-----
 TEST_F(TopicIdUnitTests, CompareTopicIds)
 {
+  // Given / When / Then
   EXPECT_TRUE(TopicId() == TopicId());
   EXPECT_TRUE(TopicId(getTestTopicNum()) == TopicId(getTestTopicNum()));
   EXPECT_TRUE(TopicId(getTestShardNum(), getTestRealmNum(), getTestTopicNum()) ==
@@ -64,50 +69,17 @@ TEST_F(TopicIdUnitTests, CompareTopicIds)
 }
 
 //-----
-TEST_F(TopicIdUnitTests, FromString)
+
+//-----
+TEST_F(TopicIdUnitTests, FromStringWithValidShardRealmNum)
 {
   // Given
-  const std::string testShardNumStr = std::to_string(getTestShardNum());
-  const std::string testRealmNumStr = std::to_string(getTestRealmNum());
-  const std::string testAccountNumStr = std::to_string(getTestTopicNum());
+  const std::string validId = std::to_string(getTestShardNum()) + '.' + std::to_string(getTestRealmNum()) + '.' +
+                              std::to_string(getTestTopicNum());
 
   // When
   TopicId topicId;
-  EXPECT_NO_THROW(topicId = TopicId::fromString(testShardNumStr + '.' + testRealmNumStr + '.' + testAccountNumStr));
-
-  EXPECT_THROW(topicId = TopicId::fromString(testShardNumStr + testRealmNumStr + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString('.' + testShardNumStr + testRealmNumStr + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString(testShardNumStr + '.' + testRealmNumStr + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString(testShardNumStr + testRealmNumStr + '.' + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString(testShardNumStr + testRealmNumStr + testAccountNumStr + '.'),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString(".." + testShardNumStr + testRealmNumStr + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString('.' + testShardNumStr + testRealmNumStr + '.' + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString('.' + testShardNumStr + testRealmNumStr + testAccountNumStr + '.'),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString(testShardNumStr + ".." + testRealmNumStr + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString(testShardNumStr + '.' + testRealmNumStr + testAccountNumStr + '.'),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString(testShardNumStr + testRealmNumStr + ".." + testAccountNumStr),
-               std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString(testShardNumStr + testRealmNumStr + '.' + testAccountNumStr + '.'),
-               std::invalid_argument);
-  EXPECT_THROW(topicId =
-                 TopicId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + '.' + testAccountNumStr + '.'),
-               std::invalid_argument);
-
-  EXPECT_THROW(topicId = TopicId::fromString("abc"), std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString("o.o.e"), std::invalid_argument);
-  EXPECT_THROW(topicId = TopicId::fromString("0.0.1!"), std::invalid_argument);
+  EXPECT_NO_THROW(topicId = TopicId::fromString(validId));
 
   // Then
   EXPECT_EQ(topicId.mShardNum, getTestShardNum());
@@ -116,25 +88,70 @@ TEST_F(TopicIdUnitTests, FromString)
 }
 
 //-----
-TEST_F(TopicIdUnitTests, FromSolidityAddress)
+TEST_F(TopicIdUnitTests, FromStringThrowsWithMissingDelimiters)
+{
+  // Given
+  const std::string testShardNumStr = std::to_string(getTestShardNum());
+  const std::string testRealmNumStr = std::to_string(getTestRealmNum());
+  const std::string testTopicNumStr = std::to_string(getTestTopicNum());
+
+  // When / Then
+  EXPECT_THROW(TopicId::fromString(testShardNumStr + testRealmNumStr + testTopicNumStr), std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString(testShardNumStr + '.' + testRealmNumStr + testTopicNumStr), std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString(testShardNumStr + testRealmNumStr + '.' + testTopicNumStr), std::invalid_argument);
+}
+
+//-----
+TEST_F(TopicIdUnitTests, FromStringThrowsWithExtraDelimiters)
+{
+  // Given
+  const std::string testShardNumStr = std::to_string(getTestShardNum());
+  const std::string testRealmNumStr = std::to_string(getTestRealmNum());
+  const std::string testTopicNumStr = std::to_string(getTestTopicNum());
+
+  // When / Then
+  EXPECT_THROW(TopicId::fromString('.' + testShardNumStr + testRealmNumStr + testTopicNumStr), std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString(testShardNumStr + testRealmNumStr + testTopicNumStr + '.'), std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString(".." + testShardNumStr + testRealmNumStr + testTopicNumStr), std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + testTopicNumStr),
+               std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString('.' + testShardNumStr + testRealmNumStr + '.' + testTopicNumStr),
+               std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString('.' + testShardNumStr + testRealmNumStr + testTopicNumStr + '.'),
+               std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString(testShardNumStr + ".." + testRealmNumStr + testTopicNumStr), std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString(testShardNumStr + '.' + testRealmNumStr + testTopicNumStr + '.'),
+               std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString(testShardNumStr + testRealmNumStr + ".." + testTopicNumStr), std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString(testShardNumStr + testRealmNumStr + '.' + testTopicNumStr + '.'),
+               std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString('.' + testShardNumStr + '.' + testRealmNumStr + '.' + testTopicNumStr + '.'),
+               std::invalid_argument);
+}
+
+//-----
+TEST_F(TopicIdUnitTests, FromStringThrowsWithNonNumericInput)
+{
+  // Given / When / Then
+  EXPECT_THROW(TopicId::fromString("abc"), std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString("o.o.e"), std::invalid_argument);
+  EXPECT_THROW(TopicId::fromString("0.0.1!"), std::invalid_argument);
+}
+
+//-----
+
+//-----
+TEST_F(TopicIdUnitTests, FromSolidityAddressWithValidAddress)
 {
   // Given
   const std::string goodAddr = "0123456789ABCDEF0123456789ABCDEF01234567";
   const std::string goodAddrWithPrefix = "0x0123456789ABCDEF0123456789ABCDEF01234567";
-  const std::string addrTooBig = "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
-  const std::string addrTooSmall = "0123456789ABCDEF";
-  const std::string addrNotHex = "This is a 40 character non-hex string!!!";
 
   // When
   TopicId topicIdFromGoodAddr;
   TopicId topicIdFromGoodAddrWithPrefix;
   EXPECT_NO_THROW(topicIdFromGoodAddr = TopicId::fromSolidityAddress(goodAddr));
   EXPECT_NO_THROW(topicIdFromGoodAddrWithPrefix = TopicId::fromSolidityAddress(goodAddrWithPrefix));
-
-  EXPECT_THROW(const TopicId topicIdFromAddrTooBig = TopicId::fromSolidityAddress(addrTooBig), std::invalid_argument);
-  EXPECT_THROW(const TopicId topicIdFromAddrTooSmall = TopicId::fromSolidityAddress(addrTooSmall),
-               std::invalid_argument);
-  EXPECT_THROW(const TopicId topicIdFromAddrNotHex = TopicId::fromSolidityAddress(addrNotHex), std::invalid_argument);
 
   // Then
   EXPECT_EQ(topicIdFromGoodAddr.mShardNum,
@@ -151,6 +168,22 @@ TEST_F(TopicIdUnitTests, FromSolidityAddress)
   EXPECT_EQ(topicIdFromGoodAddr.mRealmNum, topicIdFromGoodAddrWithPrefix.mRealmNum);
   EXPECT_EQ(topicIdFromGoodAddr.mTopicNum, topicIdFromGoodAddrWithPrefix.mTopicNum);
 }
+
+//-----
+TEST_F(TopicIdUnitTests, FromSolidityAddressThrowsWithInvalidAddress)
+{
+  // Given
+  const std::string addrTooBig = "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
+  const std::string addrTooSmall = "0123456789ABCDEF";
+  const std::string addrNotHex = "This is a 40 character non-hex string!!!";
+
+  // When / Then
+  EXPECT_THROW(TopicId::fromSolidityAddress(addrTooBig), std::invalid_argument);
+  EXPECT_THROW(TopicId::fromSolidityAddress(addrTooSmall), std::invalid_argument);
+  EXPECT_THROW(TopicId::fromSolidityAddress(addrNotHex), std::invalid_argument);
+}
+
+//-----
 
 //-----
 TEST_F(TopicIdUnitTests, FromProtobuf)
@@ -233,6 +266,8 @@ TEST_F(TopicIdUnitTests, ToBytes)
   // Then
   EXPECT_EQ(protoBytes, bytes);
 }
+
+//-----
 
 //-----
 TEST_F(TopicIdUnitTests, ToString)
