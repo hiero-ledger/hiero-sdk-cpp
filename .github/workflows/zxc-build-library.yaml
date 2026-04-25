@@ -12,7 +12,13 @@ on:
         description: "Select this option when you want to run the MacOS builds."
         type: boolean
         required: false
-        default: false
+        default: false 
+       
+      upload-artifacts:
+        description: "Select this option when you want to upload the artifacts."
+        type: boolean
+        required: false
+        default: true
 
   workflow_dispatch:
     inputs:
@@ -26,7 +32,13 @@ on:
         description: "Select this option when you want to run the MacOS builds."
         type: boolean
         required: false
-        default: false
+        default: false 
+         
+      upload-artifacts:
+        description: "Select this option when you want to upload the artifacts."
+        type: boolean 
+        required: false
+        default: true
 
 defaults:
   run:
@@ -51,7 +63,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
         with:
           egress-policy: audit
 
@@ -78,7 +90,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
         with:
           egress-policy: audit
 
@@ -129,7 +141,7 @@ jobs:
           submodules: true
 
       - name: Use Node.js 22
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 22
 
@@ -142,7 +154,7 @@ jobs:
         run: mkdir -p "${{ github.workspace }}/b/vcpkg_cache"
 
       - name: Install CMake & Ninja
-        uses: step-security/get-cmake@81a83056b6dd1f2bcf67bc6f26b7b08e1cbb86bc # v4.2.3
+        uses: step-security/get-cmake@082f0e11945209d5c8d8476a791e39d4d041005d # v4.3.1
         with:
           useCloudCache: true
 
@@ -186,7 +198,7 @@ jobs:
         id: solo
         uses: hiero-ledger/hiero-solo-action@692b186bd2e4c8d46b9deb1c067dc6ddcf0abcd7 # v0.18.0
         with:
-          soloVersion: v0.68.0
+          soloVersion: v0.69.0
           installMirrorNode: true
           mirrorNodeVersion: v0.151.0
           hieroVersion: v0.72.0
@@ -228,7 +240,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
         with:
           egress-policy: audit
 
@@ -243,7 +255,7 @@ jobs:
           msbuild-architecture: x64
 
       - name: Setup-perl
-        uses: shogo82148/actions-setup-perl@5a2f3b681f2e2fa0db6cc52c7608d9916527aa58 # v1.40.0
+        uses: shogo82148/actions-setup-perl@922d4ec780f14b8ff6d6e09c15d5eaee240b23a0 # v1.40.1
         with:
           perl-version: "5.32"
           distribution: strawberry
@@ -273,7 +285,8 @@ jobs:
           $short = $sha.Substring(0, 8)
           Add-Content -Path $env:GITHUB_OUTPUT -Value "short=$short"
 
-      - name: Attach Artifact
+      - name: Attach Artifact 
+        if: ${{ inputs.upload-artifacts }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
@@ -289,7 +302,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
         with:
           egress-policy: audit
 
@@ -316,7 +329,8 @@ jobs:
         id: sha
         run: echo "short=$(echo -n "${{ github.sha }}" | cut -c1-8)" >> $GITHUB_OUTPUT
 
-      - name: Attach Artifact
+      - name: Attach Artifact 
+        if: ${{ inputs.upload-artifacts }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}

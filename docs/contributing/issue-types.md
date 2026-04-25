@@ -68,10 +68,10 @@ A useful test: *Would this change appear in the SDK's public API documentation o
 
 ### Not a feature
 
-- An improvement to an existing feature → that's a **Task** (`kind: enhancement`)
+- An improvement to an existing feature → that's a **Task**
 - A fix for broken existing behavior → that's a **Bug**
-- A refactor that doesn't change the public API → that's a **Task** (`kind: refactor`)
-- A new bot command, CI workflow, issue template, or contributor tooling addition → that's a **Task** (`kind: maintenance`), even if it's genuinely "new" — it improves the development process, not the SDK's public capabilities
+- A refactor that doesn't change the public API → that's a **Task**
+- A new bot command, CI workflow, issue template, or contributor tooling addition → that's a **Task**, even if it's genuinely "new" — it improves the development process, not the SDK's public capabilities
 
 ### What makes a good feature request
 
@@ -92,21 +92,6 @@ or a [GitHub Discussion](https://github.com/hiero-ledger/hiero-sdk-cpp/discussio
 A **task** is maintenance, improvement, or operational work that keeps the SDK healthy and easy to contribute to.
 
 Use the **Task** template when the work isn't a bug fix and doesn't add new public API surface — it improves the existing codebase.
-
-### Examples of tasks
-
-| What you want to do | `kind:` label to use |
-|---|---|
-| Improve or clarify documentation or code comments | `kind: documentation` |
-| Refactor existing code without changing behavior | `kind: refactor` |
-| Update a dependency or build tooling | `kind: maintenance` |
-| Improve CI/CD pipelines or GitHub Actions workflows | `kind: maintenance` |
-| Add or improve tests | `kind: testing` |
-| Improve performance of existing functionality | `kind: enhancement` |
-| Improve an existing feature without adding new API | `kind: enhancement` |
-| Address a security concern that isn't a regression | `kind: security` |
-
-> **Note:** The `kind:` label is applied by maintainers during triage — you don't need to choose it when submitting. Just describe what needs to be done and why.
 
 ### Not a task
 
@@ -131,7 +116,7 @@ When you submit an issue using any of the three templates, it is automatically l
 A maintainer will then:
 
 1. Review the issue for completeness
-2. Apply the appropriate **skill level**, **priority**, **kind** (for bugs and tasks), and **scope** labels
+2. Apply the appropriate **skill level**, **priority**, and **scope** labels
 3. Run `/finalize`, which updates the issue title and description to the standard format and marks it `status: ready for dev`
 
 Once an issue is `status: ready for dev`, any contributor meeting the skill prerequisites can comment `/assign` to pick it up.
