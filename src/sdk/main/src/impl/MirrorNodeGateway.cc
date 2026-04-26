@@ -72,7 +72,7 @@ std::string buildUrlForNetwork(std::string_view mirrorNodeUrl,
   MirrorNodeRouter router;
   std::string route = router.getRoute(queryType.data()).data();
   for_each(
-    params.begin(), params.end(), [&route](const std::string& replace) { replaceParameters(route, "$", replace); });
+    params.begin(), params.end(), [&route](std::string_view replace) { replaceParameters(route, "$", replace); });
   url += route;
   return url;
 }
