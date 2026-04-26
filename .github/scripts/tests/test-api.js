@@ -165,8 +165,8 @@ const unitTests = [
       const marker = '<!-- bot:test -->';
       const { botContext } = createMockBotContext({
         comments: [
-          { id: 1, body: 'User comment 1' },
-          { id: 2, body: '<!-- bot:test -->\nBot comment' },
+          { id: 1, body: 'User comment 1', user: { type: 'User' } },
+          { id: 2, body: '<!-- bot:test -->\nBot comment', user: { type: 'Bot' } },
         ],
       });
       const result = await getBotComment(botContext, marker);
@@ -178,8 +178,19 @@ const unitTests = [
     test: async () => {
       const marker = '<!-- bot:test -->';
       const { botContext } = createMockBotContext({
+        comments: [{ id: 1, body: 'User comment 1', user: { type: 'User' } }],
+      });
+      const result = await getBotComment(botContext, marker);
+      return result === null;
+    },
+  },
+  {
+    name: 'getBotComment: ignores non-bot marker comment',
+    test: async () => {
+      const marker = '<!-- bot:test -->';
+      const { botContext } = createMockBotContext({
         comments: [
-          { id: 1, body: 'User comment 1' },
+          { id: 1, body: '<!-- bot:test -->\nHuman marker', user: { type: 'User' } },
         ],
       });
       const result = await getBotComment(botContext, marker);
@@ -190,8 +201,10 @@ const unitTests = [
     name: 'getBotComment: searches across pages',
     test: async () => {
       const marker = '<!-- bot:paged -->';
-      const page1 = Array(100).fill(null).map((_, i) => ({ id: i + 1, body: `Comment ${i}` }));
-      const page2 = [{ id: 101, body: '<!-- bot:paged -->\nFound on page 2' }];
+      const page1 = Array(100)
+        .fill(null)
+        .map((_, i) => ({ id: i + 1, body: `Comment ${i}`, user: { type: 'User' } }));
+      const page2 = [{ id: 101, body: '<!-- bot:paged -->\nFound on page 2', user: { type: 'Bot' } }];
       const { botContext } = createMockBotContext({
         comments: [...page1, ...page2],
       });
@@ -225,9 +238,7 @@ const unitTests = [
     test: async () => {
       const marker = '<!-- bot:test -->';
       const { botContext, calls } = createMockBotContext({
-        comments: [
-          { id: 999, body: '<!-- bot:test -->\nOld content' },
-        ],
+        comments: [{ id: 999, body: '<!-- bot:test -->\nOld content', user: { type: 'Bot' } }],
       });
       const body = '<!-- bot:test -->\nNew content';
       const result = await postOrUpdateComment(botContext, marker, body);
@@ -246,9 +257,9 @@ const unitTests = [
       const marker = '<!-- bot:test -->';
       const { botContext, calls } = createMockBotContext({
         comments: [
-          { id: 1, body: 'User comment 1' },
-          { id: 2, body: '<!-- bot:test -->\nBot comment' },
-          { id: 3, body: 'User comment 2' },
+          { id: 1, body: 'User comment 1', user: { type: 'User' } },
+          { id: 2, body: '<!-- bot:test -->\nBot comment', user: { type: 'Bot' } },
+          { id: 3, body: 'User comment 2', user: { type: 'User' } },
         ],
       });
       const body = '<!-- bot:test -->\nUpdated bot';
@@ -280,10 +291,8 @@ const unitTests = [
       const marker = '<!-- bot:paged -->';
       const page1 = Array(100)
         .fill(null)
-        .map((_, i) => ({ id: i + 1, body: `Comment ${i}` }));
-      const page2 = [
-        { id: 101, body: '<!-- bot:paged -->\nFound on page 2' },
-      ];
+        .map((_, i) => ({ id: i + 1, body: `Comment ${i}`, user: { type: 'User' } }));
+      const page2 = [{ id: 101, body: '<!-- bot:paged -->\nFound on page 2', user: { type: 'Bot' } }];
       const { botContext, calls } = createMockBotContext({
         comments: [...page1, ...page2],
       });

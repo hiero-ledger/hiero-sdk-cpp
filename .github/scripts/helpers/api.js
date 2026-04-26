@@ -300,7 +300,7 @@ async function swapLabels(botContext, fromLabel, toLabel) {
 }
 
 /**
- * Fetches an existing comment identified by an HTML marker.
+ * Fetches an existing bot-authored comment identified by an HTML marker.
  * Paginates through all comments to find a match.
  * @param {object} botContext
  * @param {string} marker - HTML comment marker (e.g. '<!-- bot:pr-helper -->').
@@ -320,7 +320,7 @@ async function getBotComment(botContext, marker) {
     });
 
     for (const c of comments) {
-      if (c.body && c.body.startsWith(marker)) {
+      if (c.user?.type === 'Bot' && c.body && c.body.startsWith(marker)) {
         return c;
       }
     }

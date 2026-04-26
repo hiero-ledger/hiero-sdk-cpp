@@ -371,6 +371,21 @@ function buildBlockedCheckinComment(assigneeLogins, itemType) {
   ].join('\n');
 }
 
+/**
+ * Returns the most recently created bot comment that starts with marker.
+ *
+ * @param {object[]} comments
+ * @param {string} marker
+ * @returns {object|null}
+ */
+function getLatestBotMarkerComment(comments, marker) {
+  const matching = comments
+    .filter(c => c.user?.type === 'Bot' && c.body && c.body.startsWith(marker))
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  return matching[0] || null;
+}
+
 // ─── State mutation ───────────────────────────────────────────────────────────
 
 /**
@@ -453,8 +468,23 @@ async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemTy
   }
 
   if (elapsed >= WARN_AFTER_MS) {
-    await postOrUpdateComment(ctx, WARN_MARKER, buildWarningComment(assigneeLogins, itemType));
-    return 'warned';
+    const comments = await fetchComments(ctx);
+    const latestWarning = getLatestBotMarkerComment(comments, WARN_MARKER);
+
+    // Post a fresh warning only when no prior warning exists, or when there
+    // has been meaningful activity since the last warning was posted.
+    if (!latestWarning) {
+      await postComment(ctx, buildWarningComment(assigneeLogins, itemType));
+      return 'warned';
+    }
+
+    const warningCreatedMs = new Date(latestWarning.created_at).getTime();
+    if (lastActivityMs > warningCreatedMs) {
+      await postComment(ctx, buildWarningComment(assigneeLogins, itemType));
+      return 'warned';
+    }
+
+    return 'none';
   }
 
   return 'none';
