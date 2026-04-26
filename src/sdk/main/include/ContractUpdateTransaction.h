@@ -108,7 +108,8 @@ public:
   /**
    * Set the new maximum automatic token associations the contract can have.
    *
-   * @param associations The desired new maximum amount of token associations for the contract.
+   * @param associations The desired new maximum amount of token associations for the contract. A value of -1 means
+   *                     the contract can have unlimited automatic token associations.
    * @return A reference to this ContractUpdateTransaction object with the newly-set maximum automatic token
    *         associations.
    * @throws IllegalStateException If this ContractUpdateTransaction is frozen.
