@@ -709,198 +709,198 @@ const scenarios = [
 
   // ── 23 ─────────────────────────────────────────────────────────────────────
   {
-  name: 'PR: status: needs review — skipped entirely',
-  description: 'PRs waiting on maintainer review are exempt from inactivity tracking.',
-  github: createMockGithub({
-    openPRs: [
-      makePR(220, {
-        createdAt: daysAgo(8),
-        assignees: ['rose'],
-        authorLogin: 'rose',
-        labels: [LABELS.NEEDS_REVIEW],
-      }),
-    ],
-  }),
-  expect: {
-    itemsClosed: [],
-    commentsCreated: 0,
-    labelsAdded: 0,
-    assigneesRemoved: 0,
-  },
-},
-  
-// ── 24 ─────────────────────────────────────────────
-{
-  name: 'PR: status: needs revision labeled 2 days ago — no action',
-  description: 'Inactivity clock starts from when needs-revision was last applied; 2 days is under threshold.',
-  github: createMockGithub({
-    openPRs: [
-      makePR(230, {
-        createdAt: daysAgo(10),
-        assignees: ['sam'],
-        authorLogin: 'sam',
-        labels: [LABELS.NEEDS_REVISION],
-      }),
-    ],
-    eventsByNumber: {
-      230: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(2))],
-    },
-  }),
-  expect: {
-    itemsClosed: [],
-    commentsCreated: 0,
-    labelsAdded: 0,
-    assigneesRemoved: 0,
-  },
-},
-
-// ── 25 ─────────────────────────────────────────────
-{
-  name: 'PR: status: needs revision labeled 6 days ago — warning posted',
-  description: 'Six days since needs-revision was applied triggers the 5-day warning.',
-  github: createMockGithub({
-    openPRs: [
-      makePR(240, {
-        createdAt: daysAgo(10),
-        assignees: ['taylor'],
-        authorLogin: 'taylor',
-        labels: [LABELS.NEEDS_REVISION],
-      }),
-    ],
-    eventsByNumber: {
-      240: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(6))],
-    },
-  }),
-  expect: {
-    itemsClosed: [],
-    commentsCreatedCount: 1,
-    warningPostedOn: [240],
-    labelsAdded: 0,
-    assigneesRemoved: 0,
-  },
-},
-
-// ── 26 ─────────────────────────────────────────────
-{
-  name: 'PR: status: needs revision labeled 8 days ago — closed and reset',
-  description: 'Eight days since needs-revision was applied exceeds the 7-day close threshold.',
-  github: createMockGithub({
-    openPRs: [
-      makePR(250, {
-        createdAt: daysAgo(10),
-        assignees: ['uri'],
-        authorLogin: 'uri',
-        labels: [LABELS.NEEDS_REVISION],
-      }),
-    ],
-    eventsByNumber: {
-      250: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8))],
-    },
-  }),
-  expect: {
-    itemsClosed: [250],
-    closureCommentOn: [250],
-    assigneesRemoved: [{ issue_number: 250, assignees: ['uri'] }],
-  },
-},
-
-// ── 27 ─────────────────────────────────────────────
-{
-  name: 'PR: status: needs revision labeled 8 days ago, author commented 2 days ago — no action',
-  description: 'Author activity after the label is applied resets the clock.',
-  github: createMockGithub({
-    openPRs: [
-      makePR(261, {
-        createdAt: daysAgo(10),
-        assignees: ['wren'],
-        authorLogin: 'wren',
-        labels: [LABELS.NEEDS_REVISION],
-      }),
-    ],
-    commentsByNumber: {
-      261: [makeComment('wren', daysAgo(2))],
-    },
-    eventsByNumber: {
-      261: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8))],
-    },
-  }),
-  expect: {
-    itemsClosed: [],
-    commentsCreated: 0,
-    labelsAdded: 0,
-    assigneesRemoved: 0,
-  },
-},
-
-// ── 28 ─────────────────────────────────────────────
-{
-  name: 'PR: status: needs revision applied twice — clock uses most recent application',
-  description: 'Clock resets on each new needs-revision application.',
-  github: createMockGithub({
-    openPRs: [
-      makePR(260, {
-        createdAt: daysAgo(12),
-        assignees: ['vera'],
-        authorLogin: 'vera',
-        labels: [LABELS.NEEDS_REVISION],
-      }),
-    ],
-    eventsByNumber: {
-      260: [
-        makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(10)),
-        makeUnlabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8)),
-        makeLabeledEvent(LABELS.NEEDS_REVIEW, daysAgo(8)),
-        makeUnlabeledEvent(LABELS.NEEDS_REVIEW, daysAgo(2)),
-        makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(2)),
+    name: 'PR: status: needs review — skipped entirely',
+    description: 'PRs waiting on maintainer review are exempt from inactivity tracking.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(220, {
+          createdAt: daysAgo(8),
+          assignees: ['rose'],
+          authorLogin: 'rose',
+          labels: [LABELS.NEEDS_REVIEW],
+        }),
       ],
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
     },
-  }),
-  expect: {
-    itemsClosed: [],
-    commentsCreated: 0,
-    labelsAdded: 0,
-    assigneesRemoved: 0,
   },
-},
-
-// ── 29 ─────────────────────────────────────────────
-{
-  name: 'PR + issue both stale — issue not double-commented after PR loop resets it',
-  description: 'When the PR loop resets a linked issue, the issues loop should skip it — no duplicate comment.',
-  github: createMockGithub({
-    openPRs: [
-      makePR(90, {
-        createdAt: daysAgo(8),
-        assignees: ['eve'],
-        authorLogin: 'eve',
-        body: 'Fixes #91',
-      }),
-    ],
-    assignedIssues: [
-      makeIssue(91, {
-        createdAt: daysAgo(8),
-        assignees: ['eve'],
-        labels: [LABELS.IN_PROGRESS],
-      }),
-    ],
-    issuesByNumber: {
-      91: {
-        number: 91,
-        state: 'open',
-        assignees: [{ login: 'eve' }],
-        labels: [{ name: LABELS.IN_PROGRESS }],
-        created_at: daysAgo(8),
+  
+  // ── 24 ─────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision labeled 2 days ago — no action',
+    description: 'Inactivity clock starts from when needs-revision was last applied; 2 days is under threshold.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(230, {
+          createdAt: daysAgo(10),
+          assignees: ['sam'],
+          authorLogin: 'sam',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      eventsByNumber: {
+        230: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(2))],
       },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
     },
-  }),
-  expect: {
-    itemsClosed: [90],
-    closureCommentOn: [90],
-    linkedIssueCleaned: [91],
-    assigneesRemovedOn: [90, 91],
-    commentsCreatedCount: 2,
   },
-},
+
+  // ── 25 ─────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision labeled 6 days ago — warning posted',
+    description: 'Six days since needs-revision was applied triggers the 5-day warning.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(240, {
+          createdAt: daysAgo(10),
+          assignees: ['taylor'],
+          authorLogin: 'taylor',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      eventsByNumber: {
+        240: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(6))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreatedCount: 1,
+      warningPostedOn: [240],
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 26 ─────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision labeled 8 days ago — closed and reset',
+    description: 'Eight days since needs-revision was applied exceeds the 7-day close threshold.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(250, {
+          createdAt: daysAgo(10),
+          assignees: ['uri'],
+          authorLogin: 'uri',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      eventsByNumber: {
+        250: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8))], 
+      },
+    }),
+    expect: {
+      itemsClosed: [250],
+      closureCommentOn: [250],
+      assigneesRemoved: [{ issue_number: 250, assignees: ['uri'] }],
+    },
+  },
+
+  // ── 27 ─────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision labeled 8 days ago, author commented 2 days ago — no action',
+    description: 'Author activity after the label is applied resets the clock.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(261, {
+          createdAt: daysAgo(10),
+          assignees: ['wren'],
+          authorLogin: 'wren',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      commentsByNumber: {
+        261: [makeComment('wren', daysAgo(2))],
+      },
+      eventsByNumber: {
+        261: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 28 ─────────────────────────────────────────────
+  {
+    name: 'PR: status: needs revision applied twice — clock uses most recent application',
+    description: 'Clock resets on each new needs-revision application.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(260, {
+          createdAt: daysAgo(12),
+          assignees: ['vera'],
+          authorLogin: 'vera',
+          labels: [LABELS.NEEDS_REVISION],
+        }),
+      ],
+      eventsByNumber: {
+        260: [
+          makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(10)),
+          makeUnlabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8)),
+          makeLabeledEvent(LABELS.NEEDS_REVIEW, daysAgo(8)),
+          makeUnlabeledEvent(LABELS.NEEDS_REVIEW, daysAgo(2)),
+          makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(2)),
+        ],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 29 ─────────────────────────────────────────────
+  {
+    name: 'PR + issue both stale — issue not double-commented after PR loop resets it',
+    description: 'When the PR loop resets a linked issue, the issues loop should skip it — no duplicate comment.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(90, {
+          createdAt: daysAgo(8),
+          assignees: ['eve'],
+          authorLogin: 'eve',
+          body: 'Fixes #91',
+        }),
+      ],
+      assignedIssues: [
+        makeIssue(91, {
+          createdAt: daysAgo(8),
+          assignees: ['eve'],
+          labels: [LABELS.IN_PROGRESS],
+        }),
+      ],
+      issuesByNumber: {
+        91: {
+          number: 91,
+          state: 'open',
+          assignees: [{ login: 'eve' }],
+          labels: [{ name: LABELS.IN_PROGRESS }],
+          created_at: daysAgo(8),
+        },
+      },
+    }),
+    expect: {
+      itemsClosed: [90],
+      closureCommentOn: [90],
+      linkedIssueCleaned: [91],
+      assigneesRemovedOn: [90, 91],
+      commentsCreatedCount: 2,
+    },
+  },
 ];
 
 // =============================================================================
