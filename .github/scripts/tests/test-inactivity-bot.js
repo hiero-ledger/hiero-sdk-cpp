@@ -862,6 +862,31 @@ const scenarios = [
       assigneesRemoved: 0,
     },
   },
+
+// -29 ─────────────────────────────────────────────────────────────────────
+{
+  name: "PR closed for inactivity should not get ready-for-dev and should remove status labels",
+  description: "Closed PR should have all status labels removed and not receive ready-for-dev label",
+  github: createMockGithub({
+    openPRs: [
+      makePR(30, {
+        createdAt: daysAgo(10),
+        assignees: ['alice'],
+        labels: [LABELS.IN_PROGRESS, LABELS.NEEDS_REVISION]
+      })
+    ],
+    eventsByNumber: {
+      30: [makeAssignedEvent(daysAgo(10))]
+    }
+  }),
+  expect: {
+    itemsClosed: [30],
+    commentsCreated: 1,
+    labelsAdded: 0,
+    assigneesRemoved: 1,
+    summaryLogs: ["#30 (PR): last activity 10d ago (assigned: alice), closing PR"]
+  }
+}
 ];
 
 // =============================================================================

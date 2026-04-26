@@ -390,8 +390,11 @@ async function resetItem(github, owner, repo, item) {
   if (assigneeLogins.length > 0) {
     await removeAssignees(ctx, assigneeLogins);
   }
-  if (hasLabel(item, LABELS.IN_PROGRESS)) {
-    await removeLabel(ctx, LABELS.IN_PROGRESS);
+  const statusLabels = (item.labels || [])
+    .map(label => label.name)
+    .filter(name => name.startsWith("status:"));
+  for (const label of statusLabels) {
+    await removeLabel(ctx, label);
   }
   await addLabels(ctx, [LABELS.READY_FOR_DEV]);
 }
@@ -417,7 +420,11 @@ function formatActivitySummary(item, itemType, lastActivityMs, nowMs, result) {
   if (result === 'warned') {
     action = 'posting inactivity warning';
   } else if (result === 'closed') {
-    action = itemType === 'PR' ? 'closing PR' : 'unassigning and resetting issue';
+    if(itemType === 'PR'){
+      action = 'closing PR';
+    } else{
+      action = 'unassigning and resetting issue';
+    }
   }
 
   return `#${item.number} (${itemType}): last activity ${days}d ago (assigned: ${assignees}), ${action}`;
@@ -447,7 +454,19 @@ async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemTy
     if (itemType === 'PR') {
       await closeItem(ctx);
     }
-    await resetItem(github, owner, repo, item);
+    if (itemType === 'PR') {
+      const statusLabels = (item.labels || [])
+        .map(label => label.name)
+        .filter(name => name.startsWith("status:"));
+      for (const label of statusLabels) {
+        await removeLabel(ctx, label);
+      }
+      if (assigneeLogins.length > 0) {
+        await removeAssignees(ctx, assigneeLogins);
+      }
+    } else {
+      await resetItem(github, owner, repo, item);
+    }
     await postComment(ctx, buildClosureComment(itemType));
     return 'closed';
   }
