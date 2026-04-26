@@ -24,4 +24,12 @@ describe('parseComment', () => {
   test('empty', () => {
     expect(parseComment('')).toEqual({ commands: [] });
   });
+
+  test('exact finalize', () => {
+    expect(parseComment('/finalize')).toEqual({ commands: ['finalize'] });
+  });
+
+  test('near miss unassign', () => {
+    expect(parseComment('/unassign please')).toEqual({ nearMiss: 'unassign' });
+  });
 });
