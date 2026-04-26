@@ -383,7 +383,7 @@ function buildBlockedCheckinComment(assigneeLogins, itemType) {
  * @param {object} item - Issue or PR object with .number, .assignees, .labels.
  * @returns {Promise<void>}
  */
-async function resetItem(github, owner, repo, item) {
+async function resetItem(github, owner, repo, item, { addReadyForDev = true } = {}) {
   const ctx = buildCtx(github, owner, repo, item.number);
   const assigneeLogins = (item.assignees || []).map(a => a.login);
 
@@ -396,7 +396,9 @@ async function resetItem(github, owner, repo, item) {
   for (const label of statusLabels) {
     await removeLabel(ctx, label);
   }
-  await addLabels(ctx, [LABELS.READY_FOR_DEV]);
+  if (addReadyForDev) {
+    await addLabels(ctx, [LABELS.READY_FOR_DEV]);
+  }
 }
 
 // ─── Stale and blocked handlers ───────────────────────────────────────────────
@@ -420,11 +422,7 @@ function formatActivitySummary(item, itemType, lastActivityMs, nowMs, result) {
   if (result === 'warned') {
     action = 'posting inactivity warning';
   } else if (result === 'closed') {
-    if(itemType === 'PR'){
-      action = 'closing PR';
-    } else{
-      action = 'unassigning and resetting issue';
-    }
+    action = itemType === 'PR' ? 'closing PR' : 'unassigning and resetting issue';
   }
 
   return `#${item.number} (${itemType}): last activity ${days}d ago (assigned: ${assignees}), ${action}`;
@@ -454,19 +452,7 @@ async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemTy
     if (itemType === 'PR') {
       await closeItem(ctx);
     }
-    if (itemType === 'PR') {
-      const statusLabels = (item.labels || [])
-        .map(label => label.name)
-        .filter(name => name.startsWith("status:"));
-      for (const label of statusLabels) {
-        await removeLabel(ctx, label);
-      }
-      if (assigneeLogins.length > 0) {
-        await removeAssignees(ctx, assigneeLogins);
-      }
-    } else {
-      await resetItem(github, owner, repo, item);
-    }
+    await resetItem(github, owner, repo, item, { addReadyForDev: itemType !== 'PR' });
     await postComment(ctx, buildClosureComment(itemType));
     return 'closed';
   }

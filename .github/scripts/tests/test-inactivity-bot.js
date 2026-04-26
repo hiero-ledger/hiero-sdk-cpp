@@ -883,6 +883,10 @@ const scenarios = [
     itemsClosed: [30],
     commentsCreated: 1,
     labelsAdded: 0,
+    labelsRemoved: [
+      { issue_number: 30, name: LABELS.IN_PROGRESS },
+      { issue_number: 30, name: LABELS.NEEDS_REVISION }
+    ],
     assigneesRemoved: 1,
     summaryLogs: ["#30 (PR): last activity 10d ago (assigned: alice), closing PR"]
   }
