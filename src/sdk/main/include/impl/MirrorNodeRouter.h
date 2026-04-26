@@ -14,10 +14,10 @@ namespace Hiero::internal::MirrorNodeGateway
 /**
  * Represents different mirror node query types.
  */
-static const std::string& ACCOUNT_INFO_QUERY = "accountInfoQuery";
-static const std::string& CONTRACT_INFO_QUERY = "contractInfoQuery";
-static const std::string& TOKEN_RELATIONSHIPS_QUERY = "tokenRelationshipsQuery";
-static const std::string& TOKEN_BALANCES_QUERY = "tokenBalancesQuery";
+static constexpr std::string_view ACCOUNT_INFO_QUERY = "accountInfoQuery";
+static constexpr std::string_view CONTRACT_INFO_QUERY = "contractInfoQuery";
+static constexpr std::string_view TOKEN_RELATIONSHIPS_QUERY = "tokenRelationshipsQuery";
+static constexpr std::string_view TOKEN_BALANCES_QUERY = "tokenBalancesQuery";
 
 /**
  * Class responsible for routing requests to different mirror node routes.
@@ -38,10 +38,10 @@ private:
    * Internal mapping of mirror node query types to their respective routes.
    */
   const std::unordered_map<std::string, std::string> routes = {
-    {ACCOUNT_INFO_QUERY,         "/api/v1/accounts/$"       },
-    { CONTRACT_INFO_QUERY,       "/api/v1/contracts/$"      },
-    { TOKEN_RELATIONSHIPS_QUERY, "/api/v1/accounts/$/tokens"},
-    { TOKEN_BALANCES_QUERY,      "/api/v1/tokens/$/balances"}
+    {std::string(ACCOUNT_INFO_QUERY),         "/api/v1/accounts/$"       },
+    { std::string(CONTRACT_INFO_QUERY),       "/api/v1/contracts/$"      },
+    { std::string(TOKEN_RELATIONSHIPS_QUERY), "/api/v1/accounts/$/tokens"},
+    { std::string(TOKEN_BALANCES_QUERY),      "/api/v1/tokens/$/balances"}
   };
 };
 
