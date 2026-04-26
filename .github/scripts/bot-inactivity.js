@@ -383,17 +383,22 @@ function buildBlockedCheckinComment(assigneeLogins, itemType) {
  * @param {object} item - Issue or PR object with .number, .assignees, .labels.
  * @returns {Promise<void>}
  */
-async function resetItem(github, owner, repo, item) {
+async function resetItem(github, owner, repo, item, { addReadyForDev = true } = {}) {
   const ctx = buildCtx(github, owner, repo, item.number);
   const assigneeLogins = (item.assignees || []).map(a => a.login);
 
   if (assigneeLogins.length > 0) {
     await removeAssignees(ctx, assigneeLogins);
   }
-  if (hasLabel(item, LABELS.IN_PROGRESS)) {
-    await removeLabel(ctx, LABELS.IN_PROGRESS);
+  const statusLabels = (item.labels || [])
+    .map(label => label.name)
+    .filter(name => name.startsWith("status:"));
+  for (const label of statusLabels) {
+    await removeLabel(ctx, label);
   }
-  await addLabels(ctx, [LABELS.READY_FOR_DEV]);
+  if (addReadyForDev) {
+    await addLabels(ctx, [LABELS.READY_FOR_DEV]);
+  }
 }
 
 // ─── Stale and blocked handlers ───────────────────────────────────────────────
@@ -447,7 +452,7 @@ async function handleStaleItem(github, owner, repo, item, lastActivityMs, itemTy
     if (itemType === 'PR') {
       await closeItem(ctx);
     }
-    await resetItem(github, owner, repo, item);
+    await resetItem(github, owner, repo, item, { addReadyForDev: itemType !== 'PR' });
     await postComment(ctx, buildClosureComment(itemType));
     return 'closed';
   }
