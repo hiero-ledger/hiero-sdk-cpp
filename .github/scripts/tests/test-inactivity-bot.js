@@ -729,7 +729,7 @@ const scenarios = [
     },
   },
   
-  // ── 24 ─────────────────────────────────────────────
+  // ── 24 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR: status: needs revision labeled 2 days ago — no action',
     description: 'Inactivity clock starts from when needs-revision was last applied; 2 days is under threshold.',
@@ -754,7 +754,7 @@ const scenarios = [
     },
   },
 
-  // ── 25 ─────────────────────────────────────────────
+  // ── 25 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR: status: needs revision labeled 6 days ago — warning posted',
     description: 'Six days since needs-revision was applied triggers the 5-day warning.',
@@ -780,7 +780,7 @@ const scenarios = [
     },
   },
 
-  // ── 26 ─────────────────────────────────────────────
+  // ── 26 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR: status: needs revision labeled 8 days ago — closed and reset',
     description: 'Eight days since needs-revision was applied exceeds the 7-day close threshold.',
@@ -804,10 +804,10 @@ const scenarios = [
     },
   },
 
-  // ── 27 ─────────────────────────────────────────────
+  // ── 27 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR: status: needs revision labeled 8 days ago, author commented 2 days ago — no action',
-    description: 'Author activity after the label is applied resets the clock.',
+    description: 'Author activity after the label is applied resets the clock; the bot should not close an actively-engaged PR.',
     github: createMockGithub({
       openPRs: [
         makePR(261, {
@@ -832,10 +832,10 @@ const scenarios = [
     },
   },
 
-  // ── 28 ─────────────────────────────────────────────
+  // ── 28 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR: status: needs revision applied twice — clock uses most recent application',
-    description: 'Clock resets on each new needs-revision application.',
+    description: 'Back-and-forth review cycles must not penalize contributors; the clock resets on each new needs-revision application.',
     github: createMockGithub({
       openPRs: [
         makePR(260, {
@@ -863,7 +863,7 @@ const scenarios = [
     },
   },
 
-  // ── 29 ─────────────────────────────────────────────
+  // ── 29 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR + issue both stale — issue not double-commented after PR loop resets it',
     description: 'When the PR loop resets a linked issue, the issues loop should skip it — no duplicate comment.',
