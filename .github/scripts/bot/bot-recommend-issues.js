@@ -346,8 +346,8 @@ async function detectUnlockedLevel(botContext, username, currentLevel) {
 
 /**
  * Sorts issues based on the PRIORITY_HIERARCHY.
- * * If two issues have the same priority, the oldest (earlier created_at)
- * comes first. Issues without priority labels are moved to the end.
+ * If two issues share the same priority, the oldest (earlier `created_at`)
+ * comes first; issues without a recognized priority label fall to the end.
  *
  * @param {Array<object>} issues
  * @returns {Array<object>} Sorted copy of the issues.
