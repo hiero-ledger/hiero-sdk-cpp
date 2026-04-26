@@ -660,7 +660,7 @@ module.exports = async function ({ github, context, getNow = () => Date.now() })
 
   for (const issue of assignedIssues) {
     if (processedIssueNumbers.has(issue.number)) {
-       logger.log(`#${issue.number}: skipping (already handled via PR loop)`);
+      logger.log(`#${issue.number}: skipping (already handled via PR loop)`);
        continue;
     }
     if (hasLabel(issue, LABELS.BLOCKED)) {
