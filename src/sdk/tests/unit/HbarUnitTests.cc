@@ -13,8 +13,6 @@ protected:
 };
 
 //-----
-
-//-----
 TEST_F(HbarUnitTests, TinybarUnit)
 {
   // Given / When / Then
@@ -71,8 +69,6 @@ TEST_F(HbarUnitTests, GigabarUnit)
 }
 
 //-----
-
-//-----
 TEST_F(HbarUnitTests, DefaultConstructor)
 {
   // Given / When
@@ -111,8 +107,6 @@ TEST_F(HbarUnitTests, AmountUnitConstructor)
   EXPECT_EQ(megabar.toTinybars(), amount * HbarUnit::MEGABAR().getTinybars());
   EXPECT_EQ(gigabar.toTinybars(), amount * HbarUnit::GIGABAR().getTinybars());
 }
-
-//-----
 
 //-----
 TEST_F(HbarUnitTests, AddOperator)
