@@ -83,9 +83,8 @@ bool FeeComponents::operator==(const FeeComponents& rhs) const
          (mTransactionVerification == rhs.mTransactionVerification) &&
          (mTransactionRamByteHour == rhs.mTransactionRamByteHour) &&
          (mTransactionStorageByteHour == rhs.mTransactionStorageByteHour) &&
-         (mContractTransactionGas == rhs.mContractTransactionGas) &&
-         (mTransferVolumeHbar == rhs.mTransferVolumeHbar) && (mResponseMemoryByte == rhs.mResponseMemoryByte) &&
-         (mResponseDiskByte == rhs.mResponseDiskByte);
+         (mContractTransactionGas == rhs.mContractTransactionGas) && (mTransferVolumeHbar == rhs.mTransferVolumeHbar) &&
+         (mResponseMemoryByte == rhs.mResponseMemoryByte) && (mResponseDiskByte == rhs.mResponseDiskByte);
 }
 
 } // namespace Hiero

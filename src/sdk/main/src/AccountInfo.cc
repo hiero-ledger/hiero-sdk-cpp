@@ -180,10 +180,9 @@ std::string AccountInfo::toString() const
 bool AccountInfo::operator==(const AccountInfo& rhs) const
 {
   if (!(mAccountId == rhs.mAccountId) || (mContractAccountId != rhs.mContractAccountId) ||
-      (mIsDeleted != rhs.mIsDeleted) || !(mProxyReceived == rhs.mProxyReceived) ||
-      !(mBalance == rhs.mBalance) || (mReceiverSignatureRequired != rhs.mReceiverSignatureRequired) ||
-      (mExpirationTime != rhs.mExpirationTime) || (mAutoRenewPeriod != rhs.mAutoRenewPeriod) ||
-      (mMemo != rhs.mMemo) || (mOwnedNfts != rhs.mOwnedNfts) ||
+      (mIsDeleted != rhs.mIsDeleted) || !(mProxyReceived == rhs.mProxyReceived) || !(mBalance == rhs.mBalance) ||
+      (mReceiverSignatureRequired != rhs.mReceiverSignatureRequired) || (mExpirationTime != rhs.mExpirationTime) ||
+      (mAutoRenewPeriod != rhs.mAutoRenewPeriod) || (mMemo != rhs.mMemo) || (mOwnedNfts != rhs.mOwnedNfts) ||
       (mMaxAutomaticTokenAssociations != rhs.mMaxAutomaticTokenAssociations) || !(mLedgerId == rhs.mLedgerId))
   {
     return false;

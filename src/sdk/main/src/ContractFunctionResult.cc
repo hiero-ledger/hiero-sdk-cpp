@@ -160,9 +160,8 @@ std::ostream& operator<<(std::ostream& os, const ContractFunctionResult& result)
 //-----
 bool ContractFunctionResult::operator==(const ContractFunctionResult& rhs) const
 {
-  const bool hasSameEvmAddress =
-    (mEvmAddress.has_value() == rhs.mEvmAddress.has_value()) &&
-    (!mEvmAddress.has_value() || (mEvmAddress->toBytes() == rhs.mEvmAddress->toBytes()));
+  const bool hasSameEvmAddress = (mEvmAddress.has_value() == rhs.mEvmAddress.has_value()) &&
+                                 (!mEvmAddress.has_value() || (mEvmAddress->toBytes() == rhs.mEvmAddress->toBytes()));
 
   const bool hasSameLogs = (mLogs.size() == rhs.mLogs.size()) &&
                            std::equal(mLogs.cbegin(),
@@ -176,8 +175,8 @@ bool ContractFunctionResult::operator==(const ContractFunctionResult& rhs) const
                                       });
 
   return (mContractId == rhs.mContractId) && (mContractCallResult == rhs.mContractCallResult) &&
-         (mErrorMessage == rhs.mErrorMessage) && (mBloom == rhs.mBloom) && (mGasUsed == rhs.mGasUsed) &&
-         hasSameLogs && hasSameEvmAddress && (mGas == rhs.mGas) && (mHbarAmount == rhs.mHbarAmount) &&
+         (mErrorMessage == rhs.mErrorMessage) && (mBloom == rhs.mBloom) && (mGasUsed == rhs.mGasUsed) && hasSameLogs &&
+         hasSameEvmAddress && (mGas == rhs.mGas) && (mHbarAmount == rhs.mHbarAmount) &&
          (mFunctionParameters == rhs.mFunctionParameters) && (mSenderAccountId == rhs.mSenderAccountId) &&
          (mContractNonces == rhs.mContractNonces) && (mSignerNonce == rhs.mSignerNonce);
 }
