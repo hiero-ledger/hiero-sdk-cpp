@@ -13,8 +13,8 @@
 const { createLogger, buildBotContext } = require('./helpers');
 const { handleAssign } = require('./commands/assign');
 const { handleUnassign } = require('./commands/unassign');
-const { handleFinalize } = require('./commands/finalize'); 
- 
+const { handleFinalize } = require('./commands/finalize');
+
 const KNOWN_COMMANDS = ['assign', 'unassign', 'finalize'];
 
 let logger = createLogger('on-comment');
@@ -30,7 +30,7 @@ let logger = createLogger('on-comment');
  * @param {string} body - The comment body.
  * @returns {{ commands?: string[], nearMiss?: string }} - List of command names (e.g. ['assign'] or []).
  */
- 
+
 function parseComment(body) {
   if (typeof body !== 'string') {
     return { commands: [] };
@@ -119,6 +119,6 @@ module.exports = async ({ github, context }) => {
     });
     throw error;
   }
-}; 
-  
+};
+
 module.exports.parseComment = parseComment;

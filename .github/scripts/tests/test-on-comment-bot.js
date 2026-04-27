@@ -4,7 +4,7 @@
 //
 // Unit tests for parseComment in bot-on-comment.js.
 // Run with: node .github/scripts/tests/test-on-comment-bot.js 
- 
+
 const { runTestSuite } = require('./test-utils');
 const { parseComment } = require('../bot-on-comment');
 
