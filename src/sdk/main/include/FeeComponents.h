@@ -332,7 +332,7 @@ private:
    * @param rhs The right-hand side FeeComponents to compare.
    * @return \c TRUE if \p lhs and \p rhs represent equivalent fee component values, otherwise \c FALSE.
    */
-  [[nodiscard]] friend bool operator==(const FeeComponents& lhs, const FeeComponents& rhs);
+  [[nodiscard]] bool operator==(const FeeComponents& rhs) const;
 };
 
 } // namespace Hiero
