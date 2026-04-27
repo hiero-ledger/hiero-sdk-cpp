@@ -18,13 +18,11 @@ const {
     getHighestIssueSkillLevel,
     countIssuesByAssignee,
     PRIORITY_HIERARCHY,
+    createDelegatingLogger,
 } = require('../helpers');
 
 // Logger delegation 
-const logger = {
-    log: (...args) => getLogger().log(...args),
-    error: (...args) => getLogger().error(...args),
-};
+const logger = createDelegatingLogger();
 
 /**
  * Groups issues by their matching difficulty level.
