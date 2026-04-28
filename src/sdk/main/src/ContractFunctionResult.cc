@@ -167,11 +167,11 @@ bool ContractFunctionResult::operator==(const ContractFunctionResult& rhs) const
                            std::equal(mLogs.cbegin(),
                                       mLogs.cend(),
                                       rhs.mLogs.cbegin(),
-                                      [](const ContractLogInfo& mLog, const ContractLogInfo& rhsLog)
+                                      [](const ContractLogInfo& lhsLog, const ContractLogInfo& rhsLog)
                                       {
-                                        return (mLog.mContractId == rhsLog.mContractId) &&
-                                               (mLog.mBloom == rhsLog.mBloom) && (mLog.mTopics == rhsLog.mTopics) &&
-                                               (mLog.mData == rhsLog.mData);
+                                        return (lhsLog.mContractId == rhsLog.mContractId) &&
+                                               (lhsLog.mBloom == rhsLog.mBloom) && (lhsLog.mTopics == rhsLog.mTopics) &&
+                                               (lhsLog.mData == rhsLog.mData);
                                       });
 
   return (mContractId == rhs.mContractId) && (mContractCallResult == rhs.mContractCallResult) &&
