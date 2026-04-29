@@ -57,6 +57,8 @@
 #include "topic/params/DeleteTopicParams.h"
 #include "topic/params/GetTopicInfoQueryParams.h"
 #include "topic/params/TopicMessageSubmitParams.h"
+#include "schedule/ScheduleService.h"
+#include "schedule/params/CreateScheduleParams.h"
 #include "json/JsonUtils.h"
 
 namespace Hiero::TCK
@@ -132,6 +134,9 @@ TckServer::TckServer(int port)
   mJsonRpcParser.addMethod("getFileContents", getHandle(FileService::getFileContents));
   mJsonRpcParser.addMethod("getFileInfo", getHandle(FileService::getFileInfo));
   mJsonRpcParser.addMethod("updateFile", getHandle(FileService::updateFile));
+
+  // Schedule Service
+  mJsonRpcParser.addMethod("createSchedule", getHandle(ScheduleService::createSchedule));
 
   setupHttpHandler();
   mServer.listen("localhost", port);
@@ -275,5 +280,7 @@ template TckServer::MethodHandle TckServer::getHandle<TopicService::GetTopicInfo
   nlohmann::json (*method)(const TopicService::GetTopicInfoQueryParams&));
 template TckServer::MethodHandle TckServer::getHandle<TopicService::TopicMessageSubmitParams>(
   nlohmann::json (*method)(const TopicService::TopicMessageSubmitParams&));
+template TckServer::MethodHandle TckServer::getHandle<ScheduleService::CreateScheduleParams>(
+  nlohmann::json (*method)(const ScheduleService::CreateScheduleParams&));
 
 } // namespace Hiero::TCK
