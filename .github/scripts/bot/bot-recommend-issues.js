@@ -14,14 +14,12 @@ const {
     ISSUE_STATE,
     hasLabel,
     postComment,
-    getLogger,
     getHighestIssueSkillLevel,
     countIssuesByAssignee,
     PRIORITY_HIERARCHY,
     createDelegatingLogger,
 } = require('../helpers');
 
-// Logger delegation 
 const logger = createDelegatingLogger();
 
 /**
