@@ -293,7 +293,7 @@ std::vector<uint16_t> Mnemonic::wordsToIndices(const std::vector<std::string>& w
 {
   std::vector<uint16_t> output;
 
-  for (const std::string& word : words)
+  for (std::string_view word : words)
   {
     output.push_back(getIndexFromWordString(word));
   }
