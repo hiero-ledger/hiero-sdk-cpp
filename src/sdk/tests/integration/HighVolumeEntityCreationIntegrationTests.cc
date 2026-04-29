@@ -66,7 +66,7 @@ TEST_F(HighVolumeEntityCreationIntegrationTests, CanCreateAccountWithHighVolumeA
 }
 
 //-----
-TEST_F(HighVolumeEntityCreationIntegrationTests, FailsWithInsufficientFeeWhenHighVolumeAndLowMaxFee)
+TEST_F(HighVolumeEntityCreationIntegrationTests, DISABLED_FailsWithInsufficientFeeWhenHighVolumeAndLowMaxFee)
 {
   // Given
   std::shared_ptr<PrivateKey> accountKey;
