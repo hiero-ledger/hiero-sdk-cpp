@@ -126,22 +126,24 @@ WrappedTransaction translateTransferCrypto(const nlohmann::json& params)
   {
     for (const TransferParams& txParams : transferParams.mTransfers.value())
     {
-      if (txParams.mHbar.has_value())
-      {
-        addHbarTransfer(transaction, txParams);
-      }
-      else if (txParams.mToken.has_value())
-      {
-        addTokenTransfer(transaction, txParams);
-      }
-      else
-      {
-        addNftTransfer(transaction, txParams);
-      }
+      if (txParams.mHbar.has_value()) addHbarTransfer(transaction, txParams);
+      else if (txParams.mToken.has_value()) addTokenTransfer(transaction, txParams);
+      else addNftTransfer(transaction, txParams);
     }
   }
 
   return WrappedTransaction(transaction);
+}
+
+/**
+ * Set account staking parameters.
+ */
+template<typename T, typename P>
+void setAccountStaking(T& tx, const P& p)
+{
+  if (p.mStakedAccountId.has_value()) tx.setStakedAccountId(AccountId::fromString(p.mStakedAccountId.value()));
+  if (p.mStakedNodeId.has_value()) tx.setStakedNodeId(internal::EntityIdHelper::getNum<int64_t>(p.mStakedNodeId.value()));
+  if (p.mDeclineStakingReward.has_value()) tx.setDeclineStakingReward(p.mDeclineStakingReward.value());
 }
 
 /**
@@ -159,11 +161,9 @@ WrappedTransaction translateCreateAccount(const nlohmann::json& params)
   if (p.mAutoRenewPeriod.has_value()) tx.setAutoRenewPeriod(parseSeconds(p.mAutoRenewPeriod));
   if (p.mMemo.has_value()) tx.setAccountMemo(p.mMemo.value());
   if (p.mMaxAutoTokenAssociations.has_value()) tx.setMaxAutomaticTokenAssociations(p.mMaxAutoTokenAssociations.value());
-  if (p.mStakedAccountId.has_value()) tx.setStakedAccountId(AccountId::fromString(p.mStakedAccountId.value()));
-  if (p.mStakedNodeId.has_value()) tx.setStakedNodeId(internal::EntityIdHelper::getNum<int64_t>(p.mStakedNodeId.value()));
-  if (p.mDeclineStakingReward.has_value()) tx.setDeclineStakingReward(p.mDeclineStakingReward.value());
   if (p.mAlias.has_value()) tx.setAlias(EvmAddress::fromString(p.mAlias.value()));
 
+  setAccountStaking(tx, p);
   return WrappedTransaction(tx);
 }
 
@@ -196,11 +196,33 @@ WrappedTransaction translateUpdateAccount(const nlohmann::json& params)
   if (p.mReceiverSignatureRequired.has_value()) tx.setReceiverSignatureRequired(p.mReceiverSignatureRequired.value());
   if (p.mMemo.has_value()) tx.setAccountMemo(p.mMemo.value());
   if (p.mMaxAutoTokenAssociations.has_value()) tx.setMaxAutomaticTokenAssociations(p.mMaxAutoTokenAssociations.value());
-  if (p.mStakedAccountId.has_value()) tx.setStakedAccountId(AccountId::fromString(p.mStakedAccountId.value()));
-  if (p.mStakedNodeId.has_value()) tx.setStakedNodeId(internal::EntityIdHelper::getNum<int64_t>(p.mStakedNodeId.value()));
-  if (p.mDeclineStakingReward.has_value()) tx.setDeclineStakingReward(p.mDeclineStakingReward.value());
 
+  setAccountStaking(tx, p);
   return WrappedTransaction(tx);
+}
+
+/**
+ * Set common token parameters.
+ */
+template<typename T, typename P>
+void setTokenKeys(T& tx, const P& p)
+{
+  if (p.mAdminKey.has_value()) tx.setAdminKey(KeyService::getHieroKey(p.mAdminKey.value()));
+  if (p.mKycKey.has_value()) tx.setKycKey(KeyService::getHieroKey(p.mKycKey.value()));
+  if (p.mFreezeKey.has_value()) tx.setFreezeKey(KeyService::getHieroKey(p.mFreezeKey.value()));
+  if (p.mWipeKey.has_value()) tx.setWipeKey(KeyService::getHieroKey(p.mWipeKey.value()));
+  if (p.mSupplyKey.has_value()) tx.setSupplyKey(KeyService::getHieroKey(p.mSupplyKey.value()));
+}
+
+/**
+ * Set common token renewal and memo parameters.
+ */
+template<typename T, typename P>
+void setTokenRenewAndMemo(T& tx, const P& p)
+{
+  if (p.mAutoRenewAccountId.has_value()) tx.setAutoRenewAccountId(AccountId::fromString(p.mAutoRenewAccountId.value()));
+  if (p.mAutoRenewPeriod.has_value()) tx.setAutoRenewPeriod(parseSeconds(p.mAutoRenewPeriod));
+  if (p.mMemo.has_value()) tx.setTokenMemo(p.mMemo.value());
 }
 
 /**
@@ -216,17 +238,11 @@ WrappedTransaction translateCreateToken(const nlohmann::json& params)
   if (p.mDecimals.has_value()) tx.setDecimals(p.mDecimals.value());
   if (p.mInitialSupply.has_value()) tx.setInitialSupply(internal::EntityIdHelper::getNum<int64_t>(p.mInitialSupply.value()));
   if (p.mTreasuryAccountId.has_value()) tx.setTreasuryAccountId(AccountId::fromString(p.mTreasuryAccountId.value()));
-  if (p.mAdminKey.has_value()) tx.setAdminKey(KeyService::getHieroKey(p.mAdminKey.value()));
-  if (p.mKycKey.has_value()) tx.setKycKey(KeyService::getHieroKey(p.mKycKey.value()));
-  if (p.mFreezeKey.has_value()) tx.setFreezeKey(KeyService::getHieroKey(p.mFreezeKey.value()));
-  if (p.mWipeKey.has_value()) tx.setWipeKey(KeyService::getHieroKey(p.mWipeKey.value()));
-  if (p.mSupplyKey.has_value()) tx.setSupplyKey(KeyService::getHieroKey(p.mSupplyKey.value()));
   if (p.mFreezeDefault.has_value()) tx.setFreezeDefault(p.mFreezeDefault.value());
   if (p.mExpirationTime.has_value()) tx.setExpirationTime(parseTime(p.mExpirationTime));
-  if (p.mAutoRenewAccountId.has_value()) tx.setAutoRenewAccountId(AccountId::fromString(p.mAutoRenewAccountId.value()));
-  if (p.mAutoRenewPeriod.has_value()) tx.setAutoRenewPeriod(parseSeconds(p.mAutoRenewPeriod));
-  if (p.mMemo.has_value()) tx.setTokenMemo(p.mMemo.value());
 
+  setTokenKeys(tx, p);
+  setTokenRenewAndMemo(tx, p);
   return WrappedTransaction(tx);
 }
 
@@ -255,16 +271,10 @@ WrappedTransaction translateUpdateToken(const nlohmann::json& params)
   if (p.mSymbol.has_value()) tx.setTokenSymbol(p.mSymbol.value());
   if (p.mName.has_value()) tx.setTokenName(p.mName.value());
   if (p.mTreasuryAccountId.has_value()) tx.setTreasuryAccountId(AccountId::fromString(p.mTreasuryAccountId.value()));
-  if (p.mAdminKey.has_value()) tx.setAdminKey(KeyService::getHieroKey(p.mAdminKey.value()));
-  if (p.mKycKey.has_value()) tx.setKycKey(KeyService::getHieroKey(p.mKycKey.value()));
-  if (p.mFreezeKey.has_value()) tx.setFreezeKey(KeyService::getHieroKey(p.mFreezeKey.value()));
-  if (p.mWipeKey.has_value()) tx.setWipeKey(KeyService::getHieroKey(p.mWipeKey.value()));
-  if (p.mSupplyKey.has_value()) tx.setSupplyKey(KeyService::getHieroKey(p.mSupplyKey.value()));
-  if (p.mAutoRenewAccountId.has_value()) tx.setAutoRenewAccountId(AccountId::fromString(p.mAutoRenewAccountId.value()));
-  if (p.mAutoRenewPeriod.has_value()) tx.setAutoRenewPeriod(parseSeconds(p.mAutoRenewPeriod));
   if (p.mExpirationTime.has_value()) tx.setExpirationTime(parseTime(p.mExpirationTime));
-  if (p.mMemo.has_value()) tx.setTokenMemo(p.mMemo.value());
 
+  setTokenKeys(tx, p);
+  setTokenRenewAndMemo(tx, p);
   return WrappedTransaction(tx);
 }
 
@@ -293,7 +303,7 @@ WrappedTransaction translateDeleteTopic(const nlohmann::json& params)
   const auto p = params.get<TopicService::DeleteTopicParams>();
   TopicDeleteTransaction tx;
 
-  if (p.mTopicId.has_value()) tx.setId(TopicId::fromString(p.mTopicId.value()));
+  if (p.mTopicId.has_value()) tx.setTopicId(TopicId::fromString(p.mTopicId.value()));
 
   return WrappedTransaction(tx);
 }
