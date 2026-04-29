@@ -34,18 +34,88 @@
 #include <impl/EntityIdHelper.h>
 
 #include <chrono>
+#include <functional>
 #include <nlohmann/json.hpp>
 #include <string>
+#include <unordered_map>
 
 namespace Hiero::TCK::ScheduleService
 {
 namespace
 {
+// Helper to parse seconds from string
+std::chrono::seconds parseSeconds(const std::optional<std::string>& secondsStr)
+{
+  return std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(secondsStr.value()));
+}
+
+// Helper to parse time from seconds string
+std::chrono::system_clock::time_point parseTime(const std::optional<std::string>& secondsStr)
+{
+  return std::chrono::system_clock::from_time_t(0) + parseSeconds(secondsStr);
+}
+
+/**
+ * Helper to add an Hbar transfer to a transaction.
+ */
+void addHbarTransfer(TransferTransaction& transaction, const TransferParams& txParams)
+{
+  const Hbar amount = Hbar::fromTinybars(internal::EntityIdHelper::getNum<int64_t>(txParams.mHbar->mAmount));
+  const bool approved = txParams.mApproved.has_value() && txParams.mApproved.value();
+
+  if (txParams.mHbar->mAccountId.has_value())
+  {
+    const AccountId accountId = AccountId::fromString(txParams.mHbar->mAccountId.value());
+    approved ? transaction.addApprovedHbarTransfer(accountId, amount) : transaction.addHbarTransfer(accountId, amount);
+  }
+  else
+  {
+    const EvmAddress evmAddress = EvmAddress::fromString(txParams.mHbar->mEvmAddress.value());
+    approved ? transaction.addApprovedHbarTransfer(AccountId::fromEvmAddress(evmAddress), amount)
+             : transaction.addHbarTransfer(evmAddress, amount);
+  }
+}
+
+/**
+ * Helper to add a Token transfer to a transaction.
+ */
+void addTokenTransfer(TransferTransaction& transaction, const TransferParams& txParams)
+{
+  const AccountId accountId = AccountId::fromString(txParams.mToken->mAccountId);
+  const TokenId tokenId = TokenId::fromString(txParams.mToken->mTokenId);
+  const auto amount = internal::EntityIdHelper::getNum<int64_t>(txParams.mToken->mAmount);
+  const bool approved = txParams.mApproved.has_value() && txParams.mApproved.value();
+
+  if (txParams.mToken->mDecimals.has_value())
+  {
+    const uint32_t decimals = txParams.mToken->mDecimals.value();
+    approved ? transaction.addApprovedTokenTransferWithDecimals(tokenId, accountId, amount, decimals)
+             : transaction.addTokenTransferWithDecimals(tokenId, accountId, amount, decimals);
+  }
+  else
+  {
+    approved ? transaction.addApprovedTokenTransfer(tokenId, accountId, amount)
+             : transaction.addTokenTransfer(tokenId, accountId, amount);
+  }
+}
+
+/**
+ * Helper to add an NFT transfer to a transaction.
+ */
+void addNftTransfer(TransferTransaction& transaction, const TransferParams& txParams)
+{
+  const AccountId senderAccountId = AccountId::fromString(txParams.mNft->mSenderAccountId);
+  const AccountId receiverAccountId = AccountId::fromString(txParams.mNft->mReceiverAccountId);
+  const NftId nftId = NftId(TokenId::fromString(txParams.mNft->mTokenId),
+                            internal::EntityIdHelper::getNum(txParams.mNft->mSerialNumber));
+  const bool approved = txParams.mApproved.has_value() && txParams.mApproved.value();
+
+  approved ? transaction.addApprovedNftTransfer(nftId, senderAccountId, receiverAccountId)
+           : transaction.addNftTransfer(nftId, senderAccountId, receiverAccountId);
+}
+
 /**
  * Translate a transferCrypto TCK JSON-RPC params into a WrappedTransaction.
- *
- * @param params The JSON object containing the params for the transferCrypto transaction.
- * @return The translated WrappedTransaction.
  */
 WrappedTransaction translateTransferCrypto(const nlohmann::json& params)
 {
@@ -56,84 +126,17 @@ WrappedTransaction translateTransferCrypto(const nlohmann::json& params)
   {
     for (const TransferParams& txParams : transferParams.mTransfers.value())
     {
-      const bool approved = txParams.mApproved.has_value() && txParams.mApproved.value();
-
       if (txParams.mHbar.has_value())
       {
-        const Hbar amount = Hbar::fromTinybars(internal::EntityIdHelper::getNum<int64_t>(txParams.mHbar->mAmount));
-
-        if (txParams.mHbar->mAccountId.has_value())
-        {
-          const AccountId accountId = AccountId::fromString(txParams.mHbar->mAccountId.value());
-
-          if (approved)
-          {
-            transaction.addApprovedHbarTransfer(accountId, amount);
-          }
-          else
-          {
-            transaction.addHbarTransfer(accountId, amount);
-          }
-        }
-        else
-        {
-          const EvmAddress evmAddress = EvmAddress::fromString(txParams.mHbar->mEvmAddress.value());
-
-          if (approved)
-          {
-            transaction.addApprovedHbarTransfer(AccountId::fromEvmAddress(evmAddress), amount);
-          }
-          else
-          {
-            transaction.addHbarTransfer(evmAddress, amount);
-          }
-        }
+        addHbarTransfer(transaction, txParams);
       }
       else if (txParams.mToken.has_value())
       {
-        const AccountId accountId = AccountId::fromString(txParams.mToken->mAccountId);
-        const TokenId tokenId = TokenId::fromString(txParams.mToken->mTokenId);
-        const auto amount = internal::EntityIdHelper::getNum<int64_t>(txParams.mToken->mAmount);
-
-        if (txParams.mToken->mDecimals.has_value())
-        {
-          const uint32_t decimals = txParams.mToken->mDecimals.value();
-          if (approved)
-          {
-            transaction.addApprovedTokenTransferWithDecimals(tokenId, accountId, amount, decimals);
-          }
-          else
-          {
-            transaction.addTokenTransferWithDecimals(tokenId, accountId, amount, decimals);
-          }
-        }
-        else
-        {
-          if (approved)
-          {
-            transaction.addApprovedTokenTransfer(tokenId, accountId, amount);
-          }
-          else
-          {
-            transaction.addTokenTransfer(tokenId, accountId, amount);
-          }
-        }
+        addTokenTransfer(transaction, txParams);
       }
       else
       {
-        const AccountId senderAccountId = AccountId::fromString(txParams.mNft->mSenderAccountId);
-        const AccountId receiverAccountId = AccountId::fromString(txParams.mNft->mReceiverAccountId);
-        const NftId nftId = NftId(TokenId::fromString(txParams.mNft->mTokenId),
-                                  internal::EntityIdHelper::getNum(txParams.mNft->mSerialNumber));
-
-        if (approved)
-        {
-          transaction.addApprovedNftTransfer(nftId, senderAccountId, receiverAccountId);
-        }
-        else
-        {
-          transaction.addNftTransfer(nftId, senderAccountId, receiverAccountId);
-        }
+        addNftTransfer(transaction, txParams);
       }
     }
   }
@@ -143,501 +146,197 @@ WrappedTransaction translateTransferCrypto(const nlohmann::json& params)
 
 /**
  * Translate a createAccount TCK JSON-RPC params into a WrappedTransaction.
- *
- * @param params The JSON object containing the params for the createAccount transaction.
- * @return The translated WrappedTransaction.
  */
 WrappedTransaction translateCreateAccount(const nlohmann::json& params)
 {
-  const auto createAccountParams = params.get<AccountService::CreateAccountParams>();
-  AccountCreateTransaction transaction;
+  const auto p = params.get<AccountService::CreateAccountParams>();
+  AccountCreateTransaction tx;
 
-  if (createAccountParams.mKey.has_value())
-  {
-    transaction.setKeyWithoutAlias(KeyService::getHieroKey(createAccountParams.mKey.value()));
-  }
+  if (p.mKey.has_value()) tx.setKeyWithoutAlias(KeyService::getHieroKey(p.mKey.value()));
+  if (p.mInitialBalance.has_value())
+    tx.setInitialBalance(Hbar(internal::EntityIdHelper::getNum<int64_t>(p.mInitialBalance.value()), HbarUnit::TINYBAR()));
+  if (p.mReceiverSignatureRequired.has_value()) tx.setReceiverSignatureRequired(p.mReceiverSignatureRequired.value());
+  if (p.mAutoRenewPeriod.has_value()) tx.setAutoRenewPeriod(parseSeconds(p.mAutoRenewPeriod));
+  if (p.mMemo.has_value()) tx.setAccountMemo(p.mMemo.value());
+  if (p.mMaxAutoTokenAssociations.has_value()) tx.setMaxAutomaticTokenAssociations(p.mMaxAutoTokenAssociations.value());
+  if (p.mStakedAccountId.has_value()) tx.setStakedAccountId(AccountId::fromString(p.mStakedAccountId.value()));
+  if (p.mStakedNodeId.has_value()) tx.setStakedNodeId(internal::EntityIdHelper::getNum<int64_t>(p.mStakedNodeId.value()));
+  if (p.mDeclineStakingReward.has_value()) tx.setDeclineStakingReward(p.mDeclineStakingReward.value());
+  if (p.mAlias.has_value()) tx.setAlias(EvmAddress::fromString(p.mAlias.value()));
 
-  if (createAccountParams.mInitialBalance.has_value())
-  {
-    transaction.setInitialBalance(
-      Hbar(internal::EntityIdHelper::getNum<int64_t>(createAccountParams.mInitialBalance.value()), HbarUnit::TINYBAR()));
-  }
-
-  if (createAccountParams.mReceiverSignatureRequired.has_value())
-  {
-    transaction.setReceiverSignatureRequired(createAccountParams.mReceiverSignatureRequired.value());
-  }
-
-  if (createAccountParams.mAutoRenewPeriod.has_value())
-  {
-    transaction.setAutoRenewPeriod(
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(createAccountParams.mAutoRenewPeriod.value())));
-  }
-
-  if (createAccountParams.mMemo.has_value())
-  {
-    transaction.setAccountMemo(createAccountParams.mMemo.value());
-  }
-
-  if (createAccountParams.mMaxAutoTokenAssociations.has_value())
-  {
-    transaction.setMaxAutomaticTokenAssociations(createAccountParams.mMaxAutoTokenAssociations.value());
-  }
-
-  if (createAccountParams.mStakedAccountId.has_value())
-  {
-    transaction.setStakedAccountId(AccountId::fromString(createAccountParams.mStakedAccountId.value()));
-  }
-
-  if (createAccountParams.mStakedNodeId.has_value())
-  {
-    transaction.setStakedNodeId(internal::EntityIdHelper::getNum<int64_t>(createAccountParams.mStakedNodeId.value()));
-  }
-
-  if (createAccountParams.mDeclineStakingReward.has_value())
-  {
-    transaction.setDeclineStakingReward(createAccountParams.mDeclineStakingReward.value());
-  }
-
-  if (createAccountParams.mAlias.has_value())
-  {
-    transaction.setAlias(EvmAddress::fromString(createAccountParams.mAlias.value()));
-  }
-
-  return WrappedTransaction(transaction);
+  return WrappedTransaction(tx);
 }
 
 /**
  * Translate a deleteAccount TCK JSON-RPC params into a WrappedTransaction.
- *
- * @param params The JSON object containing the params for the deleteAccount transaction.
- * @return The translated WrappedTransaction.
  */
 WrappedTransaction translateDeleteAccount(const nlohmann::json& params)
 {
-  const auto deleteAccountParams = params.get<AccountService::DeleteAccountParams>();
-  AccountDeleteTransaction transaction;
+  const auto p = params.get<AccountService::DeleteAccountParams>();
+  AccountDeleteTransaction tx;
 
-  if (deleteAccountParams.mDeleteAccountId.has_value())
-  {
-    transaction.setDeleteAccountId(AccountId::fromString(deleteAccountParams.mDeleteAccountId.value()));
-  }
+  if (p.mDeleteAccountId.has_value()) tx.setDeleteAccountId(AccountId::fromString(p.mDeleteAccountId.value()));
+  if (p.mTransferAccountId.has_value()) tx.setTransferAccountId(AccountId::fromString(p.mTransferAccountId.value()));
 
-  if (deleteAccountParams.mTransferAccountId.has_value())
-  {
-    transaction.setTransferAccountId(AccountId::fromString(deleteAccountParams.mTransferAccountId.value()));
-  }
-
-  return WrappedTransaction(transaction);
+  return WrappedTransaction(tx);
 }
 
 /**
  * Translate an updateAccount TCK JSON-RPC params into a WrappedTransaction.
- *
- * @param params The JSON object containing the params for the updateAccount transaction.
- * @return The translated WrappedTransaction.
  */
 WrappedTransaction translateUpdateAccount(const nlohmann::json& params)
 {
-  const auto updateAccountParams = params.get<AccountService::UpdateAccountParams>();
-  AccountUpdateTransaction transaction;
+  const auto p = params.get<AccountService::UpdateAccountParams>();
+  AccountUpdateTransaction tx;
 
-  if (updateAccountParams.mAccountId.has_value())
-  {
-    transaction.setAccountId(AccountId::fromString(updateAccountParams.mAccountId.value()));
-  }
+  if (p.mAccountId.has_value()) tx.setAccountId(AccountId::fromString(p.mAccountId.value()));
+  if (p.mKey.has_value()) tx.setKey(KeyService::getHieroKey(p.mKey.value()));
+  if (p.mAutoRenewPeriod.has_value()) tx.setAutoRenewPeriod(parseSeconds(p.mAutoRenewPeriod));
+  if (p.mExpirationTime.has_value()) tx.setExpirationTime(parseTime(p.mExpirationTime));
+  if (p.mReceiverSignatureRequired.has_value()) tx.setReceiverSignatureRequired(p.mReceiverSignatureRequired.value());
+  if (p.mMemo.has_value()) tx.setAccountMemo(p.mMemo.value());
+  if (p.mMaxAutoTokenAssociations.has_value()) tx.setMaxAutomaticTokenAssociations(p.mMaxAutoTokenAssociations.value());
+  if (p.mStakedAccountId.has_value()) tx.setStakedAccountId(AccountId::fromString(p.mStakedAccountId.value()));
+  if (p.mStakedNodeId.has_value()) tx.setStakedNodeId(internal::EntityIdHelper::getNum<int64_t>(p.mStakedNodeId.value()));
+  if (p.mDeclineStakingReward.has_value()) tx.setDeclineStakingReward(p.mDeclineStakingReward.value());
 
-  if (updateAccountParams.mKey.has_value())
-  {
-    transaction.setKey(KeyService::getHieroKey(updateAccountParams.mKey.value()));
-  }
-
-  if (updateAccountParams.mAutoRenewPeriod.has_value())
-  {
-    transaction.setAutoRenewPeriod(
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(updateAccountParams.mAutoRenewPeriod.value())));
-  }
-
-  if (updateAccountParams.mExpirationTime.has_value())
-  {
-    transaction.setExpirationTime(
-      std::chrono::system_clock::from_time_t(0) +
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(updateAccountParams.mExpirationTime.value())));
-  }
-
-  if (updateAccountParams.mReceiverSignatureRequired.has_value())
-  {
-    transaction.setReceiverSignatureRequired(updateAccountParams.mReceiverSignatureRequired.value());
-  }
-
-  if (updateAccountParams.mMemo.has_value())
-  {
-    transaction.setAccountMemo(updateAccountParams.mMemo.value());
-  }
-
-  if (updateAccountParams.mMaxAutoTokenAssociations.has_value())
-  {
-    transaction.setMaxAutomaticTokenAssociations(updateAccountParams.mMaxAutoTokenAssociations.value());
-  }
-
-  if (updateAccountParams.mStakedAccountId.has_value())
-  {
-    transaction.setStakedAccountId(AccountId::fromString(updateAccountParams.mStakedAccountId.value()));
-  }
-
-  if (updateAccountParams.mStakedNodeId.has_value())
-  {
-    transaction.setStakedNodeId(internal::EntityIdHelper::getNum<int64_t>(updateAccountParams.mStakedNodeId.value()));
-  }
-
-  if (updateAccountParams.mDeclineStakingReward.has_value())
-  {
-    transaction.setDeclineStakingReward(updateAccountParams.mDeclineStakingReward.value());
-  }
-
-  return WrappedTransaction(transaction);
+  return WrappedTransaction(tx);
 }
 
 /**
  * Translate a createToken TCK JSON-RPC params into a WrappedTransaction.
- *
- * @param params The JSON object containing the params for the createToken transaction.
- * @return The translated WrappedTransaction.
  */
 WrappedTransaction translateCreateToken(const nlohmann::json& params)
 {
-  const auto createTokenParams = params.get<TokenService::CreateTokenParams>();
-  TokenCreateTransaction transaction;
+  const auto p = params.get<TokenService::CreateTokenParams>();
+  TokenCreateTransaction tx;
 
-  if (createTokenParams.mName.has_value())
-  {
-    transaction.setTokenName(createTokenParams.mName.value());
-  }
+  if (p.mName.has_value()) tx.setTokenName(p.mName.value());
+  if (p.mSymbol.has_value()) tx.setTokenSymbol(p.mSymbol.value());
+  if (p.mDecimals.has_value()) tx.setDecimals(p.mDecimals.value());
+  if (p.mInitialSupply.has_value()) tx.setInitialSupply(internal::EntityIdHelper::getNum<int64_t>(p.mInitialSupply.value()));
+  if (p.mTreasuryAccountId.has_value()) tx.setTreasuryAccountId(AccountId::fromString(p.mTreasuryAccountId.value()));
+  if (p.mAdminKey.has_value()) tx.setAdminKey(KeyService::getHieroKey(p.mAdminKey.value()));
+  if (p.mKycKey.has_value()) tx.setKycKey(KeyService::getHieroKey(p.mKycKey.value()));
+  if (p.mFreezeKey.has_value()) tx.setFreezeKey(KeyService::getHieroKey(p.mFreezeKey.value()));
+  if (p.mWipeKey.has_value()) tx.setWipeKey(KeyService::getHieroKey(p.mWipeKey.value()));
+  if (p.mSupplyKey.has_value()) tx.setSupplyKey(KeyService::getHieroKey(p.mSupplyKey.value()));
+  if (p.mFreezeDefault.has_value()) tx.setFreezeDefault(p.mFreezeDefault.value());
+  if (p.mExpirationTime.has_value()) tx.setExpirationTime(parseTime(p.mExpirationTime));
+  if (p.mAutoRenewAccountId.has_value()) tx.setAutoRenewAccountId(AccountId::fromString(p.mAutoRenewAccountId.value()));
+  if (p.mAutoRenewPeriod.has_value()) tx.setAutoRenewPeriod(parseSeconds(p.mAutoRenewPeriod));
+  if (p.mMemo.has_value()) tx.setTokenMemo(p.mMemo.value());
 
-  if (createTokenParams.mSymbol.has_value())
-  {
-    transaction.setTokenSymbol(createTokenParams.mSymbol.value());
-  }
-
-  if (createTokenParams.mDecimals.has_value())
-  {
-    transaction.setDecimals(createTokenParams.mDecimals.value());
-  }
-
-  if (createTokenParams.mInitialSupply.has_value())
-  {
-    transaction.setInitialSupply(internal::EntityIdHelper::getNum<int64_t>(createTokenParams.mInitialSupply.value()));
-  }
-
-  if (createTokenParams.mTreasuryAccountId.has_value())
-  {
-    transaction.setTreasuryAccountId(AccountId::fromString(createTokenParams.mTreasuryAccountId.value()));
-  }
-
-  if (createTokenParams.mAdminKey.has_value())
-  {
-    transaction.setAdminKey(KeyService::getHieroKey(createTokenParams.mAdminKey.value()));
-  }
-
-  if (createTokenParams.mKycKey.has_value())
-  {
-    transaction.setKycKey(KeyService::getHieroKey(createTokenParams.mKycKey.value()));
-  }
-
-  if (createTokenParams.mFreezeKey.has_value())
-  {
-    transaction.setFreezeKey(KeyService::getHieroKey(createTokenParams.mFreezeKey.value()));
-  }
-
-  if (createTokenParams.mWipeKey.has_value())
-  {
-    transaction.setWipeKey(KeyService::getHieroKey(createTokenParams.mWipeKey.value()));
-  }
-
-  if (createTokenParams.mSupplyKey.has_value())
-  {
-    transaction.setSupplyKey(KeyService::getHieroKey(createTokenParams.mSupplyKey.value()));
-  }
-
-  if (createTokenParams.mFreezeDefault.has_value())
-  {
-    transaction.setFreezeDefault(createTokenParams.mFreezeDefault.value());
-  }
-
-  if (createTokenParams.mExpirationTime.has_value())
-  {
-    transaction.setExpirationTime(
-      std::chrono::system_clock::from_time_t(0) +
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(createTokenParams.mExpirationTime.value())));
-  }
-
-  if (createTokenParams.mAutoRenewAccountId.has_value())
-  {
-    transaction.setAutoRenewAccountId(AccountId::fromString(createTokenParams.mAutoRenewAccountId.value()));
-  }
-
-  if (createTokenParams.mAutoRenewPeriod.has_value())
-  {
-    transaction.setAutoRenewPeriod(
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(createTokenParams.mAutoRenewPeriod.value())));
-  }
-
-  if (createTokenParams.mMemo.has_value())
-  {
-    transaction.setTokenMemo(createTokenParams.mMemo.value());
-  }
-
-  return WrappedTransaction(transaction);
+  return WrappedTransaction(tx);
 }
 
 /**
  * Translate a deleteToken TCK JSON-RPC params into a WrappedTransaction.
- *
- * @param params The JSON object containing the params for the deleteToken transaction.
- * @return The translated WrappedTransaction.
  */
 WrappedTransaction translateDeleteToken(const nlohmann::json& params)
 {
-  const auto deleteTokenParams = params.get<TokenService::DeleteTokenParams>();
-  TokenDeleteTransaction transaction;
+  const auto p = params.get<TokenService::DeleteTokenParams>();
+  TokenDeleteTransaction tx;
 
-  if (deleteTokenParams.mTokenId.has_value())
-  {
-    transaction.setTokenId(TokenId::fromString(deleteTokenParams.mTokenId.value()));
-  }
+  if (p.mTokenId.has_value()) tx.setTokenId(TokenId::fromString(p.mTokenId.value()));
 
-  return WrappedTransaction(transaction);
+  return WrappedTransaction(tx);
 }
 
 /**
  * Translate an updateToken TCK JSON-RPC params into a WrappedTransaction.
- *
- * @param params The JSON object containing the params for the updateToken transaction.
- * @return The translated WrappedTransaction.
  */
 WrappedTransaction translateUpdateToken(const nlohmann::json& params)
 {
-  const auto updateTokenParams = params.get<TokenService::UpdateTokenParams>();
-  TokenUpdateTransaction transaction;
+  const auto p = params.get<TokenService::UpdateTokenParams>();
+  TokenUpdateTransaction tx;
 
-  if (updateTokenParams.mTokenId.has_value())
-  {
-    transaction.setTokenId(TokenId::fromString(updateTokenParams.mTokenId.value()));
-  }
+  if (p.mTokenId.has_value()) tx.setTokenId(TokenId::fromString(p.mTokenId.value()));
+  if (p.mSymbol.has_value()) tx.setTokenSymbol(p.mSymbol.value());
+  if (p.mName.has_value()) tx.setTokenName(p.mName.value());
+  if (p.mTreasuryAccountId.has_value()) tx.setTreasuryAccountId(AccountId::fromString(p.mTreasuryAccountId.value()));
+  if (p.mAdminKey.has_value()) tx.setAdminKey(KeyService::getHieroKey(p.mAdminKey.value()));
+  if (p.mKycKey.has_value()) tx.setKycKey(KeyService::getHieroKey(p.mKycKey.value()));
+  if (p.mFreezeKey.has_value()) tx.setFreezeKey(KeyService::getHieroKey(p.mFreezeKey.value()));
+  if (p.mWipeKey.has_value()) tx.setWipeKey(KeyService::getHieroKey(p.mWipeKey.value()));
+  if (p.mSupplyKey.has_value()) tx.setSupplyKey(KeyService::getHieroKey(p.mSupplyKey.value()));
+  if (p.mAutoRenewAccountId.has_value()) tx.setAutoRenewAccountId(AccountId::fromString(p.mAutoRenewAccountId.value()));
+  if (p.mAutoRenewPeriod.has_value()) tx.setAutoRenewPeriod(parseSeconds(p.mAutoRenewPeriod));
+  if (p.mExpirationTime.has_value()) tx.setExpirationTime(parseTime(p.mExpirationTime));
+  if (p.mMemo.has_value()) tx.setTokenMemo(p.mMemo.value());
 
-  if (updateTokenParams.mSymbol.has_value())
-  {
-    transaction.setTokenSymbol(updateTokenParams.mSymbol.value());
-  }
-
-  if (updateTokenParams.mName.has_value())
-  {
-    transaction.setTokenName(updateTokenParams.mName.value());
-  }
-
-  if (updateTokenParams.mTreasuryAccountId.has_value())
-  {
-    transaction.setTreasuryAccountId(AccountId::fromString(updateTokenParams.mTreasuryAccountId.value()));
-  }
-
-  if (updateTokenParams.mAdminKey.has_value())
-  {
-    transaction.setAdminKey(KeyService::getHieroKey(updateTokenParams.mAdminKey.value()));
-  }
-
-  if (updateTokenParams.mKycKey.has_value())
-  {
-    transaction.setKycKey(KeyService::getHieroKey(updateTokenParams.mKycKey.value()));
-  }
-
-  if (updateTokenParams.mFreezeKey.has_value())
-  {
-    transaction.setFreezeKey(KeyService::getHieroKey(updateTokenParams.mFreezeKey.value()));
-  }
-
-  if (updateTokenParams.mWipeKey.has_value())
-  {
-    transaction.setWipeKey(KeyService::getHieroKey(updateTokenParams.mWipeKey.value()));
-  }
-
-  if (updateTokenParams.mSupplyKey.has_value())
-  {
-    transaction.setSupplyKey(KeyService::getHieroKey(updateTokenParams.mSupplyKey.value()));
-  }
-
-  if (updateTokenParams.mAutoRenewAccountId.has_value())
-  {
-    transaction.setAutoRenewAccountId(AccountId::fromString(updateTokenParams.mAutoRenewAccountId.value()));
-  }
-
-  if (updateTokenParams.mAutoRenewPeriod.has_value())
-  {
-    transaction.setAutoRenewPeriod(
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(updateTokenParams.mAutoRenewPeriod.value())));
-  }
-
-  if (updateTokenParams.mExpirationTime.has_value())
-  {
-    transaction.setExpirationTime(
-      std::chrono::system_clock::from_time_t(0) +
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(updateTokenParams.mExpirationTime.value())));
-  }
-
-  if (updateTokenParams.mMemo.has_value())
-  {
-    transaction.setTokenMemo(updateTokenParams.mMemo.value());
-  }
-
-  return WrappedTransaction(transaction);
+  return WrappedTransaction(tx);
 }
 
 /**
  * Translate a createTopic TCK JSON-RPC params into a WrappedTransaction.
- *
- * @param params The JSON object containing the params for the createTopic transaction.
- * @return The translated WrappedTransaction.
  */
 WrappedTransaction translateCreateTopic(const nlohmann::json& params)
 {
-  const auto createTopicParams = params.get<TopicService::CreateTopicParams>();
-  TopicCreateTransaction transaction;
+  const auto p = params.get<TopicService::CreateTopicParams>();
+  TopicCreateTransaction tx;
 
-  if (createTopicParams.mMemo.has_value())
-  {
-    transaction.setMemo(createTopicParams.mMemo.value());
-  }
+  if (p.mMemo.has_value()) tx.setMemo(p.mMemo.value());
+  if (p.mAdminKey.has_value()) tx.setAdminKey(KeyService::getHieroKey(p.mAdminKey.value()));
+  if (p.mSubmitKey.has_value()) tx.setSubmitKey(KeyService::getHieroKey(p.mSubmitKey.value()));
+  if (p.mAutoRenewPeriod.has_value()) tx.setAutoRenewPeriod(parseSeconds(p.mAutoRenewPeriod));
+  if (p.mAutoRenewAccount.has_value()) tx.setAutoRenewAccountId(AccountId::fromString(p.mAutoRenewAccount.value()));
 
-  if (createTopicParams.mAdminKey.has_value())
-  {
-    transaction.setAdminKey(KeyService::getHieroKey(createTopicParams.mAdminKey.value()));
-  }
-
-  if (createTopicParams.mSubmitKey.has_value())
-  {
-    transaction.setSubmitKey(KeyService::getHieroKey(createTopicParams.mSubmitKey.value()));
-  }
-
-  if (createTopicParams.mAutoRenewPeriod.has_value())
-  {
-    transaction.setAutoRenewPeriod(
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(createTopicParams.mAutoRenewPeriod.value())));
-  }
-
-  if (createTopicParams.mAutoRenewAccount.has_value())
-  {
-    transaction.setAutoRenewAccountId(AccountId::fromString(createTopicParams.mAutoRenewAccount.value()));
-  }
-
-  return WrappedTransaction(transaction);
+  return WrappedTransaction(tx);
 }
 
 /**
  * Translate a deleteTopic TCK JSON-RPC params into a WrappedTransaction.
- *
- * @param params The JSON object containing the params for the deleteTopic transaction.
- * @return The translated WrappedTransaction.
  */
 WrappedTransaction translateDeleteTopic(const nlohmann::json& params)
 {
-  const auto deleteTopicParams = params.get<TopicService::DeleteTopicParams>();
-  TopicDeleteTransaction transaction;
+  const auto p = params.get<TopicService::DeleteTopicParams>();
+  TopicDeleteTransaction tx;
 
-  if (deleteTopicParams.mTopicId.has_value())
-  {
-    transaction.setTopicId(TopicId::fromString(deleteTopicParams.mTopicId.value()));
-  }
+  if (p.mTopicId.has_value()) tx.setId(TopicId::fromString(p.mTopicId.value()));
 
-  return WrappedTransaction(transaction);
+  return WrappedTransaction(tx);
 }
 
 /**
  * Translate a submitTopicMessage TCK JSON-RPC params into a WrappedTransaction.
- *
- * @param params The JSON object containing the params for the submitTopicMessage transaction.
- * @return The translated WrappedTransaction.
  */
 WrappedTransaction translateSubmitTopicMessage(const nlohmann::json& params)
 {
-  const auto submitParams = params.get<TopicService::TopicMessageSubmitParams>();
-  TopicMessageSubmitTransaction transaction;
+  const auto p = params.get<TopicService::TopicMessageSubmitParams>();
+  TopicMessageSubmitTransaction tx;
 
-  if (submitParams.mTopicId.has_value())
-  {
-    transaction.setTopicId(TopicId::fromString(submitParams.mTopicId.value()));
-  }
+  if (p.mTopicId.has_value()) tx.setTopicId(TopicId::fromString(p.mTopicId.value()));
+  if (p.mMessage.has_value()) tx.setMessage(p.mMessage.value());
+  if (p.mMaxChunks.has_value()) tx.setMaxChunks(static_cast<int>(p.mMaxChunks.value()));
 
-  if (submitParams.mMessage.has_value())
-  {
-    transaction.setMessage(submitParams.mMessage.value());
-  }
-
-  if (submitParams.mMaxChunks.has_value())
-  {
-    transaction.setMaxChunks(static_cast<int>(submitParams.mMaxChunks.value()));
-  }
-
-  return WrappedTransaction(transaction);
+  return WrappedTransaction(tx);
 }
 
 /**
  * Translate a TCK JSON-RPC scheduled transaction into a WrappedTransaction.
- *
- * @param json The JSON object containing the method and params for the scheduled transaction.
- * @return The translated WrappedTransaction.
  */
 WrappedTransaction translateScheduledTransaction(const nlohmann::json& json)
 {
+  static const std::unordered_map<std::string, std::function<WrappedTransaction(const nlohmann::json&)>> dispatcher = {
+    {"transferCrypto",       translateTransferCrypto     },
+    { "createAccount",       translateCreateAccount      },
+    { "deleteAccount",       translateDeleteAccount      },
+    { "updateAccount",       translateUpdateAccount      },
+    { "createToken",         translateCreateToken        },
+    { "deleteToken",         translateDeleteToken        },
+    { "updateToken",         translateUpdateToken        },
+    { "createTopic",         translateCreateTopic        },
+    { "deleteTopic",         translateDeleteTopic        },
+    { "submitTopicMessage",  translateSubmitTopicMessage }
+  };
+
   const std::string method = json.at("method").get<std::string>();
-  const nlohmann::json params = json.at("params");
+  const auto it = dispatcher.find(method);
 
-  if (method == "transferCrypto")
+  if (it != dispatcher.end())
   {
-    return translateTransferCrypto(params);
-  }
-
-  if (method == "createAccount")
-  {
-    return translateCreateAccount(params);
-  }
-
-  if (method == "deleteAccount")
-  {
-    return translateDeleteAccount(params);
-  }
-
-  if (method == "updateAccount")
-  {
-    return translateUpdateAccount(params);
-  }
-
-  if (method == "createToken")
-  {
-    return translateCreateToken(params);
-  }
-
-  if (method == "deleteToken")
-  {
-    return translateDeleteToken(params);
-  }
-
-  if (method == "updateToken")
-  {
-    return translateUpdateToken(params);
-  }
-
-  if (method == "createTopic")
-  {
-    return translateCreateTopic(params);
-  }
-
-  if (method == "deleteTopic")
-  {
-    return translateDeleteTopic(params);
-  }
-
-  if (method == "submitTopicMessage")
-  {
-    return translateSubmitTopicMessage(params);
+    return it->second(json.at("params"));
   }
 
   throw std::invalid_argument("Unsupported scheduled transaction method: " + method);
@@ -650,32 +349,12 @@ nlohmann::json createSchedule(const CreateScheduleParams& params)
   ScheduleCreateTransaction scheduleCreateTransaction;
   scheduleCreateTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
 
-  if (params.mMemo.has_value())
-  {
-    scheduleCreateTransaction.setScheduleMemo(params.mMemo.value());
-  }
-
-  if (params.mAdminKey.has_value())
-  {
-    scheduleCreateTransaction.setAdminKey(KeyService::getHieroKey(params.mAdminKey.value()));
-  }
-
+  if (params.mMemo.has_value()) scheduleCreateTransaction.setScheduleMemo(params.mMemo.value());
+  if (params.mAdminKey.has_value()) scheduleCreateTransaction.setAdminKey(KeyService::getHieroKey(params.mAdminKey.value()));
   if (params.mPayerAccountId.has_value())
-  {
     scheduleCreateTransaction.setPayerAccountId(AccountId::fromString(params.mPayerAccountId.value()));
-  }
-
-  if (params.mExpirationTime.has_value())
-  {
-    scheduleCreateTransaction.setExpirationTime(
-      std::chrono::system_clock::from_time_t(0) +
-      std::chrono::seconds(internal::EntityIdHelper::getNum<int64_t>(params.mExpirationTime.value())));
-  }
-
-  if (params.mWaitForExpiry.has_value())
-  {
-    scheduleCreateTransaction.setWaitForExpiry(params.mWaitForExpiry.value());
-  }
+  if (params.mExpirationTime.has_value()) scheduleCreateTransaction.setExpirationTime(parseTime(params.mExpirationTime));
+  if (params.mWaitForExpiry.has_value()) scheduleCreateTransaction.setWaitForExpiry(params.mWaitForExpiry.value());
 
   scheduleCreateTransaction.setScheduledTransaction(translateScheduledTransaction(params.mScheduledTransaction));
 
