@@ -29,6 +29,8 @@
 #include "file/params/UpdateFileParams.h"
 #include "key/KeyService.h"
 #include "key/params/GenerateKeyParams.h"
+#include "schedule/ScheduleService.h"
+#include "schedule/params/CreateScheduleParams.h"
 #include "sdk/SdkClient.h"
 #include "sdk/params/ResetParams.h"
 #include "sdk/params/SetupParams.h"
@@ -57,8 +59,6 @@
 #include "topic/params/DeleteTopicParams.h"
 #include "topic/params/GetTopicInfoQueryParams.h"
 #include "topic/params/TopicMessageSubmitParams.h"
-#include "schedule/ScheduleService.h"
-#include "schedule/params/CreateScheduleParams.h"
 #include "json/JsonUtils.h"
 
 namespace Hiero::TCK
