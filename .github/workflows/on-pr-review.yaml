@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
-  checks: write
 
 jobs:
   on-pr-review:
@@ -21,16 +19,15 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
-        with:
-          egress-policy: audit
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40
 
-      - name: Checkout Repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Save review event
+        run: |
+          echo '{"pr_number":${{ github.event.pull_request.number }}, "review_state":"${{ github.event.review.state }}"}' > review-event.json
 
-      - name: Run Bot
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      - name: Upload review event
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          script: |
-            const script = require('./.github/scripts/bot-on-pr-review.js');
-            await script({ github, context });
+          name: review-event-${{ github.run_id }}
+          path: review-event.json
+          retention-days: 1

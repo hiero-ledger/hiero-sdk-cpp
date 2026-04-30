@@ -1,0 +1,38 @@
+name: Bot - On PR Review (Labels)
+
+on:
+  workflow_run:
+    workflows: ["Bot - On PR Review"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  run-bot:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: hiero-client-sdk-linux-large
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40
+
+      - name: Checkout default branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Download artifact
+        uses: actions/download-artifact@3f3d89d98d4b1c8b2cdd5e17739fb8bcbac2b0c7
+        with:
+          name: review-event-${{ github.event.workflow_run.id }}
+
+      - name: Run bot
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        with:
+          script: |
+            const script = require('./.github/scripts/bot-on-pr-review-labels.js');
+            await script({ github, context });
