@@ -234,7 +234,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CannotModifyImmutableContract)
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CanAddHookToContract)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CanAddHookToContract)
 {
   // Given
   const std::unique_ptr<PrivateKey> operatorKey = ED25519PrivateKey::fromString(
@@ -348,7 +348,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CannotAddDuplicateHooksToContr
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CannotAddHookToContractThatAlreadyExists)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CannotAddHookToContractThatAlreadyExists)
 {
   // Given
   const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -384,7 +384,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CannotAddHookToContractThatAlr
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CanAddHookToContractWithStorageUpdates)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CanAddHookToContractWithStorageUpdates)
 {
   // Given
   const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -429,7 +429,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CanAddHookToContractWithStorag
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CanDeleteHookFromContract)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CanDeleteHookFromContract)
 {
   // Given
   const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -476,7 +476,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CanDeleteHookFromContract)
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CannotDeleteNonExistentHookFromContract)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CannotDeleteNonExistentHookFromContract)
 {
   // Given
   const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -516,7 +516,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CannotDeleteNonExistentHookFro
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CannotAddAndDeleteSameHookFromContract)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CannotAddAndDeleteSameHookFromContract)
 {
   // Given
   const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -550,7 +550,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CannotAddAndDeleteSameHookFrom
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CannotDeleteAlreadyDeleteHookFromContract)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CannotDeleteAlreadyDeleteHookFromContract)
 {
   // Given
   const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();

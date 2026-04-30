@@ -24,8 +24,6 @@ private:
 };
 
 //-----
-
-//-----
 TEST_F(ScheduleIdUnitTests, ConstructWithScheduleNum)
 {
   // Given / When
@@ -50,8 +48,6 @@ TEST_F(ScheduleIdUnitTests, ConstructWithShardRealmScheduleNum)
 }
 
 //-----
-
-//-----
 TEST_F(ScheduleIdUnitTests, CompareScheduleIds)
 {
   // Given / When / Then
@@ -66,8 +62,6 @@ TEST_F(ScheduleIdUnitTests, CompareScheduleIds)
   EXPECT_FALSE(ScheduleId(getTestShardNum(), getTestRealmNum(), getTestScheduleNum()) ==
                ScheduleId(getTestShardNum(), getTestRealmNum() - 1ULL, getTestScheduleNum()));
 }
-
-//-----
 
 //-----
 TEST_F(ScheduleIdUnitTests, FromStringWithValidShardRealmNum)
@@ -145,8 +139,6 @@ TEST_F(ScheduleIdUnitTests, FromStringThrowsWithNonNumericInput)
 }
 
 //-----
-
-//-----
 TEST_F(ScheduleIdUnitTests, FromProtobuf)
 {
   // Given
@@ -217,8 +209,6 @@ TEST_F(ScheduleIdUnitTests, ToBytes)
   // Then
   EXPECT_EQ(protoBytes, bytes);
 }
-
-//-----
 
 //-----
 TEST_F(ScheduleIdUnitTests, ToString)

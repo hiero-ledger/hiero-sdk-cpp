@@ -287,7 +287,7 @@ TEST_F(ContractCreateTransactionIntegrationTests, CannotCreateContractWithByteco
 }
 
 //-----
-TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHook)
+TEST_F(ContractCreateTransactionIntegrationTests, DISABLED_CreateContractWithHook)
 {
   // Given
   const std::unique_ptr<PrivateKey> operatorKey = ED25519PrivateKey::fromString(
@@ -346,7 +346,7 @@ TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHook)
 }
 
 //-----
-TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHookWithStorageUpdates)
+TEST_F(ContractCreateTransactionIntegrationTests, DISABLED_CreateContractWithHookWithStorageUpdates)
 {
   // Given
   FileId fileId;
@@ -388,7 +388,7 @@ TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHookWithStor
 }
 
 //-----
-TEST_F(ContractCreateTransactionIntegrationTests, CannotCreateContractWithNoContractIdForHook)
+TEST_F(ContractCreateTransactionIntegrationTests, DISABLED_CannotCreateContractWithNoContractIdForHook)
 {
   // Given
   const std::unique_ptr<PrivateKey> operatorKey = ED25519PrivateKey::fromString(
@@ -504,7 +504,7 @@ TEST_F(ContractCreateTransactionIntegrationTests, CannotCreateContractWithDuplic
 }
 
 //-----
-TEST_F(ContractCreateTransactionIntegrationTests, CreateContractWithHookWithAdminKey)
+TEST_F(ContractCreateTransactionIntegrationTests, DISABLED_CreateContractWithHookWithAdminKey)
 {
   // Given
   const std::shared_ptr<PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();

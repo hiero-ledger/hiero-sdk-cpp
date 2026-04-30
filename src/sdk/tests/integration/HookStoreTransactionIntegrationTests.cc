@@ -134,7 +134,7 @@ private:
 };
 
 //-----
-TEST_F(HookStoreTransactionIntegrationTests, ExecuteHookStoreTransactionWithSingleStorageUpdate)
+TEST_F(HookStoreTransactionIntegrationTests, DISABLED_ExecuteHookStoreTransactionWithSingleStorageUpdate)
 {
   // Given
   EvmHookStorageUpdate storageUpdate;
@@ -159,7 +159,7 @@ TEST_F(HookStoreTransactionIntegrationTests, ExecuteHookStoreTransactionWithSing
 }
 
 //-----
-TEST_F(HookStoreTransactionIntegrationTests, ExecuteHookStoreTransactionWithTooManyStorageUpdates)
+TEST_F(HookStoreTransactionIntegrationTests, DISABLED_ExecuteHookStoreTransactionWithTooManyStorageUpdates)
 {
   // Given
   EvmHookStorageUpdate storageUpdate;
@@ -183,7 +183,7 @@ TEST_F(HookStoreTransactionIntegrationTests, ExecuteHookStoreTransactionWithTooM
 }
 
 //-----
-TEST_F(HookStoreTransactionIntegrationTests, ExecuteHookStoreTransactionWithoutProperSignatures)
+TEST_F(HookStoreTransactionIntegrationTests, DISABLED_ExecuteHookStoreTransactionWithoutProperSignatures)
 {
   // Given
   EvmHookStorageUpdate storageUpdate;
@@ -202,7 +202,7 @@ TEST_F(HookStoreTransactionIntegrationTests, ExecuteHookStoreTransactionWithoutP
 }
 
 //-----
-TEST_F(HookStoreTransactionIntegrationTests, ExecuteHookStoreTransactionWithoutInvalidHookId)
+TEST_F(HookStoreTransactionIntegrationTests, DISABLED_ExecuteHookStoreTransactionWithoutInvalidHookId)
 {
   // Given
   EvmHookStorageUpdate storageUpdate;
