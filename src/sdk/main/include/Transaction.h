@@ -144,6 +144,22 @@ public:
   [[nodiscard]] inline const std::shared_ptr<Key>& getBatchKey() { return mImpl->mBatchKey; }
 
   /**
+   * Set whether this Transaction should use high-volume entity creation throttles and pricing.
+   *
+   * @param highVolume \c TRUE if this Transaction should use high-volume throttles and pricing, otherwise \c FALSE.
+   * @return A reference to this derived Transaction object with the newly-set high-volume flag.
+   * @throws IllegalStateException If this Transaction is frozen.
+   */
+  SdkRequestType& setHighVolume(bool highVolume);
+
+  /**
+   * Get whether this Transaction uses high-volume entity creation throttles and pricing.
+   *
+   * @return \c TRUE if this Transaction uses high-volume throttles and pricing, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool getHighVolume() const;
+
+  /**
    * Add a signature to this Transaction.
    *
    * @param publicKey The associated PublicKey of the PrivateKey that generated the signature.

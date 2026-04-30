@@ -187,6 +187,11 @@ struct Transaction<SdkRequestType>::TransactionImpl
    */
 
   bool mTransactionIdManualSet = false;
+
+  /**
+   * Whether this transaction uses high-volume entity creation throttles and pricing.
+   */
+  bool mHighVolume = false;
 };
 
 //-----
@@ -553,6 +558,22 @@ SdkRequestType& Transaction<SdkRequestType>::setBatchKey(const std::shared_ptr<K
   }
 
   return static_cast<SdkRequestType&>(*this);
+}
+
+//-----
+template<typename SdkRequestType>
+SdkRequestType& Transaction<SdkRequestType>::setHighVolume(bool highVolume)
+{
+  requireNotFrozen();
+  mImpl->mHighVolume = highVolume;
+  return static_cast<SdkRequestType&>(*this);
+}
+
+//-----
+template<typename SdkRequestType>
+bool Transaction<SdkRequestType>::getHighVolume() const
+{
+  return mImpl->mHighVolume;
 }
 
 //-----
@@ -1103,6 +1124,8 @@ Transaction<SdkRequestType>::Transaction(const proto::TransactionBody& txBody)
     mImpl->mBatchKey = Key::fromProtobuf(txBody.batch_key());
   }
 
+  mImpl->mHighVolume = txBody.high_volume();
+
   mImpl->mSourceTransactionBody = txBody;
 }
 
@@ -1227,6 +1250,8 @@ Transaction<SdkRequestType>::Transaction(
   {
     mImpl->mBatchKey = Key::fromProtobuf(mImpl->mSourceTransactionBody.batch_key());
   }
+
+  mImpl->mHighVolume = mImpl->mSourceTransactionBody.high_volume();
 }
 
 //-----
@@ -1297,6 +1322,8 @@ void Transaction<SdkRequestType>::updateSourceTransactionBody(const Client* clie
   {
     mImpl->mSourceTransactionBody.set_allocated_batch_key(mImpl->mBatchKey->toProtobufKey().release());
   }
+
+  mImpl->mSourceTransactionBody.set_high_volume(mImpl->mHighVolume);
 
   // Add derived Transaction fields to mSourceTransactionBody.
   addToBody(mImpl->mSourceTransactionBody);

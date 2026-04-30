@@ -53,6 +53,7 @@ TEST_F(TransactionRecordUnitTests, FromProtobuf)
   protoTransactionRecord.set_ethereum_hash(internal::Utilities::byteVectorToString(ethereumHash));
   protoTransactionRecord.set_prng_bytes(internal::Utilities::byteVectorToString(prngBytes));
   protoTransactionRecord.set_evm_address(internal::Utilities::byteVectorToString(testEvmAddressBytes));
+  protoTransactionRecord.set_high_volume_pricing_multiplier(1500ULL);
 
   proto::ContractFunctionResult* contractFunctionResult = protoTransactionRecord.mutable_contractcallresult();
   contractFunctionResult->set_allocated_contractid(contractId.toProtobuf().release());
@@ -177,4 +178,6 @@ TEST_F(TransactionRecordUnitTests, FromProtobuf)
 
   ASSERT_TRUE(txRecord.mEvmAddress.has_value());
   EXPECT_EQ(txRecord.mEvmAddress->toBytes(), testEvmAddressBytes);
+
+  EXPECT_EQ(txRecord.mHighVolumePricingMultiplier, 1500ULL);
 }

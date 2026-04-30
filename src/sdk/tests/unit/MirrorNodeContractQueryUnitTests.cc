@@ -13,8 +13,6 @@ protected:
 };
 
 //-----
-
-//-----
 TEST_F(MirrorNodeContractQueryUnitTests, SetContractId)
 {
   // Given
@@ -148,8 +146,6 @@ TEST_F(MirrorNodeContractQueryUnitTests, SetEstimate)
   // Then
   EXPECT_EQ(query.getEstimate(), estimate);
 }
-
-//-----
 
 //-----
 TEST_F(MirrorNodeContractQueryUnitTests, ToJson)

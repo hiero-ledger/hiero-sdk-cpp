@@ -20,8 +20,6 @@ private:
 };
 
 //-----
-
-//-----
 TEST_F(TokenIdUnitTests, ConstructWithTokenNum)
 {
   // Given / When
@@ -46,8 +44,6 @@ TEST_F(TokenIdUnitTests, ConstructWithShardRealmTokenNum)
 }
 
 //-----
-
-//-----
 TEST_F(TokenIdUnitTests, CompareTokenIds)
 {
   // Given / When / Then
@@ -56,8 +52,6 @@ TEST_F(TokenIdUnitTests, CompareTokenIds)
   EXPECT_TRUE(TokenId(getTestShardNum(), getTestRealmNum(), getTestTokenNum()) ==
               TokenId(getTestShardNum(), getTestRealmNum(), getTestTokenNum()));
 }
-
-//-----
 
 //-----
 TEST_F(TokenIdUnitTests, FromStringWithValidShardRealmNum)
@@ -128,8 +122,6 @@ TEST_F(TokenIdUnitTests, FromStringThrowsWithNonNumericInput)
 }
 
 //-----
-
-//-----
 TEST_F(TokenIdUnitTests, ProtobufSerializeTokenId)
 {
   // Given
@@ -166,8 +158,6 @@ TEST_F(TokenIdUnitTests, ProtobufDeserializeTokenId)
   EXPECT_EQ(tokenId.mRealmNum, newRealm);
   EXPECT_EQ(tokenId.mTokenNum, newToken);
 }
-
-//-----
 
 //-----
 TEST_F(TokenIdUnitTests, ToStringDefaultTokenId)

@@ -34,8 +34,6 @@ private:
 };
 
 //-----
-
-//-----
 TEST_F(AccountIdUnitTests, ConstructWithAccountNum)
 {
   // Given / When
@@ -156,8 +154,6 @@ TEST_F(AccountIdUnitTests, ConstructWithShardRealmEvmAddress)
 }
 
 //-----
-
-//-----
 TEST_F(AccountIdUnitTests, EqualAccountIdsAreEqual)
 {
   // Given / When / Then
@@ -221,8 +217,6 @@ TEST_F(AccountIdUnitTests, DifferentIdentifierTypesAreNotEqual)
   EXPECT_FALSE(AccountId(getTestShardNum(), getTestRealmNum(), getTestEcdsaSecp256k1Alias()) ==
                AccountId(getTestShardNum(), getTestRealmNum(), getTestEvmAddressAlias()));
 }
-
-//-----
 
 //-----
 TEST_F(AccountIdUnitTests, FromStringWithValidShardRealmNum)
@@ -406,8 +400,6 @@ TEST_F(AccountIdUnitTests, FromStringThrowsWithEvmAddressInWrongPosition)
 }
 
 //-----
-
-//-----
 TEST_F(AccountIdUnitTests, FromEvmAddress)
 {
   // Given / When
@@ -431,8 +423,6 @@ TEST_F(AccountIdUnitTests, FromEvmAddress)
   EXPECT_EQ(accountIdFromEvmAddress.mEvmAddressAlias->toBytes(),
             accountIdFromEvmAddressStr.mEvmAddressAlias->toBytes());
 }
-
-//-----
 
 //-----
 TEST_F(AccountIdUnitTests, ProtobufSerializeDeserializeAccountNum)
@@ -555,8 +545,6 @@ TEST_F(AccountIdUnitTests, ProtobufSerializeDeserializeEvmAddress)
   EXPECT_TRUE(accountId.mEvmAddressAlias.has_value());
   EXPECT_EQ(accountId.mEvmAddressAlias->toBytes(), testBytes);
 }
-
-//-----
 
 //-----
 TEST_F(AccountIdUnitTests, ToStringDefaultAccountId)
