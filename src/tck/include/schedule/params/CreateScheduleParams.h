@@ -3,8 +3,8 @@
 #define HIERO_TCK_CPP_CREATE_SCHEDULE_PARAMS_H_
 
 #include "common/CommonTransactionParams.h"
-#include "json/JsonUtils.h"
 #include "nlohmann/json.hpp"
+#include "json/JsonUtils.h"
 
 #include <optional>
 #include <string>
