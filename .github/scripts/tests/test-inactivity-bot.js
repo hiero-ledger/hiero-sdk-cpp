@@ -193,11 +193,11 @@ function makeAssignedEvent(createdAt) {
   return { event: 'assigned', created_at: createdAt };
 }
 
-function makeComment(userLogin, createdAt, { isBot = false } = {}) {
+function makeComment(userLogin, createdAt, { isBot = false, body = null } = {}) {
   return {
     id: Math.floor(Math.random() * 100000),
     user: { login: userLogin, type: isBot ? 'Bot' : 'User' },
-    body: `Comment from ${userLogin}`,
+    body: body || `Comment from ${userLogin}`,
     created_at: createdAt,
   };
 }
@@ -899,6 +899,131 @@ const scenarios = [
       linkedIssueCleaned: [91],
       assigneesRemovedOn: [90, 91],
       commentsCreatedCount: 2,
+    },
+  },
+
+  // ── 29 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: comment on linked issue — no action (not stale)',
+    description: 'A participant comment on a linked issue should reset PR inactivity.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(500, {
+          createdAt: daysAgo(8),
+          assignees: ['alice'],
+          authorLogin: 'alice',
+          body: 'Fixes #501',
+        }),
+      ],
+      assignedIssues: [
+        makeIssue(501, {
+          createdAt: daysAgo(8),
+          assignees: ['alice'],
+          labels: [LABELS.IN_PROGRESS],
+        }),
+      ],
+      commentsByNumber: {
+        501: [makeComment('alice', daysAgo(1), { body: '/working' })],
+      },
+      eventsByNumber: {
+        501: [makeAssignedEvent(daysAgo(8))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 30 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: regular comment on linked issue — no action (not stale)',
+    description: 'Any participant comment on linked issue should reset the clock.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(510, {
+          createdAt: daysAgo(8),
+          assignees: ['bob'],
+          authorLogin: 'bob',
+          body: 'Fixes #511',
+        }),
+      ],
+      assignedIssues: [
+        makeIssue(511, {
+          createdAt: daysAgo(8),
+          assignees: ['bob'],
+          labels: [LABELS.IN_PROGRESS],
+        }),
+      ],
+      commentsByNumber: {
+        511: [makeComment('bob', daysAgo(1), { body: 'Still working on this, will update soon!' })],
+      },
+      eventsByNumber: {
+        511: [makeAssignedEvent(daysAgo(8))],
+      },
+    }),
+    expect: {
+      itemsClosed: [],
+      commentsCreated: 0,
+      labelsAdded: 0,
+      assigneesRemoved: 0,
+    },
+  },
+
+  // ── 31 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: no linked issues — stale behavior unchanged',
+    description: 'A PR with no linked issues should behave exactly as before.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(520, {
+          createdAt: daysAgo(8),
+          assignees: ['charlie'],
+          authorLogin: 'charlie',
+          body: 'Add new feature',
+        }),
+      ],
+    }),
+    expect: {
+      itemsClosed: [520],
+      closureCommentOn: [520],
+      assigneesRemoved: [{ issue_number: 520, assignees: ['charlie'] }],
+    },
+  },
+
+  // ── 32 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR: non-participant comment on linked issue — still stale, closed',
+    description: 'A comment from someone who is not the PR author/assignee must not reset inactivity.',
+    github: createMockGithub({
+      openPRs: [
+        makePR(530, {
+          createdAt: daysAgo(8),
+          assignees: ['diana'],
+          authorLogin: 'diana',
+          body: 'Fixes #531',
+        }),
+      ],
+      assignedIssues: [
+        makeIssue(531, {
+          createdAt: daysAgo(8),
+          assignees: ['diana'],
+          labels: [LABELS.IN_PROGRESS],
+        }),
+      ],
+      commentsByNumber: {
+        531: [makeComment('outsider', daysAgo(1), { body: 'Any update here?' })],
+      },
+      eventsByNumber: {
+        531: [makeAssignedEvent(daysAgo(8))],
+      },
+    }),
+    expect: {
+      itemsClosed: [530],
+      closureCommentOn: [530],
+      assigneesRemoved: [{ issue_number: 530, assignees: ['diana'] }],
     },
   },
 ];
