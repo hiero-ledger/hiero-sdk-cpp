@@ -359,3 +359,21 @@ TEST_F(ClientUnitTests, NetworkUpdateThreadDoesNotDeadlockOnClose)
   // Then — if we reach here without hanging, no deadlock occurred.
   SUCCEED();
 }
+
+//-----
+TEST_F(ClientUnitTests, NetworkUpdateThreadSkipsUpdateWhenNoNetworkConfigured)
+{
+  // Given — a Client with no mirror/consensus network and a very short update
+  // period. This forces the bg thread past wait_for and into the body of
+  // scheduleNetworkUpdate(), exercising the null-network continue guard.
+  Client client;
+  client.setNetworkUpdatePeriod(std::chrono::milliseconds(50));
+
+  // When — let several update cycles fire.
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+  // Then — the update period is preserved and the mutex is not stuck.
+  // getNetworkUpdatePeriod() acquires mMutex, so it would hang if the bg
+  // thread were holding the lock.
+  EXPECT_EQ(client.getNetworkUpdatePeriod(), std::chrono::milliseconds(50));
+}

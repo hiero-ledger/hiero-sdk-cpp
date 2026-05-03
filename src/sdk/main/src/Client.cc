@@ -1159,9 +1159,9 @@ void Client::scheduleNetworkUpdate()
   // Network updates should keep occurring until they're cancelled.
   while (true)
   {
-    // Wait for the update period while holding the lock (condition_variable
-    // requires the lock). If the wait was NOT cancelled (returns false), we
-    // need to perform a network update.
+    // wait_for returns true  if the predicate fired (cancelled) --> should NOT update
+    // wait_for returns false if the timeout expired             --> should update
+    // Negate so that shouldUpdate == true means "run the update".
     bool shouldUpdate = false;
     {
       std::unique_lock lock(mImpl->mMutex);
