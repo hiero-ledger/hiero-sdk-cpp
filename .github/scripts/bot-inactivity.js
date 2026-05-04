@@ -10,6 +10,7 @@
 //
 // Activity signals that reset the 5-day clock:
 //   - A non-bot comment on the item by the author or any assignee
+//   - A non-bot comment by PR participants on a linked issue
 //   - A commit pushed to a PR branch by the PR author
 //   - Removal of the "status: blocked" label (unblocking counts as activity)
 //
@@ -232,8 +233,8 @@ async function getLastAssignedDate(github, owner, repo, number) {
 
 /**
  * Computes the last meaningful activity timestamp (ms) for a PR.
- * Considers: relevant comments (by PR author/assignees), commits by the PR
- * author, and removal of the blocked label.
+ * Considers: relevant comments (by PR author/assignees) on the PR and its
+ * linked issues, commits by the PR author, and removal of the blocked label.
  *
  * Also used by computeIssueLastActivity when evaluating linked open PRs.
  *
@@ -254,6 +255,12 @@ async function computePRLastActivity(github, owner, repo, pr) {
 
   if (pr.user?.login) {
     const d = await getLastAuthorCommitDate(github, owner, repo, pr.number, pr.user.login);
+    latest = latestOf(latest, d);
+  }
+
+  const linkedIssueNums = parseIssueNumbers(pr.body || '');
+  for (const issueNum of linkedIssueNums) {
+    const d = await getLastRelevantCommentDate(github, owner, repo, issueNum, participants);
     latest = latestOf(latest, d);
   }
 
@@ -306,13 +313,17 @@ function buildWarningComment(assigneeLogins, itemType) {
     ? assigneeLogins.map(l => `@${l}`).join(', ')
     : 'there';
 
+  const activityHint = itemType === 'PR'
+    ? 'To stay active, leave a comment on this PR or the linked **issue**, or push a new commit.'
+    : "If you're still on it, leave a comment to let us know!";
+
   return [
     WARN_MARKER,
     `👋 Hey ${mentions}! This ${itemType} has been inactive for 5 days.`,
     '',
     'Are you still working on this? We will close this in 2 days if we see no further activity.',
     '',
-    "If you're still on it, leave a comment to let us know! If you'd like to step down, comment `/unassign`.",
+    `${activityHint} If you'd like to step down, comment \`/unassign\`.`,
   ].join('\n');
 }
 

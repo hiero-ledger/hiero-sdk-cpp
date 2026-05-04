@@ -52,7 +52,10 @@ async function checkSiblingConflictsOnMerge(globalBotContext) {
     if (currentlyShowsConflict !== actuallyHasConflict) {
       logger.log(`PR #${pr.number} conflict status changed to ${actuallyHasConflict ? 'conflicted' : 'clean'}, updating...`);
       const { allPassed } = await runAllChecksAndComment(prContext, { merge: mergeResult });
-      await swapStatusLabel(prContext, allPassed);
+      const swapResult = await swapStatusLabel(prContext, allPassed);
+      if (!swapResult.success) {
+        logger.error(`Failed to swap status label for PR #${pr.number}: ${swapResult.errorDetails}`);
+      }
 
       // Post a standalone notification when a conflict is newly introduced
       if (!currentlyShowsConflict && actuallyHasConflict) {

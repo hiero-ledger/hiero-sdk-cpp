@@ -485,24 +485,32 @@ async function fetchClosingIssueNumbers(botContext) {
  * @param {object} botContext
  * @param {boolean} allPassed
  * @param {{ force?: boolean }} [options]
- * @returns {Promise<void>}
+ * @returns {Promise<{ success: boolean, errorDetails: string }>}
  */
 async function swapStatusLabel(botContext, allPassed, { force = false } = {}) {
   const pr = botContext.pr;
   const labelToAdd = allPassed ? LABELS.NEEDS_REVIEW : LABELS.NEEDS_REVISION;
   const labelToRemove = allPassed ? LABELS.NEEDS_REVISION : LABELS.NEEDS_REVIEW;
+  const errors = [];
 
-  if (force) {
-    if (hasLabel(pr, labelToRemove)) {
-      await removeLabel(botContext, labelToRemove);
-    }
-    await addLabels(botContext, [labelToAdd]);
-  } else {
-    if (hasLabel(pr, labelToRemove)) {
-      await removeLabel(botContext, labelToRemove);
-      await addLabels(botContext, [labelToAdd]);
+  const shouldRemove = hasLabel(pr, labelToRemove);
+  const shouldAdd = force || shouldRemove;
+
+  if (shouldRemove) {
+    const removeResult = await removeLabel(botContext, labelToRemove);
+    if (!removeResult.success) {
+      errors.push(`Failed to remove '${labelToRemove}': ${removeResult.error}`);
     }
   }
+
+  if (shouldAdd) {
+    const addResult = await addLabels(botContext, [labelToAdd]);
+    if (!addResult.success) {
+      errors.push(`Failed to add '${labelToAdd}': ${addResult.error}`);
+    }
+  }
+
+  return { success: errors.length === 0, errorDetails: errors.join('; ') };
 }
 
 /**
