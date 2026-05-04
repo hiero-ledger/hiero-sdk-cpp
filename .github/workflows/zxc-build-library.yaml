@@ -148,7 +148,7 @@ jobs:
       - name: Install Linux Prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y pkg-config libc6-dbg libgtest-dev build-essential
+          sudo apt-get install -y pkg-config libc6-dbg libgtest-dev build-essential mold
 
       - name: Ensure Binary Cache Path Exists
         run: mkdir -p "${{ github.workspace }}/b/vcpkg_cache"
@@ -177,7 +177,7 @@ jobs:
           echo "::endgroup::"
 
           echo "::group::Build Project"
-          ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-debug
+          ${{ steps.cgroup.outputs.exec }} cmake --build -j 4 --preset ${{ matrix.preset }}-debug
           echo "::endgroup::"
 
       - name: CMake Build (Release)
@@ -191,7 +191,7 @@ jobs:
           echo "::endgroup::"
 
           echo "::group::Build Project"
-          ${{ steps.cgroup.outputs.exec }} cmake --build -j 6 --preset ${{ matrix.preset }}-release
+          ${{ steps.cgroup.outputs.exec }} cmake --build -j 4 --preset ${{ matrix.preset }}-release
           echo "::endgroup::"
 
       - name: Prepare Hiero Solo
