@@ -46,7 +46,7 @@ function parseComment(body) {
     }
 
     // near miss
-    if (new RegExp(`^/${command}\\s+`, 'i').test(trimmed)) {
+    if (new RegExp(`^/${command}\\b`, 'i').test(trimmed)) {
       logger.log(`parseComment: near miss /${command}`);
       return { nearMiss: command };
     }
