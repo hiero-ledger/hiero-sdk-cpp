@@ -87,7 +87,7 @@ public:
    */
   [[nodiscard]] inline const std::string& getDomainName() const { return mDomainName; }
 
-friend bool operator==(const Endpoint& lhs, const Endpoint& rhs);
+[[nodiscard]] bool operator==(const Endpoint& other) const;
 
 private:
   /**
