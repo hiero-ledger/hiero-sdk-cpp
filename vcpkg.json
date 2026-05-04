@@ -17,7 +17,7 @@
     },
     {
       "name": "protobuf",
-      "version>=": "3.21.6"
+      "version>=": "6.33.4"
     },
     {
       "name": "grpc",
