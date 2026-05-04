@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
         with:
           egress-policy: audit
 
@@ -28,7 +28,7 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
 
       - name: Download artifact
-        uses: actions/download-artifact@3f3d89d98d4b1c8b2cdd5e17739fb8bcbac2b0c7 # v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: review-event-${{ github.event.workflow_run.id }}
 
