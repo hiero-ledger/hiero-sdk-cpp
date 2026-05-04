@@ -119,7 +119,7 @@ public:
    * @param rhs The second TokenNftTransfer.
    * @return \c TRUE if the two transfers are the same, otherwise \c FALSE.
    */
-  [[nodiscard]] friend bool operator==(const TokenNftTransfer& lhs, const TokenNftTransfer& rhs);
+  friend bool operator==(const TokenNftTransfer& lhs, const TokenNftTransfer& rhs);
 
   /**
    * The ID of the NFT.
