@@ -88,7 +88,6 @@ public:
   /**
    * Compare two ContractFunctionResult objects for equality.
    *
-   * @param lhs The left-hand-side ContractFunctionResult.
    * @param rhs The right-hand-side ContractFunctionResult.
    * @return \c TRUE if both objects contain the same values, otherwise \c FALSE.
    */

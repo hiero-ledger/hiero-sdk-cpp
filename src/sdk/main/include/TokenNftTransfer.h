@@ -115,7 +115,6 @@ public:
   /**
    * Compare two TokenNftTransfer objects and determine if they represent the same transfer.
    *
-   * @param lhs The first TokenNftTransfer.
    * @param rhs The second TokenNftTransfer.
    * @return \c TRUE if the two transfers are the same, otherwise \c FALSE.
    */
