@@ -693,7 +693,7 @@ nlohmann::json deleteSchedule(const DeleteScheduleParams& params)
   return {
     {"status",
      gStatusToString.at(
-       scheduleDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
+        scheduleDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)}
   };
 }
 
