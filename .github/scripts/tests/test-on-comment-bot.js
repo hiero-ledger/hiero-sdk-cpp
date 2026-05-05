@@ -38,6 +38,10 @@ const unitTests = [
     test: () => deepEqual(parseComment('/finalize now'), { nearMiss: 'finalize' }),
   },
   {
+    name: 'near miss assign non-whitespace separator',
+    test: () => deepEqual(parseComment('/assign!'), { nearMiss: 'assign' }),
+  },
+  {
     name: 'unrelated comment',
     test: () => deepEqual(parseComment('hello'), { commands: [] }),
   },
