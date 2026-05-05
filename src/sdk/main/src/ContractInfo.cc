@@ -193,13 +193,9 @@ bool ContractInfo::operator==(const ContractInfo& other) const
     }
 
     const auto& otherRel = it->second;
-    if (!(rel.mTokenId == otherRel.mTokenId) ||
-        rel.mSymbol != otherRel.mSymbol ||
-        rel.mBalance != otherRel.mBalance ||
-        rel.mDecimals != otherRel.mDecimals ||
-        !(rel.mKycStatus == otherRel.mKycStatus) ||
-        !(rel.mFreezeStatus == otherRel.mFreezeStatus) ||
-        rel.mAutomaticAssociation != otherRel.mAutomaticAssociation)
+    if (!(rel.mTokenId == otherRel.mTokenId) || rel.mSymbol != otherRel.mSymbol || rel.mBalance != otherRel.mBalance ||
+        rel.mDecimals != otherRel.mDecimals || !(rel.mKycStatus == otherRel.mKycStatus) ||
+        !(rel.mFreezeStatus == otherRel.mFreezeStatus) || rel.mAutomaticAssociation != otherRel.mAutomaticAssociation)
     {
       return false;
     }
