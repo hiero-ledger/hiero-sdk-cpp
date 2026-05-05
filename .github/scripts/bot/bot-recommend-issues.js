@@ -156,6 +156,25 @@ function buildRecommendationErrorComment(username) {
 }
 
 /**
+ * Builds a maintainer nudge comment when no issues are available.
+ *
+ * @param {string} username
+ * @param {string} targetLevel
+ * @returns {string}
+ */
+function buildMaintainerNudgeComment(username, targetLevel) {
+    return [
+        `👋 Hi @${username}!`,
+        '',
+        `It looks like there are currently no open issues available at the **${targetLevel}** level.`,
+        '',
+        `${MAINTAINER_TEAM} — could you please create or finalize some issues at the **${targetLevel}** level so they have a clear next step?`,
+        '',
+        `Thanks for your contributions!`,
+    ].join('\n');
+}
+
+/**
  * Checks whether a contributor qualifies for a level via bypass.
  *
  * A contributor passes the bypass check if they have at least one closed
@@ -475,6 +494,9 @@ async function handleRecommendIssues(botContext) {
 
     if (issues.length === 0) {
         logger.log('recommendation.empty', { user: username });
+        const targetLevel = unlockedLevel || skillLevel;
+        const comment = buildMaintainerNudgeComment(username, targetLevel);
+        await postComment(botContext, comment);
         return;
     }
 
@@ -502,4 +524,5 @@ module.exports = {
     getRecommendedIssues,
     resolveEligibleLevel,
     detectUnlockedLevel,
+    buildMaintainerNudgeComment,
 };

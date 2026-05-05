@@ -12,6 +12,7 @@ const {
   getRecommendedIssues,
   resolveEligibleLevel,
   detectUnlockedLevel,
+  buildMaintainerNudgeComment,
 } = require('../bot/bot-recommend-issues');
 
 // =============================================================================
@@ -505,6 +506,19 @@ const unitTests = [
   },
 
   // ---------------------------------------------------------------------------
+  // Comment Builders
+  // ---------------------------------------------------------------------------
+  {
+    name: 'buildMaintainerNudgeComment: returns properly formatted message with team tag and nextLevel',
+    test: async () => {
+      const result = buildMaintainerNudgeComment('alice', LABELS.SKILL_BEGINNER);
+      return result.includes('@alice') &&
+             result.includes(MAINTAINER_TEAM) &&
+             result.includes(`**${LABELS.SKILL_BEGINNER}**`);
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // handleRecommendIssues — short-circuit cases
   // ---------------------------------------------------------------------------
   {
@@ -534,15 +548,17 @@ const unitTests = [
     },
   },
   {
-    name: 'handleRecommendIssues: no matching issues at eligible level → no comment',
+    name: 'handleRecommendIssues: no matching issues at eligible level → maintainer nudge comment',
     test: async () => {
       const { botContext, calls } = createMockBotContext({
+        sender: { login: 'user' },
         issue: makeIssue([BEGINNER, LABELS.READY_FOR_DEV]),
         closedCounts: {},
         searchItems: [],
       });
       await handleRecommendIssues(botContext);
-      return calls.comments.length === 0;
+      const expected = buildMaintainerNudgeComment('user', BEGINNER);
+      return calls.comments.length === 1 && calls.comments[0] === expected;
     },
   },
   {
