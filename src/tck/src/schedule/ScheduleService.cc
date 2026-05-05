@@ -10,6 +10,7 @@
 #include "key/KeyService.h"
 #include "schedule/params/CreateScheduleParams.h"
 #include "schedule/params/DeleteScheduleParams.h"
+#include "schedule/params/GetScheduleInfoParams.h"
 #include "sdk/SdkClient.h"
 #include "token/params/BurnTokenParams.h"
 #include "token/params/CreateTokenParams.h"
@@ -28,6 +29,9 @@
 #include <ScheduleCreateTransaction.h>
 #include <ScheduleDeleteTransaction.h>
 #include <ScheduleId.h>
+#include <ScheduleInfo.h>
+#include <ScheduleInfoQuery.h>
+#include <Key.h>
 #include <TokenBurnTransaction.h>
 #include <TokenCreateTransaction.h>
 #include <TokenDeleteTransaction.h>
@@ -42,6 +46,8 @@
 #include <WrappedTransaction.h>
 #include <impl/EntityIdHelper.h>
 #include <impl/HexConverter.h>
+#include <impl/Utilities.h>
+#include <services/basic_types.pb.h>
 
 #include <chrono>
 #include <functional>
@@ -738,6 +744,79 @@ nlohmann::json createSchedule(const CreateScheduleParams& params)
     {"status",      gStatusToString.at(txReceipt.mStatus)   },
     { "scheduleId", txReceipt.mScheduleId.value().toString()}
   };
+}
+
+//-----
+/**
+ * Build and configure a ScheduleInfoQuery from the given params.
+ */
+ScheduleInfoQuery buildScheduleInfoQuery(const GetScheduleInfoParams& params)
+{
+  ScheduleInfoQuery query;
+  query.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mScheduleId.has_value())
+  {
+    query.setScheduleId(ScheduleId::fromString(params.mScheduleId.value()));
+  }
+  if (params.mQueryPayment.has_value())
+  {
+    query.setQueryPayment(Hbar::fromTinybars(std::stoll(params.mQueryPayment.value())));
+  }
+  if (params.mMaxQueryPayment.has_value())
+  {
+    query.setMaxQueryPayment(Hbar::fromTinybars(std::stoll(params.mMaxQueryPayment.value())));
+  }
+
+  return query;
+}
+
+//-----
+nlohmann::json getScheduleInfo(const GetScheduleInfoParams& params)
+{
+  const ScheduleInfo info = buildScheduleInfoQuery(params).execute(SdkClient::getClient());
+
+  nlohmann::json response;
+
+  response["scheduleId"]             = info.mScheduleId.toString();
+  response["scheduledTransactionId"] = info.mScheduledTransactionId.toString();
+  response["creatorAccountId"]       = info.mCreatorAccountId.toString();
+  response["payerAccountId"]         = info.mPayerAccountId.toString();
+
+  if (info.mAdminKey)
+  {
+    response["adminKey"] = internal::HexConverter::bytesToHex(info.mAdminKey->toBytes());
+  }
+
+  response["signers"] = nlohmann::json::array();
+  const auto signatoryProto = info.mSignatories.toProtobuf();
+  for (int i = 0; i < signatoryProto->keys_size(); ++i)
+  {
+    response["signers"].push_back(
+      internal::HexConverter::bytesToHex(Key::fromProtobuf(signatoryProto->keys(i))->toBytes()));
+  }
+
+  response["scheduleMemo"]  = info.mMemo;
+  response["waitForExpiry"] = info.mWaitForExpiry;
+  response["expirationTime"] =
+    std::to_string(std::chrono::duration_cast<std::chrono::seconds>(
+      info.mExpirationTime.time_since_epoch()).count());
+
+  if (info.mExecutionTime.has_value())
+  {
+    response["executedAt"] =
+      std::to_string(std::chrono::duration_cast<std::chrono::seconds>(
+        info.mExecutionTime.value().time_since_epoch()).count());
+  }
+
+  if (info.mDeletionTime.has_value())
+  {
+    response["deleted"] =
+      std::to_string(std::chrono::duration_cast<std::chrono::seconds>(
+        info.mDeletionTime.value().time_since_epoch()).count());
+  }
+
+  return response;
 }
 
 } // namespace Hiero::TCK::ScheduleService
