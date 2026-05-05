@@ -119,9 +119,6 @@ TckServer::TckServer(int port)
   mJsonRpcParser.addMethod("getTopicInfo", getHandle(TopicService::getTopicInfo));
   mJsonRpcParser.addMethod("submitTopicMessage", getHandle(TopicService::submitTopicMessage));
 
-  // Schedule Service
-  mJsonRpcParser.addMethod("deleteSchedule", getHandle(ScheduleService::deleteSchedule));
-
   // Contract Service
   mJsonRpcParser.addMethod("createContract", getHandle(ContractService::createContract));
   mJsonRpcParser.addMethod("contractByteCodeQuery", getHandle(ContractService::contractByteCodeQuery));
@@ -141,6 +138,7 @@ TckServer::TckServer(int port)
 
   // Schedule Service
   mJsonRpcParser.addMethod("createSchedule", getHandle(ScheduleService::createSchedule));
+  mJsonRpcParser.addMethod("deleteSchedule", getHandle(ScheduleService::deleteSchedule));
 
   setupHttpHandler();
   mServer.listen("localhost", port);

@@ -9,16 +9,8 @@ namespace Hiero::TCK::ScheduleService
 /**
  * Forward declarations.
  */
-struct DeleteScheduleParams;
 struct CreateScheduleParams;
-
-/**
- * Delete a schedule.
- *
- * @param params The parameters to use to delete a schedule.
- * @return A JSON response containing the status of the deletion of the schedule.
- */
-nlohmann::json deleteSchedule(const DeleteScheduleParams& params);
+struct DeleteScheduleParams;
 
 /**
  * Create a schedule.
@@ -27,6 +19,14 @@ nlohmann::json deleteSchedule(const DeleteScheduleParams& params);
  * @return A JSON response containing the status of the schedule creation and the new schedule's ID.
  */
 nlohmann::json createSchedule(const CreateScheduleParams& params);
+
+/**
+ * Delete a schedule.
+ *
+ * @param params The parameters to use to delete a schedule.
+ * @return A JSON response containing the status of the deletion of the schedule.
+ */
+nlohmann::json deleteSchedule(const DeleteScheduleParams& params);
 
 } // namespace Hiero::TCK::ScheduleService
 
