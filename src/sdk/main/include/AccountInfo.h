@@ -82,11 +82,10 @@ public:
   /**
    * Compare this AccountInfo to another AccountInfo and determine if they represent the same account info.
    *
-   * @param lhs The first AccountInfo with which to compare.
    * @param rhs The second AccountInfo with which to compare.
    * @return \c TRUE if both AccountInfo objects are the same, otherwise \c FALSE.
    */
-  [[nodiscard]] friend bool operator==(const AccountInfo& lhs, const AccountInfo& rhs);
+  [[nodiscard]] bool operator==(const AccountInfo& rhs) const;
 
   /**
    * The ID of the queried account.

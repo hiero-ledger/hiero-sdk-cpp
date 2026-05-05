@@ -88,11 +88,10 @@ public:
   /**
    * Compare two ContractFunctionResult objects for equality.
    *
-   * @param lhs The left-hand-side ContractFunctionResult.
    * @param rhs The right-hand-side ContractFunctionResult.
    * @return \c TRUE if both objects contain the same values, otherwise \c FALSE.
    */
-  [[nodiscard]] friend bool operator==(const ContractFunctionResult& lhs, const ContractFunctionResult& rhs);
+  [[nodiscard]] bool operator==(const ContractFunctionResult& rhs) const;
 
   /**
    * Get the value at the input index as a string.
