@@ -165,126 +165,180 @@ TEST_F(ContractInfoUnitTests, IdenticallyConstructedEquality)
 }
 
 //-----
-TEST_F(ContractInfoUnitTests, DifferInBasicFieldsPart1)
+TEST_F(ContractInfoUnitTests, DifferInContractId)
 {
-  const ContractInfo baseline = makeBaselineContractInfo();
-
-  // Differ in mContractId
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mContractId = ContractId(999ULL);
-    EXPECT_FALSE(baseline == other);
-  }
-
-  // Differ in mAccountId
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mAccountId = AccountId(999ULL);
-    EXPECT_FALSE(baseline == other);
-  }
-
-  // Differ in mContractAccountId
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mContractAccountId = "DifferentAccountId";
-    EXPECT_FALSE(baseline == other);
-  }
-
-  // Differ in mExpirationTime
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mExpirationTime = std::chrono::system_clock::time_point(std::chrono::hours(1));
-    EXPECT_FALSE(baseline == other);
-  }
-
-  // Differ in mAutoRenewPeriod
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mAutoRenewPeriod = std::chrono::hours(999);
-    EXPECT_FALSE(baseline == other);
-  }
-
-  // Differ in mStorage
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mStorage = 99999ULL;
-    EXPECT_FALSE(baseline == other);
-  }
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mContractId = ContractId(999ULL);
+  EXPECT_FALSE(baseline == other);
 }
 
 //-----
-TEST_F(ContractInfoUnitTests, DifferInBasicFieldsPart2)
+TEST_F(ContractInfoUnitTests, DifferInAccountId)
 {
-  const ContractInfo baseline = makeBaselineContractInfo();
-
-  // Differ in mMemo
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mMemo = "different memo";
-    EXPECT_FALSE(baseline == other);
-  }
-
-  // Differ in mBalance
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mBalance = Hbar(999LL);
-    EXPECT_FALSE(baseline == other);
-  }
-
-  // Differ in mIsDeleted
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mIsDeleted = !getTestIsDeleted();
-    EXPECT_FALSE(baseline == other);
-  }
-
-  // Differ in mLedgerId
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mLedgerId = LedgerId({ std::byte(0xFF) });
-    EXPECT_FALSE(baseline == other);
-  }
-
-  // Differ in mAutoRenewAccountId
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mAutoRenewAccountId = AccountId(999ULL);
-    EXPECT_FALSE(baseline == other);
-  }
-
-  // Differ in mMaxAutomaticTokenAssociations
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mMaxAutomaticTokenAssociations = 999;
-    EXPECT_FALSE(baseline == other);
-  }
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mAccountId = AccountId(999ULL);
+  EXPECT_FALSE(baseline == other);
 }
 
 //-----
-TEST_F(ContractInfoUnitTests, DifferInStakingFields)
+TEST_F(ContractInfoUnitTests, DifferInContractAccountId)
 {
-  const ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mContractAccountId = "DifferentAccountId";
+  EXPECT_FALSE(baseline == other);
+}
 
-  // Differ in mStakingInfo.mDeclineRewards
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mStakingInfo.mDeclineRewards = !getTestDeclineReward();
-    EXPECT_FALSE(baseline == other);
-  }
+//-----
+TEST_F(ContractInfoUnitTests, DifferInExpirationTime)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mExpirationTime = std::chrono::system_clock::time_point(std::chrono::hours(1));
+  EXPECT_FALSE(baseline == other);
+}
 
-  // Differ in mStakingInfo.mPendingReward
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mStakingInfo.mPendingReward = Hbar(999LL);
-    EXPECT_FALSE(baseline == other);
-  }
+//-----
+TEST_F(ContractInfoUnitTests, DifferInAutoRenewPeriod)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mAutoRenewPeriod = std::chrono::hours(999);
+  EXPECT_FALSE(baseline == other);
+}
 
-  // Differ in mStakingInfo.mStakedAccountId
-  {
-    ContractInfo other = makeBaselineContractInfo();
-    other.mStakingInfo.mStakedAccountId = AccountId(999ULL);
-    EXPECT_FALSE(baseline == other);
-  }
+//-----
+TEST_F(ContractInfoUnitTests, DifferInStorage)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mStorage = 99999ULL;
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInMemo)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mMemo = "different memo";
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInBalance)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mBalance = Hbar(999LL);
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInIsDeleted)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mIsDeleted = !getTestIsDeleted();
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInLedgerId)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mLedgerId = LedgerId({ std::byte(0xFF) });
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInAutoRenewAccountId)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mAutoRenewAccountId = AccountId(999ULL);
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInMaxAutomaticTokenAssociations)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mMaxAutomaticTokenAssociations = 999;
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInDeclineRewards)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mStakingInfo.mDeclineRewards = !getTestDeclineReward();
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInStakePeriodStart)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mStakingInfo.mStakePeriodStart = std::chrono::system_clock::time_point(std::chrono::hours(1));
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInPendingReward)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mStakingInfo.mPendingReward = Hbar(999LL);
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInStakedToMe)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mStakingInfo.mStakedToMe = Hbar(999LL);
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInStakedAccountId)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mStakingInfo.mStakedAccountId = AccountId(999ULL);
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInStakedNodeId)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+  other.mStakingInfo.mStakedNodeId = 999ULL;
+  EXPECT_FALSE(baseline == other);
+}
+
+//-----
+TEST_F(ContractInfoUnitTests, DifferInTokenRelationships)
+{
+  ContractInfo baseline = makeBaselineContractInfo();
+  ContractInfo other = makeBaselineContractInfo();
+
+  TokenRelationship tokenRel;
+  tokenRel.mTokenId = TokenId(1ULL);
+  tokenRel.mSymbol = "TEST";
+  tokenRel.mBalance = 100ULL;
+  other.mTokenRelationships[TokenId(1ULL)] = tokenRel;
+
+  EXPECT_FALSE(baseline == other);
 }
 
 //-----
