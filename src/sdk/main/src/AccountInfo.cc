@@ -177,42 +177,41 @@ std::string AccountInfo::toString() const
 // Note: mKey and mPublicKeyAlias (std::shared_ptr) are intentionally excluded to avoid
 // pointer identity comparison. Comparing the pointed-to values would require knowing the
 // concrete Key type, which is not available here.
-bool operator==(const AccountInfo& lhs, const AccountInfo& rhs)
+bool AccountInfo::operator==(const AccountInfo& rhs) const
 {
-  if (!(lhs.mAccountId == rhs.mAccountId) || (lhs.mContractAccountId != rhs.mContractAccountId) ||
-      (lhs.mIsDeleted != rhs.mIsDeleted) || !(lhs.mProxyReceived == rhs.mProxyReceived) ||
-      !(lhs.mBalance == rhs.mBalance) || (lhs.mReceiverSignatureRequired != rhs.mReceiverSignatureRequired) ||
-      (lhs.mExpirationTime != rhs.mExpirationTime) || (lhs.mAutoRenewPeriod != rhs.mAutoRenewPeriod) ||
-      (lhs.mMemo != rhs.mMemo) || (lhs.mOwnedNfts != rhs.mOwnedNfts) ||
-      (lhs.mMaxAutomaticTokenAssociations != rhs.mMaxAutomaticTokenAssociations) || !(lhs.mLedgerId == rhs.mLedgerId))
+  if (!(mAccountId == rhs.mAccountId) || (mContractAccountId != rhs.mContractAccountId) ||
+      (mIsDeleted != rhs.mIsDeleted) || !(mProxyReceived == rhs.mProxyReceived) || !(mBalance == rhs.mBalance) ||
+      (mReceiverSignatureRequired != rhs.mReceiverSignatureRequired) || (mExpirationTime != rhs.mExpirationTime) ||
+      (mAutoRenewPeriod != rhs.mAutoRenewPeriod) || (mMemo != rhs.mMemo) || (mOwnedNfts != rhs.mOwnedNfts) ||
+      (mMaxAutomaticTokenAssociations != rhs.mMaxAutomaticTokenAssociations) || !(mLedgerId == rhs.mLedgerId))
   {
     return false;
   }
 
   // EvmAddress does not implement operator==, compare via serialized bytes.
-  if (lhs.mEvmAddressAlias.has_value() != rhs.mEvmAddressAlias.has_value())
+  if (mEvmAddressAlias.has_value() != rhs.mEvmAddressAlias.has_value())
   {
     return false;
   }
 
-  if (lhs.mEvmAddressAlias.has_value() && lhs.mEvmAddressAlias->toBytes() != rhs.mEvmAddressAlias->toBytes())
+  if (mEvmAddressAlias.has_value() && mEvmAddressAlias->toBytes() != rhs.mEvmAddressAlias->toBytes())
   {
     return false;
   }
 
   // StakingInfo does not implement operator==, compare via serialized protobuf bytes.
-  if (lhs.mStakingInfo.toProtobuf()->SerializeAsString() != rhs.mStakingInfo.toProtobuf()->SerializeAsString())
+  if (mStakingInfo.toProtobuf()->SerializeAsString() != rhs.mStakingInfo.toProtobuf()->SerializeAsString())
   {
     return false;
   }
 
   // TokenRelationship does not implement operator==, compare map entries via serialized protobuf bytes.
-  if (lhs.mTokenRelationships.size() != rhs.mTokenRelationships.size())
+  if (mTokenRelationships.size() != rhs.mTokenRelationships.size())
   {
     return false;
   }
 
-  for (const auto& [tokenId, tokenRelationship] : lhs.mTokenRelationships)
+  for (const auto& [tokenId, tokenRelationship] : mTokenRelationships)
   {
     const auto it = rhs.mTokenRelationships.find(tokenId);
     if (it == rhs.mTokenRelationships.end())

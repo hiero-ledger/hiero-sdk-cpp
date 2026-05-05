@@ -26,8 +26,12 @@ module.exports = async ({ github, context }) => {
     }
 
     // Force swap to needs-revision (allPassed = false)
-    await swapStatusLabel(botContext, false, { force: true });
-    logger.log(`Successfully swapped status to needs revision`);
+    const result = await swapStatusLabel(botContext, false, { force: true });
+    if (!result.success) {
+      logger.error(`Failed to swap status to needs revision: ${result.errorDetails}`);
+    } else {
+      logger.log(`Successfully swapped status to needs revision`);
+    }
   } catch (error) {
     logger.error('Error:', {
       message: error.message,

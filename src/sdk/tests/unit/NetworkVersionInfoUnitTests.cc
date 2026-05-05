@@ -113,3 +113,33 @@ TEST_F(NetworkVersionInfoUnitTests, ToString)
   EXPECT_NE(result.find(getTestHapiVersion().toString()), std::string::npos);
   EXPECT_NE(result.find(getTestServicesVersion().toString()), std::string::npos);
 }
+
+//-----
+TEST_F(NetworkVersionInfoUnitTests, EqualityDefaultConstructed)
+{
+  EXPECT_TRUE(NetworkVersionInfo() == NetworkVersionInfo());
+}
+
+//-----
+TEST_F(NetworkVersionInfoUnitTests, EqualityIdenticallyConstructed)
+{
+  const NetworkVersionInfo lhs(getTestHapiVersion(), getTestServicesVersion());
+  const NetworkVersionInfo rhs(getTestHapiVersion(), getTestServicesVersion());
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(NetworkVersionInfoUnitTests, InequalityDifferentProtobufVersion)
+{
+  const NetworkVersionInfo lhs(getTestHapiVersion(), getTestServicesVersion());
+  const NetworkVersionInfo rhs(SemanticVersion(9, 9, 9), getTestServicesVersion());
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(NetworkVersionInfoUnitTests, InequalityDifferentServicesVersion)
+{
+  const NetworkVersionInfo lhs(getTestHapiVersion(), getTestServicesVersion());
+  const NetworkVersionInfo rhs(getTestHapiVersion(), SemanticVersion(9, 9, 9));
+  EXPECT_FALSE(lhs == rhs);
+}

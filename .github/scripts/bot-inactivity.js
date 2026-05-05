@@ -10,6 +10,7 @@
 //
 // Activity signals that reset the 5-day clock:
 //   - A non-bot comment on the item by the author or any assignee
+//   - A non-bot comment by PR participants on a linked issue
 //   - A commit pushed to a PR branch by the PR author
 //   - Removal of the "status: blocked" label (unblocking counts as activity)
 //
@@ -232,8 +233,8 @@ async function getLastAssignedDate(github, owner, repo, number) {
 
 /**
  * Computes the last meaningful activity timestamp (ms) for a PR.
- * Considers: relevant comments (by PR author/assignees), commits by the PR
- * author, and removal of the blocked label.
+ * Considers: relevant comments (by PR author/assignees) on the PR and its
+ * linked issues, commits by the PR author, and removal of the blocked label.
  *
  * Also used by computeIssueLastActivity when evaluating linked open PRs.
  *
@@ -254,6 +255,12 @@ async function computePRLastActivity(github, owner, repo, pr) {
 
   if (pr.user?.login) {
     const d = await getLastAuthorCommitDate(github, owner, repo, pr.number, pr.user.login);
+    latest = latestOf(latest, d);
+  }
+
+  const linkedIssueNums = parseIssueNumbers(pr.body || '');
+  for (const issueNum of linkedIssueNums) {
+    const d = await getLastRelevantCommentDate(github, owner, repo, issueNum, participants);
     latest = latestOf(latest, d);
   }
 
@@ -306,13 +313,20 @@ function buildWarningComment(assigneeLogins, itemType) {
     ? assigneeLogins.map(l => `@${l}`).join(', ')
     : 'there';
 
+  const activityHint = itemType === 'PR'
+    ? 'To stay active, leave a comment on this PR or the linked **issue**, or push a new commit.'
+    : "If you're still on it, leave a comment to let us know!";
+
+  const warnDays = WARN_AFTER_MS / (24 * 60 * 60 * 1000);
+  const remainingDays = (CLOSE_AFTER_MS - WARN_AFTER_MS) / (24 * 60 * 60 * 1000);
+
   return [
     WARN_MARKER,
-    `👋 Hey ${mentions}! This ${itemType} has been inactive for 5 days.`,
+    `👋 Hey ${mentions}! This ${itemType} has been inactive for ${warnDays} days.`,
     '',
-    'Are you still working on this? We will close this in 2 days if we see no further activity.',
+    `Are you still working on this? We will close this in ${remainingDays} days if we see no further activity.`,
     '',
-    "If you're still on it, leave a comment to let us know! If you'd like to step down, comment `/unassign`.",
+    `${activityHint} If you'd like to step down, comment \`/unassign\`.`,
   ].join('\n');
 }
 
@@ -322,17 +336,19 @@ function buildWarningComment(assigneeLogins, itemType) {
  * @returns {string}
  */
 function buildClosureComment(itemType) {
+  const closeDays = CLOSE_AFTER_MS / (24 * 60 * 60 * 1000);
+
   if (itemType === 'issue') {
     return [
-      '⏱️ This issue has been unassigned and reset to `status: ready for dev` due to 7 days of inactivity.',
+      `⏱️ This issue has been unassigned and reset to \`${LABELS.READY_FOR_DEV}\` due to ${closeDays} days of inactivity.`,
       '',
       "If you'd like to continue working on this, feel free to comment `/assign` to be reassigned.",
     ].join('\n');
   }
   return [
-    '⏱️ This PR has been closed due to 7 days of inactivity.',
+    `⏱️ This PR has been closed due to ${closeDays} days of inactivity.`,
     '',
-    'It has been unassigned and reset to `status: ready for dev` so another contributor can pick it up.',
+    `It has been unassigned and reset to \`${LABELS.READY_FOR_DEV}\` so another contributor can pick it up.`,
     '',
     "If you'd like to continue working on this, feel free to comment `/assign` to be reassigned.",
   ].join('\n');
@@ -346,7 +362,7 @@ function buildLinkedPRClosedComment() {
   return [
     '🔗 The pull request linked to this issue was closed due to inactivity.',
     '',
-    'This issue has been unassigned and reset to `status: ready for dev`.',
+    `This issue has been unassigned and reset to \`${LABELS.READY_FOR_DEV}\`.`,
     '',
     "If you'd like to continue working on this, feel free to comment `/assign` to be reassigned.",
   ].join('\n');
@@ -367,7 +383,7 @@ function buildBlockedCheckinComment(assigneeLogins, itemType) {
     BLOCKED_CHECKIN_MARKER,
     `👋 Hey ${mentions}, just checking in! Is this ${itemType} still blocked?`,
     '',
-    'If it has been unblocked, please remove the `status: blocked` label so we can track progress.',
+    `If it has been unblocked, please remove the \`${LABELS.BLOCKED}\` label so we can track progress.`,
   ].join('\n');
 }
 

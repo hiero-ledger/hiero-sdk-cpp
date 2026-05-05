@@ -163,6 +163,20 @@ TEST_F(ContractCreateFlowUnitTests, GetSetMaxAutomaticTokenAssociations)
 }
 
 //-----
+TEST_F(ContractCreateFlowUnitTests, GetSetMaxAutomaticTokenAssociationsUnlimited)
+{
+  // Given
+  ContractCreateFlow flow;
+  const int32_t unlimitedAssociations = -1;
+
+  // When
+  EXPECT_NO_THROW(flow.setMaxAutomaticTokenAssociations(unlimitedAssociations));
+
+  // Then
+  EXPECT_EQ(flow.getMaxAutomaticTokenAssociations(), unlimitedAssociations);
+}
+
+//-----
 TEST_F(ContractCreateFlowUnitTests, GetSetAutoRenewAccountId)
 {
   // Given

@@ -158,15 +158,14 @@ std::ostream& operator<<(std::ostream& os, const ContractFunctionResult& result)
 }
 
 //-----
-bool operator==(const ContractFunctionResult& lhs, const ContractFunctionResult& rhs)
+bool ContractFunctionResult::operator==(const ContractFunctionResult& rhs) const
 {
-  const bool hasSameEvmAddress =
-    (lhs.mEvmAddress.has_value() == rhs.mEvmAddress.has_value()) &&
-    (!lhs.mEvmAddress.has_value() || (lhs.mEvmAddress->toBytes() == rhs.mEvmAddress->toBytes()));
+  const bool hasSameEvmAddress = (mEvmAddress.has_value() == rhs.mEvmAddress.has_value()) &&
+                                 (!mEvmAddress.has_value() || (mEvmAddress->toBytes() == rhs.mEvmAddress->toBytes()));
 
-  const bool hasSameLogs = (lhs.mLogs.size() == rhs.mLogs.size()) &&
-                           std::equal(lhs.mLogs.cbegin(),
-                                      lhs.mLogs.cend(),
+  const bool hasSameLogs = (mLogs.size() == rhs.mLogs.size()) &&
+                           std::equal(mLogs.cbegin(),
+                                      mLogs.cend(),
                                       rhs.mLogs.cbegin(),
                                       [](const ContractLogInfo& lhsLog, const ContractLogInfo& rhsLog)
                                       {
@@ -175,11 +174,11 @@ bool operator==(const ContractFunctionResult& lhs, const ContractFunctionResult&
                                                (lhsLog.mData == rhsLog.mData);
                                       });
 
-  return (lhs.mContractId == rhs.mContractId) && (lhs.mContractCallResult == rhs.mContractCallResult) &&
-         (lhs.mErrorMessage == rhs.mErrorMessage) && (lhs.mBloom == rhs.mBloom) && (lhs.mGasUsed == rhs.mGasUsed) &&
-         hasSameLogs && hasSameEvmAddress && (lhs.mGas == rhs.mGas) && (lhs.mHbarAmount == rhs.mHbarAmount) &&
-         (lhs.mFunctionParameters == rhs.mFunctionParameters) && (lhs.mSenderAccountId == rhs.mSenderAccountId) &&
-         (lhs.mContractNonces == rhs.mContractNonces) && (lhs.mSignerNonce == rhs.mSignerNonce);
+  return (mContractId == rhs.mContractId) && (mContractCallResult == rhs.mContractCallResult) &&
+         (mErrorMessage == rhs.mErrorMessage) && (mBloom == rhs.mBloom) && (mGasUsed == rhs.mGasUsed) && hasSameLogs &&
+         hasSameEvmAddress && (mGas == rhs.mGas) && (mHbarAmount == rhs.mHbarAmount) &&
+         (mFunctionParameters == rhs.mFunctionParameters) && (mSenderAccountId == rhs.mSenderAccountId) &&
+         (mContractNonces == rhs.mContractNonces) && (mSignerNonce == rhs.mSignerNonce);
 }
 
 //-----

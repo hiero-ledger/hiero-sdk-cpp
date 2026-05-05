@@ -224,6 +224,12 @@ public:
    * has set `receiver_sig_required`.
    */
   std::vector<PendingAirdropRecord> mPendingAirdropRecords;
+
+  /**
+   * The high-volume pricing multiplier applied to the transaction fee when the transaction was submitted with
+   * high_volume set to true. Divide by 1000 to get the actual multiplier. Zero when high-volume was not used.
+   */
+  uint64_t mHighVolumePricingMultiplier = 0ULL;
 };
 
 } // namespace Hiero

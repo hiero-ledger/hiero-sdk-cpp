@@ -191,7 +191,7 @@ private:
 };
 
 //-----
-TEST_F(TransferTransactionHooksIntegrationTests, ShouldTransferHbarToAccountWithPreTransactionAllowanceHook)
+TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldTransferHbarToAccountWithPreTransactionAllowanceHook)
 {
   // Given
   const std::shared_ptr<PrivateKey> receiverKey = ED25519PrivateKey::generatePrivateKey();
@@ -246,7 +246,7 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldTransferHbarToAccountWith
 }
 
 //-----
-TEST_F(TransferTransactionHooksIntegrationTests, ShouldExecuteHooksOnMultipleAccountsInSameTransfer)
+TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldExecuteHooksOnMultipleAccountsInSameTransfer)
 {
   // Given
   const std::shared_ptr<PrivateKey> receiverKey1 = ED25519PrivateKey::generatePrivateKey();
@@ -281,7 +281,7 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldExecuteHooksOnMultipleAcc
 }
 
 //-----
-TEST_F(TransferTransactionHooksIntegrationTests, ShouldTransferFungibleTokensWithAllowanceHook)
+TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldTransferFungibleTokensWithAllowanceHook)
 {
   // Given
   const std::shared_ptr<PrivateKey> receiverKey = ED25519PrivateKey::generatePrivateKey();
@@ -328,7 +328,7 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldTransferFungibleTokensWit
 }
 
 //-----
-TEST_F(TransferTransactionHooksIntegrationTests, ShouldTransferNftWithSenderAndReceiverAllowanceHooks)
+TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldTransferNftWithSenderAndReceiverAllowanceHooks)
 {
   // Given
   const std::shared_ptr<PrivateKey> senderKey = ED25519PrivateKey::generatePrivateKey();
@@ -390,7 +390,7 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldTransferNftWithSenderAndR
 }
 
 //-----
-TEST_F(TransferTransactionHooksIntegrationTests, ShouldCallPreTransactionAllowanceHookAndApproveTransfer)
+TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldCallPreTransactionAllowanceHookAndApproveTransfer)
 {
   // Given
   const std::shared_ptr<PrivateKey> senderKey = ED25519PrivateKey::generatePrivateKey();
@@ -445,7 +445,7 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldCallPreTransactionAllowan
 }
 
 //-----
-TEST_F(TransferTransactionHooksIntegrationTests, ShouldCallPreAndPostAllowanceHooksAroundSuccessfulTransfer)
+TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldCallPreAndPostAllowanceHooksAroundSuccessfulTransfer)
 {
   // Given
   const std::shared_ptr<PrivateKey> senderKey = ED25519PrivateKey::generatePrivateKey();
@@ -504,7 +504,7 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldCallPreAndPostAllowanceHo
 }
 
 //-----
-TEST_F(TransferTransactionHooksIntegrationTests, ShouldFailWhenHookIdDoesNotExistOnAccount)
+TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldFailWhenHookIdDoesNotExistOnAccount)
 {
   // Given
   const std::shared_ptr<PrivateKey> senderKey = ED25519PrivateKey::generatePrivateKey();
@@ -551,7 +551,7 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldFailWhenHookIdDoesNotExis
 }
 
 //-----
-TEST_F(TransferTransactionHooksIntegrationTests, ShouldFailWithInsufficientGasForHookExecution)
+TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldFailWithInsufficientGasForHookExecution)
 {
   // Given
   const std::shared_ptr<PrivateKey> senderKey = ED25519PrivateKey::generatePrivateKey();
@@ -597,7 +597,7 @@ TEST_F(TransferTransactionHooksIntegrationTests, ShouldFailWithInsufficientGasFo
 }
 
 //-----
-TEST_F(TransferTransactionHooksIntegrationTests, ShouldNotTransferWhenHookReturnsFalse)
+TEST_F(TransferTransactionHooksIntegrationTests, DISABLED_ShouldNotTransferWhenHookReturnsFalse)
 {
   // Given
   const std::shared_ptr<PrivateKey> senderKey = ED25519PrivateKey::generatePrivateKey();

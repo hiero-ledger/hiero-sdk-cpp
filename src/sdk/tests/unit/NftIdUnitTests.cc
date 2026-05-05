@@ -20,8 +20,6 @@ private:
 };
 
 //-----
-
-//-----
 TEST_F(NftIdUnitTests, ConstructWithTokenIdSerialNum)
 {
   // Given / When
@@ -33,16 +31,12 @@ TEST_F(NftIdUnitTests, ConstructWithTokenIdSerialNum)
 }
 
 //-----
-
-//-----
 TEST_F(NftIdUnitTests, CompareNftIds)
 {
   // Given / When / Then
   EXPECT_TRUE(NftId() == NftId());
   EXPECT_TRUE(NftId(getTestTokenId(), getTestSerialNum()) == NftId(getTestTokenId(), getTestSerialNum()));
 }
-
-//-----
 
 //-----
 TEST_F(NftIdUnitTests, FromStringWithValidInput)
@@ -90,8 +84,6 @@ TEST_F(NftIdUnitTests, FromStringThrowsWithNonNumericInput)
 }
 
 //-----
-
-//-----
 TEST_F(NftIdUnitTests, ProtobufSerializeNftId)
 {
   // Given
@@ -122,8 +114,6 @@ TEST_F(NftIdUnitTests, ProtobufDeserializeNftId)
 }
 
 //-----
-
-//-----
 TEST_F(NftIdUnitTests, ToStringDefaultNftId)
 {
   // Given
@@ -144,8 +134,6 @@ TEST_F(NftIdUnitTests, ToStringWithTokenIdAndSerialNum)
   // When / Then
   EXPECT_EQ(nftId.toString(), getTestTokenId().toString() + '/' + std::to_string(getTestSerialNum()));
 }
-
-//-----
 
 //-----
 TEST_F(NftIdUnitTests, FromBytes)

@@ -123,6 +123,7 @@ set(PROTO_FILES
         services/util_prng.proto
         services/util_service.proto
 
+        services/auxiliary/blockrecords/migration_root_hash_vote.proto
         services/auxiliary/hints/crs_publication.proto
         services/auxiliary/hints/hints_key_publication.proto
         services/auxiliary/hints/hints_partial_signature.proto
