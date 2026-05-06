@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -38,6 +39,16 @@ public:
    */
   [[nodiscard]] static std::unique_ptr<RegisteredServiceEndpoint> fromProtobuf(
     const com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint& proto);
+
+  /**
+   * Construct a RegisteredServiceEndpoint subtype from a JSON object (mirror node REST response shape).
+   * Dispatches on the "type" field ("BLOCK_NODE", "MIRROR_NODE", "RPC_RELAY", "GENERAL_SERVICE").
+   *
+   * @param json The JSON object from which to construct.
+   * @return A unique_ptr to the constructed RegisteredServiceEndpoint subtype.
+   * @throws std::invalid_argument If the "type" field is missing or unrecognized.
+   */
+  [[nodiscard]] static std::unique_ptr<RegisteredServiceEndpoint> fromJson(const nlohmann::json& json);
 
   /**
    * Construct a RegisteredServiceEndpoint protobuf object from this RegisteredServiceEndpoint object.
@@ -128,6 +139,13 @@ protected:
    * @param proto The RegisteredServiceEndpoint protobuf object from which to read.
    */
   void readCommonFields(const com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint& proto);
+
+  /**
+   * Read the common fields (ip_address/domain_name, port, requires_tls) from a JSON object into this object's fields.
+   *
+   * @param json The JSON object from which to read.
+   */
+  void readCommonFieldsFromJson(const nlohmann::json& json);
 
   /**
    * An IP address (IPv4 = 4 bytes, IPv6 = 16 bytes). Mutually exclusive with mDomainName.

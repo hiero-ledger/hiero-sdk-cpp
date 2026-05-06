@@ -4,6 +4,7 @@
 #include "Client.h"
 #include "ED25519PrivateKey.h"
 #include "NodeUpdateTransaction.h"
+#include "RegisteredNodeAddressBook.h"
 #include "RegisteredNodeAddressBookQuery.h"
 #include "RegisteredNodeCreateTransaction.h"
 #include "RegisteredNodeDeleteTransaction.h"
@@ -63,8 +64,17 @@ int main(int argc, char** argv)
   std::cout << "Registered node created with ID: " << registeredNodeId << std::endl;
 
   // Step 7: Execute a RegisteredNodeAddressBookQuery to confirm the node is discoverable.
-  // NOTE: This is a stub — implementation deferred until mirror node API is available.
-  // const RegisteredNodeAddressBook addressBook = RegisteredNodeAddressBookQuery().execute(client);
+  const RegisteredNodeAddressBook addressBook = RegisteredNodeAddressBookQuery().execute(client);
+  std::cout << "Address book contains " << addressBook.mRegisteredNodes.size() << " registered node(s)." << std::endl;
+  for (const auto& node : addressBook.mRegisteredNodes)
+  {
+    std::cout << "  Node ID: " << node.mRegisteredNodeId;
+    if (!node.mDescription.empty())
+    {
+      std::cout << "  Description: " << node.mDescription;
+    }
+    std::cout << std::endl;
+  }
 
   // Step 8: Create a second endpoint with a domain name and STATUS api.
   auto secondEndpoint = std::make_shared<BlockNodeServiceEndpoint>();

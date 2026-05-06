@@ -94,6 +94,7 @@ add_library(${PROJECT_NAME} STATIC
         src/FreezeTransaction.cc
         src/BlockNodeApi.cc
         src/BlockNodeServiceEndpoint.cc
+        src/GeneralServiceEndpoint.cc
         src/FreezeType.cc
         src/Hbar.cc
         src/HbarAllowance.cc

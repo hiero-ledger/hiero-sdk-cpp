@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <vector>
 
@@ -38,6 +39,14 @@ public:
    * The service endpoints published by this registered node.
    */
   std::vector<std::shared_ptr<RegisteredServiceEndpoint>> mServiceEndpoints;
+
+  /**
+   * Construct a RegisteredNode from a JSON object (mirror node REST response shape).
+   *
+   * @param json The JSON object from which to construct.
+   * @return The constructed RegisteredNode.
+   */
+  [[nodiscard]] static RegisteredNode fromJson(const nlohmann::json& json);
 
   /**
    * Construct a string representation of this RegisteredNode object.

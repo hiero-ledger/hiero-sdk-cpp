@@ -4,6 +4,8 @@
 
 #include "RegisteredServiceEndpoint.h"
 
+#include <nlohmann/json_fwd.hpp>
+
 namespace com::hedera::hapi::node::addressbook
 {
 class RegisteredServiceEndpoint;
@@ -28,6 +30,14 @@ public:
    */
   [[nodiscard]] static RpcRelayServiceEndpoint fromProtobuf(
     const com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint& proto);
+
+  /**
+   * Construct a RpcRelayServiceEndpoint from a JSON object (mirror node REST response shape).
+   *
+   * @param json The JSON object from which to construct.
+   * @return The constructed RpcRelayServiceEndpoint.
+   */
+  [[nodiscard]] static RpcRelayServiceEndpoint fromJson(const nlohmann::json& json);
 
   /**
    * Construct a RegisteredServiceEndpoint protobuf object from this RpcRelayServiceEndpoint.

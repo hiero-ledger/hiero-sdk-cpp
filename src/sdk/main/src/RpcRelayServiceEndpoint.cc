@@ -29,6 +29,14 @@ std::unique_ptr<com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint>
 }
 
 //-----
+RpcRelayServiceEndpoint RpcRelayServiceEndpoint::fromJson(const nlohmann::json& json)
+{
+  RpcRelayServiceEndpoint endpoint;
+  endpoint.readCommonFieldsFromJson(json);
+  return endpoint;
+}
+
+//-----
 std::string RpcRelayServiceEndpoint::toString() const
 {
   nlohmann::json json;

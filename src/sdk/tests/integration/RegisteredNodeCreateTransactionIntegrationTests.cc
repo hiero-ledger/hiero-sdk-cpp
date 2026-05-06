@@ -3,11 +3,14 @@
 #include "BlockNodeApi.h"
 #include "BlockNodeServiceEndpoint.h"
 #include "ED25519PrivateKey.h"
+#include "GeneralServiceEndpoint.h"
 #include "MirrorNodeServiceEndpoint.h"
 #include "RegisteredNodeCreateTransaction.h"
 #include "RpcRelayServiceEndpoint.h"
 #include "TransactionReceipt.h"
 #include "TransactionResponse.h"
+#include "exceptions/PrecheckStatusException.h"
+#include "exceptions/ReceiptStatusException.h"
 
 #include <gtest/gtest.h>
 
@@ -144,4 +147,83 @@ TEST_F(RegisteredNodeCreateTransactionIntegrationTests, CanCreateRegisteredNodeW
   TransactionReceipt txReceipt;
   ASSERT_NO_THROW(txReceipt = txResponse.getReceipt(getTestClient()));
   EXPECT_TRUE(txReceipt.mRegisteredNodeId.has_value());
+}
+
+//-----
+TEST_F(RegisteredNodeCreateTransactionIntegrationTests, CanCreateRegisteredNodeWithGeneralServiceEndpoint)
+{
+  // Given
+  const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
+  auto ep = std::make_shared<GeneralServiceEndpoint>();
+  ep->setDomainName("general.example.com").setPort(9090).setRequiresTls(false);
+  ep->setDescription("General purpose node");
+
+  // When
+  TransactionResponse txResponse;
+  ASSERT_NO_THROW(txResponse = RegisteredNodeCreateTransaction()
+                                 .setAdminKey(adminKey->getPublicKey())
+                                 .setDescription("Test General Service Node")
+                                 .addServiceEndpoint(ep)
+                                 .freezeWith(&getTestClient())
+                                 .sign(adminKey)
+                                 .execute(getTestClient()));
+
+  // Then
+  TransactionReceipt txReceiptGeneral;
+  ASSERT_NO_THROW(txReceiptGeneral = txResponse.getReceipt(getTestClient()));
+  EXPECT_TRUE(txReceiptGeneral.mRegisteredNodeId.has_value());
+}
+
+//-----
+TEST_F(RegisteredNodeCreateTransactionIntegrationTests,
+       CanCreateRegisteredNodeWithMixedEndpointsIncludingGeneralService)
+{
+  // Given
+  const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
+  auto generalEp = std::make_shared<GeneralServiceEndpoint>();
+  generalEp->setDomainName("general.example.com").setPort(9090).setRequiresTls(false);
+  auto mirrorEp = std::make_shared<MirrorNodeServiceEndpoint>();
+  mirrorEp->setDomainName("mirror.example.com").setPort(5551).setRequiresTls(true);
+
+  // When
+  TransactionResponse txResponse;
+  ASSERT_NO_THROW(txResponse = RegisteredNodeCreateTransaction()
+                                 .setAdminKey(adminKey->getPublicKey())
+                                 .addServiceEndpoint(makeBlockNodeEndpoint())
+                                 .addServiceEndpoint(mirrorEp)
+                                 .addServiceEndpoint(generalEp)
+                                 .freezeWith(&getTestClient())
+                                 .sign(adminKey)
+                                 .execute(getTestClient()));
+
+  // Then
+  TransactionReceipt txReceiptMixed;
+  ASSERT_NO_THROW(txReceiptMixed = txResponse.getReceipt(getTestClient()));
+  EXPECT_TRUE(txReceiptMixed.mRegisteredNodeId.has_value());
+}
+
+//-----
+TEST_F(RegisteredNodeCreateTransactionIntegrationTests, FailsToCreateRegisteredNodeWithNoAdminKey)
+{
+  // When / Then — no admin key set, expect KEY_REQUIRED precheck
+  EXPECT_THROW(RegisteredNodeCreateTransaction()
+                 .addServiceEndpoint(makeBlockNodeEndpoint())
+                 .execute(getTestClient()),
+               PrecheckStatusException);
+}
+
+//-----
+TEST_F(RegisteredNodeCreateTransactionIntegrationTests, FailsToCreateRegisteredNodeWithNoServiceEndpoints)
+{
+  // Given — admin key set but no service endpoints
+  const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
+
+  // When / Then — expect INVALID_REGISTERED_ENDPOINT receipt status
+  EXPECT_THROW(RegisteredNodeCreateTransaction()
+                 .setAdminKey(adminKey->getPublicKey())
+                 .freezeWith(&getTestClient())
+                 .sign(adminKey)
+                 .execute(getTestClient())
+                 .getReceipt(getTestClient()),
+               ReceiptStatusException);
 }

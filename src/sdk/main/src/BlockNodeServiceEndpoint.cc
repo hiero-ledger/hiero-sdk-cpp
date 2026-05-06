@@ -49,6 +49,34 @@ std::string BlockNodeServiceEndpoint::toString() const
 }
 
 //-----
+BlockNodeServiceEndpoint BlockNodeServiceEndpoint::fromJson(const nlohmann::json& json)
+{
+  static const std::unordered_map<std::string, BlockNodeApi> kStringToApi = {
+    {"OTHER",             BlockNodeApi::OTHER           },
+    { "STATUS",           BlockNodeApi::STATUS          },
+    { "PUBLISH",          BlockNodeApi::PUBLISH         },
+    { "SUBSCRIBE_STREAM", BlockNodeApi::SUBSCRIBE_STREAM},
+    { "STATE_PROOF",      BlockNodeApi::STATE_PROOF     },
+  };
+
+  BlockNodeServiceEndpoint endpoint;
+  endpoint.readCommonFieldsFromJson(json);
+
+  if (json.contains("block_node") && !json["block_node"].is_null())
+  {
+    const auto& bn = json["block_node"];
+    if (bn.contains("endpoint_apis") && bn["endpoint_apis"].is_array() && !bn["endpoint_apis"].empty())
+    {
+      const std::string apiStr = bn["endpoint_apis"][0].get<std::string>();
+      const auto it = kStringToApi.find(apiStr);
+      endpoint.mEndpointApi = (it != kStringToApi.end()) ? it->second : BlockNodeApi::OTHER;
+    }
+  }
+
+  return endpoint;
+}
+
+//-----
 BlockNodeServiceEndpoint& BlockNodeServiceEndpoint::setEndpointApi(BlockNodeApi api)
 {
   mEndpointApi = api;

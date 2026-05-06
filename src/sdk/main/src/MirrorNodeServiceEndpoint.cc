@@ -29,6 +29,14 @@ std::unique_ptr<com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint>
 }
 
 //-----
+MirrorNodeServiceEndpoint MirrorNodeServiceEndpoint::fromJson(const nlohmann::json& json)
+{
+  MirrorNodeServiceEndpoint endpoint;
+  endpoint.readCommonFieldsFromJson(json);
+  return endpoint;
+}
+
+//-----
 std::string MirrorNodeServiceEndpoint::toString() const
 {
   nlohmann::json json;

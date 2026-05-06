@@ -5,6 +5,8 @@
 #include "BlockNodeApi.h"
 #include "RegisteredServiceEndpoint.h"
 
+#include <nlohmann/json_fwd.hpp>
+
 namespace com::hedera::hapi::node::addressbook
 {
 class RegisteredServiceEndpoint;
@@ -29,6 +31,14 @@ public:
    */
   [[nodiscard]] static BlockNodeServiceEndpoint fromProtobuf(
     const com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint& proto);
+
+  /**
+   * Construct a BlockNodeServiceEndpoint from a JSON object (mirror node REST response shape).
+   *
+   * @param json The JSON object from which to construct.
+   * @return The constructed BlockNodeServiceEndpoint.
+   */
+  [[nodiscard]] static BlockNodeServiceEndpoint fromJson(const nlohmann::json& json);
 
   /**
    * Construct a RegisteredServiceEndpoint protobuf object from this BlockNodeServiceEndpoint.

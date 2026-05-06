@@ -140,3 +140,27 @@ TEST_F(RegisteredNodeUpdateTransactionIntegrationTests, FailsToUpdateNonExistent
                  .getReceipt(getTestClient()),
                ReceiptStatusException);
 }
+
+//-----
+TEST_F(RegisteredNodeUpdateTransactionIntegrationTests, CanReplaceIpAddressEndpointWithDomainNameEndpoint)
+{
+  // Given — create a node with an IP-address endpoint
+  const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
+  const uint64_t nodeId = createRegisteredNode(adminKey);
+
+  // When — replace with a domain-name endpoint
+  auto domainEp = std::make_shared<BlockNodeServiceEndpoint>();
+  domainEp->setDomainName("block-node.example.com").setPort(8080).setRequiresTls(true);
+  domainEp->setEndpointApi(BlockNodeApi::STATUS);
+
+  TransactionResponse txResponse;
+  ASSERT_NO_THROW(txResponse = RegisteredNodeUpdateTransaction()
+                                 .setRegisteredNodeId(nodeId)
+                                 .addServiceEndpoint(domainEp)
+                                 .freezeWith(&getTestClient())
+                                 .sign(adminKey)
+                                 .execute(getTestClient()));
+
+  // Then
+  ASSERT_NO_THROW(txResponse.getReceipt(getTestClient()).validateStatus());
+}
