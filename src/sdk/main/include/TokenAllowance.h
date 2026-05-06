@@ -43,7 +43,7 @@ public:
   /**
    * Construct a TokenAllowance object from a TokenAllowance protobuf object.
    *
-   * @param proto The TokenAllowance protobuf object from which to construct an TokenAllowance object.
+   * @param proto The TokenAllowance protobuf object from which to construct a TokenAllowance object.
    * @return The constructed TokenAllowance object.
    */
   [[nodiscard]] static TokenAllowance fromProtobuf(const proto::TokenAllowance& proto);
@@ -51,7 +51,7 @@ public:
   /**
    * Construct a TokenAllowance object from a byte array.
    *
-   * @param bytes The byte array from which to construct an TokenAllowance object.
+   * @param bytes The byte array from which to construct a TokenAllowance object.
    * @return The constructed TokenAllowance object.
    */
   [[nodiscard]] static TokenAllowance fromBytes(const std::vector<std::byte>& bytes);
@@ -77,6 +77,14 @@ public:
    * @return A byte array representing this TokenAllowance object.
    */
   [[nodiscard]] std::vector<std::byte> toBytes() const;
+
+  /**
+   * Compare this TokenAllowance to another TokenAllowance.
+   *
+   * @param rhs The TokenAllowance to compare against.
+   * @return \c TRUE if this TokenAllowance is the same as the input TokenAllowance, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const TokenAllowance& rhs) const;
 
   /**
    * The ID of the token that is being approved to be spent.

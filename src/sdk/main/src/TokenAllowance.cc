@@ -70,4 +70,11 @@ std::vector<std::byte> TokenAllowance::toBytes() const
   return internal::Utilities::stringToByteVector(toProtobuf()->SerializeAsString());
 }
 
+//-----
+bool TokenAllowance::operator==(const TokenAllowance& rhs) const
+{
+  return mTokenId == rhs.mTokenId && mOwnerAccountId == rhs.mOwnerAccountId &&
+         mSpenderAccountId == rhs.mSpenderAccountId && mAmount == rhs.mAmount;
+}
+
 } // namespace Hiero
