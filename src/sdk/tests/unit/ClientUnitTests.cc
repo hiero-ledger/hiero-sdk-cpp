@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 
+#include <thread>
+
 using namespace Hiero;
 
 class ClientUnitTests : public ::testing::Test
@@ -254,4 +256,124 @@ TEST_F(ClientUnitTests, SetAllowReceiptNodeFailover)
 
   client.setAllowReceiptNodeFailover(false);
   EXPECT_FALSE(client.getAllowReceiptNodeFailover());
+}
+
+//-----
+// Regression tests for Issue #931: Network update thread deadlock.
+// The network update thread calls back into Client getters (getRequestTimeout,
+// getClientMirrorNetwork, etc.) which all acquire mMutex. If the thread held
+// mMutex during the query, it would self-deadlock. These tests verify that
+// Client lifecycle operations complete without hanging.
+
+TEST_F(ClientUnitTests, NetworkUpdateThreadDoesNotDeadlockOnDestruction)
+{
+  // Given / When
+  // Creating and immediately destroying a Client exercises the full lifecycle:
+  // constructor starts the bg thread, destructor cancels and joins it.
+  // This test will hang/timeout if the deadlock is present.
+  {
+    Client client;
+    // Give the thread a moment to start and enter its wait state.
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+  // If we get here, no deadlock occurred.
+
+  // Then
+  SUCCEED();
+}
+
+//-----
+TEST_F(ClientUnitTests, NetworkUpdateThreadDoesNotDeadlockWithConcurrentGetters)
+{
+  // Given
+  Client client;
+  client.setOperator(getTestAccountId(), getTestPrivateKey());
+
+  // When — call multiple getters concurrently while the bg thread is alive.
+  // These getters all acquire mMutex. If the bg thread holds mMutex during its
+  // query, this would deadlock or contend indefinitely.
+  for (int i = 0; i < 10; ++i)
+  {
+    EXPECT_NO_THROW(client.getRequestTimeout());
+    EXPECT_NO_THROW(client.getOperatorAccountId());
+    EXPECT_NO_THROW(client.getNetworkUpdatePeriod());
+    EXPECT_NO_THROW(client.getMaxTransactionFee());
+    EXPECT_NO_THROW(client.getMaxQueryPayment());
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+
+  // Then — destruction also must not deadlock.
+  SUCCEED();
+}
+
+//-----
+TEST_F(ClientUnitTests, NetworkUpdateThreadDoesNotDeadlockOnSetNetworkUpdatePeriod)
+{
+  // Given
+  Client client;
+
+  // When — setNetworkUpdatePeriod cancels the old thread and starts a new one.
+  // This exercises cancel + join + restart while the bg thread may be waiting.
+  EXPECT_NO_THROW(client.setNetworkUpdatePeriod(std::chrono::seconds(30)));
+  EXPECT_EQ(client.getNetworkUpdatePeriod(), std::chrono::seconds(30));
+
+  // When — do it again to exercise the cycle a second time.
+  EXPECT_NO_THROW(client.setNetworkUpdatePeriod(std::chrono::seconds(60)));
+  EXPECT_EQ(client.getNetworkUpdatePeriod(), std::chrono::seconds(60));
+
+  // Then
+  SUCCEED();
+}
+
+//-----
+TEST_F(ClientUnitTests, NetworkUpdateThreadDoesNotDeadlockOnMove)
+{
+  // Given
+  Client client;
+  client.setOperator(getTestAccountId(), getTestPrivateKey());
+
+  // Give the thread a moment to start.
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+  // When — moving a Client cancels the bg thread on the source and restarts
+  // it on the destination.
+  Client client2 = std::move(client);
+
+  // Then — the moved-to client should be functional and destroyable.
+  EXPECT_EQ(*client2.getOperatorAccountId(), getTestAccountId());
+  SUCCEED();
+}
+
+//-----
+TEST_F(ClientUnitTests, NetworkUpdateThreadDoesNotDeadlockOnClose)
+{
+  // Given
+  Client client;
+
+  // Give the thread a moment to start.
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+  // When — close() cancels the bg thread and joins it.
+  EXPECT_NO_THROW(client.close());
+
+  // Then — if we reach here without hanging, no deadlock occurred.
+  SUCCEED();
+}
+
+//-----
+TEST_F(ClientUnitTests, NetworkUpdateThreadSkipsUpdateWhenNoNetworkConfigured)
+{
+  // Given — a Client with no mirror/consensus network and a very short update
+  // period. This forces the bg thread past wait_for and into the body of
+  // scheduleNetworkUpdate(), exercising the null-network continue guard.
+  Client client;
+  client.setNetworkUpdatePeriod(std::chrono::milliseconds(50));
+
+  // When — let several update cycles fire.
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+  // Then — the update period is preserved and the mutex is not stuck.
+  // getNetworkUpdatePeriod() acquires mMutex, so it would hang if the bg
+  // thread were holding the lock.
+  EXPECT_EQ(client.getNetworkUpdatePeriod(), std::chrono::milliseconds(50));
 }

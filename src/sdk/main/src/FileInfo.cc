@@ -82,6 +82,14 @@ std::string FileInfo::toString() const
 }
 
 //-----
+bool FileInfo::operator==(const FileInfo& rhs) const
+{
+  return (mFileId == rhs.mFileId) && (mSize == rhs.mSize) && (mExpirationTime == rhs.mExpirationTime) &&
+         (mIsDeleted == rhs.mIsDeleted) && (mAdminKeys.toBytes() == rhs.mAdminKeys.toBytes()) && (mMemo == rhs.mMemo) &&
+         (mLedgerId == rhs.mLedgerId);
+}
+
+//-----
 std::ostream& operator<<(std::ostream& os, const FileInfo& info)
 {
   os << info.toString();

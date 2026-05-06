@@ -76,16 +76,15 @@ std::string FeeComponents::toString() const
 }
 
 //-----
-bool operator==(const FeeComponents& lhs, const FeeComponents& rhs)
+bool FeeComponents::operator==(const FeeComponents& rhs) const
 {
-  return (lhs.mMin == rhs.mMin) && (lhs.mMax == rhs.mMax) && (lhs.mConstant == rhs.mConstant) &&
-         (lhs.mTransactionBandwidthBytes == rhs.mTransactionBandwidthBytes) &&
-         (lhs.mTransactionVerification == rhs.mTransactionVerification) &&
-         (lhs.mTransactionRamByteHour == rhs.mTransactionRamByteHour) &&
-         (lhs.mTransactionStorageByteHour == rhs.mTransactionStorageByteHour) &&
-         (lhs.mContractTransactionGas == rhs.mContractTransactionGas) &&
-         (lhs.mTransferVolumeHbar == rhs.mTransferVolumeHbar) && (lhs.mResponseMemoryByte == rhs.mResponseMemoryByte) &&
-         (lhs.mResponseDiskByte == rhs.mResponseDiskByte);
+  return (mMin == rhs.mMin) && (mMax == rhs.mMax) && (mConstant == rhs.mConstant) &&
+         (mTransactionBandwidthBytes == rhs.mTransactionBandwidthBytes) &&
+         (mTransactionVerification == rhs.mTransactionVerification) &&
+         (mTransactionRamByteHour == rhs.mTransactionRamByteHour) &&
+         (mTransactionStorageByteHour == rhs.mTransactionStorageByteHour) &&
+         (mContractTransactionGas == rhs.mContractTransactionGas) && (mTransferVolumeHbar == rhs.mTransferVolumeHbar) &&
+         (mResponseMemoryByte == rhs.mResponseMemoryByte) && (mResponseDiskByte == rhs.mResponseDiskByte);
 }
 
 } // namespace Hiero

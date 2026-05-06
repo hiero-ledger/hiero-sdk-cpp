@@ -20,7 +20,21 @@ protected:
   }
   [[nodiscard]] inline bool getTestIsDeleted() const { return mTestIsDeleted; }
   [[nodiscard]] inline const KeyList& getTestKeys() const { return mTestKeys; }
+  [[nodiscard]] inline const std::string& getTestMemo() const { return mTestMemo; }
   [[nodiscard]] inline const LedgerId& getTestLedgerId() const { return mTestLedgerId; }
+
+  [[nodiscard]] FileInfo makeTestFileInfo() const
+  {
+    FileInfo fileInfo;
+    fileInfo.mFileId = getTestFileId();
+    fileInfo.mSize = getTestSize();
+    fileInfo.mExpirationTime = getTestExpirationTime();
+    fileInfo.mIsDeleted = getTestIsDeleted();
+    fileInfo.mAdminKeys = getTestKeys();
+    fileInfo.mMemo = getTestMemo();
+    fileInfo.mLedgerId = getTestLedgerId();
+    return fileInfo;
+  }
 
 private:
   const FileId mTestFileId = FileId(1ULL);
@@ -29,6 +43,7 @@ private:
   const bool mTestIsDeleted = true;
   const KeyList mTestKeys = KeyList::of({ PublicKey::fromStringDer(
     "302A300506032B6570032100D75A980182B10AB7D54BFED3C964073A0EE172f3DAA62325AF021A68F707511A") });
+  const std::string mTestMemo = "test memo";
   const LedgerId mTestLedgerId = LedgerId({ std::byte(0x03), std::byte(0x04), std::byte(0x05) });
 };
 
@@ -54,4 +69,111 @@ TEST_F(FileInfoUnitTests, FromProtobuf)
   EXPECT_EQ(fileInfo.mIsDeleted, getTestIsDeleted());
   EXPECT_EQ(fileInfo.mAdminKeys.toBytes(), getTestKeys().toBytes());
   EXPECT_EQ(fileInfo.mLedgerId.toBytes(), getTestLedgerId().toBytes());
+}
+
+//-----
+TEST_F(FileInfoUnitTests, DefaultConstructedInstancesAreEqual)
+{
+  // Given
+  const FileInfo lhs;
+  const FileInfo rhs;
+
+  // When / Then
+  EXPECT_EQ(lhs, rhs);
+}
+
+//-----
+TEST_F(FileInfoUnitTests, IdenticalInstancesAreEqual)
+{
+  // Given
+  const FileInfo lhs = makeTestFileInfo();
+  const FileInfo rhs = makeTestFileInfo();
+
+  // When / Then
+  EXPECT_EQ(lhs, rhs);
+}
+
+//-----
+TEST_F(FileInfoUnitTests, DifferingFileIdsAreNotEqual)
+{
+  // Given
+  const FileInfo lhs = makeTestFileInfo();
+  FileInfo rhs = makeTestFileInfo();
+  rhs.mFileId = FileId(2ULL);
+
+  // When / Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(FileInfoUnitTests, DifferingSizesAreNotEqual)
+{
+  // Given
+  const FileInfo lhs = makeTestFileInfo();
+  FileInfo rhs = makeTestFileInfo();
+  ++rhs.mSize;
+
+  // When / Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(FileInfoUnitTests, DifferingExpirationTimesAreNotEqual)
+{
+  // Given
+  const FileInfo lhs = makeTestFileInfo();
+  FileInfo rhs = makeTestFileInfo();
+  rhs.mExpirationTime += std::chrono::seconds(1);
+
+  // When / Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(FileInfoUnitTests, DifferingDeletedStatesAreNotEqual)
+{
+  // Given
+  const FileInfo lhs = makeTestFileInfo();
+  FileInfo rhs = makeTestFileInfo();
+  rhs.mIsDeleted = !rhs.mIsDeleted;
+
+  // When / Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(FileInfoUnitTests, DifferingAdminKeysAreNotEqual)
+{
+  // Given
+  const FileInfo lhs = makeTestFileInfo();
+  FileInfo rhs = makeTestFileInfo();
+  rhs.mAdminKeys = KeyList::of({ PublicKey::fromStringDer(
+    "302A300506032B65700321008CCD31B53D1835B467AAC795DAB19B274DD3B37E3DAF12FCEC6BC02BAC87B53D") });
+
+  // When / Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(FileInfoUnitTests, DifferingMemosAreNotEqual)
+{
+  // Given
+  const FileInfo lhs = makeTestFileInfo();
+  FileInfo rhs = makeTestFileInfo();
+  rhs.mMemo = "different memo";
+
+  // When / Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(FileInfoUnitTests, DifferingLedgerIdsAreNotEqual)
+{
+  // Given
+  const FileInfo lhs = makeTestFileInfo();
+  FileInfo rhs = makeTestFileInfo();
+  rhs.mLedgerId = LedgerId({ std::byte(0x06), std::byte(0x07), std::byte(0x08) });
+
+  // When / Then
+  EXPECT_FALSE(lhs == rhs);
 }

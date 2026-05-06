@@ -49,4 +49,10 @@ std::unique_ptr<proto::CryptoAllowance> HbarAllowance::toProtobuf() const
   return proto;
 }
 
+//-----
+bool HbarAllowance::operator==(const HbarAllowance& rhs) const
+{
+  return mOwnerAccountId == rhs.mOwnerAccountId && mSpenderAccountId == rhs.mSpenderAccountId && mAmount == rhs.mAmount;
+}
+
 } // namespace Hiero

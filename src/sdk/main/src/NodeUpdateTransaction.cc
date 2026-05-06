@@ -128,7 +128,10 @@ grpc::Status NodeUpdateTransaction::submitRequest(const proto::Transaction& requ
 //-----
 void NodeUpdateTransaction::validateChecksums(const Client& client) const
 {
-  mAccountId.validateChecksum(client);
+  if (!(mAccountId == AccountId()))
+  {
+    mAccountId.validateChecksum(client);
+  }
 }
 
 //-----
@@ -203,7 +206,10 @@ aproto::NodeUpdateTransactionBody* NodeUpdateTransaction::build() const
   auto body = std::make_unique<aproto::NodeUpdateTransactionBody>();
 
   body->set_node_id(mNodeId);
-  body->set_allocated_account_id(mAccountId.toProtobuf().release());
+  if (!(mAccountId == AccountId()))
+  {
+    body->set_allocated_account_id(mAccountId.toProtobuf().release());
+  }
 
   if (mDescription.has_value())
   {

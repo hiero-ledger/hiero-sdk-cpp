@@ -31,6 +31,7 @@
 #include "key/params/GenerateKeyParams.h"
 #include "schedule/ScheduleService.h"
 #include "schedule/params/CreateScheduleParams.h"
+#include "schedule/params/DeleteScheduleParams.h"
 #include "sdk/SdkClient.h"
 #include "sdk/params/ResetParams.h"
 #include "sdk/params/SetupParams.h"
@@ -137,6 +138,7 @@ TckServer::TckServer(int port)
 
   // Schedule Service
   mJsonRpcParser.addMethod("createSchedule", getHandle(ScheduleService::createSchedule));
+  mJsonRpcParser.addMethod("deleteSchedule", getHandle(ScheduleService::deleteSchedule));
 
   setupHttpHandler();
   mServer.listen("localhost", port);
@@ -282,5 +284,7 @@ template TckServer::MethodHandle TckServer::getHandle<TopicService::TopicMessage
   nlohmann::json (*method)(const TopicService::TopicMessageSubmitParams&));
 template TckServer::MethodHandle TckServer::getHandle<ScheduleService::CreateScheduleParams>(
   nlohmann::json (*method)(const ScheduleService::CreateScheduleParams&));
+template TckServer::MethodHandle TckServer::getHandle<ScheduleService::DeleteScheduleParams>(
+  nlohmann::json (*method)(const ScheduleService::DeleteScheduleParams&));
 
 } // namespace Hiero::TCK
