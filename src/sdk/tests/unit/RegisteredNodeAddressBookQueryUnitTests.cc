@@ -25,7 +25,7 @@ TEST_F(RegisteredNodeAddressBookQueryUnitTests, RegisteredNodeFromJsonWithEd2551
     "registered_node_id": "42",
     "admin_key": {
       "_type": "ED25519",
-      "key": "302a300506032b6570032100e0c8ec2758a5879ffac226a13c0c516b799e72e35141a0dd828f94d37988a4b"
+      "key": "302a300506032b6570032100e0c8ec2758a5879ffac226a13c0c516b799e72e35141a0dd828f94d37988a4b0"
     },
     "description": "Test ED25519 node",
     "service_endpoints": []

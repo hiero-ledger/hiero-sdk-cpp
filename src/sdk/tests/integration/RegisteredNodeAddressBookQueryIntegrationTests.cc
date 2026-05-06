@@ -10,7 +10,9 @@
 #include "TransactionResponse.h"
 
 #include <algorithm>
+#include <chrono>
 #include <gtest/gtest.h>
+#include <thread>
 
 using namespace Hiero;
 
@@ -42,6 +44,9 @@ TEST_F(RegisteredNodeAddressBookQueryIntegrationTests, CanQueryRegisteredNodes)
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
   const uint64_t createdNodeId = createRegisteredNode(adminKey);
 
+  // Wait for the mirror node to index the newly created node
+  std::this_thread::sleep_for(std::chrono::seconds(5));
+
   // When
   RegisteredNodeAddressBook addressBook;
   ASSERT_NO_THROW(addressBook = RegisteredNodeAddressBookQuery().execute(getTestClient()));
@@ -61,6 +66,9 @@ TEST_F(RegisteredNodeAddressBookQueryIntegrationTests, CanQueryRegisteredNodesWi
   // Given — create a registered node and query with a page size of 1
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
   createRegisteredNode(adminKey);
+
+  // Wait for the mirror node to index the newly created node
+  std::this_thread::sleep_for(std::chrono::seconds(5));
 
   // When
   RegisteredNodeAddressBook addressBook;

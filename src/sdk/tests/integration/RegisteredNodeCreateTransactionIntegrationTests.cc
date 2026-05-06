@@ -10,7 +10,6 @@
 #include "TransactionReceipt.h"
 #include "TransactionResponse.h"
 #include "exceptions/PrecheckStatusException.h"
-#include "exceptions/ReceiptStatusException.h"
 
 #include <gtest/gtest.h>
 
@@ -216,12 +215,12 @@ TEST_F(RegisteredNodeCreateTransactionIntegrationTests, FailsToCreateRegisteredN
   // Given — admin key set but no service endpoints
   const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
 
-  // When / Then — expect INVALID_REGISTERED_ENDPOINT receipt status
+  // When / Then — network rejects at precheck with INVALID_REGISTERED_ENDPOINT
   EXPECT_THROW(RegisteredNodeCreateTransaction()
                  .setAdminKey(adminKey->getPublicKey())
                  .freezeWith(&getTestClient())
                  .sign(adminKey)
                  .execute(getTestClient())
                  .getReceipt(getTestClient()),
-               ReceiptStatusException);
+               PrecheckStatusException);
 }
