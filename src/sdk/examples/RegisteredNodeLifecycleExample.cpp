@@ -41,14 +41,13 @@ int main(int argc, char** argv)
   endpoint->setEndpointApi(BlockNodeApi::SUBSCRIBE_STREAM);
 
   // Steps 3-4: Build and execute a RegisteredNodeCreateTransaction.
-  const TransactionResponse createResponse =
-    RegisteredNodeCreateTransaction()
-      .setAdminKey(adminKey->getPublicKey())
-      .setDescription("My Block Node")
-      .addServiceEndpoint(endpoint)
-      .freezeWith(&client)
-      .sign(adminKey)
-      .execute(client);
+  const TransactionResponse createResponse = RegisteredNodeCreateTransaction()
+                                               .setAdminKey(adminKey->getPublicKey())
+                                               .setDescription("My Block Node")
+                                               .addServiceEndpoint(endpoint)
+                                               .freezeWith(&client)
+                                               .sign(adminKey)
+                                               .execute(client);
 
   // Step 5: Retrieve the TransactionReceipt and read the registeredNodeId.
   const TransactionReceipt createReceipt = createResponse.getReceipt(client);
@@ -84,15 +83,14 @@ int main(int argc, char** argv)
   secondEndpoint->setEndpointApi(BlockNodeApi::STATUS);
 
   // Steps 9-11: Build and execute a RegisteredNodeUpdateTransaction.
-  const TransactionResponse updateResponse =
-    RegisteredNodeUpdateTransaction()
-      .setRegisteredNodeId(registeredNodeId)
-      .setDescription("My Updated Block Node")
-      .addServiceEndpoint(endpoint)
-      .addServiceEndpoint(secondEndpoint)
-      .freezeWith(&client)
-      .sign(adminKey)
-      .execute(client);
+  const TransactionResponse updateResponse = RegisteredNodeUpdateTransaction()
+                                               .setRegisteredNodeId(registeredNodeId)
+                                               .setDescription("My Updated Block Node")
+                                               .addServiceEndpoint(endpoint)
+                                               .addServiceEndpoint(secondEndpoint)
+                                               .freezeWith(&client)
+                                               .sign(adminKey)
+                                               .execute(client);
 
   updateResponse.getReceipt(client).validateStatus();
   std::cout << "Registered node updated successfully." << std::endl;
@@ -108,12 +106,11 @@ int main(int argc, char** argv)
   // std::cout << "Consensus node updated with registered node association." << std::endl;
 
   // Steps 15-17: Delete the registered node.
-  const TransactionResponse deleteResponse =
-    RegisteredNodeDeleteTransaction()
-      .setRegisteredNodeId(registeredNodeId)
-      .freezeWith(&client)
-      .sign(adminKey)
-      .execute(client);
+  const TransactionResponse deleteResponse = RegisteredNodeDeleteTransaction()
+                                               .setRegisteredNodeId(registeredNodeId)
+                                               .freezeWith(&client)
+                                               .sign(adminKey)
+                                               .execute(client);
 
   deleteResponse.getReceipt(client).validateStatus();
   std::cout << "Registered node " << registeredNodeId << " deleted successfully." << std::endl;

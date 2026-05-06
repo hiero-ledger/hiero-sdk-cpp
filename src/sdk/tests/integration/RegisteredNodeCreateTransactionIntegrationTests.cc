@@ -206,9 +206,7 @@ TEST_F(RegisteredNodeCreateTransactionIntegrationTests,
 TEST_F(RegisteredNodeCreateTransactionIntegrationTests, FailsToCreateRegisteredNodeWithNoAdminKey)
 {
   // When / Then — no admin key set, expect KEY_REQUIRED precheck
-  EXPECT_THROW(RegisteredNodeCreateTransaction()
-                 .addServiceEndpoint(makeBlockNodeEndpoint())
-                 .execute(getTestClient()),
+  EXPECT_THROW(RegisteredNodeCreateTransaction().addServiceEndpoint(makeBlockNodeEndpoint()).execute(getTestClient()),
                PrecheckStatusException);
 }
 
