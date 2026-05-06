@@ -5,7 +5,10 @@
 #include "HbarUnit.h"
 
 #include <cmath>
+#include <cstdint>
 #include <regex>
+#include <string>
+#include <string_view>
 
 namespace Hiero
 {
@@ -59,7 +62,7 @@ public:
    * @param unit The unit to convert to from Hbar.
    * @return An int64_t representing the converted value.
    */
-  inline int64_t to(const HbarUnit& unit) const { return mValueInTinybar / unit.getTinybars(); }
+  [[nodiscard]] inline int64_t to(const HbarUnit& unit) const { return mValueInTinybar / unit.getTinybars(); }
 
   /**
    * Compare this Hbar to another Hbar and determine if they represent the same amount.
@@ -72,7 +75,7 @@ public:
   /**
    * Add another Hbar to this Hbar.
    *
-   * @param other THe other Hbar to add to this Hbar.
+   * @param other The other Hbar to add to this Hbar.
    * @return A new Hbar object with the new value.
    */
   Hbar operator+(const Hbar& other) const { return Hbar(mValueInTinybar + other.mValueInTinybar, HbarUnit::TINYBAR()); }
@@ -96,7 +99,7 @@ public:
    * @throws std::invalid_argument If the input string can not be converted to Hbar unit.
    * @return An Hbar instance.
    */
-  [[nodiscard]] static Hbar fromString(const std::string& text);
+  [[nodiscard]] static Hbar fromString(std::string_view text);
 
   /**
    * Helper function to get the HbarUnit from the given symbol string.
@@ -105,7 +108,7 @@ public:
    * @return The corresponding HbarUnit.
    * @throws std::invalid_argument if the symbol is not recognized.
    */
-  [[nodiscard]] static HbarUnit getUnit(const std::string& symbolString);
+  [[nodiscard]] static HbarUnit getUnit(std::string_view symbolString);
 
   /**
    * Convert this Hbar value to tinybars.
@@ -119,7 +122,7 @@ public:
    *
    * @return A string representing the Hbar value.
    */
-  std::string toString() const;
+  [[nodiscard]] std::string toString() const;
 
   /**
    * Returns an Hbar whose value is negative this Hbar.

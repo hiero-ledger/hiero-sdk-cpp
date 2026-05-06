@@ -1,6 +1,5 @@
 # Begin Protobuf Definitions
 set(PROTO_FILES
-        block/stream/chain_of_trust_proof.proto
         transaction_list.proto
 
         mirror/consensus_service.proto
@@ -67,6 +66,10 @@ set(PROTO_FILES
         services/node_delete.proto
         services/node_stake_update.proto
         services/node_update.proto
+        services/registered_node_create.proto
+        services/registered_node_delete.proto
+        services/registered_node_update.proto
+        services/registered_service_endpoint.proto
         services/query.proto
         services/query_header.proto
         services/response.proto
@@ -120,6 +123,7 @@ set(PROTO_FILES
         services/util_prng.proto
         services/util_service.proto
 
+        services/auxiliary/blockrecords/migration_root_hash_vote.proto
         services/auxiliary/hints/crs_publication.proto
         services/auxiliary/hints/hints_key_publication.proto
         services/auxiliary/hints/hints_partial_signature.proto
@@ -127,6 +131,8 @@ set(PROTO_FILES
         services/auxiliary/history/history_proof_signature.proto
         services/auxiliary/history/history_proof_key_publication.proto
         services/auxiliary/history/history_proof_vote.proto
+        services/auxiliary/tss/ledger_id_publication.proto
+        services/auxiliary/tss/tss_encryption_key.proto
         services/auxiliary/tss/tss_message.proto
         services/auxiliary/tss/tss_vote.proto
 

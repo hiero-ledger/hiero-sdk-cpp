@@ -7,9 +7,11 @@
 #include "Hbar.h"
 #include "Key.h"
 #include "Transaction.h"
+#include "hooks/HookCreationDetails.h"
 
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
@@ -181,7 +183,8 @@ public:
   /**
    * Set the maximum number of tokens with which the new smart contract instance can be automatically associated.
    *
-   * @param associations The maximum amount of token associations for the new smart contract instance.
+   * @param associations The maximum amount of token associations for the new smart contract instance. A value of -1
+   *                     means the new smart contract instance can have unlimited automatic token associations.
    * @return A reference to this ContractCreateTransaction object with the newly-set maximum automatic token
    *         associations.
    * @throws IllegalStateException If this ContractCreateTransaction is frozen.
@@ -227,6 +230,22 @@ public:
    * @throws IllegalStateException If this ContractCreateTransaction is frozen.
    */
   ContractCreateTransaction& setDeclineStakingReward(bool declineReward);
+
+  /**
+   * Add a hook to be added immediately after creating the contract.
+   *
+   * @param hook The details of the hook to create.
+   * @return A reference to this ContractCreateTransaction object with the newly-added hook creation details.
+   */
+  ContractCreateTransaction& addHook(const HookCreationDetails& hook);
+
+  /**
+   * Set the list of hooks to be added immediately after creating the contract.
+   *
+   * @param hooks The details of the hooks to create.
+   * @return A reference to this ContractCreateTransaction object with the newly-set list of hook creation details.
+   */
+  ContractCreateTransaction& setHooks(const std::vector<HookCreationDetails>& hooks);
 
   /**
    * Get the ID of the file that contains the smart contract initcode.
@@ -327,6 +346,13 @@ public:
    *         FALSE.
    */
   [[nodiscard]] inline bool getDeclineStakingReward() const { return mDeclineStakingReward; }
+
+  /**
+   * Get the hooks to create for the new contract.
+   *
+   * @return The hooks to create for the new contract.
+   */
+  [[nodiscard]] inline std::vector<HookCreationDetails> getHooks() const { return mHookCreationDetails; }
 
 private:
   friend class WrappedTransaction;
@@ -445,6 +471,11 @@ private:
    * If \c TRUE, the new smart contract instance will decline receiving staking rewards.
    */
   bool mDeclineStakingReward = false;
+
+  /**
+   * The details of hooks to add immediately after creating this contract.
+   */
+  std::vector<HookCreationDetails> mHookCreationDetails;
 };
 
 } // namespace Hiero

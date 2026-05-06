@@ -68,6 +68,7 @@ The candidate label is a friendly “almost ready” marker, giving maintainers 
 | **Advanced** | Shaping the system | Design-focused, high-impact work | 3 Intermediate Issues |
 
 Prerequisites are enforced automatically by the `/assign` bot when contributors request assignment.
+*Note: If a contributor has already completed at least one issue at a given skill level (or higher), they bypass the prerequisite and can always take on more issues at that level.*
 
 Each level reflects a gradual increase in:
 

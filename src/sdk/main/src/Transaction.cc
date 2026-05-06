@@ -18,6 +18,7 @@
 #include "FileDeleteTransaction.h"
 #include "FileUpdateTransaction.h"
 #include "FreezeTransaction.h"
+#include "HookStoreTransaction.h"
 #include "NodeCreateTransaction.h"
 #include "NodeDeleteTransaction.h"
 #include "NodeUpdateTransaction.h"
@@ -76,6 +77,28 @@
 
 namespace Hiero
 {
+
+namespace
+{
+/**
+ * Extract the raw signature bytes from a protobuf SignaturePair.
+ */
+std::vector<std::byte> extractSignatureBytes(const proto::SignaturePair& pair)
+{
+  if (pair.has_ed25519())
+  {
+    return internal::Utilities::stringToByteVector(pair.ed25519());
+  }
+
+  if (pair.has_ecdsa_secp256k1())
+  {
+    return internal::Utilities::stringToByteVector(pair.ecdsa_secp256k1());
+  }
+
+  throw IllegalStateException("Unknown signature type");
+}
+} // anonymous namespace
+
 //-----
 template<typename SdkRequestType>
 struct Transaction<SdkRequestType>::TransactionImpl
@@ -164,6 +187,11 @@ struct Transaction<SdkRequestType>::TransactionImpl
    */
 
   bool mTransactionIdManualSet = false;
+
+  /**
+   * Whether this transaction uses high-volume entity creation throttles and pricing.
+   */
+  bool mHighVolume = false;
 };
 
 //-----
@@ -176,6 +204,7 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
   proto::Transaction tx;
   proto::SignedTransaction signedTx;
   proto::TransactionBody txBody;
+  proto::TransactionBody::DataCase expectedDataCase = proto::TransactionBody::DATA_NOT_SET;
 
   bool batchified = false;
 
@@ -199,12 +228,27 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
     {
       std::string currentGroupRefBodyBytes;
       std::string currentGroupTxIdBytes;
+
       for (int i = 0; i < txList.transaction_list_size(); ++i)
       {
         tx = txList.transaction_list(i);
         signedTx.ParseFromArray(tx.signedtransactionbytes().data(),
                                 static_cast<int>(tx.signedtransactionbytes().size()));
         txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
+
+        // Security: Validate that all entries have the same transaction type.
+        // This is critical to prevent transaction smuggling where an attacker injects
+        // a hidden malicious transaction with a different type that gets signed but not displayed.
+        if (i == 0)
+        {
+          expectedDataCase = txBody.data_case();
+        }
+        else if (txBody.data_case() != expectedDataCase)
+        {
+          throw std::invalid_argument(
+            "Transaction list contains entries with inconsistent transaction types. "
+            "All entries must have the same transaction type to prevent transaction smuggling attacks.");
+        }
 
         std::string thisTxIdBytes = txBody.transactionid().SerializeAsString();
 
@@ -270,6 +314,23 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
     }
   }
 
+  // Security: For non-chunked transaction types, reject if there are multiple transactionIds.
+  // Only FileAppend and TopicMessageSubmit (chunked transactions) legitimately have multiple transactionIds.
+  // This prevents an attacker from smuggling hidden transactions with different transactionIds
+  // that would get signed but not displayed to the user.
+  const auto transactionType =
+    (expectedDataCase != proto::TransactionBody::DATA_NOT_SET) ? expectedDataCase : txBody.data_case();
+  const bool isChunkedTransactionType = (transactionType == proto::TransactionBody::kFileAppend ||
+                                         transactionType == proto::TransactionBody::kConsensusSubmitMessage);
+
+  if (!isChunkedTransactionType && transactions.size() > 1)
+  {
+    throw std::invalid_argument(
+      "Non-chunked transaction types cannot have multiple transaction IDs. "
+      "This may indicate an attempt to smuggle hidden transactions. "
+      "Only FileAppend and TopicMessageSubmit support multiple transaction IDs for chunking.");
+  }
+
   switch (txBody.data_case())
   {
     case proto::TransactionBody::kCryptoApproveAllowance:
@@ -304,6 +365,8 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
       return WrappedTransaction(FileUpdateTransaction(transactions));
     case proto::TransactionBody::kFreeze:
       return WrappedTransaction(FreezeTransaction(transactions));
+    case proto::TransactionBody::kHookStore:
+      return WrappedTransaction(HookStoreTransaction(transactions));
     case proto::TransactionBody::kNodeCreate:
       return WrappedTransaction(NodeCreateTransaction(transactions));
     case proto::TransactionBody::kNodeDelete:
@@ -499,6 +562,22 @@ SdkRequestType& Transaction<SdkRequestType>::setBatchKey(const std::shared_ptr<K
 
 //-----
 template<typename SdkRequestType>
+SdkRequestType& Transaction<SdkRequestType>::setHighVolume(bool highVolume)
+{
+  requireNotFrozen();
+  mImpl->mHighVolume = highVolume;
+  return static_cast<SdkRequestType&>(*this);
+}
+
+//-----
+template<typename SdkRequestType>
+bool Transaction<SdkRequestType>::getHighVolume() const
+{
+  return mImpl->mHighVolume;
+}
+
+//-----
+template<typename SdkRequestType>
 SdkRequestType& Transaction<SdkRequestType>::addSignature(const std::shared_ptr<PublicKey>& publicKey,
                                                           const std::vector<std::byte>& signature)
 {
@@ -554,6 +633,137 @@ Transaction<SdkRequestType>::getSignatures() const
   // each key.
   buildAllTransactions();
   return getSignaturesInternal();
+}
+
+//-----
+template<typename SdkRequestType>
+std::vector<std::vector<std::byte>> Transaction<SdkRequestType>::removeSignature(
+  const std::shared_ptr<PublicKey>& publicKey)
+{
+  if (!isFrozen())
+  {
+    throw IllegalStateException("Removing a signature from a Transaction requires "
+                                "the Transaction to be frozen");
+  }
+
+  if (!keyAlreadySigned(publicKey))
+  {
+    throw IllegalStateException("The public key has not signed this transaction");
+  }
+
+  std::vector<std::vector<std::byte>> removedSignatures;
+
+  // Build the prefix string, exactly as protobuf stores it (raw bytes as string)
+  const std::string pubKeyPrefixStr = internal::Utilities::byteVectorToString(publicKey->toBytesRaw());
+
+  // Identify external signatures to be kept in the protobuf
+  std::unordered_set<std::string> externalPrefixesToKeep;
+  for (const auto& [key, signer] : mImpl->mSignatories)
+  {
+    // If it's not the given public key and it has no signer function (!signer)
+    if (key->toBytesDer() != publicKey->toBytesDer() && !signer)
+    {
+      externalPrefixesToKeep.insert(internal::Utilities::byteVectorToString(key->toBytesRaw()));
+    }
+  }
+
+  // Remove the target signature from the compiled Protobuf messages
+  for (auto& signedTransaction : mImpl->mSignedTransactions)
+  {
+    auto* sigPairs = signedTransaction.mutable_sigmap()->mutable_sigpair();
+
+    // Iterate backwards so we can safely erase elements in-place without shifting indices
+    for (int i = sigPairs->size() - 1; i >= 0; --i)
+    {
+      const auto& pair = sigPairs->at(i);
+
+      if (pair.pubkeyprefix() == pubKeyPrefixStr)
+      {
+        removedSignatures.push_back(extractSignatureBytes(pair));
+        // Erase the signature directly from the Protobuf array
+        sigPairs->erase(sigPairs->begin() + i);
+      }
+      else if (externalPrefixesToKeep.find(pair.pubkeyprefix()) == externalPrefixesToKeep.end())
+      {
+        // This is a "stale" auto-generated signature.
+        // Erase it so it can be cleanly regenerated without duplication.
+        sigPairs->erase(sigPairs->begin() + i);
+      }
+    }
+
+    if (sigPairs->empty())
+    {
+      signedTransaction.clear_sigmap();
+    }
+  }
+
+  // Remove the key from the SDK's internal tracking lists
+  for (auto it = mImpl->mSignatories.begin(); it != mImpl->mSignatories.end(); ++it)
+  {
+    if (it->first->toBytesDer() == publicKey->toBytesDer())
+    {
+      mImpl->mPrivateKeys.erase(it->first);
+      mImpl->mSignatories.erase(it);
+      break;
+    }
+  }
+
+  // Clear and resize the raw transactions array to match the updated signed state
+  mImpl->mTransactions.clear();
+  mImpl->mTransactions.resize(mImpl->mSignedTransactions.size());
+
+  return removedSignatures;
+}
+
+//-----
+template<typename SdkRequestType>
+std::map<std::shared_ptr<PublicKey>, std::vector<std::vector<std::byte>>>
+Transaction<SdkRequestType>::removeAllSignatures()
+{
+  if (!isFrozen())
+  {
+    throw IllegalStateException("Removing signatures from a Transaction requires "
+                                "the Transaction to be frozen");
+  }
+
+  std::map<std::shared_ptr<PublicKey>, std::vector<std::vector<std::byte>>> removedByKey;
+
+  // Create a lookup map mapping string prefixes to tracked PublicKey objects
+  std::unordered_map<std::string, std::shared_ptr<PublicKey>> prefixToKey;
+  for (const auto& [key, signer] : mImpl->mSignatories)
+  {
+    prefixToKey.emplace(internal::Utilities::byteVectorToString(key->toBytesRaw()), key);
+  }
+
+  // Extract signatures and clear them from the compiled protobuf messages
+  for (auto& signedTransaction : mImpl->mSignedTransactions)
+  {
+    auto* sigMap = signedTransaction.mutable_sigmap();
+    auto* sigPairs = sigMap->mutable_sigpair();
+
+    for (const auto& pair : *sigPairs)
+    {
+      auto it = prefixToKey.find(pair.pubkeyprefix());
+      if (it != prefixToKey.end())
+      {
+        std::vector<std::byte> sigBytes = extractSignatureBytes(pair);
+        removedByKey[it->second].push_back(std::move(sigBytes));
+      }
+    }
+
+    // Wipe out all signatures on this specific node's transaction
+    signedTransaction.clear_sigmap();
+  }
+
+  // Wipe all internal SDK tracking states
+  mImpl->mSignatories.clear();
+  mImpl->mPrivateKeys.clear();
+
+  // Clear and resize the raw transactions array to match the updated signed state
+  mImpl->mTransactions.clear();
+  mImpl->mTransactions.resize(mImpl->mSignedTransactions.size());
+
+  return removedByKey;
 }
 
 //-----
@@ -914,6 +1124,8 @@ Transaction<SdkRequestType>::Transaction(const proto::TransactionBody& txBody)
     mImpl->mBatchKey = Key::fromProtobuf(txBody.batch_key());
   }
 
+  mImpl->mHighVolume = txBody.high_volume();
+
   mImpl->mSourceTransactionBody = txBody;
 }
 
@@ -1038,6 +1250,8 @@ Transaction<SdkRequestType>::Transaction(
   {
     mImpl->mBatchKey = Key::fromProtobuf(mImpl->mSourceTransactionBody.batch_key());
   }
+
+  mImpl->mHighVolume = mImpl->mSourceTransactionBody.high_volume();
 }
 
 //-----
@@ -1108,6 +1322,8 @@ void Transaction<SdkRequestType>::updateSourceTransactionBody(const Client* clie
   {
     mImpl->mSourceTransactionBody.set_allocated_batch_key(mImpl->mBatchKey->toProtobufKey().release());
   }
+
+  mImpl->mSourceTransactionBody.set_high_volume(mImpl->mHighVolume);
 
   // Add derived Transaction fields to mSourceTransactionBody.
   addToBody(mImpl->mSourceTransactionBody);
@@ -1262,15 +1478,15 @@ TransactionId Transaction<SdkRequestType>::getCurrentTransactionId() const
 template<typename SdkRequestType>
 TransactionResponse Transaction<SdkRequestType>::mapResponse(const proto::TransactionResponse&) const
 {
-  return TransactionResponse(
-    Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::getNodeAccountIds()
-      .at(mImpl->mTransactionIndex %
-          Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::
-            getNodeAccountIds()
-              .size()),
-    getCurrentTransactionId(),
-    internal::OpenSSLUtils::computeSHA384(internal::Utilities::stringToByteVector(
-      getTransactionProtobufObject(mImpl->mTransactionIndex).signedtransactionbytes())));
+  const auto& nodeAccountIds =
+    Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::
+      getNodeAccountIds();
+
+  return TransactionResponse(nodeAccountIds.at(mImpl->mTransactionIndex % nodeAccountIds.size()),
+                             getCurrentTransactionId(),
+                             internal::OpenSSLUtils::computeSHA384(internal::Utilities::stringToByteVector(
+                               getTransactionProtobufObject(mImpl->mTransactionIndex).signedtransactionbytes())),
+                             nodeAccountIds);
 }
 
 //-----
@@ -1453,6 +1669,7 @@ template class Transaction<FileCreateTransaction>;
 template class Transaction<FileDeleteTransaction>;
 template class Transaction<FileUpdateTransaction>;
 template class Transaction<FreezeTransaction>;
+template class Transaction<HookStoreTransaction>;
 template class Transaction<NodeCreateTransaction>;
 template class Transaction<NodeDeleteTransaction>;
 template class Transaction<NodeUpdateTransaction>;

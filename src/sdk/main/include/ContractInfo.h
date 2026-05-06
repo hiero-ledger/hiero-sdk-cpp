@@ -80,6 +80,14 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const ContractInfo& info);
 
   /**
+   * Compare this ContractInfo to another ContractInfo and determine if they represent the same contract info.
+   *
+   * @param other The other ContractInfo with which to compare this ContractInfo.
+   * @return \c TRUE if this ContractInfo is the same as the input ContractInfo, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const ContractInfo& other) const;
+
+  /**
    * The ID of the contract.
    */
   ContractId mContractId;
@@ -102,12 +110,12 @@ public:
   /**
    * The expiration time of the queried contract and its account.
    */
-  std::chrono::system_clock::time_point mExpirationTime;
+  std::chrono::system_clock::time_point mExpirationTime = std::chrono::system_clock::time_point();
 
   /**
    * The duration of time the queried contract uses to automatically extend its expiration period.
    */
-  std::chrono::system_clock::duration mAutoRenewPeriod;
+  std::chrono::system_clock::duration mAutoRenewPeriod = std::chrono::system_clock::duration::zero();
 
   /**
    * Get the number of bytes of storage the queried contract is using (which affects the cost to extend the expiration

@@ -17,10 +17,16 @@ private:
   const TransactionId mTestTransactionId = TransactionId::generate(mTestAccountId);
 };
 
+//-----
 TEST_F(TransactionReceiptQueryUnitTests, SetTransactionId)
 {
+  // Given
   TransactionReceiptQuery query;
   const TransactionId transactionId = TransactionId::generate(getTestAccountId());
+
+  // When
   query.setTransactionId(transactionId);
+
+  // Then
   EXPECT_EQ(query.getTransactionId(), transactionId);
 }

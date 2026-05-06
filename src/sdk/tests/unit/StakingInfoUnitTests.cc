@@ -2,9 +2,9 @@
 #include "StakingInfo.h"
 #include "impl/TimestampConverter.h"
 
-#include <services/basic_types.pb.h>
 #include <chrono>
 #include <gtest/gtest.h>
+#include <services/basic_types.pb.h>
 
 using namespace Hiero;
 
@@ -52,4 +52,26 @@ TEST_F(StakingInfoUnitTests, FromProtobuf)
   EXPECT_FALSE(stakingInfo.mStakedAccountId.has_value());
   ASSERT_TRUE(stakingInfo.mStakedNodeId.has_value());
   EXPECT_EQ(*stakingInfo.mStakedNodeId, getTestStakedNodeId());
+}
+
+//-----
+TEST_F(StakingInfoUnitTests, ToString)
+{
+  // Given
+  StakingInfo stakingInfo;
+  stakingInfo.mDeclineRewards = getTestDeclineReward();
+  stakingInfo.mStakePeriodStart = getTestStakePeriodStart();
+  stakingInfo.mPendingReward = Hbar(getTestPendingReward(), HbarUnit::TINYBAR());
+  stakingInfo.mStakedToMe = Hbar(getTestStakedToMe(), HbarUnit::TINYBAR());
+  stakingInfo.mStakedNodeId = getTestStakedNodeId();
+
+  // When
+  const std::string result = stakingInfo.toString();
+
+  // Then
+  EXPECT_NE(result.find("mDeclineRewards"), std::string::npos);
+  EXPECT_NE(result.find("mStakePeriodStart"), std::string::npos);
+  EXPECT_NE(result.find("mPendingReward"), std::string::npos);
+  EXPECT_NE(result.find("mStakedToMe"), std::string::npos);
+  EXPECT_NE(result.find(std::to_string(getTestStakedNodeId())), std::string::npos);
 }

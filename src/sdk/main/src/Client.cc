@@ -96,6 +96,11 @@ struct Client::ClientImpl
   // Should this Client automatically validate entity checksums?
   bool mAutoValidateChecksums = false;
 
+  // Should this Client allow receipt/record queries to fail over to other nodes when the submitting
+  // node is unavailable? When true, queries start with the submitting node and advance to others on
+  // failure. Defaults to false (strict single-node pinning).
+  bool mAllowReceiptNodeFailover = false;
+
   // Has this Client made its initial network update? This is utilized in case
   // the user updates the network update period before the initial update is
   // made, as it prevents the update period from being overwritten.
@@ -583,8 +588,12 @@ std::optional<std::function<std::vector<std::byte>(const std::vector<std::byte>&
 
 void Client::close()
 {
-  std::unique_lock lock(mImpl->mMutex);
+  // Cancel the network update thread first WITHOUT holding the mutex.
+  // cancelScheduledNetworkUpdate() calls join() on the background thread,
+  // and that thread needs mMutex — holding the mutex here would deadlock.
   cancelScheduledNetworkUpdate();
+
+  std::unique_lock lock(mImpl->mMutex);
 
   std::for_each(mImpl->mSubscriptions.begin(),
                 mImpl->mSubscriptions.end(),
@@ -672,6 +681,21 @@ bool Client::isAutoValidateChecksumsEnabled() const
 }
 
 //-----
+Client& Client::setAllowReceiptNodeFailover(bool allow)
+{
+  std::unique_lock lock(mImpl->mMutex);
+  mImpl->mAllowReceiptNodeFailover = allow;
+  return *this;
+}
+
+//-----
+bool Client::getAllowReceiptNodeFailover() const
+{
+  std::unique_lock lock(mImpl->mMutex);
+  return mImpl->mAllowReceiptNodeFailover;
+}
+
+//-----
 Client& Client::setNetworkFromAddressBook(const NodeAddressBook& addressBook)
 {
   std::unique_lock lock(mImpl->mMutex);
@@ -751,10 +775,12 @@ Logger Client::getLogger() const
 //-----
 Client& Client::setNetworkUpdatePeriod(const std::chrono::system_clock::duration& update)
 {
-  std::unique_lock lock(mImpl->mMutex);
-
-  // Cancel any previous network updates and wait for the thread to complete.
+  // Cancel any previous network updates WITHOUT holding the mutex.
+  // cancelScheduledNetworkUpdate() calls join() on the background thread,
+  // and that thread needs mMutex — holding the mutex here would deadlock.
   cancelScheduledNetworkUpdate();
+
+  std::unique_lock lock(mImpl->mMutex);
 
   // Update the network update period.
   mImpl->mNetworkUpdatePeriod = update;
@@ -1124,8 +1150,7 @@ void Client::startNetworkUpdateThread(const std::chrono::system_clock::duration&
 {
   mImpl->mStartNetworkUpdateWaitTime = std::chrono::system_clock::now();
   mImpl->mNetworkUpdatePeriod = period;
-  // mImpl->mNetworkUpdateThread =
-  // std::make_unique<std::thread>(&Client::scheduleNetworkUpdate, this);
+  mImpl->mNetworkUpdateThread = std::make_unique<std::thread>(&Client::scheduleNetworkUpdate, this);
 }
 
 //-----
@@ -1134,33 +1159,67 @@ void Client::scheduleNetworkUpdate()
   // Network updates should keep occurring until they're cancelled.
   while (true)
   {
-    if (std::unique_lock lock(mImpl->mMutex); !mImpl->mConditionVariable.wait_for(
-          lock, mImpl->mNetworkUpdatePeriod, [this]() { return mImpl->mCancelUpdate; }))
+    // wait_for returns true  if the predicate fired (cancelled) --> should NOT update
+    // wait_for returns false if the timeout expired             --> should update
+    // Negate so that shouldUpdate == true means "run the update".
+    bool shouldUpdate = false;
     {
-      try
-      {
-        // Get the address book and set the network based on the address book.
-        setNetworkFromAddressBookInternal(AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(*this));
+      std::unique_lock lock(mImpl->mMutex);
+      shouldUpdate = !mImpl->mConditionVariable.wait_for(
+        lock, mImpl->mNetworkUpdatePeriod, [this]() { return mImpl->mCancelUpdate; });
+    }
+    // Lock is released here.
 
-        // Adjust the network update period if this is the initial update.
-        if (!mImpl->mMadeInitialNetworkUpdate)
-        {
-          mImpl->mNetworkUpdatePeriod = DEFAULT_NETWORK_UPDATE_PERIOD;
-          mImpl->mMadeInitialNetworkUpdate = true;
-        }
+    if (!shouldUpdate)
+    {
+      // The network update was cancelled, stop looping.
+      break;
+    }
 
-        // Schedule the next network update.
-        mImpl->mStartNetworkUpdateWaitTime = std::chrono::system_clock::now();
-      }
-      catch (const std::exception& exception)
+    // Skip the update if no mirror network or consensus network is configured.
+    // AddressBookQuery requires a mirror network endpoint, and
+    // setNetworkFromAddressBookInternal requires a consensus network.
+    // Calling execute() without a mirror network would dereference a nullptr.
+    if (!getClientMirrorNetwork() || !getClientNetwork())
+    {
+      continue;
+    }
+
+    try
+    {
+      // Execute the address book query WITHOUT holding mMutex.
+      // AddressBookQuery::execute() calls back into Client getters
+      // (getRequestTimeout, getClientMirrorNetwork, etc.) which all
+      // acquire mMutex. Holding mMutex here would cause a self-deadlock
+      // on the same thread since std::mutex is non-recursive.
+      const NodeAddressBook addressBook = AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(*this);
+
+      // Re-acquire the lock to update internal state.
+      std::unique_lock lock(mImpl->mMutex);
+
+      // Check if we were cancelled while the query was executing.
+      if (mImpl->mCancelUpdate)
       {
-        mImpl->mLogger.warn(std::string("Failed to update address book via mirror node query ") + exception.what());
         break;
       }
+
+      // Update the network from the fetched address book.
+      setNetworkFromAddressBookInternal(addressBook);
+
+      // Adjust the network update period if this is the initial update.
+      if (!mImpl->mMadeInitialNetworkUpdate)
+      {
+        mImpl->mNetworkUpdatePeriod = DEFAULT_NETWORK_UPDATE_PERIOD;
+        mImpl->mMadeInitialNetworkUpdate = true;
+      }
+
+      // Schedule the next network update.
+      mImpl->mStartNetworkUpdateWaitTime = std::chrono::system_clock::now();
     }
-    // The network update was cancelled, stop looping.
-    else
+    catch (const std::exception& exception)
     {
+      std::unique_lock lock(mImpl->mMutex);
+      mImpl->mLogger.warn(std::string("Failed to update address book via mirror node query ") + exception.what());
       break;
     }
   }
@@ -1175,9 +1234,17 @@ void Client::cancelScheduledNetworkUpdate()
     return;
   }
 
-  // Signal the thread to stop and wait for it to stop (if it was running).
-  mImpl->mCancelUpdate = true;
-  mImpl->mConditionVariable.notify_all();
+  // Signal the thread to stop. Must hold the mutex when modifying
+  // mCancelUpdate and notifying, since the background thread checks
+  // the flag under the same mutex in its condition_variable predicate.
+  {
+    std::unique_lock lock(mImpl->mMutex);
+    mImpl->mCancelUpdate = true;
+    mImpl->mConditionVariable.notify_all();
+  }
+  // Lock released before join() — the background thread needs mMutex
+  // to complete its current wait_for or to re-acquire after query execution.
+
   if (mImpl->mNetworkUpdateThread->joinable())
   {
     mImpl->mNetworkUpdateThread->join();
@@ -1195,6 +1262,8 @@ void Client::cancelScheduledNetworkUpdate()
 void Client::moveClient(Client&& other)
 {
   // Cancel this Client's network update if one exists.
+  // This is called without holding mMutex, which is correct since
+  // cancelScheduledNetworkUpdate() calls join() on the background thread.
   cancelScheduledNetworkUpdate();
 
   // If there's a network update thread running in the moved-from Client, it

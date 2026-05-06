@@ -34,6 +34,14 @@ public:
   NetworkVersionInfo(const SemanticVersion& hapi, const SemanticVersion& hiero);
 
   /**
+   * Compare this NetworkVersionInfo to another and determine if they are equal.
+   *
+   * @param rhs The other NetworkVersionInfo with which to compare this NetworkVersionInfo.
+   * @return \c TRUE if this NetworkVersionInfo is the same as the input, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const NetworkVersionInfo& rhs) const;
+
+  /**
    * Construct a NetworkVersionInfo object from a NetworkGetVersionInfoResponse protobuf object.
    *
    * @param proto The NetworkGetVersionInfoResponse protobuf object from which to construct a NetworkVersionInfo object.

@@ -40,6 +40,8 @@ At this level, contributors begin to take ownership of technical decisions — n
 
 Contributors must have completed at least **3 Beginner Issues** in this repository before being assigned an Intermediate issue.
 
+*Note: Contributors who have already completed at least one Intermediate or Advanced issue bypass this prerequisite and can always take on more Intermediate issues.*
+
 This requirement is enforced automatically by the `/assign` bot.
 
 ---

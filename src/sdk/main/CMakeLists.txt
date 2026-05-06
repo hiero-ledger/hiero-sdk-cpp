@@ -1,7 +1,7 @@
 FetchContent_Declare(
         log4cxx
         GIT_REPOSITORY https://github.com/apache/logging-log4cxx.git
-        GIT_TAG rel/v1.1.0
+        GIT_TAG rel/v1.7.0
 )
 
 set(BUILD_SHARED_LIBS OFF)
@@ -100,6 +100,7 @@ add_library(${PROJECT_NAME} STATIC
         src/IPv4Address.cc
         src/Key.cc
         src/KeyList.cc
+        src/HookStoreTransaction.cc
         src/LedgerId.cc
         src/Logger.cc
         src/Mnemonic.cc
@@ -187,6 +188,23 @@ add_library(${PROJECT_NAME} STATIC
         src/TransactionResponse.cc
         src/TransferTransaction.cc
         src/WrappedTransaction.cc
+
+        src/hooks/EvmHookCall.cc
+        src/hooks/EvmHookSpec.cc
+        src/hooks/FungibleHookCall.cc
+        src/hooks/FungibleHookType.cc
+        src/hooks/HookCall.cc
+        src/hooks/HookCreationDetails.cc
+        src/hooks/HookEntityId.cc
+        src/hooks/HookExtensionPoint.cc
+        src/hooks/HookId.cc
+        src/hooks/EvmHook.cc
+        src/hooks/EvmHookMappingEntries.cc
+        src/hooks/EvmHookMappingEntry.cc
+        src/hooks/EvmHookStorageSlot.cc
+        src/hooks/EvmHookStorageUpdate.cc
+        src/hooks/NftHookCall.cc
+        src/hooks/NftHookType.cc
 
         src/impl/ASN1ECKey.cc
         src/impl/ASN1ECPrivateKey.cc

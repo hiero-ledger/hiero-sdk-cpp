@@ -47,8 +47,11 @@ add_executable(${TEST_PROJECT_NAME}
         EthereumTransactionDataEip1559UnitTests.cc
         EthereumTransactionDataLegacyUnitTests.cc
         EvmAddressUnitTests.cc
+        EvmHookCallUnitTests.cc
+        EvmHookSpecUnitTests.cc
         ExchangeRateUnitTests.cc
         FeeAssessmentMethodUnitTests.cc
+        FeeComponentsUnitTests.cc
         FileAppendTransactionUnitTests.cc
         FileContentsQueryUnitTests.cc
         FileCreateTransactionUnitTests.cc
@@ -58,20 +61,32 @@ add_executable(${TEST_PROJECT_NAME}
         FileInfoUnitTests.cc
         FileUpdateTransactionUnitTests.cc
         FreezeTransactionUnitTests.cc
-        NodeCreateTransactionUnitTests.cc
-        NodeDeleteTransactionUnitTests.cc
-        NodeUpdateTransactionUnitTests.cc
+        FungibleHookCallUnitTests.cc
         HbarAllowanceUnitTests.cc
-        HbarUnitTests.cc
         HbarTransferUnitTests.cc
+        HbarUnitTests.cc
+        HookCallUnitTests.cc
+        HookCreationDetailsUnitTests.cc
+        HookEntityIdUnitTests.cc
+        HookIdUnitTests.cc
         IPv4AddressUnitTests.cc
         KeyListUnitTests.cc
+        EvmHookUnitTests.cc
+        EvmHookMappingEntriesUnitTests.cc
+        EvmHookMappingEntryUnitTests.cc
+        EvmHookStorageSlotUnitTests.cc
+        EvmHookStorageUpdateUnitTests.cc
         LedgerIdUnitTests.cc
         MirrorNodeContractQueryUnitTests.cc
         NetworkUnitTests.cc
         NetworkVersionInfoUnitTests.cc
+        NftHookCallUnitTests.cc
+        NftHookTypeUnitTests.cc
         NftIdUnitTests.cc
         NodeAddressUnitTests.cc
+        NodeCreateTransactionUnitTests.cc
+        NodeDeleteTransactionUnitTests.cc
+        NodeUpdateTransactionUnitTests.cc
         PendingAirdropIdUnitTests.cc
         PendingAirdropRecordUnitTests.cc
         PrngTransactionUnitTests.cc
@@ -105,11 +120,14 @@ add_executable(${TEST_PROJECT_NAME}
         TokenMintTransactionUnitTests.cc
         TokenNftAllowanceUnitTests.cc
         TokenNftInfoQueryUnitTests.cc
+        TokenNftTransferHookUnitTests.cc
         TokenNftTransferUnitTests.cc
         TokenPauseTransactionUnitTests.cc
         TokenRejectTransactionUnitTests.cc
+        TokenRelationshipUnitTests.cc
         TokenRevokeKycTransactionUnitTests.cc
         TokenSupplyTypeUnitTests.cc
+        TokenTransferHookUnitTests.cc
         TokenTransferUnitTests.cc
         TokenTypeUnitTests.cc
         TokenUnfreezeTransactionUnitTests.cc
@@ -141,7 +159,7 @@ add_executable(${TEST_PROJECT_NAME}
         vectors/RFC8032TestVectors.cc
         vectors/SLIP10TestVectors.cc)
 
-target_link_libraries(${TEST_PROJECT_NAME} PRIVATE gtest_main gtest ${PROJECT_NAME})
+target_link_libraries(${TEST_PROJECT_NAME} PRIVATE GTest::gtest_main GTest::gtest ${PROJECT_NAME})
 gtest_discover_tests(${TEST_PROJECT_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
 target_link_libraries(${TEST_PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)

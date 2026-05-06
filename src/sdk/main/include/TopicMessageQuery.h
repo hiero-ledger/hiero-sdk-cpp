@@ -3,6 +3,7 @@
 #define HIERO_SDK_CPP_TOPIC_MESSAGE_QUERY_H_
 
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <memory>
 

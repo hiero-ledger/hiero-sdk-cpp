@@ -5,6 +5,8 @@
 #include "Endpoint.h"
 #include "Transaction.h"
 
+#include <cstdint>
+
 namespace proto
 {
 class TransactionBody;

@@ -2,6 +2,7 @@
 #ifndef HIERO_SDK_CPP_TOKEN_SUPPLY_TYPE_H_
 #define HIERO_SDK_CPP_TOKEN_SUPPLY_TYPE_H_
 
+#include <cstdint>
 #include <string_view>
 #include <unordered_map>
 

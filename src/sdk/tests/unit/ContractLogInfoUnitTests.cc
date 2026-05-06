@@ -3,9 +3,9 @@
 #include "ContractLogInfo.h"
 #include "impl/Utilities.h"
 
-#include <services/contract_call_local.pb.h>
 #include <cstddef>
 #include <gtest/gtest.h>
+#include <services/contract_call_local.pb.h>
 #include <vector>
 
 using namespace Hiero;
@@ -97,4 +97,91 @@ TEST_F(ContractLogInfoUnitTests, ToProtobuf)
   }
 
   EXPECT_EQ(protoContractLogInfo->data(), internal::Utilities::byteVectorToString(getTestData()));
+}
+
+//-----
+TEST_F(ContractLogInfoUnitTests, EqualityDefaultConstructed)
+{
+  // Given
+  const ContractLogInfo lhs;
+  const ContractLogInfo rhs;
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(ContractLogInfoUnitTests, EqualityIdenticallyConstructed)
+{
+  // Given
+  ContractLogInfo lhs;
+  lhs.mContractId = getTestContractId();
+  lhs.mBloom = getTestBloom();
+  lhs.mTopics = getTestTopics();
+  lhs.mData = getTestData();
+
+  ContractLogInfo rhs;
+  rhs.mContractId = getTestContractId();
+  rhs.mBloom = getTestBloom();
+  rhs.mTopics = getTestTopics();
+  rhs.mData = getTestData();
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(ContractLogInfoUnitTests, InequalityDifferentContractId)
+{
+  // Given
+  ContractLogInfo lhs;
+  lhs.mContractId = getTestContractId();
+
+  ContractLogInfo rhs;
+  rhs.mContractId = ContractId(99ULL);
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(ContractLogInfoUnitTests, InequalityDifferentBloom)
+{
+  // Given
+  ContractLogInfo lhs;
+  lhs.mBloom = getTestBloom();
+
+  ContractLogInfo rhs;
+  rhs.mBloom = { std::byte(0xFF) };
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(ContractLogInfoUnitTests, InequalityDifferentTopics)
+{
+  // Given
+  ContractLogInfo lhs;
+  lhs.mTopics = getTestTopics();
+
+  ContractLogInfo rhs;
+  rhs.mTopics = { { std::byte(0xFF) } };
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(ContractLogInfoUnitTests, InequalityDifferentData)
+{
+  // Given
+  ContractLogInfo lhs;
+  lhs.mData = getTestData();
+
+  ContractLogInfo rhs;
+  rhs.mData = { std::byte(0xFF) };
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
 }

@@ -1,0 +1,36 @@
+name: Bot - On PR Review
+
+on:
+  pull_request_review:
+    types:
+      - submitted
+
+permissions:
+  contents: read
+
+jobs:
+  on-pr-review:
+    runs-on: hiero-client-sdk-linux-large
+    if: github.event.pull_request.draft == false
+
+    concurrency:
+      group: pr-bot-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - name: Save review event
+        run: |
+          echo '{"pr_number":${{ github.event.pull_request.number }}, "review_state":"${{ github.event.review.state }}", "draft":${{ github.event.pull_request.draft }}}' > review-event.json
+
+      - name: Upload review event
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: review-event-${{ github.run_id }}
+          path: review-event.json
+          retention-days: 1
+           

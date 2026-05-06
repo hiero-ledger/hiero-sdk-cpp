@@ -144,6 +144,22 @@ public:
   [[nodiscard]] inline const std::shared_ptr<Key>& getBatchKey() { return mImpl->mBatchKey; }
 
   /**
+   * Set whether this Transaction should use high-volume entity creation throttles and pricing.
+   *
+   * @param highVolume \c TRUE if this Transaction should use high-volume throttles and pricing, otherwise \c FALSE.
+   * @return A reference to this derived Transaction object with the newly-set high-volume flag.
+   * @throws IllegalStateException If this Transaction is frozen.
+   */
+  SdkRequestType& setHighVolume(bool highVolume);
+
+  /**
+   * Get whether this Transaction uses high-volume entity creation throttles and pricing.
+   *
+   * @return \c TRUE if this Transaction uses high-volume throttles and pricing, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool getHighVolume() const;
+
+  /**
    * Add a signature to this Transaction.
    *
    * @param publicKey The associated PublicKey of the PrivateKey that generated the signature.
@@ -161,6 +177,23 @@ public:
    */
   [[nodiscard]] virtual std::map<AccountId, std::map<std::shared_ptr<PublicKey>, std::vector<std::byte>>>
   getSignatures() const;
+
+  /**
+   * Remove the signature(s) associated with a specific public key from the transaction.
+   *
+   * @param publicKey The public key whose signature should be removed.
+   * @return The removed signatures.
+   * @throws IllegalStateException If the transaction is not frozen or the public key has not signed this transaction.
+   */
+  std::vector<std::vector<std::byte>> removeSignature(const std::shared_ptr<PublicKey>& publicKey);
+
+  /**
+   * Remove all signatures from the transaction.
+   *
+   * @return The removed signatures grouped by their associated public key.
+   * @throws IllegalStateException if the transaction is not frozen.
+   */
+  std::map<std::shared_ptr<PublicKey>, std::vector<std::vector<std::byte>>> removeAllSignatures();
 
   /**
    * Freeze this Transaction.

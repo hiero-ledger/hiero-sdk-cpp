@@ -5,9 +5,9 @@
 #include "exceptions/BadKeyException.h"
 #include "impl/Utilities.h"
 
-#include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
 #include <memory>
+#include <services/basic_types.pb.h>
 #include <string>
 #include <string_view>
 #include <vector>
