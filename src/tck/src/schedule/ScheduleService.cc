@@ -647,19 +647,19 @@ WrappedTransaction translateSubmitTopicMessage(const nlohmann::json& params)
 WrappedTransaction translateScheduledTransaction(const nlohmann::json& json)
 {
   static const std::unordered_map<std::string, std::function<WrappedTransaction(const nlohmann::json&)>> dispatcher = {
-    {"transferCrypto",    translateTransferCrypto    },
-    { "createAccount",    translateCreateAccount     },
-    { "deleteAccount",    translateDeleteAccount     },
-    { "updateAccount",    translateUpdateAccount     },
-    { "createToken",      translateCreateToken       },
-    { "deleteToken",      translateDeleteToken       },
-    { "updateToken",      translateUpdateToken       },
-    { "burnToken",        translateBurnToken         },
-    { "mintToken",        translateMintToken         },
-    { "approveAllowance", translateApproveAllowance  },
-    { "createTopic",      translateCreateTopic       },
-    { "deleteTopic",      translateDeleteTopic       },
-    { "submitMessage",    translateSubmitTopicMessage}
+    { "transferCrypto",   translateTransferCrypto     },
+    { "createAccount",    translateCreateAccount      },
+    { "deleteAccount",    translateDeleteAccount      },
+    { "updateAccount",    translateUpdateAccount      },
+    { "createToken",      translateCreateToken        },
+    { "deleteToken",      translateDeleteToken        },
+    { "updateToken",      translateUpdateToken        },
+    { "burnToken",        translateBurnToken          },
+    { "mintToken",        translateMintToken          },
+    { "approveAllowance", translateApproveAllowance   },
+    { "createTopic",      translateCreateTopic        },
+    { "deleteTopic",      translateDeleteTopic        },
+    { "submitMessage",    translateSubmitTopicMessage }
   };
 
   const std::string method = json.at("method").get<std::string>();
@@ -691,9 +691,9 @@ nlohmann::json deleteSchedule(const DeleteScheduleParams& params)
   }
 
   return {
-    {"status",
-     gStatusToString.at(
-        scheduleDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)},
+    { "status",
+      gStatusToString.at(
+        scheduleDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus) },
   };
 }
 
@@ -735,8 +735,8 @@ nlohmann::json createSchedule(const CreateScheduleParams& params)
     scheduleCreateTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient());
 
   return {
-    {"status",      gStatusToString.at(txReceipt.mStatus)   },
-    { "scheduleId", txReceipt.mScheduleId.value().toString()}
+    { "status",     gStatusToString.at(txReceipt.mStatus)    },
+    { "scheduleId", txReceipt.mScheduleId.value().toString() }
   };
 }
 
