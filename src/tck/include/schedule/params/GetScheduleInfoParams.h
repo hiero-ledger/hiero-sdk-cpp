@@ -23,7 +23,7 @@ struct GetScheduleInfoParams
 
 namespace nlohmann
 {
-template <>
+template<>
 struct adl_serializer<Hiero::TCK::ScheduleService::GetScheduleInfoParams>
 {
   /**
