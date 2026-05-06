@@ -127,27 +127,39 @@ void RegisteredServiceEndpoint::readCommonFields(const ProtoEndpoint& proto)
 }
 
 //-----
-void RegisteredServiceEndpoint::readCommonFieldsFromJson(const nlohmann::json& json)
+static std::vector<std::byte> parseIpAddress(const std::string& ipStr)
+{
+  std::vector<std::byte> bytes;
+  std::istringstream stream(ipStr);
+  std::string octet;
+  while (std::getline(stream, octet, '.'))
+  {
+    bytes.push_back(static_cast<std::byte>(std::stoi(octet)));
+  }
+  return bytes;
+}
+
+//-----
+static void readAddressFromJson(RegisteredServiceEndpoint& ep, const nlohmann::json& json)
 {
   if (json.contains("ip_address") && !json["ip_address"].is_null())
   {
-    const std::string ipStr = json["ip_address"].get<std::string>();
-    std::vector<std::byte> bytes;
-    std::istringstream stream(ipStr);
-    std::string octet;
-    while (std::getline(stream, octet, '.'))
-    {
-      bytes.push_back(static_cast<std::byte>(std::stoi(octet)));
-    }
+    const auto bytes = parseIpAddress(json["ip_address"].get<std::string>());
     if (!bytes.empty())
     {
-      setIpAddress(bytes);
+      ep.setIpAddress(bytes);
     }
   }
   else if (json.contains("domain_name") && !json["domain_name"].is_null())
   {
-    setDomainName(json["domain_name"].get<std::string>());
+    ep.setDomainName(json["domain_name"].get<std::string>());
   }
+}
+
+//-----
+void RegisteredServiceEndpoint::readCommonFieldsFromJson(const nlohmann::json& json)
+{
+  readAddressFromJson(*this, json);
 
   if (json.contains("port") && !json["port"].is_null())
   {

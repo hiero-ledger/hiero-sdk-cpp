@@ -12,6 +12,40 @@
 namespace Hiero
 {
 
+namespace
+{
+
+void appendNodes(const nlohmann::json& json, RegisteredNodeAddressBook& result)
+{
+  if (json.contains("registered_nodes") && json["registered_nodes"].is_array())
+  {
+    for (const auto& nodeJson : json["registered_nodes"])
+    {
+      result.mRegisteredNodes.push_back(RegisteredNode::fromJson(nodeJson));
+    }
+  }
+}
+
+std::string resolveNextUrl(const nlohmann::json& json, const std::string& mirrorBase)
+{
+  if (!json.contains("links") || !json["links"].is_object() || !json["links"].contains("next"))
+  {
+    return {};
+  }
+  if (json["links"]["next"].is_null())
+  {
+    return {};
+  }
+  const std::string next = json["links"]["next"].get<std::string>();
+  if (next.empty())
+  {
+    return {};
+  }
+  return (next.rfind("http", 0) == 0) ? next : mirrorBase + next;
+}
+
+} // namespace
+
 //-----
 RegisteredNodeAddressBook RegisteredNodeAddressBookQuery::execute(const Client& client) const
 {
@@ -29,7 +63,6 @@ RegisteredNodeAddressBook RegisteredNodeAddressBookQuery::execute(const Client& 
     currentUrl += "?limit=" + std::to_string(mLimit.value());
   }
 
-  // Extract the mirror base URL (everything before "/api/") for resolving relative next links.
   std::string mirrorBase;
   const auto apiPos = currentUrl.find("/api/");
   if (apiPos != std::string::npos)
@@ -38,38 +71,11 @@ RegisteredNodeAddressBook RegisteredNodeAddressBookQuery::execute(const Client& 
   }
 
   RegisteredNodeAddressBook result;
-
   while (!currentUrl.empty())
   {
-    const std::string responseStr = internal::HttpClient::invokeREST(currentUrl, "GET");
-    const nlohmann::json json = nlohmann::json::parse(responseStr);
-
-    if (json.contains("registered_nodes") && json["registered_nodes"].is_array())
-    {
-      for (const auto& nodeJson : json["registered_nodes"])
-      {
-        result.mRegisteredNodes.push_back(RegisteredNode::fromJson(nodeJson));
-      }
-    }
-
-    currentUrl.clear();
-    if (json.contains("links") && json["links"].is_object() && json["links"].contains("next") &&
-        !json["links"]["next"].is_null())
-    {
-      const std::string next = json["links"]["next"].get<std::string>();
-      if (!next.empty())
-      {
-        // Mirror node returns relative paths (e.g. "/api/v1/network/registered-nodes?...").
-        if (next.rfind("http", 0) == 0)
-        {
-          currentUrl = next;
-        }
-        else
-        {
-          currentUrl = mirrorBase + next;
-        }
-      }
-    }
+    const nlohmann::json json = nlohmann::json::parse(internal::HttpClient::invokeREST(currentUrl, "GET"));
+    appendNodes(json, result);
+    currentUrl = resolveNextUrl(json, mirrorBase);
   }
 
   return result;

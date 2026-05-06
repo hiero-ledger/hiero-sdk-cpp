@@ -10,6 +10,31 @@
 namespace Hiero
 {
 
+namespace
+{
+
+std::shared_ptr<Key> parseAdminKey(const nlohmann::json& keyObj)
+{
+  const std::string keyHex = keyObj.value("key", std::string{});
+  if (keyHex.empty())
+  {
+    return nullptr;
+  }
+  const auto keyBytes = internal::HexConverter::hexToBytes(keyHex);
+  const std::string keyType = keyObj.value("_type", std::string{});
+  if (keyType == "ED25519")
+  {
+    return std::shared_ptr<Key>(ED25519PublicKey::fromBytes(keyBytes));
+  }
+  if (keyType == "ECDSA_SECP256K1")
+  {
+    return std::shared_ptr<Key>(ECDSAsecp256k1PublicKey::fromBytes(keyBytes));
+  }
+  return std::shared_ptr<Key>(PublicKey::fromBytes(keyBytes));
+}
+
+} // namespace
+
 //-----
 RegisteredNode RegisteredNode::fromJson(const nlohmann::json& json)
 {
@@ -23,25 +48,7 @@ RegisteredNode RegisteredNode::fromJson(const nlohmann::json& json)
 
   if (json.contains("admin_key") && !json["admin_key"].is_null())
   {
-    const auto& keyObj = json["admin_key"];
-    const std::string keyHex = keyObj.value("key", std::string{});
-    const std::string keyType = keyObj.value("_type", std::string{});
-    if (!keyHex.empty())
-    {
-      const auto keyBytes = internal::HexConverter::hexToBytes(keyHex);
-      if (keyType == "ED25519")
-      {
-        node.mAdminKey = std::shared_ptr<Key>(ED25519PublicKey::fromBytes(keyBytes));
-      }
-      else if (keyType == "ECDSA_SECP256K1")
-      {
-        node.mAdminKey = std::shared_ptr<Key>(ECDSAsecp256k1PublicKey::fromBytes(keyBytes));
-      }
-      else
-      {
-        node.mAdminKey = std::shared_ptr<Key>(PublicKey::fromBytes(keyBytes));
-      }
-    }
+    node.mAdminKey = parseAdminKey(json["admin_key"]);
   }
 
   if (json.contains("description") && !json["description"].is_null())

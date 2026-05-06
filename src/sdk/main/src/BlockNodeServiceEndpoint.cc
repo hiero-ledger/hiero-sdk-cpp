@@ -9,13 +9,19 @@
 namespace Hiero
 {
 
+using ProtoApi = com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint_BlockNodeEndpoint_BlockNodeApi;
+
 //-----
 BlockNodeServiceEndpoint BlockNodeServiceEndpoint::fromProtobuf(
   const com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint& proto)
 {
   BlockNodeServiceEndpoint endpoint;
   endpoint.readCommonFields(proto);
-  endpoint.mEndpointApi = gProtobufBlockNodeApiToBlockNodeApi.at(proto.block_node().endpoint_api());
+  if (proto.block_node().endpoint_api_size() > 0)
+  {
+    endpoint.mEndpointApi =
+      gProtobufBlockNodeApiToBlockNodeApi.at(static_cast<ProtoApi>(proto.block_node().endpoint_api(0)));
+  }
   return endpoint;
 }
 
@@ -25,7 +31,7 @@ std::unique_ptr<com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint>
 {
   auto proto = std::make_unique<com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint>();
   fillCommonFields(*proto);
-  proto->mutable_block_node()->set_endpoint_api(gBlockNodeApiToProtobufBlockNodeApi.at(mEndpointApi));
+  proto->mutable_block_node()->add_endpoint_api(gBlockNodeApiToProtobufBlockNodeApi.at(mEndpointApi));
   return proto;
 }
 

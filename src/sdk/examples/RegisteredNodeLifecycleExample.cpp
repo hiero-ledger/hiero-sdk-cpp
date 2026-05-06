@@ -3,7 +3,6 @@
 #include "BlockNodeServiceEndpoint.h"
 #include "Client.h"
 #include "ED25519PrivateKey.h"
-#include "NodeUpdateTransaction.h"
 #include "RegisteredNodeAddressBook.h"
 #include "RegisteredNodeAddressBookQuery.h"
 #include "RegisteredNodeCreateTransaction.h"
@@ -14,8 +13,58 @@
 
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 
 using namespace Hiero;
+
+static void printAddressBook(const RegisteredNodeAddressBook& book)
+{
+  std::cout << "Address book contains " << book.mRegisteredNodes.size() << " registered node(s)." << std::endl;
+  for (const auto& node : book.mRegisteredNodes)
+  {
+    std::cout << "  Node ID: " << node.mRegisteredNodeId;
+    if (!node.mDescription.empty())
+    {
+      std::cout << "  Description: " << node.mDescription;
+    }
+    std::cout << std::endl;
+  }
+}
+
+static uint64_t createRegisteredNode(const Client& client, const std::shared_ptr<ED25519PrivateKey>& adminKey,
+                                     const std::shared_ptr<BlockNodeServiceEndpoint>& endpoint)
+{
+  const TransactionReceipt receipt = RegisteredNodeCreateTransaction()
+                                       .setAdminKey(adminKey->getPublicKey())
+                                       .setDescription("My Block Node")
+                                       .addServiceEndpoint(endpoint)
+                                       .freezeWith(&client)
+                                       .sign(adminKey)
+                                       .execute(client)
+                                       .getReceipt(client);
+
+  if (!receipt.mRegisteredNodeId.has_value() || receipt.mRegisteredNodeId.value() == 0)
+  {
+    throw std::runtime_error("RegisteredNodeCreate did not return a valid registeredNodeId");
+  }
+  return receipt.mRegisteredNodeId.value();
+}
+
+static void updateRegisteredNode(const Client& client, const std::shared_ptr<ED25519PrivateKey>& adminKey,
+                                 uint64_t nodeId, const std::shared_ptr<BlockNodeServiceEndpoint>& ep1,
+                                 const std::shared_ptr<BlockNodeServiceEndpoint>& ep2)
+{
+  RegisteredNodeUpdateTransaction()
+    .setRegisteredNodeId(nodeId)
+    .setDescription("My Updated Block Node")
+    .addServiceEndpoint(ep1)
+    .addServiceEndpoint(ep2)
+    .freezeWith(&client)
+    .sign(adminKey)
+    .execute(client)
+    .getReceipt(client)
+    .validateStatus();
+}
 
 int main(int argc, char** argv)
 {
@@ -25,94 +74,39 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  // Create the Hiero client.
   Client client = Client::forTestnet();
   client.setOperator(AccountId::fromString(argv[1]), ED25519PrivateKey::fromString(argv[2]));
 
-  // Step 1: Generate a new key pair to serve as the registered node's adminKey.
-  const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
+  const auto adminKey = ED25519PrivateKey::generatePrivateKey();
   std::cout << "Admin key generated: " << adminKey->getPublicKey()->toStringDer() << std::endl;
 
-  // Step 2: Create a BlockNodeServiceEndpoint with an IP address, port, TLS enabled, and SUBSCRIBE_STREAM API.
   auto endpoint = std::make_shared<BlockNodeServiceEndpoint>();
   endpoint->setIpAddress({ std::byte(0x01), std::byte(0x02), std::byte(0x03), std::byte(0x04) });
   endpoint->setPort(8080);
   endpoint->setRequiresTls(true);
   endpoint->setEndpointApi(BlockNodeApi::SUBSCRIBE_STREAM);
 
-  // Steps 3-4: Build and execute a RegisteredNodeCreateTransaction.
-  const TransactionResponse createResponse = RegisteredNodeCreateTransaction()
-                                               .setAdminKey(adminKey->getPublicKey())
-                                               .setDescription("My Block Node")
-                                               .addServiceEndpoint(endpoint)
-                                               .freezeWith(&client)
-                                               .sign(adminKey)
-                                               .execute(client);
-
-  // Step 5: Retrieve the TransactionReceipt and read the registeredNodeId.
-  const TransactionReceipt createReceipt = createResponse.getReceipt(client);
-
-  // Step 6: Verify the registeredNodeId is present and non-zero.
-  if (!createReceipt.mRegisteredNodeId.has_value() || createReceipt.mRegisteredNodeId.value() == 0)
-  {
-    std::cerr << "ERROR: RegisteredNodeCreate did not return a valid registeredNodeId" << std::endl;
-    return 1;
-  }
-
-  const uint64_t registeredNodeId = createReceipt.mRegisteredNodeId.value();
+  const uint64_t registeredNodeId = createRegisteredNode(client, adminKey, endpoint);
   std::cout << "Registered node created with ID: " << registeredNodeId << std::endl;
 
-  // Step 7: Execute a RegisteredNodeAddressBookQuery to confirm the node is discoverable.
-  const RegisteredNodeAddressBook addressBook = RegisteredNodeAddressBookQuery().execute(client);
-  std::cout << "Address book contains " << addressBook.mRegisteredNodes.size() << " registered node(s)." << std::endl;
-  for (const auto& node : addressBook.mRegisteredNodes)
-  {
-    std::cout << "  Node ID: " << node.mRegisteredNodeId;
-    if (!node.mDescription.empty())
-    {
-      std::cout << "  Description: " << node.mDescription;
-    }
-    std::cout << std::endl;
-  }
+  printAddressBook(RegisteredNodeAddressBookQuery().execute(client));
 
-  // Step 8: Create a second endpoint with a domain name and STATUS api.
   auto secondEndpoint = std::make_shared<BlockNodeServiceEndpoint>();
   secondEndpoint->setDomainName("block-node.example.com");
   secondEndpoint->setPort(8443);
   secondEndpoint->setRequiresTls(true);
   secondEndpoint->setEndpointApi(BlockNodeApi::STATUS);
 
-  // Steps 9-11: Build and execute a RegisteredNodeUpdateTransaction.
-  const TransactionResponse updateResponse = RegisteredNodeUpdateTransaction()
-                                               .setRegisteredNodeId(registeredNodeId)
-                                               .setDescription("My Updated Block Node")
-                                               .addServiceEndpoint(endpoint)
-                                               .addServiceEndpoint(secondEndpoint)
-                                               .freezeWith(&client)
-                                               .sign(adminKey)
-                                               .execute(client);
-
-  updateResponse.getReceipt(client).validateStatus();
+  updateRegisteredNode(client, adminKey, registeredNodeId, endpoint, secondEndpoint);
   std::cout << "Registered node updated successfully." << std::endl;
 
-  // Steps 12-14: Associate the registered node with an existing consensus node via NodeUpdateTransaction.
-  // Replace "0.0.3" with an actual consensus node ID for your network.
-  // const TransactionResponse nodeUpdateResponse =
-  //   NodeUpdateTransaction()
-  //     .setNodeId(3ULL)
-  //     .addAssociatedRegisteredNode(registeredNodeId)
-  //     .execute(client);
-  // nodeUpdateResponse.getReceipt(client).validateStatus();
-  // std::cout << "Consensus node updated with registered node association." << std::endl;
-
-  // Steps 15-17: Delete the registered node.
-  const TransactionResponse deleteResponse = RegisteredNodeDeleteTransaction()
-                                               .setRegisteredNodeId(registeredNodeId)
-                                               .freezeWith(&client)
-                                               .sign(adminKey)
-                                               .execute(client);
-
-  deleteResponse.getReceipt(client).validateStatus();
+  RegisteredNodeDeleteTransaction()
+    .setRegisteredNodeId(registeredNodeId)
+    .freezeWith(&client)
+    .sign(adminKey)
+    .execute(client)
+    .getReceipt(client)
+    .validateStatus();
   std::cout << "Registered node " << registeredNodeId << " deleted successfully." << std::endl;
 
   return 0;
