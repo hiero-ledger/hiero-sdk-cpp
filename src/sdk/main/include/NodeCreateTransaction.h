@@ -209,10 +209,7 @@ public:
    *
    * @return A vector of uint64_t registered node IDs associated with this consensus node.
    */
-  [[nodiscard]] const std::vector<uint64_t>& getAssociatedRegisteredNodes() const
-  {
-    return mAssociatedRegisteredNodes;
-  }
+  [[nodiscard]] const std::vector<uint64_t>& getAssociatedRegisteredNodes() const { return mAssociatedRegisteredNodes; }
 
   /**
    * Add a registered node ID to the list of associated registered nodes.

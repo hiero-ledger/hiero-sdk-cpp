@@ -31,7 +31,8 @@ static void printAddressBook(const RegisteredNodeAddressBook& book)
   }
 }
 
-static uint64_t createRegisteredNode(const Client& client, const std::shared_ptr<ED25519PrivateKey>& adminKey,
+static uint64_t createRegisteredNode(const Client& client,
+                                     const std::shared_ptr<ED25519PrivateKey>& adminKey,
                                      const std::shared_ptr<BlockNodeServiceEndpoint>& endpoint)
 {
   const TransactionReceipt receipt = RegisteredNodeCreateTransaction()
@@ -50,8 +51,10 @@ static uint64_t createRegisteredNode(const Client& client, const std::shared_ptr
   return receipt.mRegisteredNodeId.value();
 }
 
-static void updateRegisteredNode(const Client& client, const std::shared_ptr<ED25519PrivateKey>& adminKey,
-                                 uint64_t nodeId, const std::shared_ptr<BlockNodeServiceEndpoint>& ep1,
+static void updateRegisteredNode(const Client& client,
+                                 const std::shared_ptr<ED25519PrivateKey>& adminKey,
+                                 uint64_t nodeId,
+                                 const std::shared_ptr<BlockNodeServiceEndpoint>& ep1,
                                  const std::shared_ptr<BlockNodeServiceEndpoint>& ep2)
 {
   RegisteredNodeUpdateTransaction()

@@ -33,6 +33,17 @@ std::shared_ptr<Key> parseAdminKey(const nlohmann::json& keyObj)
   return std::shared_ptr<Key>(PublicKey::fromBytes(keyBytes));
 }
 
+void parseServiceEndpoints(const nlohmann::json& json, RegisteredNode& node)
+{
+  if (json.contains("service_endpoints") && json["service_endpoints"].is_array())
+  {
+    for (const auto& epJson : json["service_endpoints"])
+    {
+      node.mServiceEndpoints.push_back(RegisteredServiceEndpoint::fromJson(epJson));
+    }
+  }
+}
+
 } // namespace
 
 //-----
@@ -56,13 +67,7 @@ RegisteredNode RegisteredNode::fromJson(const nlohmann::json& json)
     node.mDescription = json["description"].get<std::string>();
   }
 
-  if (json.contains("service_endpoints") && json["service_endpoints"].is_array())
-  {
-    for (const auto& epJson : json["service_endpoints"])
-    {
-      node.mServiceEndpoints.push_back(RegisteredServiceEndpoint::fromJson(epJson));
-    }
-  }
+  parseServiceEndpoints(json, node);
 
   return node;
 }
