@@ -1,0 +1,17 @@
+name: Scheduled Builds
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scheduled-build:
+    uses: ./.github/workflows/zxc-build-library.yaml
+    with:
+      run-windows-builds: true
+      run-macos-builds: true
+      upload-artifacts: false

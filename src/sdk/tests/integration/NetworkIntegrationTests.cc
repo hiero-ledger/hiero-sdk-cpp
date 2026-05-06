@@ -6,6 +6,7 @@
 #include "Client.h"
 #include "impl/Network.h"
 
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <unordered_map>
 #include <vector>
@@ -38,15 +39,8 @@ TEST_F(NetworkIntegrationTests, GetNodeAccountIdsForExecuteReturnsHealthyNodes)
   // verifying that algorithm worked properly
   for (const auto& accountId : accountIds)
   {
-    bool found = false;
-    for (const auto& [url, mapAccountId] : networkMap)
-    {
-      if (accountId == mapAccountId)
-      {
-        found = true;
-        break;
-      }
-    }
+    const bool found = std::any_of(
+      networkMap.cbegin(), networkMap.cend(), [&accountId](const auto& entry) { return entry.second == accountId; });
 
     EXPECT_TRUE(found);
   }

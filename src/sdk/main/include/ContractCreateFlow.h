@@ -129,7 +129,8 @@ public:
   /**
    * Set the maximum number of tokens with which the new smart contract instance can be automatically associated.
    *
-   * @param associations The maximum amount of token associations for the new smart contract instance.
+   * @param associations The maximum amount of token associations for the new smart contract instance. A value of -1
+   *                     means the new smart contract instance can have unlimited automatic token associations.
    * @return A reference to this ContractCreateFlow object with the newly-set maximum automatic token associations.
    */
   ContractCreateFlow& setMaxAutomaticTokenAssociations(int32_t associations);

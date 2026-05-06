@@ -9,7 +9,6 @@ const {
   runTestSuite,
   commitDCOAndGPG,
   commitDCOFail,
-  commitGPGFail,
   commitMerge,
   createMockGithub,
 } = require('./test-utils');
@@ -846,7 +845,7 @@ const editScenarios = [
   },
 ];
 
-async function runEditTest(scenario, index) {
+async function runEditTest(scenario) {
   const mock = createMockGithub(scenario.githubOptions);
 
   const github = {

@@ -132,6 +132,13 @@ std::string TokenNftTransfer::toString() const
 }
 
 //-----
+bool TokenNftTransfer::operator==(const TokenNftTransfer& rhs) const
+{
+  return (mNftId == rhs.mNftId) && (mSenderAccountId == rhs.mSenderAccountId) &&
+         (mReceiverAccountId == rhs.mReceiverAccountId) && (mIsApproval == rhs.mIsApproval);
+}
+
+//-----
 std::ostream& operator<<(std::ostream& os, const TokenNftTransfer& transfer)
 {
   os << transfer.toString();

@@ -31,6 +31,7 @@ add_executable(${TEST_PROJECT_NAME}
         FileUpdateTransactionIntegrationTests.cc
         FreezeTransactionIntegrationTests.cc
         HIP1300IntegrationTests.cc
+        HighVolumeEntityCreationIntegrationTests.cc
         HttpClientIntegrationTests.cc
         JSONIntegrationTests.cc
         HookStoreTransactionIntegrationTests.cc

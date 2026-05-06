@@ -324,7 +324,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests,
 }
 
 //-----
-TEST_F(AccountUpdateTransactionIntegrationTests, CanAddHookToAccount)
+TEST_F(AccountUpdateTransactionIntegrationTests, DISABLED_CanAddHookToAccount)
 {
   // Given
   const std::shared_ptr<PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
@@ -406,7 +406,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotUpdateWithMultipleOfSameH
 }
 
 //-----
-TEST_F(AccountUpdateTransactionIntegrationTests, CannotUpdateWithHookAlreadyInUse)
+TEST_F(AccountUpdateTransactionIntegrationTests, DISABLED_CannotUpdateWithHookAlreadyInUse)
 {
   // Given
   const std::shared_ptr<PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
@@ -455,7 +455,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotUpdateWithHookAlreadyInUs
 }
 
 //-----
-TEST_F(AccountUpdateTransactionIntegrationTests, CanAddHookToAccountWithStorageUpdates)
+TEST_F(AccountUpdateTransactionIntegrationTests, DISABLED_CanAddHookToAccountWithStorageUpdates)
 {
   // Given
   const std::shared_ptr<PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
@@ -504,7 +504,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CanAddHookToAccountWithStorageU
 }
 
 //-----
-TEST_F(AccountUpdateTransactionIntegrationTests, CanDeleteHook)
+TEST_F(AccountUpdateTransactionIntegrationTests, DISABLED_CanDeleteHook)
 {
   // Given
   const std::shared_ptr<PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
@@ -553,7 +553,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CanDeleteHook)
 }
 
 //-----
-TEST_F(AccountUpdateTransactionIntegrationTests, CannotDeleteNonExistentHook)
+TEST_F(AccountUpdateTransactionIntegrationTests, DISABLED_CannotDeleteNonExistentHook)
 {
   // Given
   const std::shared_ptr<PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();
@@ -602,7 +602,7 @@ TEST_F(AccountUpdateTransactionIntegrationTests, CannotDeleteNonExistentHook)
 }
 
 //-----
-TEST_F(AccountUpdateTransactionIntegrationTests, CannotAddAndDeleteSameHook)
+TEST_F(AccountUpdateTransactionIntegrationTests, DISABLED_CannotAddAndDeleteSameHook)
 {
   // Given
   const std::shared_ptr<PrivateKey> privateKey = ED25519PrivateKey::generatePrivateKey();

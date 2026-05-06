@@ -74,7 +74,7 @@ private:
   /**
    * The gas limit to use.
    */
-  uint64_t mGasLimit;
+  uint64_t mGasLimit = 0ULL;
 };
 
 } // namespace Hiero

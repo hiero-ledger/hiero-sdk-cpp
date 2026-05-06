@@ -5,6 +5,7 @@
 #include <regex>
 #include <sstream>
 #include <stdexcept>
+#include <string_view>
 
 // Define the pattern
 namespace Const
@@ -28,12 +29,14 @@ std::string Hbar::toString() const
 }
 
 //-----
-Hbar Hbar::fromString(const std::string& text)
+Hbar Hbar::fromString(std::string_view text)
 {
+  // std::regex_match requires a std::string, not std::string_view
+  const std::string textStr(text);
   std::smatch match;
-  if (!std::regex_match(text, match, Const::FROM_STRING_PATTERN))
+  if (!std::regex_match(textStr, match, Const::FROM_STRING_PATTERN))
   {
-    throw std::invalid_argument("Attempted to convert string to Hbar, but \"" + text +
+    throw std::invalid_argument("Attempted to convert string to Hbar, but \"" + textStr +
                                 "\" was not correctly formatted");
   }
 
@@ -53,7 +56,7 @@ Hbar Hbar::fromString(const std::string& text)
 }
 
 //-----
-HbarUnit Hbar::getUnit(const std::string& symbolString)
+HbarUnit Hbar::getUnit(std::string_view symbolString)
 {
   if (symbolString == HbarUnit::TINYBAR().getSymbol())
   {
@@ -84,7 +87,7 @@ HbarUnit Hbar::getUnit(const std::string& symbolString)
     return HbarUnit::GIGABAR();
   }
 
-  throw std::invalid_argument("Attempted to convert string to Hbar, but unit symbol \"" + symbolString +
+  throw std::invalid_argument("Attempted to convert string to Hbar, but unit symbol \"" + std::string(symbolString) +
                               "\" was not recognized");
 }
 

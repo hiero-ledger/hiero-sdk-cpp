@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <nlohmann/json.hpp>
@@ -99,7 +100,7 @@ public:
    * @param data The call data as a vector of bytes.
    * @return Reference to the updated object.
    */
-  MirrorNodeContractQuery& setFunction(const std::string& functionName,
+  MirrorNodeContractQuery& setFunction(std::string_view functionName,
                                        std::optional<ContractFunctionParameters>& parameters);
 
   /**

@@ -244,12 +244,12 @@ void ContractUpdateTransaction::initFromSourceTransactionBody()
     mDeclineStakingReward = body.decline_reward().value();
   }
 
-  for (int i = 0; body.hook_ids_to_delete_size(); ++i)
+  for (int i = 0; i < body.hook_ids_to_delete_size(); ++i)
   {
     mHooksToDelete.push_back(body.hook_ids_to_delete(i));
   }
 
-  for (int i = 0; body.hook_creation_details_size(); ++i)
+  for (int i = 0; i < body.hook_creation_details_size(); ++i)
   {
     mHookCreationDetails.push_back(HookCreationDetails::fromProtobuf(body.hook_creation_details(i)));
   }

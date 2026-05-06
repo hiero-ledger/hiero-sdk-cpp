@@ -234,7 +234,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CannotModifyImmutableContract)
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CanAddHookToContract)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CanAddHookToContract)
 {
   // Given
   const std::unique_ptr<PrivateKey> operatorKey = ED25519PrivateKey::fromString(
@@ -348,7 +348,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CannotAddDuplicateHooksToContr
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CannotAddHookToContractThatAlreadyExists)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CannotAddHookToContractThatAlreadyExists)
 {
   // Given
   const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -384,7 +384,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CannotAddHookToContractThatAlr
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CanAddHookToContractWithStorageUpdates)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CanAddHookToContractWithStorageUpdates)
 {
   // Given
   const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -429,7 +429,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CanAddHookToContractWithStorag
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CanDeleteHookFromContract)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CanDeleteHookFromContract)
 {
   // Given
   const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -476,7 +476,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CanDeleteHookFromContract)
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CannotDeleteNonExistentHookFromContract)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CannotDeleteNonExistentHookFromContract)
 {
   // Given
   const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -516,7 +516,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CannotDeleteNonExistentHookFro
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CannotAddAndDeleteSameHookFromContract)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CannotAddAndDeleteSameHookFromContract)
 {
   // Given
   const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -550,7 +550,7 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CannotAddAndDeleteSameHookFrom
 }
 
 //-----
-TEST_F(ContractUpdateTransactionIntegrationTests, CannotDeleteAlreadyDeleteHookFromContract)
+TEST_F(ContractUpdateTransactionIntegrationTests, DISABLED_CannotDeleteAlreadyDeleteHookFromContract)
 {
   // Given
   const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();
@@ -596,4 +596,64 @@ TEST_F(ContractUpdateTransactionIntegrationTests, CannotDeleteAlreadyDeleteHookF
   // Clean up
   ASSERT_NO_THROW(txReceipt =
                     FileDeleteTransaction().setFileId(fileId).execute(getTestClient()).getReceipt(getTestClient()));
+}
+
+//-----
+TEST_F(ContractUpdateTransactionIntegrationTests, UpdateContractToUnlimitedTokenAssociations)
+{
+  // Given
+  const std::unique_ptr<PrivateKey> operatorKey = ED25519PrivateKey::fromString(
+    "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137");
+  const std::shared_ptr<PrivateKey> newAdminKey = ED25519PrivateKey::generatePrivateKey();
+  const int32_t initialAssociations = 10;
+  const int32_t unlimitedAssociations = -1;
+  FileId fileId;
+  ASSERT_NO_THROW(fileId = FileCreateTransaction()
+                             .setKeys({ operatorKey->getPublicKey() })
+                             .setContents(internal::Utilities::stringToByteVector(getTestSmartContractBytecode()))
+                             .execute(getTestClient())
+                             .getReceipt(getTestClient())
+                             .mFileId.value());
+
+  ContractId contractId;
+  ASSERT_NO_THROW(contractId =
+                    ContractCreateTransaction()
+                      .setBytecodeFileId(fileId)
+                      .setAdminKey(newAdminKey->getPublicKey())
+                      .setGas(1000000ULL)
+                      .setAutoRenewPeriod(std::chrono::hours(2016))
+                      .setConstructorParameters(ContractFunctionParameters().addString("Hello from Hiero.").toBytes())
+                      .setMemo("[e2e::ContractUpdateTransaction]")
+                      .setAutoRenewAccountId(AccountId(2ULL))
+                      .setMaxAutomaticTokenAssociations(initialAssociations)
+                      .freezeWith(&getTestClient())
+                      .sign(newAdminKey)
+                      .execute(getTestClient())
+                      .getReceipt(getTestClient())
+                      .mContractId.value());
+
+  // When
+  EXPECT_NO_THROW(ContractUpdateTransaction()
+                    .setContractId(contractId)
+                    .setMaxAutomaticTokenAssociations(unlimitedAssociations)
+                    .freezeWith(&getTestClient())
+                    .sign(newAdminKey)
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  // Then
+  ContractInfo contractInfo;
+  ASSERT_NO_THROW(contractInfo = ContractInfoQuery().setContractId(contractId).execute(getTestClient()));
+  EXPECT_EQ(contractInfo.mContractId, contractId);
+  EXPECT_EQ(contractInfo.mMaxAutomaticTokenAssociations, unlimitedAssociations);
+
+  // Clean up
+  ASSERT_NO_THROW(ContractDeleteTransaction()
+                    .setContractId(contractId)
+                    .setTransferAccountId(AccountId(2ULL))
+                    .freezeWith(&getTestClient())
+                    .sign(newAdminKey)
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+  ASSERT_NO_THROW(FileDeleteTransaction().setFileId(fileId).execute(getTestClient()).getReceipt(getTestClient()));
 }

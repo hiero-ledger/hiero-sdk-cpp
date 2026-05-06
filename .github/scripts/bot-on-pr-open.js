@@ -58,7 +58,10 @@ module.exports = async ({ github, context }) => {
     }
 
     const { allPassed } = await runAllChecksAndComment(botContext);
-    await swapStatusLabel(botContext, allPassed, { force: true });
+    const result = await swapStatusLabel(botContext, allPassed, { force: true });
+    if (!result.success) {
+      logger.error(`Failed to swap status label: ${result.errorDetails}`);
+    }
 
     logger.log('On-PR-open bot completed');
   } catch (error) {

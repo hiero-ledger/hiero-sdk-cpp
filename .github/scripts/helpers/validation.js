@@ -27,12 +27,14 @@ function isNonNegativeInteger(value) {
 
 /**
  * Returns true if value is a string safe for GitHub search queries (type and format).
+ * Allows standard alphanumeric characters, `-`, `_`, `/`, `.`, and the optional
+ * GitHub bot suffix `[bot]` (e.g. `dependabot[bot]`).
  * Two checks: is string and matches safe character set.
  * @param {*} value
  * @returns {boolean}
  */
 function isSafeSearchToken(value) {
-  return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
+  return typeof value === 'string' && /^[a-zA-Z0-9._/-]+(\[bot\])?$/.test(value);
 }
 
 /**

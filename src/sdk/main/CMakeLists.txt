@@ -1,7 +1,7 @@
 FetchContent_Declare(
         log4cxx
         GIT_REPOSITORY https://github.com/apache/logging-log4cxx.git
-        GIT_TAG rel/v1.1.0
+        GIT_TAG rel/v1.7.0
 )
 
 set(BUILD_SHARED_LIBS OFF)

@@ -243,3 +243,47 @@ TEST_F(HbarTransferUnitTests, ToStringWithHookCall)
   EXPECT_TRUE(result.find("PRE_TX_ALLOWANCE_HOOK") != std::string::npos);
   EXPECT_TRUE(result.find("mHookType") != std::string::npos);
 }
+
+//-----
+TEST_F(HbarTransferUnitTests, OperatorEquals)
+{
+  // Given
+  const HbarTransfer transfer1(getTestAccountId(), getTestHbarAmount(), getTestApproval(), getTestHookCall());
+  const HbarTransfer transfer2(getTestAccountId(), getTestHbarAmount(), getTestApproval(), getTestHookCall());
+
+  // Then
+  EXPECT_TRUE(transfer1 == transfer2);
+}
+
+//-----
+TEST_F(HbarTransferUnitTests, OperatorNotEqualsDifferentAccountId)
+{
+  // Given
+  const HbarTransfer transfer1(getTestAccountId(), getTestHbarAmount(), getTestApproval(), getTestHookCall());
+  const HbarTransfer transfer2(AccountId(11ULL), getTestHbarAmount(), getTestApproval(), getTestHookCall());
+
+  // Then
+  EXPECT_FALSE(transfer1 == transfer2);
+}
+
+//-----
+TEST_F(HbarTransferUnitTests, OperatorNotEqualsDifferentAmount)
+{
+  // Given
+  const HbarTransfer transfer1(getTestAccountId(), getTestHbarAmount(), getTestApproval(), getTestHookCall());
+  const HbarTransfer transfer2(getTestAccountId(), Hbar(999ULL), getTestApproval(), getTestHookCall());
+
+  // Then
+  EXPECT_FALSE(transfer1 == transfer2);
+}
+
+//-----
+TEST_F(HbarTransferUnitTests, OperatorNotEqualsDifferentApproval)
+{
+  // Given
+  const HbarTransfer transfer1(getTestAccountId(), getTestHbarAmount(), getTestApproval(), getTestHookCall());
+  const HbarTransfer transfer2(getTestAccountId(), getTestHbarAmount(), !getTestApproval(), getTestHookCall());
+
+  // Then
+  EXPECT_FALSE(transfer1 == transfer2);
+}

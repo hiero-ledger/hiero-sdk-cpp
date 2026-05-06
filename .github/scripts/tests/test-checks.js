@@ -628,6 +628,36 @@ const unitTests = [
       return r.passed === false && r.reason === 'no_issue_linked' && r.issues.length === 0;
     },
   },
+  {
+    name: 'checkIssueLink: PR with a title containing an issue number and a body with none',
+    test: async () => {
+      const ctx = { pr: { title: 'Feature relates to #314', body: 'Fixes #', user: { login: 'monte' } } };
+      const fetchIssue = async () => ({
+        title: 'Feature request',
+        assignees: [{ login: 'monte' }],
+      });
+      const r = await checkIssueLink(ctx, {
+        fetchIssue,
+        fetchClosingIssueNumbers: async () => [314],
+      });
+      return r.passed === false && r.reason === 'no_issue_linked' && r.issues.length === 0;
+    },
+  },
+  {
+    name: 'checkIssueLink: PR with a title that contains no issue references and an empty body',
+    test: async () => {
+      const ctx = { pr: { title: 'Fix', body: 'Fixing something', user: { login: 'mark' } } };
+      const fetchIssue = async () => ({
+        title: 'Bug',
+        assignees: [{ login: 'mark' }],
+      });
+      const r = await checkIssueLink(ctx, {
+        fetchIssue,
+        fetchClosingIssueNumbers: async () => [12],
+      });
+      return r.passed === true && r.issues.length === 1 && r.issues[0].number === 12;
+    },
+  },
 ];
 
 // =============================================================================
