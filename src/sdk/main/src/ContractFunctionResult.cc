@@ -163,16 +163,12 @@ bool ContractFunctionResult::operator==(const ContractFunctionResult& rhs) const
   const bool hasSameEvmAddress = (mEvmAddress.has_value() == rhs.mEvmAddress.has_value()) &&
                                  (!mEvmAddress.has_value() || (mEvmAddress->toBytes() == rhs.mEvmAddress->toBytes()));
 
-  const bool hasSameLogs = (mLogs.size() == rhs.mLogs.size()) &&
-                           std::equal(mLogs.cbegin(),
-                                      mLogs.cend(),
-                                      rhs.mLogs.cbegin(),
-                                      [](const ContractLogInfo& lhsLog, const ContractLogInfo& rhsLog)
-                                      {
-                                        return (lhsLog.mContractId == rhsLog.mContractId) &&
-                                               (lhsLog.mBloom == rhsLog.mBloom) && (lhsLog.mTopics == rhsLog.mTopics) &&
-                                               (lhsLog.mData == rhsLog.mData);
-                                      });
+  const bool hasSameLogs =
+    (mLogs.size() == rhs.mLogs.size()) &&
+    std::equal(mLogs.cbegin(),
+               mLogs.cend(),
+               rhs.mLogs.cbegin(),
+               [](const ContractLogInfo& lhsLog, const ContractLogInfo& rhsLog) { return lhsLog == rhsLog; });
 
   return (mContractId == rhs.mContractId) && (mContractCallResult == rhs.mContractCallResult) &&
          (mErrorMessage == rhs.mErrorMessage) && (mBloom == rhs.mBloom) && (mGasUsed == rhs.mGasUsed) && hasSameLogs &&
