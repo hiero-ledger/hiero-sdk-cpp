@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   Client client = Client::forTestnet();
   client.setOperator(AccountId::fromString(argv[1]), ED25519PrivateKey::fromString(argv[2]));
 
-  const auto adminKey = ED25519PrivateKey::generatePrivateKey();
+  const std::shared_ptr<ED25519PrivateKey> adminKey = ED25519PrivateKey::generatePrivateKey();
   std::cout << "Admin key generated: " << adminKey->getPublicKey()->toStringDer() << std::endl;
 
   auto endpoint = std::make_shared<BlockNodeServiceEndpoint>();
