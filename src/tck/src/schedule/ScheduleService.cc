@@ -70,6 +70,19 @@ std::chrono::system_clock::time_point parseTime(const std::optional<std::string>
   return std::chrono::system_clock::from_time_t(0) + parseSeconds(secondsStr);
 }
 
+// Helper to build signers array from KeyList
+nlohmann::json buildSignersArray(const KeyList& signatories)
+{
+  nlohmann::json signersArray = nlohmann::json::array();
+  auto signatoriesProto = signatories.toProtobuf();
+  for (int i = 0; i < signatoriesProto->keys_size(); ++i)
+  {
+    auto key = Key::fromProtobuf(signatoriesProto->keys(i));
+    signersArray.push_back(internal::HexConverter::bytesToHex(key->toBytes()));
+  }
+  return signersArray;
+}
+
 /**
  * Helper to add an Hbar transfer to a transaction.
  */
@@ -769,7 +782,6 @@ nlohmann::json getScheduleInfo(const GetScheduleInfoParams& params)
   const ScheduleInfo info = query.execute(SdkClient::getClient());
 
   nlohmann::json response;
-
   response["scheduleId"] = info.mScheduleId.toString();
   response["scheduledTransactionId"] = info.mScheduledTransactionId.toString();
   response["creatorAccountId"] = info.mCreatorAccountId.toString();
@@ -780,34 +792,22 @@ nlohmann::json getScheduleInfo(const GetScheduleInfoParams& params)
     response["adminKey"] = internal::HexConverter::bytesToHex(info.mAdminKey->toBytes());
   }
 
-  response["signers"] = nlohmann::json::array();
-  auto signatoriesProto = info.mSignatories.toProtobuf();
-  for (int i = 0; i < signatoriesProto->keys_size(); ++i)
-  {
-    auto key = Key::fromProtobuf(signatoriesProto->keys(i));
-    response["signers"].push_back(internal::HexConverter::bytesToHex(key->toBytes()));
-  }
-
+  response["signers"] = buildSignersArray(info.mSignatories);
   response["scheduleMemo"] = info.mMemo;
-
-  auto expirySeconds =
-    std::chrono::duration_cast<std::chrono::seconds>(info.mExpirationTime.time_since_epoch()).count();
-  response["expirationTime"] = std::to_string(expirySeconds);
-
+  response["expirationTime"] =
+    std::to_string(std::chrono::duration_cast<std::chrono::seconds>(info.mExpirationTime.time_since_epoch()).count());
   response["waitForExpiry"] = info.mWaitForExpiry;
 
   if (info.mExecutionTime.has_value())
   {
-    auto execSeconds =
-      std::chrono::duration_cast<std::chrono::seconds>(info.mExecutionTime.value().time_since_epoch()).count();
-    response["executedAt"] = std::to_string(execSeconds);
+    response["executedAt"] = std::to_string(
+      std::chrono::duration_cast<std::chrono::seconds>(info.mExecutionTime.value().time_since_epoch()).count());
   }
 
   if (info.mDeletionTime.has_value())
   {
-    auto delSeconds =
-      std::chrono::duration_cast<std::chrono::seconds>(info.mDeletionTime.value().time_since_epoch()).count();
-    response["deleted"] = std::to_string(delSeconds);
+    response["deleted"] = std::to_string(
+      std::chrono::duration_cast<std::chrono::seconds>(info.mDeletionTime.value().time_since_epoch()).count());
   }
 
   return response;
