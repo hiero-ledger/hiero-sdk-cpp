@@ -35,7 +35,7 @@ TEST_F(RegisteredNodeUpdateTransactionUnitTests, ConstructRegisteredNodeUpdateTr
   auto* ep = body->add_service_endpoint();
   ep->set_domain_name("new.example.com");
   ep->set_port(9090);
-  ep->mutable_block_node()->set_endpoint_api(
+  ep->mutable_block_node()->add_endpoint_api(
     com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint_BlockNodeEndpoint_BlockNodeApi_STATUS);
 
   // When
@@ -149,7 +149,7 @@ TEST_F(RegisteredNodeUpdateTransactionUnitTests, SerializeDeserializeRoundTrip)
   auto* ep = body->add_service_endpoint();
   ep->set_domain_name("update-test.example.com");
   ep->set_port(8080);
-  ep->mutable_block_node()->set_endpoint_api(
+  ep->mutable_block_node()->add_endpoint_api(
     com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint_BlockNodeEndpoint_BlockNodeApi_STATUS);
 
   RegisteredNodeUpdateTransaction tx2(txBody);

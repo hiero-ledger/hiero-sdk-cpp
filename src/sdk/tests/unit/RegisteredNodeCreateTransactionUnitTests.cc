@@ -42,7 +42,7 @@ TEST_F(RegisteredNodeCreateTransactionUnitTests, ConstructRegisteredNodeCreateTr
   ep->set_ip_address("\x01\x02\x03\x04");
   ep->set_port(8080);
   ep->set_requires_tls(true);
-  ep->mutable_block_node()->set_endpoint_api(
+  ep->mutable_block_node()->add_endpoint_api(
     com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint_BlockNodeEndpoint_BlockNodeApi_SUBSCRIBE_STREAM);
 
   // When
@@ -144,7 +144,7 @@ TEST_F(RegisteredNodeCreateTransactionUnitTests, SerializeDeserializeRoundTrip)
   ep->set_ip_address("\x01\x02\x03\x04");
   ep->set_port(8080);
   ep->set_requires_tls(true);
-  ep->mutable_block_node()->set_endpoint_api(
+  ep->mutable_block_node()->add_endpoint_api(
     com::hedera::hapi::node::addressbook::RegisteredServiceEndpoint_BlockNodeEndpoint_BlockNodeApi_SUBSCRIBE_STREAM);
 
   RegisteredNodeCreateTransaction tx2(txBody);
