@@ -79,6 +79,14 @@ public:
   [[nodiscard]] std::vector<std::byte> toBytes() const;
 
   /**
+   * Compare this TokenAllowance to another TokenAllowance and determine if they represent the same allowance.
+   *
+   * @param rhs The other TokenAllowance with which to compare this TokenAllowance.
+   * @return \c TRUE if this TokenAllowance is the same as the input TokenAllowance, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const TokenAllowance& rhs) const;
+
+  /**
    * The ID of the token that is being approved to be spent.
    */
   TokenId mTokenId;

@@ -75,3 +75,69 @@ TEST_F(TokenAllowanceUnitTests, ToProtobuf)
   EXPECT_EQ(AccountId::fromProtobuf(protoTokenAllowance->spender()), getTestSpenderAccountId());
   EXPECT_EQ(protoTokenAllowance->amount(), getTestAmount());
 }
+
+//-----
+TEST_F(TokenAllowanceUnitTests, DefaultInstancesAreEqual)
+{
+  // Given / When
+  const TokenAllowance lhs;
+  const TokenAllowance rhs;
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(TokenAllowanceUnitTests, IdenticalInstancesAreEqual)
+{
+  // Given / When
+  const TokenAllowance lhs(getTestTokenId(), getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+  const TokenAllowance rhs(getTestTokenId(), getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(TokenAllowanceUnitTests, InequalityDifferentTokenId)
+{
+  // Given / When
+  const TokenAllowance lhs(getTestTokenId(), getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+  const TokenAllowance rhs(TokenId(999ULL), getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(TokenAllowanceUnitTests, InequalityDifferentOwner)
+{
+  // Given / When
+  const TokenAllowance lhs(getTestTokenId(), getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+  const TokenAllowance rhs(getTestTokenId(), AccountId(999ULL), getTestSpenderAccountId(), getTestAmount());
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(TokenAllowanceUnitTests, InequalityDifferentSpender)
+{
+  // Given / When
+  const TokenAllowance lhs(getTestTokenId(), getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+  const TokenAllowance rhs(getTestTokenId(), getTestOwnerAccountId(), AccountId(999ULL), getTestAmount());
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(TokenAllowanceUnitTests, InequalityDifferentAmount)
+{
+  // Given / When
+  const TokenAllowance lhs(getTestTokenId(), getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+  const TokenAllowance rhs(getTestTokenId(), getTestOwnerAccountId(), getTestSpenderAccountId(), 999LL);
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
