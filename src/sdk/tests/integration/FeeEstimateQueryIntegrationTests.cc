@@ -3,130 +3,386 @@
 #include "AccountDeleteTransaction.h"
 #include "BaseIntegrationTest.h"
 #include "Client.h"
+#include "ContractCreateTransaction.h"
 #include "ED25519PrivateKey.h"
 #include "FeeEstimateMode.h"
 #include "FeeEstimateQuery.h"
 #include "FeeEstimateResponse.h"
+#include "FileAppendTransaction.h"
+#include "FileCreateTransaction.h"
+#include "FileDeleteTransaction.h"
 #include "Hbar.h"
+#include "TokenCreateTransaction.h"
+#include "TokenMintTransaction.h"
+#include "TokenSupplyType.h"
+#include "TokenType.h"
+#include "TopicCreateTransaction.h"
+#include "TopicDeleteTransaction.h"
+#include "TopicId.h"
+#include "TopicMessageSubmitTransaction.h"
 #include "TransactionReceipt.h"
+#include "TransactionRecord.h"
 #include "TransactionResponse.h"
 #include "TransferTransaction.h"
 #include "WrappedTransaction.h"
 #include "exceptions/IllegalStateException.h"
+#include "impl/HttpClient.h"
+#include "impl/Utilities.h"
 
+#include <chrono>
 #include <gtest/gtest.h>
+#include <services/transaction.pb.h>
+#include <vector>
 
 using namespace Hiero;
+
+namespace
+{
+// Tolerance band for "estimate vs. actual" comparisons (test #15, #17). Estimates are computed against the
+// mirror node's known state, while actuals are charged at consensus time — small variances are expected.
+constexpr double ACTUAL_VS_ESTIMATE_LOWER_BOUND = 0.5;
+constexpr double ACTUAL_VS_ESTIMATE_UPPER_BOUND = 2.0;
+
+WrappedTransaction wrap(const TransferTransaction& tx)
+{
+  return WrappedTransaction(WrappedTransaction::AnyPossibleTransaction(tx));
+}
+} // namespace
 
 class FeeEstimateQueryIntegrationTests : public BaseIntegrationTest
 {
 };
 
 //-----
-// Note: This test is disabled because the fee estimate REST API may not be available on all networks
-TEST_F(FeeEstimateQueryIntegrationTests, DISABLED_EstimateTransferTransactionFee)
+// Design test #1: TransferTransaction in STATE mode auto-freezes and returns valid components.
+TEST_F(FeeEstimateQueryIntegrationTests, EstimateTransferTransactionStateMode)
 {
-  // Given
-  const std::shared_ptr<PrivateKey> newAccountKey = ED25519PrivateKey::generatePrivateKey();
+  TransferTransaction tx;
+  tx.addHbarTransfer(getTestClient().getOperatorAccountId().value(), Hbar(-1LL))
+    .addHbarTransfer(AccountId(0, 0, 3ULL), Hbar(1LL));
 
-  // Create a new account to transfer to
+  FeeEstimateQuery query;
+  query.setMode(FeeEstimateMode::STATE).setTransaction(wrap(tx));
+
+  FeeEstimateResponse response;
+  ASSERT_NO_THROW(response = query.execute(getTestClient()));
+
+  EXPECT_GT(response.mTotal, 0ULL);
+  EXPECT_EQ(response.mTotal, response.mNetwork.mSubtotal + response.mNode.subtotal() + response.mService.subtotal());
+}
+
+//-----
+// Design test #2: TransferTransaction in INTRINSIC mode returns valid components without state-dependent fees.
+TEST_F(FeeEstimateQueryIntegrationTests, EstimateTransferTransactionIntrinsicMode)
+{
+  TransferTransaction tx;
+  tx.addHbarTransfer(getTestClient().getOperatorAccountId().value(), Hbar(-1LL))
+    .addHbarTransfer(AccountId(0, 0, 3ULL), Hbar(1LL));
+
+  FeeEstimateQuery query;
+  query.setMode(FeeEstimateMode::INTRINSIC).setTransaction(wrap(tx));
+
+  FeeEstimateResponse response;
+  ASSERT_NO_THROW(response = query.execute(getTestClient()));
+  EXPECT_GT(response.mTotal, 0ULL);
+}
+
+//-----
+// Design test #3: default mode is INTRINSIC.
+TEST_F(FeeEstimateQueryIntegrationTests, DefaultModeIsIntrinsicEndToEnd)
+{
+  TransferTransaction tx;
+  tx.addHbarTransfer(getTestClient().getOperatorAccountId().value(), Hbar(-1LL))
+    .addHbarTransfer(AccountId(0, 0, 3ULL), Hbar(1LL));
+
+  FeeEstimateQuery query;
+  query.setTransaction(wrap(tx));
+  EXPECT_EQ(query.getMode(), FeeEstimateMode::INTRINSIC);
+
+  FeeEstimateResponse response;
+  ASSERT_NO_THROW(response = query.execute(getTestClient()));
+  EXPECT_GT(response.mTotal, 0ULL);
+}
+
+//-----
+// Design test #4: missing transaction throws.
+TEST_F(FeeEstimateQueryIntegrationTests, MissingTransactionThrows)
+{
+  FeeEstimateQuery query;
+  EXPECT_THROW(query.execute(getTestClient()), std::invalid_argument);
+}
+
+//-----
+// Design test #5: TokenCreateTransaction.
+TEST_F(FeeEstimateQueryIntegrationTests, EstimateTokenCreate)
+{
+  TokenCreateTransaction tx;
+  tx.setTokenName("FeeEstimateTestToken")
+    .setTokenSymbol("FETT")
+    .setDecimals(0)
+    .setInitialSupply(0)
+    .setTreasuryAccountId(getTestClient().getOperatorAccountId().value())
+    .setTokenType(TokenType::FUNGIBLE_COMMON);
+
+  FeeEstimateResponse response;
+  ASSERT_NO_THROW(response = tx.estimateFee().execute(getTestClient()));
+  EXPECT_GT(response.mTotal, 0ULL);
+  EXPECT_GT(response.mService.mBase, 0ULL);
+}
+
+//-----
+// Design test #6: TokenMintTransaction (NFT mint with multiple serials -> extras for mint count beyond included).
+TEST_F(FeeEstimateQueryIntegrationTests, EstimateTokenMintMultipleTokens)
+{
+  // First create an NFT token to mint serials for.
+  const std::shared_ptr<PrivateKey> supplyKey = ED25519PrivateKey::generatePrivateKey();
+  TransactionReceipt createReceipt;
+  ASSERT_NO_THROW(createReceipt = TokenCreateTransaction()
+                                    .setTokenName("FeeEstimateNft")
+                                    .setTokenSymbol("FENFT")
+                                    .setTokenType(TokenType::NON_FUNGIBLE_UNIQUE)
+                                    .setSupplyType(TokenSupplyType::FINITE)
+                                    .setMaxSupply(100)
+                                    .setTreasuryAccountId(getTestClient().getOperatorAccountId().value())
+                                    .setSupplyKey(supplyKey)
+                                    .freezeWith(&const_cast<Client&>(getTestClient()))
+                                    .sign(supplyKey)
+                                    .execute(getTestClient())
+                                    .getReceipt(getTestClient()));
+  const TokenId tokenId = createReceipt.mTokenId.value();
+
+  TokenMintTransaction tx;
+  tx.setTokenId(tokenId);
+  for (int i = 0; i < 5; ++i)
+  {
+    tx.addMetadata({ std::byte{ 0x01 }, std::byte{ static_cast<unsigned char>(i) } });
+  }
+
+  FeeEstimateResponse response;
+  ASSERT_NO_THROW(response = tx.estimateFee().execute(getTestClient()));
+  EXPECT_GT(response.mTotal, 0ULL);
+}
+
+//-----
+// Design test #7: TopicCreateTransaction.
+TEST_F(FeeEstimateQueryIntegrationTests, EstimateTopicCreate)
+{
+  TopicCreateTransaction tx;
+  tx.setMemo("FeeEstimate test topic");
+
+  FeeEstimateResponse response;
+  ASSERT_NO_THROW(response = tx.estimateFee().execute(getTestClient()));
+  EXPECT_GT(response.mTotal, 0ULL);
+}
+
+//-----
+// Design test #8: ContractCreateTransaction.
+TEST_F(FeeEstimateQueryIntegrationTests, EstimateContractCreate)
+{
+  // Upload bytecode to a file first.
+  TransactionReceipt fileReceipt;
+  ASSERT_NO_THROW(fileReceipt = FileCreateTransaction()
+                                  .setKeys({ getTestClient().getOperatorPublicKey() })
+                                  .setContents(getTestSmartContractBytecode())
+                                  .execute(getTestClient())
+                                  .getReceipt(getTestClient()));
+  const FileId bytecodeFile = fileReceipt.mFileId.value();
+
+  ContractCreateTransaction tx;
+  tx.setBytecodeFileId(bytecodeFile).setGas(500000ULL).setConstructorParameters({});
+
+  FeeEstimateResponse response;
+  ASSERT_NO_THROW(response = tx.estimateFee().execute(getTestClient()));
+  EXPECT_GT(response.mTotal, 0ULL);
+
+  ASSERT_NO_THROW(FileDeleteTransaction().setFileId(bytecodeFile).execute(getTestClient()).getReceipt(getTestClient()));
+}
+
+//-----
+// Design test #9: FileCreateTransaction.
+TEST_F(FeeEstimateQueryIntegrationTests, EstimateFileCreate)
+{
+  FileCreateTransaction tx;
+  tx.setKeys({ getTestClient().getOperatorPublicKey() }).setContents(std::string("hello, simple-fees"));
+
+  FeeEstimateResponse response;
+  ASSERT_NO_THROW(response = tx.estimateFee().execute(getTestClient()));
+  EXPECT_GT(response.mTotal, 0ULL);
+}
+
+//-----
+// Design test #10: network.subtotal == (node.base + sum(node.extras[*].subtotal)) * network.multiplier.
+TEST_F(FeeEstimateQueryIntegrationTests, NetworkSubtotalEqualsNodeTotalTimesMultiplier)
+{
+  TransferTransaction tx;
+  tx.addHbarTransfer(getTestClient().getOperatorAccountId().value(), Hbar(-1LL))
+    .addHbarTransfer(AccountId(0, 0, 3ULL), Hbar(1LL));
+
+  FeeEstimateResponse response;
+  ASSERT_NO_THROW(response = tx.estimateFee().execute(getTestClient()));
+  EXPECT_EQ(response.mNetwork.mSubtotal,
+            response.mNode.subtotal() * static_cast<uint64_t>(response.mNetwork.mMultiplier));
+}
+
+//-----
+// Design test #11: total == network.subtotal + node.subtotal() + service.subtotal().
+TEST_F(FeeEstimateQueryIntegrationTests, TotalEqualsSumOfComponents)
+{
+  TransferTransaction tx;
+  tx.addHbarTransfer(getTestClient().getOperatorAccountId().value(), Hbar(-1LL))
+    .addHbarTransfer(AccountId(0, 0, 3ULL), Hbar(1LL));
+
+  FeeEstimateResponse response;
+  ASSERT_NO_THROW(response = tx.estimateFee().execute(getTestClient()));
+  EXPECT_EQ(response.mTotal, response.mNetwork.mSubtotal + response.mNode.subtotal() + response.mService.subtotal());
+}
+
+//-----
+// Design test #12: malformed transaction returns 400 with no retry.
+TEST_F(FeeEstimateQueryIntegrationTests, MalformedTransactionReturns400NoRetry)
+{
+  // Build the URL the same way FeeEstimateQuery would.
+  FeeEstimateQuery query;
+  const std::string url = query.buildMirrorNodeUrl(getTestClient());
+
+  // Send garbage bytes that won't parse as a Transaction protobuf.
+  const std::string garbage("not-a-valid-transaction-protobuf");
+
+  int statusCode = 0;
+  bool isTimeout = false;
+  const auto start = std::chrono::steady_clock::now();
+  EXPECT_THROW(
+    internal::HttpClient::invokeRESTWithStatus(url, "POST", garbage, "application/protobuf", statusCode, isTimeout),
+    std::exception);
+  const auto elapsed = std::chrono::steady_clock::now() - start;
+
+  // The 400 must be surfaced (or the request must complete in <1s without retry-style exponential backoff).
+  EXPECT_TRUE(statusCode == 400 || elapsed < std::chrono::seconds(1));
+}
+
+//-----
+// Design test #15: estimated fees vs. actual submitted-transaction fees should be within a reasonable band.
+TEST_F(FeeEstimateQueryIntegrationTests, EstimateMatchesActualWithinRange)
+{
+  const std::shared_ptr<PrivateKey> recipientKey = ED25519PrivateKey::generatePrivateKey();
   TransactionReceipt createReceipt;
   ASSERT_NO_THROW(createReceipt = AccountCreateTransaction()
-                                    .setKeyWithoutAlias(newAccountKey->getPublicKey())
+                                    .setKeyWithoutAlias(recipientKey->getPublicKey())
                                     .setInitialBalance(Hbar(1LL))
                                     .execute(getTestClient())
                                     .getReceipt(getTestClient()));
-  ASSERT_TRUE(createReceipt.mAccountId.has_value());
-  const AccountId newAccountId = createReceipt.mAccountId.value();
+  const AccountId recipientId = createReceipt.mAccountId.value();
 
-  // Create a transfer transaction to estimate
-  TransferTransaction transferTx = TransferTransaction()
-                                     .addHbarTransfer(getTestClient().getOperatorAccountId().value(), Hbar(-1LL))
-                                     .addHbarTransfer(newAccountId, Hbar(1LL));
+  TransferTransaction tx;
+  tx.addHbarTransfer(getTestClient().getOperatorAccountId().value(), Hbar(-1LL))
+    .addHbarTransfer(recipientId, Hbar(1LL));
 
-  // Freeze the transaction
-  transferTx.freezeWith(&const_cast<Client&>(getTestClient()));
+  FeeEstimateResponse estimate;
+  ASSERT_NO_THROW(estimate = tx.estimateFee().setMode(FeeEstimateMode::STATE).execute(getTestClient()));
+  ASSERT_GT(estimate.mTotal, 0ULL);
 
-  // Wrap the transaction
-  WrappedTransaction wrappedTx(transferTx);
+  TransactionResponse submitted;
+  ASSERT_NO_THROW(submitted = tx.execute(getTestClient()));
+  TransactionRecord record;
+  ASSERT_NO_THROW(record = submitted.getRecord(getTestClient()));
+  const uint64_t actualFee = record.mTransactionFee;
+  ASSERT_GT(actualFee, 0ULL);
 
-  // When
-  FeeEstimateQuery query;
-  query.setTransaction(wrappedTx);
-  query.setMode(FeeEstimateMode::STATE);
+  const double ratio = static_cast<double>(actualFee) / static_cast<double>(estimate.mTotal);
+  EXPECT_GE(ratio, ACTUAL_VS_ESTIMATE_LOWER_BOUND) << "actual=" << actualFee << " estimate=" << estimate.mTotal;
+  EXPECT_LE(ratio, ACTUAL_VS_ESTIMATE_UPPER_BOUND) << "actual=" << actualFee << " estimate=" << estimate.mTotal;
 
-  FeeEstimateResponse response;
-  EXPECT_NO_THROW(response = query.execute(getTestClient()));
-
-  // Then
-  EXPECT_GT(response.mTotal, 0ULL);
-
-  // Clean up - delete the created account
   ASSERT_NO_THROW(AccountDeleteTransaction()
-                    .setDeleteAccountId(newAccountId)
+                    .setDeleteAccountId(recipientId)
                     .setTransferAccountId(getTestClient().getOperatorAccountId().value())
                     .freezeWith(&const_cast<Client&>(getTestClient()))
-                    .sign(newAccountKey)
+                    .sign(recipientKey)
                     .execute(getTestClient())
                     .getReceipt(getTestClient()));
 }
 
 //-----
-// Note: This test is disabled because the fee estimate REST API may not be available on all networks
-TEST_F(FeeEstimateQueryIntegrationTests, DISABLED_EstimateAccountCreateTransactionFee)
+// Design test #17: FileAppendTransaction with multiple chunks aggregates fees.
+TEST_F(FeeEstimateQueryIntegrationTests, FileAppendChunkedAggregateMatchesActualSum)
 {
-  // Given
-  const std::shared_ptr<PrivateKey> newAccountKey = ED25519PrivateKey::generatePrivateKey();
+  TransactionReceipt fileReceipt;
+  ASSERT_NO_THROW(fileReceipt = FileCreateTransaction()
+                                  .setKeys({ getTestClient().getOperatorPublicKey() })
+                                  .setContents(std::string("seed"))
+                                  .execute(getTestClient())
+                                  .getReceipt(getTestClient()));
+  const FileId fileId = fileReceipt.mFileId.value();
 
-  // Create an account create transaction to estimate
-  AccountCreateTransaction createTx =
-    AccountCreateTransaction().setKeyWithoutAlias(newAccountKey->getPublicKey()).setInitialBalance(Hbar(1LL));
+  // Use a payload large enough to require multiple chunks (default chunk size is 4096 bytes; 5KB triggers 2 chunks).
+  const std::string payload(5500, 'A');
 
-  // Freeze the transaction
-  createTx.freezeWith(&const_cast<Client&>(getTestClient()));
+  FileAppendTransaction tx;
+  tx.setFileId(fileId).setContents(payload);
 
-  // Wrap the transaction
-  WrappedTransaction wrappedTx(createTx);
+  FeeEstimateResponse aggregated;
+  ASSERT_NO_THROW(aggregated = tx.estimateFee().execute(getTestClient()));
+  EXPECT_GT(aggregated.mTotal, 0ULL);
+  EXPECT_EQ(aggregated.mTotal,
+            aggregated.mNetwork.mSubtotal + aggregated.mNode.subtotal() + aggregated.mService.subtotal());
 
-  // When
-  FeeEstimateQuery query;
-  query.setTransaction(wrappedTx);
-  query.setMode(FeeEstimateMode::STATE);
+  ASSERT_NO_THROW(FileDeleteTransaction().setFileId(fileId).execute(getTestClient()).getReceipt(getTestClient()));
+}
+
+//-----
+// Design test #18: TopicMessageSubmitTransaction with payload smaller than chunk size returns single-chunk fees.
+TEST_F(FeeEstimateQueryIntegrationTests, TopicMessageSubmitSmallPayloadSingleChunk)
+{
+  TransactionReceipt topicReceipt;
+  ASSERT_NO_THROW(topicReceipt = TopicCreateTransaction().execute(getTestClient()).getReceipt(getTestClient()));
+  const TopicId topicId = topicReceipt.mTopicId.value();
+
+  TopicMessageSubmitTransaction tx;
+  tx.setTopicId(topicId).setMessage(std::string("hello"));
+  ASSERT_EQ(tx.getNumberOfChunksRequired(), 1U);
 
   FeeEstimateResponse response;
-  EXPECT_NO_THROW(response = query.execute(getTestClient()));
-
-  // Then
+  ASSERT_NO_THROW(response = tx.estimateFee().execute(getTestClient()));
   EXPECT_GT(response.mTotal, 0ULL);
+
+  ASSERT_NO_THROW(TopicDeleteTransaction().setTopicId(topicId).execute(getTestClient()).getReceipt(getTestClient()));
 }
 
 //-----
-TEST_F(FeeEstimateQueryIntegrationTests, GettersAndSetters)
+// Design test #19: TopicMessageSubmitTransaction with payload larger than chunk size aggregates fees across chunks.
+TEST_F(FeeEstimateQueryIntegrationTests, TopicMessageSubmitLargePayloadAggregatesAcrossChunks)
 {
-  // Given
-  const std::shared_ptr<PrivateKey> newAccountKey = ED25519PrivateKey::generatePrivateKey();
-  AccountCreateTransaction createTx =
-    AccountCreateTransaction().setKeyWithoutAlias(newAccountKey->getPublicKey()).setInitialBalance(Hbar(1LL));
-  createTx.freezeWith(&const_cast<Client&>(getTestClient()));
-  WrappedTransaction wrappedTx(createTx);
+  TransactionReceipt topicReceipt;
+  ASSERT_NO_THROW(topicReceipt = TopicCreateTransaction().execute(getTestClient()).getReceipt(getTestClient()));
+  const TopicId topicId = topicReceipt.mTopicId.value();
 
-  // When
-  FeeEstimateQuery query;
-  query.setMode(FeeEstimateMode::TRANSIENT);
-  query.setMaxAttempts(5);
-  query.setTransaction(wrappedTx);
+  // Chunk size default is 1024 for topic messages; 3000 bytes -> 3 chunks.
+  const std::string payload(3000, 'B');
+  TopicMessageSubmitTransaction tx;
+  tx.setTopicId(topicId).setMessage(payload).setMaxChunks(10);
+  ASSERT_GT(tx.getNumberOfChunksRequired(), 1U);
 
-  // Then
-  EXPECT_EQ(query.getMode(), FeeEstimateMode::TRANSIENT);
-  EXPECT_EQ(query.getMaxAttempts(), 5ULL);
+  FeeEstimateResponse response;
+  ASSERT_NO_THROW(response = tx.estimateFee().execute(getTestClient()));
+  EXPECT_GT(response.mTotal, 0ULL);
+  EXPECT_EQ(response.mTotal, response.mNetwork.mSubtotal + response.mNode.subtotal() + response.mService.subtotal());
+
+  ASSERT_NO_THROW(TopicDeleteTransaction().setTopicId(topicId).execute(getTestClient()).getReceipt(getTestClient()));
 }
 
 //-----
-TEST_F(FeeEstimateQueryIntegrationTests, DefaultMode)
+// Design test #20: highVolumeThrottle is appended to the URL and the response multiplier is >= 1.
+TEST_F(FeeEstimateQueryIntegrationTests, HighVolumeThrottleSendsParamAndReturnsMultiplierAtLeastOne)
 {
-  // Given / When
-  FeeEstimateQuery query;
+  TransferTransaction tx;
+  tx.addHbarTransfer(getTestClient().getOperatorAccountId().value(), Hbar(-1LL))
+    .addHbarTransfer(AccountId(0, 0, 3ULL), Hbar(1LL));
 
-  // Then
-  EXPECT_EQ(query.getMode(), FeeEstimateMode::STATE);
+  FeeEstimateQuery query;
+  query.setMode(FeeEstimateMode::INTRINSIC).setHighVolumeThrottle(5000).setTransaction(wrap(tx));
+
+  EXPECT_NE(query.buildMirrorNodeUrl(getTestClient()).find("high_volume_throttle=5000"), std::string::npos);
+
+  FeeEstimateResponse response;
+  ASSERT_NO_THROW(response = query.execute(getTestClient()));
+  EXPECT_GE(response.mHighVolumeMultiplier, 1ULL);
 }

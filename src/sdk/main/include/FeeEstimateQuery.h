@@ -8,7 +8,7 @@
 #include "WrappedTransaction.h"
 
 #include <cstdint>
-#include <memory>
+#include <optional>
 #include <string>
 
 namespace proto
@@ -21,131 +21,114 @@ namespace Hiero
 class Client;
 
 /**
- * FeeEstimateQuery allows users to query expected transaction fees without submitting transactions to the network.
+ * FeeEstimateQuery allows users to estimate transaction fees by querying the mirror node REST endpoint
+ * `POST /api/v1/network/fees` (HIP-1261). The transaction is automatically frozen if it is not already frozen
+ * when execute() is called. For chunked transactions (FileAppendTransaction, TopicMessageSubmitTransaction),
+ * fees are aggregated across all chunks per the HIP-1261 specification.
  */
 class FeeEstimateQuery
 {
 public:
-  /**
-   * Default constructor.
-   */
   FeeEstimateQuery() = default;
 
   /**
-   * Execute the fee estimation query with the provided client.
+   * Execute the fee estimation query against the mirror node configured on the supplied client.
    *
    * @param client The Client to use for the query.
    * @return The FeeEstimateResponse containing the fee estimates.
-   * @throws std::invalid_argument If client is nullptr or no transaction is set.
-   * @throws IllegalStateException If the mirror node is not set or an error occurs during the query.
+   * @throws std::invalid_argument If no transaction has been set.
+   * @throws IllegalStateException If the mirror network is unset or the request fails after the configured retries.
    */
   [[nodiscard]] FeeEstimateResponse execute(const Client& client);
 
   /**
-   * Set the estimation mode (optional, defaults to STATE).
-   *
-   * @param mode The FeeEstimateMode to use.
-   * @return A reference to this FeeEstimateQuery.
+   * Set the estimation mode (optional, defaults to INTRINSIC).
    */
   FeeEstimateQuery& setMode(FeeEstimateMode mode);
 
   /**
    * Get the current estimation mode.
-   *
-   * @return The current FeeEstimateMode.
    */
   [[nodiscard]] FeeEstimateMode getMode() const;
 
   /**
    * Set the transaction to estimate (required).
-   *
-   * @param transaction The WrappedTransaction to estimate.
-   * @return A reference to this FeeEstimateQuery.
    */
   FeeEstimateQuery& setTransaction(const WrappedTransaction& transaction);
 
   /**
-   * Get the current transaction.
-   *
-   * @return The current WrappedTransaction.
+   * Get the current transaction. Returns nullptr if no transaction has been set.
    */
-  [[nodiscard]] const WrappedTransaction& getTransaction() const;
+  [[nodiscard]] const WrappedTransaction* getTransaction() const;
 
   /**
-   * Set the maximum number of retry attempts.
+   * Set the high-volume throttle utilization in basis points (0–10000, where 10000 = 100%). A value of 0
+   * (the default) indicates no high-volume pricing simulation.
    *
-   * @param maxAttempts The maximum number of retry attempts.
-   * @return A reference to this FeeEstimateQuery.
+   * @throws std::invalid_argument If throttle exceeds 10000.
+   */
+  FeeEstimateQuery& setHighVolumeThrottle(uint16_t throttle);
+
+  /**
+   * Get the current high-volume throttle utilization in basis points.
+   */
+  [[nodiscard]] uint16_t getHighVolumeThrottle() const;
+
+  /**
+   * Set the maximum number of retry attempts. Not part of the HIP-1261 design but kept for testability and
+   * configurability of transient mirror node failures.
    */
   FeeEstimateQuery& setMaxAttempts(uint64_t maxAttempts);
 
   /**
    * Get the maximum number of retry attempts.
-   *
-   * @return The maximum number of retry attempts.
    */
   [[nodiscard]] uint64_t getMaxAttempts() const;
 
-private:
   /**
-   * Call the fee estimate REST API endpoint.
-   *
-   * @param client The Client to use.
-   * @param protoTx The protobuf Transaction object.
-   * @return The FeeEstimateResponse.
-   */
-  [[nodiscard]] FeeEstimateResponse callGetFeeEstimate(const Client& client, const proto::Transaction& protoTx);
-
-  /**
-   * Estimate fees for a single transaction.
-   *
-   * @param client The Client to use.
-   * @return The FeeEstimateResponse.
-   */
-  [[nodiscard]] FeeEstimateResponse estimateSingleTransaction(const Client& client);
-
-  /**
-   * Execute chunked transaction fee estimation (for FileAppend or TopicMessageSubmit).
-   *
-   * @param client The Client to use.
-   * @return The aggregated FeeEstimateResponse.
-   */
-  [[nodiscard]] FeeEstimateResponse executeChunkedTransaction(const Client& client);
-
-  /**
-   * Determine if an error should trigger a retry.
-   *
-   * @param statusCode The HTTP status code.
-   * @return true if should retry, false otherwise.
-   */
-  [[nodiscard]] bool shouldRetry(int statusCode) const;
-
-  /**
-   * Build the mirror node REST API URL.
-   *
-   * @param client The Client to use.
-   * @return The URL string.
+   * Build the mirror node REST URL that this query would target on the given client. Exposed for unit tests
+   * that verify URL formation.
    */
   [[nodiscard]] std::string buildMirrorNodeUrl(const Client& client) const;
 
   /**
-   * The estimation mode (defaults to STATE).
+   * Decide whether the configured retry policy should retry on the given HTTP status / timeout signal.
+   * Exposed for unit tests. Per HIP-1261: retry on 500, 503, or timeout; do not retry on 400 (or any 4xx).
    */
-  FeeEstimateMode mMode = FeeEstimateMode::STATE;
+  [[nodiscard]] static bool shouldRetry(int statusCode, bool isTimeout);
 
   /**
-   * The transaction to estimate.
+   * Aggregate per-chunk fee estimates into a single response per the HIP-1261 chunk-transaction rule.
+   * Exposed for unit tests; called internally for FileAppendTransaction and TopicMessageSubmitTransaction
+   * when more than one chunk is required.
    */
-  WrappedTransaction mTransaction;
+  [[nodiscard]] static FeeEstimateResponse aggregateChunkResponses(const std::vector<FeeEstimateResponse>& chunks);
+
+private:
+  /**
+   * POST the serialized transaction to the mirror node and parse the response. Implements the retry policy.
+   */
+  [[nodiscard]] FeeEstimateResponse callGetFeeEstimate(const Client& client, const proto::Transaction& protoTx);
 
   /**
-   * The current retry attempt.
+   * Estimate fees for a single (non-chunked) transaction.
    */
+  [[nodiscard]] FeeEstimateResponse estimateSingleTransaction(const Client& client);
+
+  /**
+   * Estimate fees for each chunk of a chunked transaction and aggregate the results.
+   */
+  [[nodiscard]] FeeEstimateResponse estimateChunkedTransaction(const Client& client,
+                                                               std::vector<proto::Transaction> chunkProtos);
+
+  FeeEstimateMode mMode = FeeEstimateMode::INTRINSIC;
+
+  std::optional<WrappedTransaction> mTransaction;
+
+  uint16_t mHighVolumeThrottle = 0;
+
   uint64_t mAttempt = 0;
 
-  /**
-   * The maximum number of retry attempts.
-   */
   uint64_t mMaxAttempts = DEFAULT_MAX_ATTEMPTS;
 };
 

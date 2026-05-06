@@ -11,76 +11,104 @@
 namespace Hiero
 {
 /**
- * Represents an extra fee component.
+ * The extra fee charged for a fee component, as defined by HIP-1261.
  */
 struct FeeExtra
 {
   /**
-   * The amount of the extra fee in tinybars.
+   * The unique name of this extra fee as defined in the fee schedule.
    */
-  uint64_t mAmount = 0;
+  std::string mName;
 
   /**
-   * The description of the extra fee.
+   * The count of this "extra" that is included for free.
    */
-  std::string mDescription;
+  uint64_t mIncluded = 0;
 
   /**
-   * Construct from JSON.
-   *
-   * @param json The JSON object.
-   * @return The constructed FeeExtra.
+   * The actual count of items received.
+   */
+  uint64_t mCount = 0;
+
+  /**
+   * The charged count of items as calculated by max(0, count - included).
+   */
+  uint64_t mCharged = 0;
+
+  /**
+   * The fee price per unit in tinycents. JSON key: "fee_per_unit".
+   */
+  uint64_t mFeePerUnit = 0;
+
+  /**
+   * The subtotal in tinycents for this extra fee (charged * feePerUnit).
+   */
+  uint64_t mSubtotal = 0;
+
+  /**
+   * Construct a FeeExtra from its JSON object representation.
    */
   [[nodiscard]] static FeeExtra fromJson(const nlohmann::json& json)
   {
     FeeExtra extra;
-    if (json.contains("amount"))
+    if (json.contains("name"))
     {
-      extra.mAmount = json["amount"].get<uint64_t>();
+      extra.mName = json["name"].get<std::string>();
     }
-    if (json.contains("description"))
+    if (json.contains("included"))
     {
-      extra.mDescription = json["description"].get<std::string>();
+      extra.mIncluded = json["included"].get<uint64_t>();
+    }
+    if (json.contains("count"))
+    {
+      extra.mCount = json["count"].get<uint64_t>();
+    }
+    if (json.contains("charged"))
+    {
+      extra.mCharged = json["charged"].get<uint64_t>();
+    }
+    if (json.contains("fee_per_unit"))
+    {
+      extra.mFeePerUnit = json["fee_per_unit"].get<uint64_t>();
+    }
+    if (json.contains("subtotal"))
+    {
+      extra.mSubtotal = json["subtotal"].get<uint64_t>();
     }
     return extra;
   }
 };
 
 /**
- * Represents a fee estimate with base fee and extras.
+ * The fee estimate for a node or service component, including the base fee and any extras.
  */
 struct FeeEstimate
 {
   /**
-   * The base fee in tinybars.
+   * The base fee price, in tinycents.
    */
   uint64_t mBase = 0;
 
   /**
-   * The list of extra fee components.
+   * The extra fees that apply for this fee component.
    */
   std::vector<FeeExtra> mExtras;
 
   /**
-   * Calculate the subtotal of the fee (base + all extras).
-   *
-   * @return The subtotal fee in tinybars.
+   * Compute the subtotal of this fee component: base plus the sum of every extra's subtotal.
    */
   [[nodiscard]] uint64_t subtotal() const
   {
     uint64_t total = mBase;
     for (const auto& extra : mExtras)
     {
-      total += extra.mAmount;
+      total += extra.mSubtotal;
     }
     return total;
   }
 
   /**
-   * Construct from JSON.
-   *
-   * @param json The JSON object.
-   * @return The constructed FeeEstimate.
+   * Construct a FeeEstimate from its JSON object representation.
    */
   [[nodiscard]] static FeeEstimate fromJson(const nlohmann::json& json)
   {
@@ -101,32 +129,30 @@ struct FeeEstimate
 };
 
 /**
- * Represents the network fee component.
+ * The network fee component which covers the cost of gossip, consensus, signature
+ * verifications, fee payment, and storage.
  */
 struct NetworkFee
 {
   /**
-   * The multiplier for the network fee.
+   * Multiplied by the node fee to determine the total network fee.
    */
-  double mMultiplier = 0.0;
+  uint32_t mMultiplier = 0;
 
   /**
-   * The subtotal of the network fee in tinybars.
+   * The subtotal in tinycents for the network fee component.
    */
   uint64_t mSubtotal = 0;
 
   /**
-   * Construct from JSON.
-   *
-   * @param json The JSON object.
-   * @return The constructed NetworkFee.
+   * Construct a NetworkFee from its JSON object representation.
    */
   [[nodiscard]] static NetworkFee fromJson(const nlohmann::json& json)
   {
     NetworkFee networkFee;
     if (json.contains("multiplier"))
     {
-      networkFee.mMultiplier = json["multiplier"].get<double>();
+      networkFee.mMultiplier = json["multiplier"].get<uint32_t>();
     }
     if (json.contains("subtotal"))
     {
@@ -137,67 +163,62 @@ struct NetworkFee
 };
 
 /**
- * Represents the complete fee estimate response from the mirror node.
+ * The response returned from the mirror node fee estimation endpoint, as defined by HIP-1261.
  */
 struct FeeEstimateResponse
 {
   /**
-   * The node fee estimate.
+   * The high-volume pricing multiplier per HIP-1313. A value of 1 indicates no high-volume
+   * pricing. JSON key: "high_volume_multiplier".
    */
-  FeeEstimate mNodeFee;
+  uint64_t mHighVolumeMultiplier = 0;
 
   /**
-   * The service fee estimate.
+   * The network fee component. JSON key: "network".
    */
-  FeeEstimate mServiceFee;
+  NetworkFee mNetwork;
 
   /**
-   * The network fee.
+   * The node fee component to be paid to the submitting node. JSON key: "node".
    */
-  NetworkFee mNetworkFee;
+  FeeEstimate mNode;
 
   /**
-   * The total estimated fee in tinybars.
+   * The service fee component for execution costs and state storage. JSON key: "service".
+   */
+  FeeEstimate mService;
+
+  /**
+   * The sum of the network, node, and service subtotals in tinycents.
    */
   uint64_t mTotal = 0;
 
   /**
-   * Notes or messages from the fee estimation.
-   */
-  std::vector<std::string> mNotes;
-
-  /**
-   * Construct from JSON.
-   *
-   * @param json The JSON object.
-   * @return The constructed FeeEstimateResponse.
+   * Construct a FeeEstimateResponse from its JSON object representation.
    */
   [[nodiscard]] static FeeEstimateResponse fromJson(const nlohmann::json& json)
   {
     FeeEstimateResponse response;
 
-    if (json.contains("nodeFee"))
+    if (json.contains("high_volume_multiplier"))
     {
-      response.mNodeFee = FeeEstimate::fromJson(json["nodeFee"]);
+      response.mHighVolumeMultiplier = json["high_volume_multiplier"].get<uint64_t>();
     }
-    if (json.contains("serviceFee"))
+    if (json.contains("network"))
     {
-      response.mServiceFee = FeeEstimate::fromJson(json["serviceFee"]);
+      response.mNetwork = NetworkFee::fromJson(json["network"]);
     }
-    if (json.contains("networkFee"))
+    if (json.contains("node"))
     {
-      response.mNetworkFee = NetworkFee::fromJson(json["networkFee"]);
+      response.mNode = FeeEstimate::fromJson(json["node"]);
+    }
+    if (json.contains("service"))
+    {
+      response.mService = FeeEstimate::fromJson(json["service"]);
     }
     if (json.contains("total"))
     {
       response.mTotal = json["total"].get<uint64_t>();
-    }
-    if (json.contains("notes") && json["notes"].is_array())
-    {
-      for (const auto& note : json["notes"])
-      {
-        response.mNotes.push_back(note.get<std::string>());
-      }
     }
 
     return response;

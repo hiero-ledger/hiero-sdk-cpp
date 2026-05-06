@@ -233,6 +233,22 @@ public:
   [[nodiscard]] std::vector<std::map<AccountId, std::vector<std::byte>>> getAllTransactionHashesPerNode() const;
 
   /**
+   * Build a Transaction protobuf object for each chunk required to send this ChunkedTransaction. This
+   * ChunkedTransaction must already be frozen so that per-chunk SignedTransaction protobuf objects exist.
+   * Used by FeeEstimateQuery to estimate fees across all chunks of a chunked transaction.
+   *
+   * @return One Transaction protobuf per chunk, ordered from chunk 0 to the last chunk required.
+   * @throws IllegalStateException If this ChunkedTransaction is not frozen or requires more chunks than the
+   *                               configured maximum.
+   */
+  [[nodiscard]] std::vector<proto::Transaction> getChunkedTransactionProtobufObjects();
+
+  /**
+   * Get the number of chunks that will be required to send this full ChunkedTransaction.
+   */
+  [[nodiscard]] unsigned int getNumberOfChunksRequired() const;
+
+  /**
    * Set the maximum number of chunks for this ChunkedTransaction.
    *
    * @param chunks The maximum number of chunks for this ChunkedTransaction.
@@ -369,13 +385,6 @@ private:
    * @return The ID of the previously-executed ChunkedTransaction.
    */
   [[nodiscard]] TransactionId getCurrentTransactionId() const override;
-
-  /**
-   * Get the number of chunks that will be required to send this full ChunkedTransaction.
-   *
-   * @return The number of chunks that will be required to send this full ChunkedTransaction.
-   */
-  [[nodiscard]] unsigned int getNumberOfChunksRequired() const;
 
   /**
    * Implementation object used to hide implementation details and internal headers.

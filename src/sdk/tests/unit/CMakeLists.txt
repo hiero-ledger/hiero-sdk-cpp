@@ -52,6 +52,7 @@ add_executable(${TEST_PROJECT_NAME}
         ExchangeRateUnitTests.cc
         FeeAssessmentMethodUnitTests.cc
         FeeComponentsUnitTests.cc
+        FeeEstimateQueryUnitTests.cc
         FileAppendTransactionUnitTests.cc
         FileContentsQueryUnitTests.cc
         FileCreateTransactionUnitTests.cc

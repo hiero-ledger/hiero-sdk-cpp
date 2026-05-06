@@ -70,8 +70,11 @@ const int SCHEME_END_INDEX = 8;
                                                    std::string_view method,
                                                    std::string_view body,
                                                    std::string_view contentType,
-                                                   int& statusCode)
+                                                   int& statusCode,
+                                                   bool& isTimeout)
 {
+  isTimeout = false;
+
   // Create an HTTP client to communicate with the given URL.
   httplib::Client client(std::string(url.substr(0, url.find('/', SCHEME_END_INDEX))));
   const std::string path = url.substr(url.find('/', SCHEME_END_INDEX)).data();
@@ -95,7 +98,10 @@ const int SCHEME_END_INDEX = 8;
   if (!res)
   {
     statusCode = -1;
-    throw std::runtime_error("HTTP error: " + httplib::to_string(res.error()));
+    const auto error = res.error();
+    isTimeout =
+      (error == httplib::Error::Read || error == httplib::Error::Write || error == httplib::Error::ConnectionTimeout);
+    throw std::runtime_error("HTTP error: " + httplib::to_string(error));
   }
 
   statusCode = res->status;
@@ -122,9 +128,10 @@ std::string HttpClient::invokeRESTWithStatus(std::string_view url,
                                              std::string_view httpMethod,
                                              std::string_view requestBody,
                                              std::string_view contentType,
-                                             int& statusCode)
+                                             int& statusCode,
+                                             bool& isTimeout)
 {
-  return performRequestWithStatus(url, httpMethod, requestBody, contentType, statusCode);
+  return performRequestWithStatus(url, httpMethod, requestBody, contentType, statusCode, isTimeout);
 }
 
 //-----

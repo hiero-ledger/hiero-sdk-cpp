@@ -8,27 +8,31 @@
 namespace Hiero
 {
 /**
- * Enum class representing the fee estimation mode.
+ * Enum class representing the fee estimation mode used by FeeEstimateQuery.
  */
 enum class FeeEstimateMode
 {
   /**
-   * STATE mode - Uses the current state of the network for fee estimation.
+   * STATE mode - Estimate using the transaction plus the mirror node's latest known state
+   * (e.g. whether an alias already maps to an account, required token associations exist,
+   * token types have custom fees, hooks/allowances apply).
    */
   STATE,
 
   /**
-   * TRANSIENT mode - Uses a transient simulation for fee estimation.
+   * INTRINSIC mode - Default. Estimate from the payload alone (bytes, signatures, declared keys, gas),
+   * ignoring any state-dependent costs.
    */
-  TRANSIENT
+  INTRINSIC
 };
 
 /**
- * Map of FeeEstimateMode to its corresponding string representation.
+ * Map of FeeEstimateMode to its corresponding string representation as expected by the
+ * mirror node REST API `mode` query parameter.
  */
 [[maybe_unused]] static const std::unordered_map<FeeEstimateMode, std::string> gFeeEstimateModeToString = {
-  {FeeEstimateMode::STATE,     "STATE"    },
-  { FeeEstimateMode::TRANSIENT, "TRANSIENT"}
+  {FeeEstimateMode::STATE,      "STATE"    },
+  { FeeEstimateMode::INTRINSIC, "INTRINSIC"}
 };
 
 } // namespace Hiero

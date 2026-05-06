@@ -18,6 +18,7 @@
 
 namespace Hiero
 {
+class FeeEstimateQuery;
 class PrivateKey;
 class TransactionResponse;
 class ScheduleCreateTransaction;
@@ -363,6 +364,20 @@ public:
    */
   [[nodiscard]] size_t getTransactionBodySize() const;
 
+  /**
+   * Is this Transaction frozen?
+   *
+   * @return \c TRUE if this Transaction is frozen, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool isFrozen() const;
+
+  /**
+   * Build a FeeEstimateQuery wrapping this Transaction. The returned query may be further configured (mode,
+   * high-volume throttle) before calling execute() against a Client whose mirror network supports the
+   * HIP-1261 fee estimation endpoint.
+   */
+  [[nodiscard]] FeeEstimateQuery estimateFee() const;
+
 protected:
   /**
    * Dummy transaction and account IDs used to assist in deserializing incomplete Transactions.
@@ -458,13 +473,6 @@ protected:
    * @throws IllegalStateException If this Transaction is frozen.
    */
   void requireNotFrozen() const;
-
-  /**
-   * Is this Transaction frozen?
-   *
-   * @return \c TRUE if this Transaction is frozen, otherwise \c FALSE.
-   */
-  [[nodiscard]] bool isFrozen() const;
 
   /**
    * Set the default maximum transaction fee for this Transaction.

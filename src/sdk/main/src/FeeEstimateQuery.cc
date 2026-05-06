@@ -6,9 +6,10 @@
 #include "exceptions/IllegalStateException.h"
 #include "impl/HttpClient.h"
 #include "impl/MirrorNetwork.h"
-#include "impl/Utilities.h"
 
+#include <algorithm>
 #include <chrono>
+#include <stdexcept>
 #include <thread>
 
 #include <nlohmann/json.hpp>
@@ -16,17 +17,59 @@
 
 namespace Hiero
 {
+namespace
+{
+constexpr uint16_t MAX_HIGH_VOLUME_THROTTLE = 10000;
+
+//-----
+// Generic auto-freeze: visit the variant and call freezeWith() on whichever transaction is held.
+void freezeIfNeeded(WrappedTransaction& wrapped, const Client& client)
+{
+  std::visit(
+    [&client](auto& tx)
+    {
+      if (!tx.isFrozen())
+      {
+        tx.freezeWith(&client);
+      }
+    },
+    wrapped.getVariant());
+}
+
+} // namespace
+
 //-----
 FeeEstimateResponse FeeEstimateQuery::execute(const Client& client)
 {
-  // Validate mirror network is set
-  const auto mirrorNetwork = client.getMirrorNetwork();
-  if (mirrorNetwork.empty())
+  if (!mTransaction.has_value())
+  {
+    throw std::invalid_argument("FeeEstimateQuery requires a transaction to be set via setTransaction()");
+  }
+
+  if (client.getMirrorNetwork().empty())
   {
     throw IllegalStateException("Mirror network is not set on the client");
   }
 
-  // Get the wrapped transaction and freeze it if needed
+  freezeIfNeeded(*mTransaction, client);
+
+  // Detect chunked transactions and dispatch to the per-chunk aggregation path when more than one chunk is
+  // required.
+  if (auto* fileAppend = mTransaction->getTransaction<FileAppendTransaction>())
+  {
+    if (fileAppend->getNumberOfChunksRequired() > 1)
+    {
+      return estimateChunkedTransaction(client, fileAppend->getChunkedTransactionProtobufObjects());
+    }
+  }
+  else if (auto* topicSubmit = mTransaction->getTransaction<TopicMessageSubmitTransaction>())
+  {
+    if (topicSubmit->getNumberOfChunksRequired() > 1)
+    {
+      return estimateChunkedTransaction(client, topicSubmit->getChunkedTransactionProtobufObjects());
+    }
+  }
+
   return estimateSingleTransaction(client);
 }
 
@@ -51,9 +94,26 @@ FeeEstimateQuery& FeeEstimateQuery::setTransaction(const WrappedTransaction& tra
 }
 
 //-----
-const WrappedTransaction& FeeEstimateQuery::getTransaction() const
+const WrappedTransaction* FeeEstimateQuery::getTransaction() const
 {
-  return mTransaction;
+  return mTransaction.has_value() ? &mTransaction.value() : nullptr;
+}
+
+//-----
+FeeEstimateQuery& FeeEstimateQuery::setHighVolumeThrottle(uint16_t throttle)
+{
+  if (throttle > MAX_HIGH_VOLUME_THROTTLE)
+  {
+    throw std::invalid_argument("highVolumeThrottle must be in [0, 10000] basis points");
+  }
+  mHighVolumeThrottle = throttle;
+  return *this;
+}
+
+//-----
+uint16_t FeeEstimateQuery::getHighVolumeThrottle() const
+{
+  return mHighVolumeThrottle;
 }
 
 //-----
@@ -77,45 +137,49 @@ FeeEstimateResponse FeeEstimateQuery::callGetFeeEstimate(const Client& client, c
 
   std::string response;
   int statusCode = 0;
+  bool isTimeout = false;
   std::string lastError;
 
-  // Reset attempt counter for each call
   mAttempt = 0;
 
   while (mAttempt < mMaxAttempts)
   {
     try
     {
-      response = internal::HttpClient::invokeRESTWithStatus(url, "POST", txBytes, "application/protobuf", statusCode);
+      response =
+        internal::HttpClient::invokeRESTWithStatus(url, "POST", txBytes, "application/protobuf", statusCode, isTimeout);
 
       if (statusCode == 200)
       {
         break;
       }
 
-      if (!shouldRetry(statusCode))
+      if (!shouldRetry(statusCode, /*isTimeout=*/false))
       {
         throw IllegalStateException("Fee estimate API returned status " + std::to_string(statusCode) + ": " + response);
       }
 
       lastError = "Received status " + std::to_string(statusCode);
     }
+    catch (const IllegalStateException&)
+    {
+      throw;
+    }
     catch (const std::exception& e)
     {
       lastError = e.what();
-      if (!shouldRetry(statusCode))
+      if (!shouldRetry(statusCode, isTimeout))
       {
-        throw;
+        throw IllegalStateException(std::string("Fee estimate API failed: ") + e.what());
       }
     }
 
-    // Calculate delay with exponential backoff: 250ms, 500ms, 1000ms, etc.
+    // Exponential backoff capped at 8 seconds.
     auto delayMs = static_cast<uint64_t>(250.0 * static_cast<double>(1ULL << mAttempt));
     if (delayMs > 8000)
     {
       delayMs = 8000;
     }
-
     std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
     ++mAttempt;
   }
@@ -126,7 +190,6 @@ FeeEstimateResponse FeeEstimateQuery::callGetFeeEstimate(const Client& client, c
                                 " attempts: " + lastError);
   }
 
-  // Parse JSON response
   try
   {
     const nlohmann::json jsonResponse = nlohmann::json::parse(response);
@@ -141,54 +204,80 @@ FeeEstimateResponse FeeEstimateQuery::callGetFeeEstimate(const Client& client, c
 //-----
 FeeEstimateResponse FeeEstimateQuery::estimateSingleTransaction(const Client& client)
 {
-  // Build the protobuf Transaction from the WrappedTransaction
-  std::unique_ptr<proto::Transaction> protoTx = mTransaction.toProtobufTransaction();
-
+  std::unique_ptr<proto::Transaction> protoTx = mTransaction->toProtobufTransaction();
   if (!protoTx)
   {
     throw IllegalStateException("Failed to build protobuf transaction");
   }
-
   return callGetFeeEstimate(client, *protoTx);
 }
 
 //-----
-FeeEstimateResponse FeeEstimateQuery::executeChunkedTransaction(const Client& client)
+FeeEstimateResponse FeeEstimateQuery::estimateChunkedTransaction(const Client& client,
+                                                                 std::vector<proto::Transaction> chunkProtos)
 {
-  // For chunked transactions, we need to estimate each chunk and aggregate the results
-  // This is a simplified implementation - the full implementation would need to handle
-  // FileAppendTransaction and TopicMessageSubmitTransaction separately
-
-  FeeEstimateResponse aggregatedResponse;
-  aggregatedResponse.mNodeFee = FeeEstimate{};
-  aggregatedResponse.mServiceFee = FeeEstimate{};
-  aggregatedResponse.mNetworkFee = NetworkFee{};
-  aggregatedResponse.mNotes = {};
-
-  // For now, just estimate as a single transaction
-  // A full implementation would iterate through chunks
-  return estimateSingleTransaction(client);
+  std::vector<FeeEstimateResponse> perChunk;
+  perChunk.reserve(chunkProtos.size());
+  for (const auto& chunk : chunkProtos)
+  {
+    perChunk.push_back(callGetFeeEstimate(client, chunk));
+  }
+  return aggregateChunkResponses(perChunk);
 }
 
 //-----
-bool FeeEstimateQuery::shouldRetry(int statusCode) const
+FeeEstimateResponse FeeEstimateQuery::aggregateChunkResponses(const std::vector<FeeEstimateResponse>& chunks)
 {
-  // Retry on server errors (5xx) or rate limiting (429)
-  if (statusCode >= 500 || statusCode == 429)
+  FeeEstimateResponse aggregated;
+  if (chunks.empty())
+  {
+    return aggregated;
+  }
+
+  uint64_t aggregatedNodeTotal = 0;
+  uint64_t aggregatedServiceTotal = 0;
+  uint64_t maxHighVolumeMultiplier = 0;
+
+  for (const auto& chunk : chunks)
+  {
+    aggregatedNodeTotal += chunk.mNode.subtotal();
+    aggregatedServiceTotal += chunk.mService.subtotal();
+    maxHighVolumeMultiplier = std::max(maxHighVolumeMultiplier, chunk.mHighVolumeMultiplier);
+
+    aggregated.mNode.mExtras.insert(
+      aggregated.mNode.mExtras.end(), chunk.mNode.mExtras.cbegin(), chunk.mNode.mExtras.cend());
+    aggregated.mService.mExtras.insert(
+      aggregated.mService.mExtras.end(), chunk.mService.mExtras.cbegin(), chunk.mService.mExtras.cend());
+    aggregated.mNode.mBase += chunk.mNode.mBase;
+    aggregated.mService.mBase += chunk.mService.mBase;
+  }
+
+  aggregated.mNetwork.mMultiplier = chunks.front().mNetwork.mMultiplier;
+  aggregated.mNetwork.mSubtotal = aggregatedNodeTotal * aggregated.mNetwork.mMultiplier;
+  aggregated.mHighVolumeMultiplier = maxHighVolumeMultiplier;
+  aggregated.mTotal = aggregated.mNetwork.mSubtotal + aggregatedNodeTotal + aggregatedServiceTotal;
+
+  return aggregated;
+}
+
+//-----
+bool FeeEstimateQuery::shouldRetry(int statusCode, bool isTimeout)
+{
+  if (isTimeout)
   {
     return true;
   }
 
-  // Don't retry on client errors (4xx except 429)
+  // Retry only on 500 / 503 per the HIP-1261 retry policy.
+  if (statusCode == 500 || statusCode == 503)
+  {
+    return true;
+  }
+
+  // Do not retry on 400 (or any other 4xx — malformed transaction body).
   if (statusCode >= 400 && statusCode < 500)
   {
     return false;
-  }
-
-  // Retry on connection errors (represented by -1 or 0)
-  if (statusCode <= 0)
-  {
-    return true;
   }
 
   return false;
@@ -205,27 +294,17 @@ std::string FeeEstimateQuery::buildMirrorNodeUrl(const Client& client) const
 
   std::string mirrorUrl = mirrorNetwork[0];
 
-  // Check if it's localhost
-  const bool isLocalHost = (mirrorUrl.find("localhost") != std::string::npos) ||
-                           (mirrorUrl.find("127.0.0.1") != std::string::npos);
+  const bool isLocalHost =
+    (mirrorUrl.find("localhost") != std::string::npos) || (mirrorUrl.find("127.0.0.1") != std::string::npos);
 
-  // Add http/https prefix if not present
   if (mirrorUrl.compare(0, 7, "http://") != 0 && mirrorUrl.compare(0, 8, "https://") != 0)
   {
-    if (isLocalHost)
-    {
-      mirrorUrl = "http://" + mirrorUrl;
-    }
-    else
-    {
-      mirrorUrl = "https://" + mirrorUrl;
-    }
+    mirrorUrl = (isLocalHost ? "http://" : "https://") + mirrorUrl;
   }
 
-  // For localhost, use port 8084
+  // For local solo networks the mirror node REST API listens on port 8084.
   if (isLocalHost)
   {
-    // Replace port if present or append default port
     const size_t portPos = mirrorUrl.rfind(':');
     if (portPos != std::string::npos && portPos > 7)
     {
@@ -233,9 +312,12 @@ std::string FeeEstimateQuery::buildMirrorNodeUrl(const Client& client) const
     }
   }
 
-  // Build the full URL with mode parameter
-  const std::string modeStr = gFeeEstimateModeToString.at(mMode);
-  return mirrorUrl + "/api/v1/network/fees?mode=" + modeStr;
+  std::string url = mirrorUrl + "/api/v1/network/fees?mode=" + gFeeEstimateModeToString.at(mMode);
+  if (mHighVolumeThrottle != 0)
+  {
+    url += "&high_volume_throttle=" + std::to_string(mHighVolumeThrottle);
+  }
+  return url;
 }
 
 } // namespace Hiero

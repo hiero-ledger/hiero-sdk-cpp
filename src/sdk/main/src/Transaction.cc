@@ -13,6 +13,7 @@
 #include "ContractUpdateTransaction.h"
 #include "Defaults.h"
 #include "EthereumTransaction.h"
+#include "FeeEstimateQuery.h"
 #include "FileAppendTransaction.h"
 #include "FileCreateTransaction.h"
 #include "FileDeleteTransaction.h"
@@ -1648,6 +1649,16 @@ SdkRequestType& Transaction<SdkRequestType>::signInternal(
   }
 
   return static_cast<SdkRequestType&>(*this);
+}
+
+//-----
+template<typename SdkRequestType>
+FeeEstimateQuery Transaction<SdkRequestType>::estimateFee() const
+{
+  WrappedTransaction wrapped(WrappedTransaction::AnyPossibleTransaction(static_cast<const SdkRequestType&>(*this)));
+  FeeEstimateQuery query;
+  query.setTransaction(wrapped);
+  return query;
 }
 
 /**

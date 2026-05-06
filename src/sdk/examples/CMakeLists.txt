@@ -30,6 +30,8 @@ set(CUSTOM_FEES_EXAMPLE_NAME ${PROJECT_NAME}-custom-fees-example)
 set(DELETE_ACCOUNT_EXAMPLE_NAME ${PROJECT_NAME}-delete-account-example)
 set(DELETE_FILE_EXAMPLE_NAME ${PROJECT_NAME}-delete-file-example)
 set(EXEMPT_CUSTOM_FEES_EXAMPLE_NAME ${PROJECT_NAME}-exempt-custom-fees-example)
+set(FEE_ESTIMATE_TRANSFER_EXAMPLE_NAME ${PROJECT_NAME}-fee-estimate-transfer-example)
+set(FEE_ESTIMATE_INTRINSIC_VS_STATE_EXAMPLE_NAME ${PROJECT_NAME}-fee-estimate-intrinsic-vs-state-example)
 set(FILE_APPEND_CHUNKED_EXAMPLE_NAME ${PROJECT_NAME}-file-append-chunked-example)
 set(GENERATE_KEY_EXAMPLE_NAME ${PROJECT_NAME}-generate-key-example)
 set(GENERATE_PRIVATE_KEY_FROM_MNEMONIC_EXAMPLE_NAME ${PROJECT_NAME}-generate-private-key-from-mnemonic-example)
@@ -97,6 +99,8 @@ add_executable(${CUSTOM_FEES_EXAMPLE_NAME} CustomFeesExample.cpp)
 add_executable(${DELETE_ACCOUNT_EXAMPLE_NAME} DeleteAccountExample.cpp)
 add_executable(${DELETE_FILE_EXAMPLE_NAME} DeleteFileExample.cpp)
 add_executable(${EXEMPT_CUSTOM_FEES_EXAMPLE_NAME} ExemptCustomFeesExample.cpp)
+add_executable(${FEE_ESTIMATE_TRANSFER_EXAMPLE_NAME} FeeEstimateTransferExample.cpp)
+add_executable(${FEE_ESTIMATE_INTRINSIC_VS_STATE_EXAMPLE_NAME} FeeEstimateIntrinsicVsStateExample.cpp)
 add_executable(${FILE_APPEND_CHUNKED_EXAMPLE_NAME} FileAppendChunkedExample.cpp)
 add_executable(${GENERATE_KEY_EXAMPLE_NAME} GenerateKeyExample.cpp)
 add_executable(${GENERATE_PRIVATE_KEY_FROM_MNEMONIC_EXAMPLE_NAME} GeneratePrivateKeyFromMnemonicExample.cpp)
@@ -185,6 +189,8 @@ target_link_libraries(${CUSTOM_FEES_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${DELETE_ACCOUNT_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${DELETE_FILE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${EXEMPT_CUSTOM_FEES_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${FEE_ESTIMATE_TRANSFER_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${FEE_ESTIMATE_INTRINSIC_VS_STATE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${FILE_APPEND_CHUNKED_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GENERATE_KEY_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GENERATE_PRIVATE_KEY_FROM_MNEMONIC_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
@@ -253,6 +259,8 @@ install(TARGETS
         ${DELETE_ACCOUNT_EXAMPLE_NAME}
         ${DELETE_FILE_EXAMPLE_NAME}
         ${EXEMPT_CUSTOM_FEES_EXAMPLE_NAME}
+        ${FEE_ESTIMATE_TRANSFER_EXAMPLE_NAME}
+        ${FEE_ESTIMATE_INTRINSIC_VS_STATE_EXAMPLE_NAME}
         ${FILE_APPEND_CHUNKED_EXAMPLE_NAME}
         ${GENERATE_KEY_EXAMPLE_NAME}
         ${GENERATE_PRIVATE_KEY_FROM_MNEMONIC_EXAMPLE_NAME}
