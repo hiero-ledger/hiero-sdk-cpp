@@ -756,6 +756,16 @@ nlohmann::json getScheduleInfo(const GetScheduleInfoParams& params)
     query.setScheduleId(ScheduleId::fromString(params.mScheduleId.value()));
   }
 
+  if (params.mQueryPayment.has_value())
+  {
+    query.setQueryPayment(Hbar::fromTinybars(std::stoll(params.mQueryPayment.value())));
+  }
+
+  if (params.mMaxQueryPayment.has_value())
+  {
+    query.setMaxQueryPayment(Hbar::fromTinybars(std::stoll(params.mMaxQueryPayment.value())));
+  }
+
   const ScheduleInfo info = query.execute(SdkClient::getClient());
 
   nlohmann::json response;
@@ -783,6 +793,8 @@ nlohmann::json getScheduleInfo(const GetScheduleInfoParams& params)
   auto expirySeconds =
     std::chrono::duration_cast<std::chrono::seconds>(info.mExpirationTime.time_since_epoch()).count();
   response["expirationTime"] = std::to_string(expirySeconds);
+
+  response["waitForExpiry"] = info.mWaitForExpiry;
 
   if (info.mExecutionTime.has_value())
   {

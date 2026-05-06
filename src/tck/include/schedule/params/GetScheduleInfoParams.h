@@ -2,6 +2,8 @@
 #ifndef HIERO_TCK_CPP_GET_SCHEDULE_INFO_PARAMS_H_
 #define HIERO_TCK_CPP_GET_SCHEDULE_INFO_PARAMS_H_
 
+#include "json/JsonUtils.h"
+
 #include <nlohmann/json.hpp>
 #include <optional>
 #include <string>
@@ -17,27 +19,33 @@ struct GetScheduleInfoParams
    * The schedule id
    */
   std::optional<std::string> mScheduleId;
+
+  /**
+   * The query payment
+   */
+  std::optional<std::string> mQueryPayment;
+
+  /**
+   * The max query payment
+   */
+  std::optional<std::string> mMaxQueryPayment;
 };
 
 } // namespace Hiero::TCK::ScheduleService
 
 namespace nlohmann
 {
+/**
+ * JSON serializer template specialization required to convert GetScheduleInfoParams arguments properly.
+ */
 template<>
-struct adl_serializer<Hiero::TCK::ScheduleService::GetScheduleInfoParams>
+struct [[maybe_unused]] adl_serializer<Hiero::TCK::ScheduleService::GetScheduleInfoParams>
 {
-  /**
-   * From JSON.
-   */
-  static Hiero::TCK::ScheduleService::GetScheduleInfoParams from_json(const json& j)
+  static void from_json(const json& jsonFrom, Hiero::TCK::ScheduleService::GetScheduleInfoParams& params)
   {
-    Hiero::TCK::ScheduleService::GetScheduleInfoParams params;
-    if (j.contains("scheduleId") && !j["scheduleId"].is_null())
-    {
-      params.mScheduleId = j["scheduleId"].get<std::string>();
-    }
-
-    return params;
+    params.mScheduleId = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "scheduleId");
+    params.mQueryPayment = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "queryPayment");
+    params.mMaxQueryPayment = Hiero::TCK::getOptionalJsonParameter<std::string>(jsonFrom, "maxQueryPayment");
   }
 };
 } // namespace nlohmann
