@@ -9,8 +9,8 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cstring>
 #include <stdexcept>
+#include <string_view>
 #include <thread>
 
 #include <nlohmann/json.hpp>
@@ -25,8 +25,8 @@ constexpr int HTTP_OK = 200;
 constexpr uint64_t BACKOFF_INITIAL_MS = 250;
 constexpr uint64_t BACKOFF_CAP_MS = 8000;
 constexpr uint16_t LOCAL_MIRROR_REST_PORT = 8084;
-constexpr const char* HTTP_SCHEME = "http://";
-constexpr const char* HTTPS_SCHEME = "https://";
+constexpr std::string_view HTTP_SCHEME = "http://";
+constexpr std::string_view HTTPS_SCHEME = "https://";
 
 //-----
 // Generic auto-freeze: visit the variant and call freezeWith() on whichever transaction is held.
@@ -102,8 +102,7 @@ void backoffSleep(uint64_t attempt)
 //-----
 bool hasHttpScheme(const std::string& url)
 {
-  return url.compare(0, std::strlen(HTTP_SCHEME), HTTP_SCHEME) == 0 ||
-         url.compare(0, std::strlen(HTTPS_SCHEME), HTTPS_SCHEME) == 0;
+  return url.compare(0, HTTP_SCHEME.size(), HTTP_SCHEME) == 0 || url.compare(0, HTTPS_SCHEME.size(), HTTPS_SCHEME) == 0;
 }
 
 //-----
@@ -117,12 +116,14 @@ bool isLocalHostUrl(const std::string& url)
 std::string normalizeMirrorBaseUrl(const std::string& mirrorUrl)
 {
   const bool localHost = isLocalHostUrl(mirrorUrl);
-  std::string url = hasHttpScheme(mirrorUrl) ? mirrorUrl : (localHost ? HTTP_SCHEME : HTTPS_SCHEME) + mirrorUrl;
+  std::string url =
+    hasHttpScheme(mirrorUrl) ? mirrorUrl : std::string(localHost ? HTTP_SCHEME : HTTPS_SCHEME) + mirrorUrl;
 
   if (localHost)
   {
     const size_t portPos = url.rfind(':');
-    if (portPos != std::string::npos && portPos > std::strlen(HTTPS_SCHEME) - 1)
+    // Skip the colon that's part of the scheme prefix (e.g. position 4 in "http://").
+    if (portPos != std::string::npos && portPos >= HTTPS_SCHEME.size())
     {
       url.replace(portPos, std::string::npos, ":" + std::to_string(LOCAL_MIRROR_REST_PORT));
     }
