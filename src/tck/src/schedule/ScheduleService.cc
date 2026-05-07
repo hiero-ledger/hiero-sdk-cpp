@@ -10,6 +10,7 @@
 #include "key/KeyService.h"
 #include "schedule/params/CreateScheduleParams.h"
 #include "schedule/params/DeleteScheduleParams.h"
+#include "schedule/params/SignScheduleParams.h"
 #include "sdk/SdkClient.h"
 #include "token/params/BurnTokenParams.h"
 #include "token/params/CreateTokenParams.h"
@@ -28,6 +29,7 @@
 #include <ScheduleCreateTransaction.h>
 #include <ScheduleDeleteTransaction.h>
 #include <ScheduleId.h>
+#include <ScheduleSignTransaction.h>
 #include <TokenBurnTransaction.h>
 #include <TokenCreateTransaction.h>
 #include <TokenDeleteTransaction.h>
@@ -694,6 +696,29 @@ nlohmann::json deleteSchedule(const DeleteScheduleParams& params)
     {"status",
      gStatusToString.at(
         scheduleDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)},
+  };
+}
+
+//-----
+nlohmann::json signSchedule(const SignScheduleParams& params)
+{
+  ScheduleSignTransaction scheduleSignTransaction;
+  scheduleSignTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mScheduleId.has_value())
+  {
+    scheduleSignTransaction.setScheduleId(ScheduleId::fromString(params.mScheduleId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(scheduleSignTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        scheduleSignTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)},
   };
 }
 
