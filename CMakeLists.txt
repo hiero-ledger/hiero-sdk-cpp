@@ -23,6 +23,7 @@ find_package(absl CONFIG REQUIRED)
 find_package(Threads REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(EXPAT CONFIG REQUIRED)
+find_package(unofficial-secp256k1 CONFIG REQUIRED)
 
 include(FetchContent)
 include(SystemLibraries.cmake)

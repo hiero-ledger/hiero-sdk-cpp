@@ -258,6 +258,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         OpenSSL::Crypto)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
+        unofficial::secp256k1
+        unofficial::secp256k1_precomputed)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
         gRPC::address_sorting
         gRPC::gpr
         gRPC::grpc
