@@ -12,6 +12,7 @@ namespace Hiero::TCK::ScheduleService
 struct CreateScheduleParams;
 struct DeleteScheduleParams;
 struct GetScheduleInfoParams;
+struct SignScheduleParams;
 
 /**
  * Create a schedule.
@@ -36,6 +37,12 @@ nlohmann::json deleteSchedule(const DeleteScheduleParams& params);
  * @return A JSON response containing the information of the schedule.
  */
 nlohmann::json getScheduleInfo(const GetScheduleInfoParams& params);
+ * Sign a schedule.
+ *
+ * @param params The parameters to use to sign a schedule.
+ * @return A JSON response containing the status of the schedule signing.
+ */
+nlohmann::json signSchedule(const SignScheduleParams& params);
 
 } // namespace Hiero::TCK::ScheduleService
 
