@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstring>
 #include <stdexcept>
 #include <thread>
 
@@ -20,6 +21,12 @@ namespace Hiero
 namespace
 {
 constexpr uint16_t MAX_HIGH_VOLUME_THROTTLE = 10000;
+constexpr int HTTP_OK = 200;
+constexpr uint64_t BACKOFF_INITIAL_MS = 250;
+constexpr uint64_t BACKOFF_CAP_MS = 8000;
+constexpr uint16_t LOCAL_MIRROR_REST_PORT = 8084;
+constexpr const char* HTTP_SCHEME = "http://";
+constexpr const char* HTTPS_SCHEME = "https://";
 
 //-----
 // Generic auto-freeze: visit the variant and call freezeWith() on whichever transaction is held.
@@ -34,6 +41,93 @@ void freezeIfNeeded(WrappedTransaction& wrapped, const Client& client)
       }
     },
     wrapped.getVariant());
+}
+
+//-----
+// Result of a single mirror-node HTTP attempt. statusCode == 200 indicates success and `body` is the
+// response body. Otherwise `errorMessage` describes why the attempt failed and `statusCode` /
+// `isTimeout` drive the retry decision.
+struct AttemptResult
+{
+  std::string body;
+  int statusCode = 0;
+  bool isTimeout = false;
+  std::string errorMessage;
+};
+
+//-----
+AttemptResult performSingleAttempt(const std::string& url, const std::string& txBytes)
+{
+  AttemptResult result;
+  try
+  {
+    result.body = internal::HttpClient::invokeRESTWithStatus(
+      url, "POST", txBytes, "application/protobuf", result.statusCode, result.isTimeout);
+    if (result.statusCode != HTTP_OK)
+    {
+      result.errorMessage = "Received status " + std::to_string(result.statusCode);
+    }
+  }
+  catch (const std::exception& e)
+  {
+    result.errorMessage = e.what();
+  }
+  return result;
+}
+
+//-----
+FeeEstimateResponse parseFeeEstimateJson(const std::string& body)
+{
+  try
+  {
+    return FeeEstimateResponse::fromJson(nlohmann::json::parse(body));
+  }
+  catch (const nlohmann::json::exception& e)
+  {
+    throw IllegalStateException(std::string("Failed to parse fee estimate response: ") + e.what());
+  }
+}
+
+//-----
+void backoffSleep(uint64_t attempt)
+{
+  auto delayMs = static_cast<uint64_t>(static_cast<double>(BACKOFF_INITIAL_MS) * static_cast<double>(1ULL << attempt));
+  if (delayMs > BACKOFF_CAP_MS)
+  {
+    delayMs = BACKOFF_CAP_MS;
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
+}
+
+//-----
+bool hasHttpScheme(const std::string& url)
+{
+  return url.compare(0, std::strlen(HTTP_SCHEME), HTTP_SCHEME) == 0 ||
+         url.compare(0, std::strlen(HTTPS_SCHEME), HTTPS_SCHEME) == 0;
+}
+
+//-----
+bool isLocalHostUrl(const std::string& url)
+{
+  return url.find("localhost") != std::string::npos || url.find("127.0.0.1") != std::string::npos;
+}
+
+//-----
+// Apply scheme prefix and (for local solo networks) rewrite the port to the mirror REST port 8084.
+std::string normalizeMirrorBaseUrl(const std::string& mirrorUrl)
+{
+  const bool localHost = isLocalHostUrl(mirrorUrl);
+  std::string url = hasHttpScheme(mirrorUrl) ? mirrorUrl : (localHost ? HTTP_SCHEME : HTTPS_SCHEME) + mirrorUrl;
+
+  if (localHost)
+  {
+    const size_t portPos = url.rfind(':');
+    if (portPos != std::string::npos && portPos > std::strlen(HTTPS_SCHEME) - 1)
+    {
+      url.replace(portPos, std::string::npos, ":" + std::to_string(LOCAL_MIRROR_REST_PORT));
+    }
+  }
+  return url;
 }
 
 } // namespace
@@ -135,70 +229,25 @@ FeeEstimateResponse FeeEstimateQuery::callGetFeeEstimate(const Client& client, c
   const std::string url = buildMirrorNodeUrl(client);
   const std::string txBytes = protoTx.SerializeAsString();
 
-  std::string response;
-  int statusCode = 0;
-  bool isTimeout = false;
   std::string lastError;
-
-  mAttempt = 0;
-
-  while (mAttempt < mMaxAttempts)
+  for (mAttempt = 0; mAttempt < mMaxAttempts; ++mAttempt)
   {
-    try
+    const AttemptResult attempt = performSingleAttempt(url, txBytes);
+    if (attempt.statusCode == HTTP_OK)
     {
-      response =
-        internal::HttpClient::invokeRESTWithStatus(url, "POST", txBytes, "application/protobuf", statusCode, isTimeout);
-
-      if (statusCode == 200)
-      {
-        break;
-      }
-
-      if (!shouldRetry(statusCode, /*isTimeout=*/false))
-      {
-        throw IllegalStateException("Fee estimate API returned status " + std::to_string(statusCode) + ": " + response);
-      }
-
-      lastError = "Received status " + std::to_string(statusCode);
+      return parseFeeEstimateJson(attempt.body);
     }
-    catch (const IllegalStateException&)
+    if (!shouldRetry(attempt.statusCode, attempt.isTimeout))
     {
-      throw;
+      throw IllegalStateException("Fee estimate API returned status " + std::to_string(attempt.statusCode) + ": " +
+                                  attempt.errorMessage);
     }
-    catch (const std::exception& e)
-    {
-      lastError = e.what();
-      if (!shouldRetry(statusCode, isTimeout))
-      {
-        throw IllegalStateException(std::string("Fee estimate API failed: ") + e.what());
-      }
-    }
-
-    // Exponential backoff capped at 8 seconds.
-    auto delayMs = static_cast<uint64_t>(250.0 * static_cast<double>(1ULL << mAttempt));
-    if (delayMs > 8000)
-    {
-      delayMs = 8000;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
-    ++mAttempt;
+    lastError = attempt.errorMessage;
+    backoffSleep(mAttempt);
   }
 
-  if (statusCode != 200)
-  {
-    throw IllegalStateException("Failed to call fee estimate API after " + std::to_string(mMaxAttempts) +
-                                " attempts: " + lastError);
-  }
-
-  try
-  {
-    const nlohmann::json jsonResponse = nlohmann::json::parse(response);
-    return FeeEstimateResponse::fromJson(jsonResponse);
-  }
-  catch (const nlohmann::json::exception& e)
-  {
-    throw IllegalStateException(std::string("Failed to parse fee estimate response: ") + e.what());
-  }
+  throw IllegalStateException("Failed to call fee estimate API after " + std::to_string(mMaxAttempts) +
+                              " attempts: " + lastError);
 }
 
 //-----
@@ -292,27 +341,8 @@ std::string FeeEstimateQuery::buildMirrorNodeUrl(const Client& client) const
     throw IllegalStateException("Mirror network is not set");
   }
 
-  std::string mirrorUrl = mirrorNetwork[0];
-
-  const bool isLocalHost =
-    (mirrorUrl.find("localhost") != std::string::npos) || (mirrorUrl.find("127.0.0.1") != std::string::npos);
-
-  if (mirrorUrl.compare(0, 7, "http://") != 0 && mirrorUrl.compare(0, 8, "https://") != 0)
-  {
-    mirrorUrl = (isLocalHost ? "http://" : "https://") + mirrorUrl;
-  }
-
-  // For local solo networks the mirror node REST API listens on port 8084.
-  if (isLocalHost)
-  {
-    const size_t portPos = mirrorUrl.rfind(':');
-    if (portPos != std::string::npos && portPos > 7)
-    {
-      mirrorUrl = mirrorUrl.substr(0, portPos) + ":8084";
-    }
-  }
-
-  std::string url = mirrorUrl + "/api/v1/network/fees?mode=" + gFeeEstimateModeToString.at(mMode);
+  std::string url =
+    normalizeMirrorBaseUrl(mirrorNetwork[0]) + "/api/v1/network/fees?mode=" + gFeeEstimateModeToString.at(mMode);
   if (mHighVolumeThrottle != 0)
   {
     url += "&high_volume_throttle=" + std::to_string(mHighVolumeThrottle);
