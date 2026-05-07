@@ -44,6 +44,10 @@ add_executable(${TEST_PROJECT_NAME}
         NodeDeleteTransactionIntegrationTests.cc
         NodeUpdateTransactionIntegrationTests.cc
         PrngTransactionIntegrationTests.cc
+        RegisteredNodeCreateTransactionIntegrationTests.cc
+        RegisteredNodeDeleteTransactionIntegrationTests.cc
+        RegisteredNodeAddressBookQueryIntegrationTests.cc
+        RegisteredNodeUpdateTransactionIntegrationTests.cc
         QueryIntegrationTests.cc
         ScheduleCreateTransactionIntegrationTests.cc
         ScheduleDeleteTransactionIntegrationTests.cc

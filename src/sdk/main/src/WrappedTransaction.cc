@@ -96,6 +96,18 @@ WrappedTransaction WrappedTransaction::fromProtobuf(const proto::TransactionBody
   {
     return WrappedTransaction(NodeUpdateTransaction(proto));
   }
+  else if (proto.has_registerednodecreate())
+  {
+    return WrappedTransaction(RegisteredNodeCreateTransaction(proto));
+  }
+  else if (proto.has_registerednodedelete())
+  {
+    return WrappedTransaction(RegisteredNodeDeleteTransaction(proto));
+  }
+  else if (proto.has_registerednodeupdate())
+  {
+    return WrappedTransaction(RegisteredNodeUpdateTransaction(proto));
+  }
   else if (proto.has_util_prng())
   {
     return WrappedTransaction(PrngTransaction(proto));
@@ -307,6 +319,21 @@ WrappedTransaction WrappedTransaction::fromProtobuf(const proto::SchedulableTran
   {
     *txBody.mutable_nodeupdate() = proto.nodeupdate();
     return WrappedTransaction(NodeUpdateTransaction(txBody));
+  }
+  else if (proto.has_registerednodecreate())
+  {
+    *txBody.mutable_registerednodecreate() = proto.registerednodecreate();
+    return WrappedTransaction(RegisteredNodeCreateTransaction(txBody));
+  }
+  else if (proto.has_registerednodedelete())
+  {
+    *txBody.mutable_registerednodedelete() = proto.registerednodedelete();
+    return WrappedTransaction(RegisteredNodeDeleteTransaction(txBody));
+  }
+  else if (proto.has_registerednodeupdate())
+  {
+    *txBody.mutable_registerednodeupdate() = proto.registerednodeupdate();
+    return WrappedTransaction(RegisteredNodeUpdateTransaction(txBody));
   }
   else if (proto.has_util_prng())
   {
@@ -582,6 +609,24 @@ std::unique_ptr<proto::TransactionBody> WrappedTransaction::toProtobuf() const
     case PRNG_TRANSACTION:
     {
       const auto transaction = getTransaction<PrngTransaction>();
+      transaction->updateSourceTransactionBody(nullptr);
+      return std::make_unique<proto::TransactionBody>(transaction->getSourceTransactionBody());
+    }
+    case REGISTERED_NODE_CREATE_TRANSACTION:
+    {
+      const auto transaction = getTransaction<RegisteredNodeCreateTransaction>();
+      transaction->updateSourceTransactionBody(nullptr);
+      return std::make_unique<proto::TransactionBody>(transaction->getSourceTransactionBody());
+    }
+    case REGISTERED_NODE_DELETE_TRANSACTION:
+    {
+      const auto transaction = getTransaction<RegisteredNodeDeleteTransaction>();
+      transaction->updateSourceTransactionBody(nullptr);
+      return std::make_unique<proto::TransactionBody>(transaction->getSourceTransactionBody());
+    }
+    case REGISTERED_NODE_UPDATE_TRANSACTION:
+    {
+      const auto transaction = getTransaction<RegisteredNodeUpdateTransaction>();
       transaction->updateSourceTransactionBody(nullptr);
       return std::make_unique<proto::TransactionBody>(transaction->getSourceTransactionBody());
     }
@@ -880,6 +925,21 @@ std::unique_ptr<proto::Transaction> WrappedTransaction::toProtobufTransaction() 
     case PRNG_TRANSACTION:
     {
       const auto transaction = getTransaction<PrngTransaction>();
+      return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
+    }
+    case REGISTERED_NODE_CREATE_TRANSACTION:
+    {
+      const auto transaction = getTransaction<RegisteredNodeCreateTransaction>();
+      return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
+    }
+    case REGISTERED_NODE_DELETE_TRANSACTION:
+    {
+      const auto transaction = getTransaction<RegisteredNodeDeleteTransaction>();
+      return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
+    }
+    case REGISTERED_NODE_UPDATE_TRANSACTION:
+    {
+      const auto transaction = getTransaction<RegisteredNodeUpdateTransaction>();
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case SCHEDULE_CREATE_TRANSACTION:

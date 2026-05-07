@@ -426,6 +426,13 @@ Status::INVALID_SERIALIZED_TX_MESSAGE_HASH_ALGORITHM },
   { proto::ResponseCodeEnum::TRANSFER_TO_FEE_COLLECTION_ACCOUNT_NOT_ALLOWED,
    Status::TRANSFER_TO_FEE_COLLECTION_ACCOUNT_NOT_ALLOWED                                                                                   },
   { proto::ResponseCodeEnum::TOO_MANY_HOOK_INVOCATIONS,                                     Status::TOO_MANY_HOOK_INVOCATIONS              },
+  { proto::ResponseCodeEnum::INVALID_REGISTERED_NODE_ID,                                    Status::INVALID_REGISTERED_NODE_ID             },
+  { proto::ResponseCodeEnum::INVALID_REGISTERED_ENDPOINT,                                   Status::INVALID_REGISTERED_ENDPOINT            },
+  { proto::ResponseCodeEnum::REGISTERED_ENDPOINTS_EXCEEDED_LIMIT,                           Status::REGISTERED_ENDPOINTS_EXCEEDED_LIMIT    },
+  { proto::ResponseCodeEnum::INVALID_REGISTERED_ENDPOINT_ADDRESS,                           Status::INVALID_REGISTERED_ENDPOINT_ADDRESS    },
+  { proto::ResponseCodeEnum::INVALID_REGISTERED_ENDPOINT_TYPE,                              Status::INVALID_REGISTERED_ENDPOINT_TYPE       },
+  { proto::ResponseCodeEnum::REGISTERED_NODE_STILL_ASSOCIATED,                              Status::REGISTERED_NODE_STILL_ASSOCIATED       },
+  { proto::ResponseCodeEnum::MAX_REGISTERED_NODES_EXCEEDED,                                 Status::MAX_REGISTERED_NODES_EXCEEDED          },
 };
 
 //-----
@@ -845,6 +852,13 @@ const std::unordered_map<Status, proto::ResponseCodeEnum> gStatusToProtobufRespo
   { Status::TRANSFER_TO_FEE_COLLECTION_ACCOUNT_NOT_ALLOWED,
    proto::ResponseCodeEnum::TRANSFER_TO_FEE_COLLECTION_ACCOUNT_NOT_ALLOWED                                                                 },
   { Status::TOO_MANY_HOOK_INVOCATIONS,                                     proto::ResponseCodeEnum::TOO_MANY_HOOK_INVOCATIONS              },
+  { Status::INVALID_REGISTERED_NODE_ID,                                    proto::ResponseCodeEnum::INVALID_REGISTERED_NODE_ID            },
+  { Status::INVALID_REGISTERED_ENDPOINT,                                   proto::ResponseCodeEnum::INVALID_REGISTERED_ENDPOINT           },
+  { Status::REGISTERED_ENDPOINTS_EXCEEDED_LIMIT,                           proto::ResponseCodeEnum::REGISTERED_ENDPOINTS_EXCEEDED_LIMIT   },
+  { Status::INVALID_REGISTERED_ENDPOINT_ADDRESS,                           proto::ResponseCodeEnum::INVALID_REGISTERED_ENDPOINT_ADDRESS   },
+  { Status::INVALID_REGISTERED_ENDPOINT_TYPE,                              proto::ResponseCodeEnum::INVALID_REGISTERED_ENDPOINT_TYPE      },
+  { Status::REGISTERED_NODE_STILL_ASSOCIATED,                              proto::ResponseCodeEnum::REGISTERED_NODE_STILL_ASSOCIATED      },
+  { Status::MAX_REGISTERED_NODES_EXCEEDED,                                 proto::ResponseCodeEnum::MAX_REGISTERED_NODES_EXCEEDED         },
 };
 
 //-----
@@ -1243,6 +1257,13 @@ const std::unordered_map<Status, std::string> gStatusToString = {
   { Status::TRANSFER_TO_FEE_COLLECTION_ACCOUNT_NOT_ALLOWED,
    "TRANSFER_TO_FEE_COLLECTION_ACCOUNT_NOT_ALLOWED"                                                                             },
   { Status::TOO_MANY_HOOK_INVOCATIONS,                                      "TOO_MANY_HOOK_INVOCATIONS"                         },
+  { Status::INVALID_REGISTERED_NODE_ID,                                     "INVALID_REGISTERED_NODE_ID"                        },
+  { Status::INVALID_REGISTERED_ENDPOINT,                                    "INVALID_REGISTERED_ENDPOINT"                       },
+  { Status::REGISTERED_ENDPOINTS_EXCEEDED_LIMIT,                            "REGISTERED_ENDPOINTS_EXCEEDED_LIMIT"               },
+  { Status::INVALID_REGISTERED_ENDPOINT_ADDRESS,                            "INVALID_REGISTERED_ENDPOINT_ADDRESS"               },
+  { Status::INVALID_REGISTERED_ENDPOINT_TYPE,                               "INVALID_REGISTERED_ENDPOINT_TYPE"                  },
+  { Status::REGISTERED_NODE_STILL_ASSOCIATED,                               "REGISTERED_NODE_STILL_ASSOCIATED"                  },
+  { Status::MAX_REGISTERED_NODES_EXCEEDED,                                  "MAX_REGISTERED_NODES_EXCEEDED"                     },
 };
 
 } // namespace Hiero
