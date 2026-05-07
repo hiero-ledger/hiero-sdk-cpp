@@ -100,30 +100,41 @@ void backoffSleep(uint64_t attempt)
 }
 
 //-----
-bool hasHttpScheme(const std::string& url)
+bool hasHttpScheme(std::string_view url)
 {
-  return url.compare(0, HTTP_SCHEME.size(), HTTP_SCHEME) == 0 || url.compare(0, HTTPS_SCHEME.size(), HTTPS_SCHEME) == 0;
+  // string_view::substr clamps n to the remaining length, so this is bounds-safe even when url is
+  // shorter than the scheme prefix.
+  return url.substr(0, HTTP_SCHEME.size()) == HTTP_SCHEME || url.substr(0, HTTPS_SCHEME.size()) == HTTPS_SCHEME;
 }
 
 //-----
-bool isLocalHostUrl(const std::string& url)
+bool isLocalHostUrl(std::string_view url)
 {
-  return url.find("localhost") != std::string::npos || url.find("127.0.0.1") != std::string::npos;
+  return url.find("localhost") != std::string_view::npos || url.find("127.0.0.1") != std::string_view::npos;
 }
 
 //-----
 // Apply scheme prefix and (for local solo networks) rewrite the port to the mirror REST port 8084.
-std::string normalizeMirrorBaseUrl(const std::string& mirrorUrl)
+std::string normalizeMirrorBaseUrl(std::string_view mirrorUrl)
 {
+  constexpr std::string_view SCHEME_SEPARATOR = "://";
   const bool localHost = isLocalHostUrl(mirrorUrl);
-  std::string url =
-    hasHttpScheme(mirrorUrl) ? mirrorUrl : std::string(localHost ? HTTP_SCHEME : HTTPS_SCHEME) + mirrorUrl;
+
+  std::string url;
+  if (!hasHttpScheme(mirrorUrl))
+  {
+    url.append(localHost ? HTTP_SCHEME : HTTPS_SCHEME);
+  }
+  url.append(mirrorUrl);
 
   if (localHost)
   {
-    const size_t portPos = url.rfind(':');
-    // Skip the colon that's part of the scheme prefix (e.g. position 4 in "http://").
-    if (portPos != std::string::npos && portPos >= HTTPS_SCHEME.size())
+    // Search for the host:port colon strictly after the scheme separator so we never accidentally
+    // match the colon inside "://".
+    const size_t schemeEnd = url.find(SCHEME_SEPARATOR);
+    const size_t searchFrom = (schemeEnd == std::string::npos) ? 0 : schemeEnd + SCHEME_SEPARATOR.size();
+    const size_t portPos = url.find(':', searchFrom);
+    if (portPos != std::string::npos)
     {
       url.replace(portPos, std::string::npos, ":" + std::to_string(LOCAL_MIRROR_REST_PORT));
     }
