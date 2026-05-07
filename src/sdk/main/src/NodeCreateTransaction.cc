@@ -99,6 +99,22 @@ NodeCreateTransaction& NodeCreateTransaction::setGrpcWebProxyEndpoint(const Endp
 }
 
 //-----
+NodeCreateTransaction& NodeCreateTransaction::addAssociatedRegisteredNode(uint64_t registeredNodeId)
+{
+  requireNotFrozen();
+  mAssociatedRegisteredNodes.push_back(registeredNodeId);
+  return *this;
+}
+
+//-----
+NodeCreateTransaction& NodeCreateTransaction::clearAssociatedRegisteredNodes()
+{
+  requireNotFrozen();
+  mAssociatedRegisteredNodes.clear();
+  return *this;
+}
+
+//-----
 grpc::Status NodeCreateTransaction::submitRequest(const proto::Transaction& request,
                                                   const std::shared_ptr<internal::Node>& node,
                                                   const std::chrono::system_clock::time_point& deadline,
@@ -160,6 +176,11 @@ void NodeCreateTransaction::initFromSourceTransactionBody()
   {
     mGrpcWebProxyEndpoint = Endpoint::fromProtobuf(body.grpc_proxy_endpoint());
   }
+
+  for (int i = 0; i < body.associated_registered_node_size(); ++i)
+  {
+    mAssociatedRegisteredNodes.push_back(body.associated_registered_node(i));
+  }
 }
 
 //-----
@@ -201,6 +222,11 @@ aproto::NodeCreateTransactionBody* NodeCreateTransaction::build() const
   if (mGrpcWebProxyEndpoint.has_value())
   {
     body->set_allocated_grpc_proxy_endpoint(mGrpcWebProxyEndpoint->toProtobuf().release());
+  }
+
+  for (uint64_t id : mAssociatedRegisteredNodes)
+  {
+    body->add_associated_registered_node(id);
   }
 
   return body.release();

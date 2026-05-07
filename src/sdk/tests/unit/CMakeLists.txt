@@ -90,6 +90,11 @@ add_executable(${TEST_PROJECT_NAME}
         PendingAirdropIdUnitTests.cc
         PendingAirdropRecordUnitTests.cc
         PrngTransactionUnitTests.cc
+        RegisteredNodeCreateTransactionUnitTests.cc
+        RegisteredNodeDeleteTransactionUnitTests.cc
+        RegisteredNodeUpdateTransactionUnitTests.cc
+        RegisteredNodeAddressBookQueryUnitTests.cc
+        RegisteredServiceEndpointUnitTests.cc
         ProxyStakerUnitTests.cc
         ScheduleCreateTransactionUnitTests.cc
         ScheduleDeleteTransactionUnitTests.cc
