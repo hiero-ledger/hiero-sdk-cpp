@@ -75,3 +75,31 @@ TEST_F(TokenAllowanceUnitTests, ToProtobuf)
   EXPECT_EQ(AccountId::fromProtobuf(protoTokenAllowance->spender()), getTestSpenderAccountId());
   EXPECT_EQ(protoTokenAllowance->amount(), getTestAmount());
 }
+
+//-----
+TEST_F(TokenAllowanceUnitTests, EqualityOperator)
+{
+  // Given
+  const TokenAllowance a(
+    getTestTokenId(), getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+
+  const TokenAllowance b(
+    getTestTokenId(), getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+
+  // Then
+  EXPECT_TRUE(a == b);
+}
+
+//-----
+TEST_F(TokenAllowanceUnitTests, InequalityOperator)
+{
+  // Given
+  const TokenAllowance a(
+    getTestTokenId(), getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+
+  const TokenAllowance b(
+    getTestTokenId(), getTestOwnerAccountId(), getTestSpenderAccountId(), 999LL);
+
+  // Then
+  EXPECT_FALSE(a == b);
+}
