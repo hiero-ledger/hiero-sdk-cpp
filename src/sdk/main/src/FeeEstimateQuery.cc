@@ -65,7 +65,7 @@ AttemptResult performSingleAttempt(const std::string& url, const std::string& tx
       url, "POST", txBytes, "application/protobuf", result.statusCode, result.isTimeout);
     if (result.statusCode != HTTP_OK)
     {
-      result.errorMessage = "Received status " + std::to_string(result.statusCode);
+      result.errorMessage = "HTTP " + std::to_string(result.statusCode) + " - " + result.body;
     }
   }
   catch (const std::exception& e)

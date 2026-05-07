@@ -512,6 +512,15 @@ protected:
    */
   [[nodiscard]] virtual TransactionId getCurrentTransactionId() const;
 
+  /**
+   * Build a Transaction protobuf object from the SignedTransaction protobuf object at the specified index.
+   * Materializes `mTransactions[index]` from `mSignedTransactions[index]` and the registered signer functions.
+   *
+   * @param index The index in the Transaction's SignedTransaction list from which the Transaction protobuf object
+   *              should be built.
+   */
+  void buildTransaction(unsigned int index) const;
+
 private:
   friend class PrivateKey;
 
@@ -577,14 +586,6 @@ private:
    * @return The ID of this Transaction.
    */
   [[nodiscard]] std::optional<TransactionId> getTransactionIdInternal() const override;
-
-  /**
-   * Build a Transaction protobuf object from the SignedTransaction protobuf object at the specified index.
-   *
-   * @param index The index in the Transaction's SignedTransaction list from which the Transaction protobuf object
-   *              should be built.
-   */
-  void buildTransaction(unsigned int index) const;
 
   /**
    * Determine if a PublicKey has already signed this Transaction.
