@@ -132,10 +132,10 @@ std::string TokenNftTransfer::toString() const
 }
 
 //-----
-bool operator==(const TokenNftTransfer& lhs, const TokenNftTransfer& rhs)
+bool TokenNftTransfer::operator==(const TokenNftTransfer& rhs) const
 {
-  return (lhs.mNftId == rhs.mNftId) && (lhs.mSenderAccountId == rhs.mSenderAccountId) &&
-         (lhs.mReceiverAccountId == rhs.mReceiverAccountId) && (lhs.mIsApproval == rhs.mIsApproval);
+  return (mNftId == rhs.mNftId) && (mSenderAccountId == rhs.mSenderAccountId) &&
+         (mReceiverAccountId == rhs.mReceiverAccountId) && (mIsApproval == rhs.mIsApproval);
 }
 
 //-----

@@ -977,6 +977,10 @@ async function hasNeedsReviewPR(github, owner, repo, username, issueNumber) {
 
   try {
     getLogger().log(`[assign] Querying linked PRs for issue #${issueNumber}`);
+    // closedByPullRequestsReferences only includes PRs linked via closing keywords
+    // (Fixes/Closes/Resolves #N). PRs linked through GitHub's sidebar "Development" panel
+    // or via a plain mention are invisible here. If a bypass fails for an active contributor,
+    // verify their PR uses a closing keyword to link the issue.
     const query = `query($owner:String!,$repo:String!,$number:Int!){
       repository(owner:$owner,name:$repo){
         issue(number:$number){
