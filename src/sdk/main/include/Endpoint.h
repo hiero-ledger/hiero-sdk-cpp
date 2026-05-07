@@ -87,6 +87,8 @@ public:
    */
   [[nodiscard]] inline const std::string& getDomainName() const { return mDomainName; }
 
+[[nodiscard]] bool operator==(const Endpoint& other) const;
+
 private:
   /**
    * The IP address of the Endpoint.

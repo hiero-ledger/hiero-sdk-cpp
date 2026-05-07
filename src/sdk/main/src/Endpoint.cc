@@ -66,4 +66,12 @@ Endpoint& Endpoint::setDomainName(std::string_view domainName)
   mDomainName = domainName;
   return *this;
 }
+
+//-----
+bool Endpoint::operator==(const Endpoint& other) const
+{
+    return mAddress == other.mAddress &&
+           mPort == other.mPort &&
+           mDomainName == other.mDomainName;
+}
 } // namespace Hiero
