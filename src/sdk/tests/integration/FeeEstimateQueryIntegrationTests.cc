@@ -30,8 +30,10 @@
 #include "impl/Utilities.h"
 
 #include <chrono>
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <services/transaction.pb.h>
+#include <thread>
 #include <vector>
 
 using namespace Hiero;
@@ -49,8 +51,49 @@ WrappedTransaction wrap(const TransferTransaction& tx)
 }
 } // namespace
 
+/**
+ * On a fresh solo deployment, the mirror node's rest-java FeeEstimationService races the importer's
+ * ingestion of the genesis fee schedule — the calculator stays null and every FeeEstimateQuery returns
+ * HTTP 400 "Unknown transaction type" until the @Scheduled refresh fires (up to 10 minutes later).
+ * SetUpTestSuite() polls a known-good probe query until the mirror starts answering, then proceeds
+ * with the real tests. Mirrors the pattern used by hiero-sdk-js (PR #3996).
+ *
+ * Tracking issue: https://github.com/hiero-ledger/solo/issues/4228
+ */
 class FeeEstimateQueryIntegrationTests : public BaseIntegrationTest
 {
+public:
+  static void SetUpTestSuite()
+  {
+    Client probeClient = Client::fromConfigFile((std::filesystem::current_path() / "local_node.json").string());
+
+    constexpr auto deadline = std::chrono::minutes(10);
+    constexpr auto retryInterval = std::chrono::seconds(5);
+
+    const auto start = std::chrono::steady_clock::now();
+    int attempt = 0;
+    std::string lastError = "no attempts made";
+    while (std::chrono::steady_clock::now() - start < deadline)
+    {
+      ++attempt;
+      try
+      {
+        TransferTransaction probe;
+        probe.addHbarTransfer(probeClient.getOperatorAccountId().value(), Hbar(-1LL))
+          .addHbarTransfer(probeClient.getOperatorAccountId().value(), Hbar(1LL));
+        (void)probe.estimateFee().setMode(FeeEstimateMode::INTRINSIC).execute(probeClient);
+        return;
+      }
+      catch (const std::exception& e)
+      {
+        lastError = e.what();
+        std::this_thread::sleep_for(retryInterval);
+      }
+    }
+
+    FAIL() << "FeeEstimationService never became ready after " << attempt
+           << " probe attempts (10 minute deadline): " << lastError;
+  }
 };
 
 //-----
