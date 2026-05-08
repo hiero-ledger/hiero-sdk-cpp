@@ -64,6 +64,8 @@ public:
    */
   void validateChecksums(const Client& client) const;
 
+  [[nodiscard]] bool operator==(const TokenAllowance& rhs) const;
+
   /**
    * Construct a TokenAllowance protobuf object from this TokenAllowance object.
    *
