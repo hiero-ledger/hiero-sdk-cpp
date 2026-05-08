@@ -37,6 +37,8 @@ nlohmann::json deleteSchedule(const DeleteScheduleParams& params);
  * @return A JSON response containing the information of the schedule.
  */
 nlohmann::json getScheduleInfo(const GetScheduleInfoParams& params);
+
+/**
  * Sign a schedule.
  *
  * @param params The parameters to use to sign a schedule.
