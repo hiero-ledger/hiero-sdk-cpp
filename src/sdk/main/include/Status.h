@@ -2039,7 +2039,43 @@ enum class Status
   /**
    * The number of hook invocations exceeds the maximum allowed per transaction.
    */
-  TOO_MANY_HOOK_INVOCATIONS
+  TOO_MANY_HOOK_INVOCATIONS,
+
+  /**
+   * The registered node ID supplied does not exist or has been deleted.
+   */
+  INVALID_REGISTERED_NODE_ID,
+
+  /**
+   * A registered service endpoint is invalid (malformed or missing required fields).
+   */
+  INVALID_REGISTERED_ENDPOINT,
+
+  /**
+   * The number of registered service endpoints exceeds the maximum allowed.
+   */
+  REGISTERED_ENDPOINTS_EXCEEDED_LIMIT,
+
+  /**
+   * A registered service endpoint has an invalid IP address or domain name.
+   */
+  INVALID_REGISTERED_ENDPOINT_ADDRESS,
+
+  /**
+   * A registered service endpoint has an invalid or unrecognized endpoint type.
+   */
+  INVALID_REGISTERED_ENDPOINT_TYPE,
+
+  /**
+   * The registered node cannot be deleted because it is still associated with one or more
+   * consensus nodes.
+   */
+  REGISTERED_NODE_STILL_ASSOCIATED,
+
+  /**
+   * The maximum number of registered nodes has been reached.
+   */
+  MAX_REGISTERED_NODES_EXCEEDED
 };
 
 /**
