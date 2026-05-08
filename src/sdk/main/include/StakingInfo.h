@@ -32,6 +32,10 @@ public:
    * @param proto The StakingInfo protobuf object from which to construct a StakingInfo object.
    * @return The constructed StakingInfo object.
    */
+
+  [[nodiscard]] bool operator==(const StakingInfo& rhs) const;
+  [[nodiscard]] bool operator!=(const StakingInfo& rhs) const { return !operator==(rhs); }
+  
   [[nodiscard]] static StakingInfo fromProtobuf(const proto::StakingInfo& proto);
 
   /**
