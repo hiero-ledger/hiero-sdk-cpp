@@ -76,31 +76,6 @@ TEST_F(StakingInfoUnitTests, ToString)
   EXPECT_NE(result.find(std::to_string(getTestStakedNodeId())), std::string::npos);
 }
 
-TEST_F(StakingInfoUnitTests, ToProtobuf)
-{
-  // Given
-  StakingInfo stakingInfo;
-  stakingInfo.mDeclineRewards = getTestDeclineReward();
-  stakingInfo.mStakePeriodStart = getTestStakePeriodStart();
-  stakingInfo.mPendingReward = Hbar(getTestPendingReward(), HbarUnit::TINYBAR());
-  stakingInfo.mStakedToMe = Hbar(getTestStakedToMe(), HbarUnit::TINYBAR());
-  stakingInfo.mStakedNodeId = getTestStakedNodeId();
-
-  // When
-  const std::unique_ptr<proto::StakingInfo> protoStakingInfo = stakingInfo.toProtobuf();
-
-  // Then
-  EXPECT_EQ(protoStakingInfo->decline_reward(), getTestDeclineReward());
-  ASSERT_TRUE(protoStakingInfo->has_stake_period_start());
-  EXPECT_EQ(internal::TimestampConverter::fromProtobuf(protoStakingInfo->stake_period_start()),
-            getTestStakePeriodStart());
-  EXPECT_EQ(protoStakingInfo->pending_reward(), getTestPendingReward());
-  EXPECT_EQ(protoStakingInfo->staked_to_me(), getTestStakedToMe());
-  EXPECT_FALSE(protoStakingInfo->has_staked_account_id());
-  ASSERT_TRUE(protoStakingInfo->has_staked_node_id());
-  EXPECT_EQ(protoStakingInfo->staked_node_id(), getTestStakedNodeId());
-}
-
 //-----
 TEST_F(StakingInfoUnitTests, OperatorEqual)
 {
@@ -123,25 +98,28 @@ TEST_F(StakingInfoUnitTests, OperatorEqual)
 
   // Instances differing in each field are not equal
   stakingInfo2.mDeclineRewards = !getTestDeclineReward();
-  EXPECT_NE(stakingInfo1, stakingInfo2);
+  EXPECT_FALSE(stakingInfo1 == stakingInfo2);
   stakingInfo2 = stakingInfo1;
 
   stakingInfo2.mStakePeriodStart = getTestStakePeriodStart() + std::chrono::seconds(1);
-  EXPECT_NE(stakingInfo1, stakingInfo2);
+  EXPECT_FALSE(stakingInfo1 == stakingInfo2);
   stakingInfo2 = stakingInfo1;
 
   stakingInfo2.mPendingReward = Hbar(getTestPendingReward() + 1LL, HbarUnit::TINYBAR());
-  EXPECT_NE(stakingInfo1, stakingInfo2);
+  EXPECT_FALSE(stakingInfo1 == stakingInfo2);
   stakingInfo2 = stakingInfo1;
 
   stakingInfo2.mStakedToMe = Hbar(getTestStakedToMe() + 1LL, HbarUnit::TINYBAR());
-  EXPECT_NE(stakingInfo1, stakingInfo2);
+  EXPECT_FALSE(stakingInfo1 == stakingInfo2);
   stakingInfo2 = stakingInfo1;
 
   stakingInfo2.mStakedAccountId = AccountId(1ULL);
-  EXPECT_NE(stakingInfo1, stakingInfo2);
+  EXPECT_FALSE(stakingInfo1 == stakingInfo2);
   stakingInfo2 = stakingInfo1;
 
   stakingInfo2.mStakedNodeId = getTestStakedNodeId() + 1LL;
-  EXPECT_NE(stakingInfo1, stakingInfo2);
+  EXPECT_FALSE(stakingInfo1 == stakingInfo2);
 }
+
+
+

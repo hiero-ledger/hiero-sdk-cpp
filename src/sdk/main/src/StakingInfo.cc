@@ -109,16 +109,12 @@ std::ostream& operator<<(std::ostream& os, const StakingInfo& info)
   return os;
 }
 
-
+//-----
 bool StakingInfo::operator==(const StakingInfo& rhs) const
 {
-  return mDeclineRewards == rhs.mDeclineRewards &&
-         mStakePeriodStart == rhs.mStakePeriodStart &&
-         mPendingReward == rhs.mPendingReward &&
-         mStakedToMe == rhs.mStakedToMe &&
-         mStakedAccountId == rhs.mStakedAccountId &&
-         mStakedNodeId == rhs.mStakedNodeId;
+  return mDeclineRewards == rhs.mDeclineRewards && mStakePeriodStart == rhs.mStakePeriodStart &&
+         mPendingReward == rhs.mPendingReward && mStakedToMe == rhs.mStakedToMe &&
+         mStakedAccountId == rhs.mStakedAccountId && mStakedNodeId == rhs.mStakedNodeId;
 }
 
 } // namespace Hiero
-

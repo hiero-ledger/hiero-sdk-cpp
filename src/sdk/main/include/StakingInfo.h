@@ -32,10 +32,6 @@ public:
    * @param proto The StakingInfo protobuf object from which to construct a StakingInfo object.
    * @return The constructed StakingInfo object.
    */
-
-  [[nodiscard]] bool operator==(const StakingInfo& rhs) const;
-  [[nodiscard]] bool operator!=(const StakingInfo& rhs) const { return !operator==(rhs); }
-  
   [[nodiscard]] static StakingInfo fromProtobuf(const proto::StakingInfo& proto);
 
   /**
@@ -66,6 +62,14 @@ public:
    * @return The string representation of this StakingInfo object.
    */
   [[nodiscard]] std::string toString() const;
+
+  /**
+   * Compare this StakingInfo to another StakingInfo and determine if they represent the same staking metadata.
+   *
+   * @param rhs The other StakingInfo with which to compare this StakingInfo.
+   * @return \c TRUE if this StakingInfo is the same as the input StakingInfo, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const StakingInfo& rhs) const;
 
   /**
    * Write this StakingInfo to an output stream.
