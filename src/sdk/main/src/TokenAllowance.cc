@@ -39,6 +39,13 @@ void TokenAllowance::validateChecksums(const Client& client) const
   mOwnerAccountId.validateChecksum(client);
   mSpenderAccountId.validateChecksum(client);
 }
+bool TokenAllowance::operator==(const TokenAllowance& rhs) const
+{
+  return mTokenId == rhs.mTokenId &&
+         mOwnerAccountId == rhs.mOwnerAccountId &&
+         mSpenderAccountId == rhs.mSpenderAccountId &&
+         mAmount == rhs.mAmount;
+}
 
 //-----
 std::unique_ptr<proto::TokenAllowance> TokenAllowance::toProtobuf() const
