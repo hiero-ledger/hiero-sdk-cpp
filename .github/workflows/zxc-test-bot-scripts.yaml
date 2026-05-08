@@ -75,6 +75,9 @@ jobs:
 
       - name: Run On-PR-Merged Bot Tests
         run: node .github/scripts/tests/test-on-pr-merged-bot.js 
+
+      - name: Run On-PR-Close Bot Tests
+        run: node .github/scripts/tests/test-on-pr-close-bot.js
          
       - name: Run On-Comment Bot Tests
         run: node .github/scripts/tests/test-on-comment-bot.js
