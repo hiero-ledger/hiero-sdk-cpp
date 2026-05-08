@@ -32,6 +32,7 @@
 #include "schedule/ScheduleService.h"
 #include "schedule/params/CreateScheduleParams.h"
 #include "schedule/params/DeleteScheduleParams.h"
+#include "schedule/params/GetScheduleInfoParams.h"
 #include "schedule/params/SignScheduleParams.h"
 #include "sdk/SdkClient.h"
 #include "sdk/params/ResetParams.h"
@@ -140,6 +141,7 @@ TckServer::TckServer(int port)
   // Schedule Service
   mJsonRpcParser.addMethod("createSchedule", getHandle(ScheduleService::createSchedule));
   mJsonRpcParser.addMethod("deleteSchedule", getHandle(ScheduleService::deleteSchedule));
+  mJsonRpcParser.addMethod("getScheduleInfo", getHandle(ScheduleService::getScheduleInfo));
   mJsonRpcParser.addMethod("signSchedule", getHandle(ScheduleService::signSchedule));
 
   setupHttpHandler();
@@ -288,6 +290,8 @@ template TckServer::MethodHandle TckServer::getHandle<ScheduleService::CreateSch
   nlohmann::json (*method)(const ScheduleService::CreateScheduleParams&));
 template TckServer::MethodHandle TckServer::getHandle<ScheduleService::DeleteScheduleParams>(
   nlohmann::json (*method)(const ScheduleService::DeleteScheduleParams&));
+template TckServer::MethodHandle TckServer::getHandle<ScheduleService::GetScheduleInfoParams>(
+  nlohmann::json (*method)(const ScheduleService::GetScheduleInfoParams&));
 template TckServer::MethodHandle TckServer::getHandle<ScheduleService::SignScheduleParams>(
   nlohmann::json (*method)(const ScheduleService::SignScheduleParams&));
 
