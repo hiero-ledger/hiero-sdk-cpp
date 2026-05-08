@@ -233,6 +233,17 @@ public:
   [[nodiscard]] std::vector<std::map<AccountId, std::vector<std::byte>>> getAllTransactionHashesPerNode() const;
 
   /**
+   * Derived from Transaction. Get a list of signable transaction body bytes for
+   * all chunks and nodes of this ChunkedTransaction. Each entry contains the
+   * canonical bodyBytes paired with the corresponding node account ID and
+   * transaction ID. This is intended for HSM/external signing workflows.
+   *
+   * @return A vector of SignableNodeTransactionBodyBytes for all chunks.
+   * @throws IllegalStateException If this ChunkedTransaction is not frozen.
+   */
+  [[nodiscard]] std::vector<SignableNodeTransactionBodyBytes> getSignableNodeBodyBytesList() const override;
+
+  /**
    * Set the maximum number of chunks for this ChunkedTransaction.
    *
    * @param chunks The maximum number of chunks for this ChunkedTransaction.

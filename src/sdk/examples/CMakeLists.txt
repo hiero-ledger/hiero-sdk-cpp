@@ -40,6 +40,7 @@ set(GET_ADDRESS_BOOK_EXAMPLE_NAME ${PROJECT_NAME}-get-address-book-example)
 set(GET_EXCHANGE_RATES_EXAMPLE_NAME ${PROJECT_NAME}-get-exchange-rates-example)
 set(GET_FILE_CONTENTS_EXAMPLE_NAME ${PROJECT_NAME}-get-file-contents-example)
 set(GRPC_DEADLINE_EXAMPLE_NAME ${PROJECT_NAME}-grpc-deadline-example)
+set(HSM_SIGNING_EXAMPLE_NAME ${PROJECT_NAME}-hsm-signing-example)
 set(INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME
         ${PROJECT_NAME}-initialize-client-with-mirror-node-address-book-example)
 set(HOOK_STORE_EXAMPLE_NAME ${PROJECT_NAME}-hook-store-example)
@@ -107,6 +108,7 @@ add_executable(${GET_ADDRESS_BOOK_EXAMPLE_NAME} GetAddressBookExample.cpp)
 add_executable(${GET_EXCHANGE_RATES_EXAMPLE_NAME} GetExchangeRatesExample.cpp)
 add_executable(${GET_FILE_CONTENTS_EXAMPLE_NAME} GetFileContentsExample.cpp)
 add_executable(${GRPC_DEADLINE_EXAMPLE_NAME} GrpcDeadlineExample.cpp)
+add_executable(${HSM_SIGNING_EXAMPLE_NAME} HsmSigningExample.cpp)
 add_executable(${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME} InitializeClientWithMirrorNodeAddressBookExample.cpp)
 add_executable(${HOOK_STORE_EXAMPLE_NAME} HookStoreExample.cpp)
 add_executable(${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME} LongTermScheduledTransactionExample.cpp)
@@ -195,6 +197,7 @@ target_link_libraries(${GET_ADDRESS_BOOK_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GET_EXCHANGE_RATES_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GET_FILE_CONTENTS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GRPC_DEADLINE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${HSM_SIGNING_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${HOOK_STORE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
@@ -263,6 +266,7 @@ install(TARGETS
         ${GET_EXCHANGE_RATES_EXAMPLE_NAME}
         ${GET_FILE_CONTENTS_EXAMPLE_NAME}
         ${GRPC_DEADLINE_EXAMPLE_NAME}
+        ${HSM_SIGNING_EXAMPLE_NAME}
         ${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME}
         ${HOOK_STORE_EXAMPLE_NAME}
         ${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME}

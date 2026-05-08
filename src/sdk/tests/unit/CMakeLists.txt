@@ -98,6 +98,7 @@ add_executable(${TEST_PROJECT_NAME}
         ScheduleInfoUnitTests.cc
         ScheduleSignTransactionUnitTests.cc
         SemanticVersionUnitTests.cc
+        SignableNodeTransactionBodyBytesUnitTests.cc
         StakingInfoUnitTests.cc
         SystemDeleteTransactionUnitTests.cc
         SystemUndeleteTransactionUnitTests.cc

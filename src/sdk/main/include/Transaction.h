@@ -5,6 +5,7 @@
 #include "AccountId.h"
 #include "Executable.h"
 #include "Hbar.h"
+#include "SignableNodeTransactionBodyBytes.h"
 #include "TransactionId.h"
 
 #include <chrono>
@@ -363,6 +364,18 @@ public:
    */
   [[nodiscard]] size_t getTransactionBodySize() const;
 
+  /**
+   * Get a list of signable transaction body bytes, one for each node this
+   * transaction will be submitted to. Each entry contains the canonical
+   * bodyBytes paired with the corresponding node account ID and transaction
+   * ID. This is intended for HSM/external signing workflows where the
+   * private key never leaves the secure hardware.
+   *
+   * @return A vector of SignableNodeTransactionBodyBytes.
+   * @throws IllegalStateException If this Transaction is not frozen.
+   */
+  [[nodiscard]] virtual std::vector<SignableNodeTransactionBodyBytes> getSignableNodeBodyBytesList() const;
+
 protected:
   /**
    * Dummy transaction and account IDs used to assist in deserializing incomplete Transactions.
@@ -550,10 +563,9 @@ private:
    */
   [[nodiscard]]
   typename Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>::
-    ExecutionStatus
-    determineStatus(Status status,
-                    const Client& client,
-                    [[maybe_unused]] const proto::TransactionResponse& response) override;
+    ExecutionStatus determineStatus(Status status,
+                                    const Client& client,
+                                    [[maybe_unused]] const proto::TransactionResponse& response) override;
 
   /**
    * Derived from Executable. Perform any needed actions for this Transaction when it is being submitted.

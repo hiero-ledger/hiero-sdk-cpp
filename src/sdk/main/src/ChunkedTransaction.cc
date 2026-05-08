@@ -309,6 +309,13 @@ ChunkedTransaction<SdkRequestType>::getAllTransactionHashesPerNode() const
 
 //-----
 template<typename SdkRequestType>
+std::vector<SignableNodeTransactionBodyBytes> ChunkedTransaction<SdkRequestType>::getSignableNodeBodyBytesList() const
+{
+  return Transaction<SdkRequestType>::getSignableNodeBodyBytesList();
+}
+
+//-----
+template<typename SdkRequestType>
 SdkRequestType& ChunkedTransaction<SdkRequestType>::setMaxChunks(unsigned int chunks)
 {
   Transaction<SdkRequestType>::requireNotFrozen();

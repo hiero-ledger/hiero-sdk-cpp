@@ -1038,6 +1038,49 @@ size_t Transaction<SdkRequestType>::getTransactionBodySize() const
 
 //-----
 template<typename SdkRequestType>
+std::vector<SignableNodeTransactionBodyBytes> Transaction<SdkRequestType>::getSignableNodeBodyBytesList() const
+{
+  if (!isFrozen())
+  {
+    throw IllegalStateException("Transaction must be frozen before getting signable body bytes.");
+  }
+
+  std::vector<SignableNodeTransactionBodyBytes> result;
+  result.reserve(mImpl->mSignedTransactions.size());
+
+  for (const auto& signedTransaction : mImpl->mSignedTransactions)
+  {
+    if (signedTransaction.bodybytes().empty())
+    {
+      throw IllegalStateException("Missing bodyBytes in signed transaction.");
+    }
+
+    proto::TransactionBody body;
+    body.ParseFromArray(signedTransaction.bodybytes().data(), static_cast<int>(signedTransaction.bodybytes().size()));
+
+    if (!body.has_nodeaccountid())
+    {
+      throw IllegalStateException("Missing nodeAccountID in transaction body.");
+    }
+
+    if (!body.has_transactionid())
+    {
+      throw IllegalStateException("Missing transactionID in transaction body.");
+    }
+
+    SignableNodeTransactionBodyBytes entry;
+    entry.mNodeAccountId = AccountId::fromProtobuf(body.nodeaccountid());
+    entry.mTransactionId = TransactionId::fromProtobuf(body.transactionid());
+    entry.mSignableTransactionBodyBytes = internal::Utilities::stringToByteVector(signedTransaction.bodybytes());
+
+    result.push_back(std::move(entry));
+  }
+
+  return result;
+}
+
+//-----
+template<typename SdkRequestType>
 Transaction<SdkRequestType>::Transaction()
   : Executable<SdkRequestType, proto::Transaction, proto::TransactionResponse, TransactionResponse>()
   , mImpl(std::make_unique<TransactionImpl>())
