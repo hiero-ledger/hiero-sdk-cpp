@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15...4.3)
-project(hiero-sdk-cpp VERSION 0.54.0 DESCRIPTION "Hiero SDK C++" LANGUAGES CXX)
+project(hiero-sdk-cpp VERSION 0.55.0 DESCRIPTION "Hiero SDK C++" LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,6 +23,7 @@ find_package(absl CONFIG REQUIRED)
 find_package(Threads REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(EXPAT CONFIG REQUIRED)
+find_package(unofficial-secp256k1 CONFIG REQUIRED)
 
 include(FetchContent)
 include(SystemLibraries.cmake)

@@ -140,6 +140,21 @@ public:
   [[nodiscard]] std::vector<std::byte> sign(const std::vector<std::byte>& bytesToSign) const override;
 
   /**
+   * Computes the recovery ID for an ECDSA signature.
+   *
+   * The recovery ID is an index (0-3) that identifies which of the possible public keys can be recovered from the
+   * signature. This is required for proper Ethereum transaction construction and EVM compatibility.
+   *
+   * @param r       The r component of the ECDSA signature (32 bytes).
+   * @param s       The s component of the ECDSA signature (32 bytes).
+   * @param message The original message that was signed (will be hashed with Keccak-256).
+   * @return The recovery ID (0-3), or -1 if recovery fails.
+   */
+  [[nodiscard]] int getRecoveryId(const std::vector<std::byte>& r,
+                                  const std::vector<std::byte>& s,
+                                  const std::vector<std::byte>& message) const;
+
+  /**
    * Derived from PrivateKey. Get the hex-encoded string of the DER-encoded bytes of this ECDSAsecp256k1PrivateKey.
    *
    * @return The hex-encoded string of the DER-encoded bytes of this ECDSAsecp256k1PrivateKey.

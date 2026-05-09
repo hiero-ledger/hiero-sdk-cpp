@@ -81,6 +81,7 @@ add_library(${PROJECT_NAME} STATIC
         src/FeeComponents.cc
         src/FeeData.cc
         src/FeeDataType.cc
+        src/FeeEstimateQuery.cc
         src/FeeSchedule.cc
         src/FeeSchedules.cc
         src/FileAppendTransaction.cc
@@ -268,6 +269,10 @@ endif ()
 target_link_libraries(${PROJECT_NAME} PRIVATE
         OpenSSL::SSL
         OpenSSL::Crypto)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        unofficial::secp256k1
+        unofficial::secp256k1_precomputed)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         gRPC::address_sorting

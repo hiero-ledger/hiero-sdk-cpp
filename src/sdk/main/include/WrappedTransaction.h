@@ -211,6 +211,13 @@ public:
   template<typename T> inline const T* getTransaction() const { return std::get_if<T>(&mTransaction); }
   // clang-format on
 
+  /**
+   * Access the underlying transaction variant. Useful for std::visit-based dispatch (for example, calling
+   * isFrozen()/freezeWith() generically across all transaction types).
+   */
+  [[nodiscard]] inline AnyPossibleTransaction& getVariant() { return mTransaction; }
+  [[nodiscard]] inline const AnyPossibleTransaction& getVariant() const { return mTransaction; }
+
 private:
   /**
    * The actual wrapped transaction.
