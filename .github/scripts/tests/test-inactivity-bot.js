@@ -193,11 +193,11 @@ function makeAssignedEvent(createdAt) {
   return { event: 'assigned', created_at: createdAt };
 }
 
-function makeComment(userLogin, createdAt, { isBot = false } = {}) {
+function makeComment(userLogin, createdAt, { isBot = false, body = null } = {}) {
   return {
     id: Math.floor(Math.random() * 100000),
     user: { login: userLogin, type: isBot ? 'Bot' : 'User' },
-    body: `Comment from ${userLogin}`,
+    body: body || `Comment from ${userLogin}`,
     created_at: createdAt,
   };
 }
@@ -728,7 +728,7 @@ const scenarios = [
       assigneesRemoved: 0,
     },
   },
-
+  
   // ── 24 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR: status: needs revision labeled 2 days ago — no action',
@@ -794,7 +794,7 @@ const scenarios = [
         }),
       ],
       eventsByNumber: {
-        250: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8))],
+        250: [makeLabeledEvent(LABELS.NEEDS_REVISION, daysAgo(8))], 
       },
     }),
     expect: {

@@ -1,7 +1,7 @@
 FetchContent_Declare(
         log4cxx
         GIT_REPOSITORY https://github.com/apache/logging-log4cxx.git
-        GIT_TAG rel/v1.1.0
+        GIT_TAG rel/v1.7.0
 )
 
 set(BUILD_SHARED_LIBS OFF)
@@ -81,6 +81,7 @@ add_library(${PROJECT_NAME} STATIC
         src/FeeComponents.cc
         src/FeeData.cc
         src/FeeDataType.cc
+        src/FeeEstimateQuery.cc
         src/FeeSchedule.cc
         src/FeeSchedules.cc
         src/FileAppendTransaction.cc
@@ -92,6 +93,9 @@ add_library(${PROJECT_NAME} STATIC
         src/FileInfoQuery.cc
         src/FileUpdateTransaction.cc
         src/FreezeTransaction.cc
+        src/BlockNodeApi.cc
+        src/BlockNodeServiceEndpoint.cc
+        src/GeneralServiceEndpoint.cc
         src/FreezeType.cc
         src/Hbar.cc
         src/HbarAllowance.cc
@@ -115,7 +119,16 @@ add_library(${PROJECT_NAME} STATIC
         src/PendingAirdropId.cc
         src/PendingAirdropRecord.cc
         src/PrivateKey.cc
+        src/MirrorNodeServiceEndpoint.cc
         src/PrngTransaction.cc
+        src/RegisteredNode.cc
+        src/RegisteredNodeAddressBook.cc
+        src/RegisteredNodeAddressBookQuery.cc
+        src/RegisteredNodeCreateTransaction.cc
+        src/RegisteredNodeDeleteTransaction.cc
+        src/RegisteredServiceEndpoint.cc
+        src/RegisteredNodeUpdateTransaction.cc
+        src/RpcRelayServiceEndpoint.cc
         src/ProxyStaker.cc
         src/PublicKey.cc
         src/Query.cc
@@ -256,6 +269,10 @@ endif ()
 target_link_libraries(${PROJECT_NAME} PRIVATE
         OpenSSL::SSL
         OpenSSL::Crypto)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        unofficial::secp256k1
+        unofficial::secp256k1_precomputed)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         gRPC::address_sorting

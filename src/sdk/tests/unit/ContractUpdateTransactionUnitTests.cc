@@ -270,6 +270,20 @@ TEST_F(ContractUpdateTransactionUnitTests, GetSetMaxAutomaticTokenAssociationsFr
 }
 
 //-----
+TEST_F(ContractUpdateTransactionUnitTests, GetSetMaxAutomaticTokenAssociationsUnlimited)
+{
+  // Given
+  ContractUpdateTransaction transaction;
+  const int32_t unlimitedAssociations = -1;
+
+  // When
+  EXPECT_NO_THROW(transaction.setMaxAutomaticTokenAssociations(unlimitedAssociations));
+
+  // Then
+  EXPECT_EQ(transaction.getMaxAutomaticTokenAssociations(), unlimitedAssociations);
+}
+
+//-----
 TEST_F(ContractUpdateTransactionUnitTests, GetSetAutoRenewAccountId)
 {
   // Given

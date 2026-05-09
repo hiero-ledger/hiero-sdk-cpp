@@ -478,6 +478,82 @@ async function fetchClosingIssueNumbers(botContext) {
 }
 
 /**
+ * Fetches the latest open milestone for the repository.
+ * Milestones with due dates are sorted by latest due_on. If none have due
+ * dates, falls back to the highest milestone number.
+ *
+ * @param {object} botContext
+ * @returns {Promise<object|null>}
+ */
+async function fetchLatestMilestone(botContext) {
+  const milestones = [];
+  let page = 1;
+  const perPage = 100;
+
+  try {
+    while (true) {
+      const { data } = await botContext.github.rest.issues.listMilestones({
+        owner: botContext.owner,
+        repo: botContext.repo,
+        state: 'open',
+        sort: 'due_on',
+        direction: 'desc',
+        per_page: perPage,
+        page,
+      });
+
+      milestones.push(...data);
+
+      if (data.length < perPage) break;
+      page++;
+    }
+  } catch (error) {
+    getLogger().error(`Could not fetch milestones: ${error.message}`);
+    return null;
+  }
+
+  if (milestones.length === 0) {
+    getLogger().log('No open milestones found');
+    return null;
+  }
+
+  const withDueDates = milestones.filter(m => m.due_on);
+  if (withDueDates.length > 0) {
+    return withDueDates.sort((a, b) => new Date(b.due_on) - new Date(a.due_on))[0];
+  }
+
+  return [...milestones].sort((a, b) => b.number - a.number)[0];
+}
+
+/**
+ * Sets the milestone on an issue or PR.
+ *
+ * @param {object} botContext
+ * @param {number} issueOrPrNumber
+ * @param {number} milestoneNumber
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+async function setMilestone(botContext, issueOrPrNumber, milestoneNumber) {
+  try {
+    requirePositiveInt(issueOrPrNumber, 'issueOrPrNumber');
+    requirePositiveInt(milestoneNumber, 'milestoneNumber');
+
+    await botContext.github.rest.issues.update({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      issue_number: issueOrPrNumber,
+      milestone: milestoneNumber,
+    });
+
+    getLogger().log(`Set milestone #${milestoneNumber} on #${issueOrPrNumber}`);
+    return { success: true };
+  } catch (error) {
+    getLogger().error(`Could not set milestone on #${issueOrPrNumber}: ${error.message}`);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Swaps between needs-review and needs-revision labels based on check results.
  * By default only changes the label if the opposite label is currently applied.
  * When force is true, unconditionally applies the target label (used on PR open
@@ -485,24 +561,32 @@ async function fetchClosingIssueNumbers(botContext) {
  * @param {object} botContext
  * @param {boolean} allPassed
  * @param {{ force?: boolean }} [options]
- * @returns {Promise<void>}
+ * @returns {Promise<{ success: boolean, errorDetails: string }>}
  */
 async function swapStatusLabel(botContext, allPassed, { force = false } = {}) {
   const pr = botContext.pr;
   const labelToAdd = allPassed ? LABELS.NEEDS_REVIEW : LABELS.NEEDS_REVISION;
   const labelToRemove = allPassed ? LABELS.NEEDS_REVISION : LABELS.NEEDS_REVIEW;
+  const errors = [];
 
-  if (force) {
-    if (hasLabel(pr, labelToRemove)) {
-      await removeLabel(botContext, labelToRemove);
-    }
-    await addLabels(botContext, [labelToAdd]);
-  } else {
-    if (hasLabel(pr, labelToRemove)) {
-      await removeLabel(botContext, labelToRemove);
-      await addLabels(botContext, [labelToAdd]);
+  const shouldRemove = hasLabel(pr, labelToRemove);
+  const shouldAdd = force || shouldRemove;
+
+  if (shouldRemove) {
+    const removeResult = await removeLabel(botContext, labelToRemove);
+    if (!removeResult.success) {
+      errors.push(`Failed to remove '${labelToRemove}': ${removeResult.error}`);
     }
   }
+
+  if (shouldAdd) {
+    const addResult = await addLabels(botContext, [labelToAdd]);
+    if (!addResult.success) {
+      errors.push(`Failed to add '${labelToAdd}': ${addResult.error}`);
+    }
+  }
+
+  return { success: errors.length === 0, errorDetails: errors.join('; ') };
 }
 
 /**
@@ -969,6 +1053,10 @@ async function hasNeedsReviewPR(github, owner, repo, username, issueNumber) {
 
   try {
     getLogger().log(`[assign] Querying linked PRs for issue #${issueNumber}`);
+    // closedByPullRequestsReferences only includes PRs linked via closing keywords
+    // (Fixes/Closes/Resolves #N). PRs linked through GitHub's sidebar "Development" panel
+    // or via a plain mention are invisible here. If a bypass fails for an active contributor,
+    // verify their PR uses a closing keyword to link the issue.
     const query = `query($owner:String!,$repo:String!,$number:Int!){
       repository(owner:$owner,name:$repo){
         issue(number:$number){
@@ -1027,6 +1115,8 @@ module.exports = {
   fetchOpenPRs,
   fetchIssue,
   fetchClosingIssueNumbers,
+  fetchLatestMilestone,
+  setMilestone,
   swapStatusLabel,
   runAllChecksAndComment,
   resolveLinkedIssue,

@@ -3,6 +3,7 @@
 #define HIERO_SDK_CPP_ILLEGAL_STATE_EXCEPTION_H_
 
 #include <exception>
+#include <string>
 #include <string_view>
 
 namespace Hiero
@@ -28,13 +29,14 @@ public:
    *
    * @return The descriptor message for this error.
    */
-  [[nodiscard]] const char* what() const noexcept override { return mError.data(); };
+  [[nodiscard]] const char* what() const noexcept override { return mError.c_str(); };
 
 private:
   /**
-   * Descriptive error message.
+   * Descriptive error message. Stored by value so the exception remains valid after the constructing
+   * expression's temporaries are destroyed.
    */
-  std::string_view mError;
+  std::string mError;
 };
 
 } // namespace Hiero

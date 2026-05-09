@@ -29,8 +29,10 @@ add_executable(${TEST_PROJECT_NAME}
         FileDeleteTransactionIntegrationTests.cc
         FileInfoQueryIntegrationTests.cc
         FileUpdateTransactionIntegrationTests.cc
+        FeeEstimateQueryIntegrationTests.cc
         FreezeTransactionIntegrationTests.cc
         HIP1300IntegrationTests.cc
+        HighVolumeEntityCreationIntegrationTests.cc
         HttpClientIntegrationTests.cc
         JSONIntegrationTests.cc
         HookStoreTransactionIntegrationTests.cc
@@ -42,6 +44,10 @@ add_executable(${TEST_PROJECT_NAME}
         NodeDeleteTransactionIntegrationTests.cc
         NodeUpdateTransactionIntegrationTests.cc
         PrngTransactionIntegrationTests.cc
+        RegisteredNodeCreateTransactionIntegrationTests.cc
+        RegisteredNodeDeleteTransactionIntegrationTests.cc
+        RegisteredNodeAddressBookQueryIntegrationTests.cc
+        RegisteredNodeUpdateTransactionIntegrationTests.cc
         QueryIntegrationTests.cc
         ScheduleCreateTransactionIntegrationTests.cc
         ScheduleDeleteTransactionIntegrationTests.cc

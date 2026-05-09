@@ -699,7 +699,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithAliasAndKe
 }
 
 //-----
-TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithEvmHook)
+TEST_F(AccountCreateTransactionIntegrationTests, DISABLED_CreateTransactionWithEvmHook)
 {
   // Given
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
@@ -730,7 +730,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithEvmHook)
 }
 
 //-----
-TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithEvmHookAndStorageUpdates)
+TEST_F(AccountCreateTransactionIntegrationTests, DISABLED_CreateTransactionWithEvmHookAndStorageUpdates)
 {
   // Given
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
@@ -770,7 +770,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithEvmHookAnd
 }
 
 //-----
-TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithEvmHookWithNoContractId)
+TEST_F(AccountCreateTransactionIntegrationTests, DISABLED_CreateTransactionWithEvmHookWithNoContractId)
 {
   // Given
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();

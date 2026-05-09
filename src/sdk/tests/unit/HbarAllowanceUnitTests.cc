@@ -67,3 +67,58 @@ TEST_F(HbarAllowanceUnitTests, ToProtobuf)
   EXPECT_EQ(AccountId::fromProtobuf(cryptoAllowance->spender()), getTestSpenderAccountId());
   EXPECT_EQ(cryptoAllowance->amount(), getTestAmount().toTinybars());
 }
+
+//-----
+TEST_F(HbarAllowanceUnitTests, EqualityDefaultConstructed)
+{
+  // Given / When
+  const HbarAllowance lhs;
+  const HbarAllowance rhs;
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(HbarAllowanceUnitTests, EqualityIdenticallyConstructed)
+{
+  // Given / When
+  const HbarAllowance lhs(getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+  const HbarAllowance rhs(getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+
+  // Then
+  EXPECT_TRUE(lhs == rhs);
+}
+
+//-----
+TEST_F(HbarAllowanceUnitTests, InequalityDifferentOwner)
+{
+  // Given / When
+  const HbarAllowance lhs(getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+  const HbarAllowance rhs(AccountId(99ULL), getTestSpenderAccountId(), getTestAmount());
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(HbarAllowanceUnitTests, InequalityDifferentSpender)
+{
+  // Given / When
+  const HbarAllowance lhs(getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+  const HbarAllowance rhs(getTestOwnerAccountId(), AccountId(99ULL), getTestAmount());
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}
+
+//-----
+TEST_F(HbarAllowanceUnitTests, InequalityDifferentAmount)
+{
+  // Given / When
+  const HbarAllowance lhs(getTestOwnerAccountId(), getTestSpenderAccountId(), getTestAmount());
+  const HbarAllowance rhs(getTestOwnerAccountId(), getTestSpenderAccountId(), Hbar(999LL));
+
+  // Then
+  EXPECT_FALSE(lhs == rhs);
+}

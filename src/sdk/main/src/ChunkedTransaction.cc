@@ -601,6 +601,30 @@ unsigned int ChunkedTransaction<SdkRequestType>::getNumberOfChunksRequired() con
     std::ceil(static_cast<double>(mImpl->mData.size()) / static_cast<double>(mImpl->mChunkSize)));
 }
 
+//-----
+template<typename SdkRequestType>
+std::vector<proto::Transaction> ChunkedTransaction<SdkRequestType>::getChunkedTransactionProtobufObjects()
+{
+  const unsigned int requiredChunks = getNumberOfChunksRequired();
+  if (requiredChunks > mImpl->mMaxChunks)
+  {
+    throw IllegalStateException("Transaction requires " + std::to_string(requiredChunks) +
+                                " chunks but is only allotted " + std::to_string(mImpl->mMaxChunks) +
+                                ". Try using setMaxChunks()");
+  }
+
+  const unsigned int savedChunk = mImpl->mCurrentChunk;
+  std::vector<proto::Transaction> result;
+  result.reserve(requiredChunks);
+  for (unsigned int i = 0; i < requiredChunks; ++i)
+  {
+    mImpl->mCurrentChunk = i;
+    result.push_back(makeRequest(0));
+  }
+  mImpl->mCurrentChunk = savedChunk;
+  return result;
+}
+
 /**
  * Explicit template instantiations.
  */

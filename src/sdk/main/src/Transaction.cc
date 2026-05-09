@@ -13,6 +13,7 @@
 #include "ContractUpdateTransaction.h"
 #include "Defaults.h"
 #include "EthereumTransaction.h"
+#include "FeeEstimateQuery.h"
 #include "FileAppendTransaction.h"
 #include "FileCreateTransaction.h"
 #include "FileDeleteTransaction.h"
@@ -25,6 +26,9 @@
 #include "PrivateKey.h"
 #include "PrngTransaction.h"
 #include "PublicKey.h"
+#include "RegisteredNodeCreateTransaction.h"
+#include "RegisteredNodeDeleteTransaction.h"
+#include "RegisteredNodeUpdateTransaction.h"
 #include "ScheduleCreateTransaction.h"
 #include "ScheduleDeleteTransaction.h"
 #include "ScheduleSignTransaction.h"
@@ -187,6 +191,11 @@ struct Transaction<SdkRequestType>::TransactionImpl
    */
 
   bool mTransactionIdManualSet = false;
+
+  /**
+   * Whether this transaction uses high-volume entity creation throttles and pricing.
+   */
+  bool mHighVolume = false;
 };
 
 //-----
@@ -368,6 +377,12 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
       return WrappedTransaction(NodeDeleteTransaction(transactions));
     case proto::TransactionBody::kNodeUpdate:
       return WrappedTransaction(NodeUpdateTransaction(transactions));
+    case proto::TransactionBody::kRegisteredNodeCreate:
+      return WrappedTransaction(RegisteredNodeCreateTransaction(transactions));
+    case proto::TransactionBody::kRegisteredNodeDelete:
+      return WrappedTransaction(RegisteredNodeDeleteTransaction(transactions));
+    case proto::TransactionBody::kRegisteredNodeUpdate:
+      return WrappedTransaction(RegisteredNodeUpdateTransaction(transactions));
     case proto::TransactionBody::kUtilPrng:
       return WrappedTransaction(PrngTransaction(transactions));
     case proto::TransactionBody::kScheduleCreate:
@@ -553,6 +568,22 @@ SdkRequestType& Transaction<SdkRequestType>::setBatchKey(const std::shared_ptr<K
   }
 
   return static_cast<SdkRequestType&>(*this);
+}
+
+//-----
+template<typename SdkRequestType>
+SdkRequestType& Transaction<SdkRequestType>::setHighVolume(bool highVolume)
+{
+  requireNotFrozen();
+  mImpl->mHighVolume = highVolume;
+  return static_cast<SdkRequestType&>(*this);
+}
+
+//-----
+template<typename SdkRequestType>
+bool Transaction<SdkRequestType>::getHighVolume() const
+{
+  return mImpl->mHighVolume;
 }
 
 //-----
@@ -1103,6 +1134,8 @@ Transaction<SdkRequestType>::Transaction(const proto::TransactionBody& txBody)
     mImpl->mBatchKey = Key::fromProtobuf(txBody.batch_key());
   }
 
+  mImpl->mHighVolume = txBody.high_volume();
+
   mImpl->mSourceTransactionBody = txBody;
 }
 
@@ -1227,6 +1260,8 @@ Transaction<SdkRequestType>::Transaction(
   {
     mImpl->mBatchKey = Key::fromProtobuf(mImpl->mSourceTransactionBody.batch_key());
   }
+
+  mImpl->mHighVolume = mImpl->mSourceTransactionBody.high_volume();
 }
 
 //-----
@@ -1297,6 +1332,8 @@ void Transaction<SdkRequestType>::updateSourceTransactionBody(const Client* clie
   {
     mImpl->mSourceTransactionBody.set_allocated_batch_key(mImpl->mBatchKey->toProtobufKey().release());
   }
+
+  mImpl->mSourceTransactionBody.set_high_volume(mImpl->mHighVolume);
 
   // Add derived Transaction fields to mSourceTransactionBody.
   addToBody(mImpl->mSourceTransactionBody);
@@ -1623,6 +1660,16 @@ SdkRequestType& Transaction<SdkRequestType>::signInternal(
   return static_cast<SdkRequestType&>(*this);
 }
 
+//-----
+template<typename SdkRequestType>
+FeeEstimateQuery Transaction<SdkRequestType>::estimateFee() const
+{
+  WrappedTransaction wrapped(WrappedTransaction::AnyPossibleTransaction(static_cast<const SdkRequestType&>(*this)));
+  FeeEstimateQuery query;
+  query.setTransaction(wrapped);
+  return query;
+}
+
 /**
  * Explicit template instantiations.
  */
@@ -1647,6 +1694,9 @@ template class Transaction<NodeCreateTransaction>;
 template class Transaction<NodeDeleteTransaction>;
 template class Transaction<NodeUpdateTransaction>;
 template class Transaction<PrngTransaction>;
+template class Transaction<RegisteredNodeCreateTransaction>;
+template class Transaction<RegisteredNodeDeleteTransaction>;
+template class Transaction<RegisteredNodeUpdateTransaction>;
 template class Transaction<ScheduleCreateTransaction>;
 template class Transaction<ScheduleDeleteTransaction>;
 template class Transaction<ScheduleSignTransaction>;

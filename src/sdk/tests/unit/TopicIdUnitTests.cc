@@ -25,8 +25,6 @@ private:
 };
 
 //-----
-
-//-----
 TEST_F(TopicIdUnitTests, ConstructWithTopicNum)
 {
   // Given / When
@@ -51,8 +49,6 @@ TEST_F(TopicIdUnitTests, ConstructWithShardRealmTopicNum)
 }
 
 //-----
-
-//-----
 TEST_F(TopicIdUnitTests, CompareTopicIds)
 {
   // Given / When / Then
@@ -67,8 +63,6 @@ TEST_F(TopicIdUnitTests, CompareTopicIds)
   EXPECT_FALSE(TopicId(getTestShardNum(), getTestRealmNum(), getTestTopicNum()) ==
                TopicId(getTestShardNum(), getTestRealmNum() - 1ULL, getTestTopicNum()));
 }
-
-//-----
 
 //-----
 TEST_F(TopicIdUnitTests, FromStringWithValidShardRealmNum)
@@ -139,8 +133,6 @@ TEST_F(TopicIdUnitTests, FromStringThrowsWithNonNumericInput)
 }
 
 //-----
-
-//-----
 TEST_F(TopicIdUnitTests, FromSolidityAddressWithValidAddress)
 {
   // Given
@@ -182,8 +174,6 @@ TEST_F(TopicIdUnitTests, FromSolidityAddressThrowsWithInvalidAddress)
   EXPECT_THROW(TopicId::fromSolidityAddress(addrTooSmall), std::invalid_argument);
   EXPECT_THROW(TopicId::fromSolidityAddress(addrNotHex), std::invalid_argument);
 }
-
-//-----
 
 //-----
 TEST_F(TopicIdUnitTests, FromProtobuf)
@@ -266,8 +256,6 @@ TEST_F(TopicIdUnitTests, ToBytes)
   // Then
   EXPECT_EQ(protoBytes, bytes);
 }
-
-//-----
 
 //-----
 TEST_F(TopicIdUnitTests, ToString)
