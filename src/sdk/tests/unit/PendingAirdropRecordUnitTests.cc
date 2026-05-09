@@ -113,3 +113,34 @@ TEST_F(PendingAirdropRecordUnitTests, ToString)
   // Then
   EXPECT_EQ(result, "1.2.3 4.5.6 7.8.9 1000");
 }
+
+//-----
+TEST_F(PendingAirdropRecordUnitTests, OperatorEquality)
+{
+  // Given
+  AccountId sender(1, 2, 3);
+  AccountId receiver(4, 5, 6);
+  TokenId tokenId(7, 8, 9);
+  PendingAirdropId pendingAirdropId(sender, receiver, tokenId);
+  uint64_t amount = 1000;
+  
+  PendingAirdropRecord defaultConstructed1;
+  PendingAirdropRecord defaultConstructed2;
+  
+  PendingAirdropRecord identical1(pendingAirdropId, amount);
+  PendingAirdropRecord identical2(pendingAirdropId, amount);
+
+  PendingAirdropRecord diffAirdropId(PendingAirdropId(AccountId(1, 2, 4), receiver, tokenId), amount);
+  PendingAirdropRecord diffAmount(pendingAirdropId, 2000);
+
+  // Then
+  // Two default-constructed instances are equal
+  EXPECT_TRUE(defaultConstructed1 == defaultConstructed2);
+
+  // Two identically-constructed instances are equal
+  EXPECT_TRUE(identical1 == identical2);
+
+  // Instances differing in each field are not equal
+  EXPECT_FALSE(identical1 == diffAirdropId);
+  EXPECT_FALSE(identical1 == diffAmount);
+}
