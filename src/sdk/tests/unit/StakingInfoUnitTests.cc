@@ -120,6 +120,3 @@ TEST_F(StakingInfoUnitTests, OperatorEqual)
   stakingInfo2.mStakedNodeId = getTestStakedNodeId() + 1LL;
   EXPECT_FALSE(stakingInfo1 == stakingInfo2);
 }
-
-
-
