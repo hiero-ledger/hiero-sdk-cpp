@@ -5,9 +5,11 @@
 #include "account/params/DeleteAccountParams.h"
 #include "account/params/TransferCryptoParams.h"
 #include "account/params/UpdateAccountParams.h"
+#include "common/CommonTransactionParams.h"
 #include "common/transfer/TransferParams.h"
 #include "key/KeyService.h"
 #include "schedule/params/CreateScheduleParams.h"
+#include "schedule/params/DeleteScheduleParams.h"
 #include "sdk/SdkClient.h"
 #include "token/params/BurnTokenParams.h"
 #include "token/params/CreateTokenParams.h"
@@ -24,6 +26,8 @@
 #include <AccountUpdateTransaction.h>
 #include <HbarUnit.h>
 #include <ScheduleCreateTransaction.h>
+#include <ScheduleDeleteTransaction.h>
+#include <ScheduleId.h>
 #include <TokenBurnTransaction.h>
 #include <TokenCreateTransaction.h>
 #include <TokenDeleteTransaction.h>
@@ -669,6 +673,29 @@ WrappedTransaction translateScheduledTransaction(const nlohmann::json& json)
   throw std::invalid_argument("Unsupported scheduled transaction method: " + method);
 }
 } // namespace
+
+//-----
+nlohmann::json deleteSchedule(const DeleteScheduleParams& params)
+{
+  ScheduleDeleteTransaction scheduleDeleteTransaction;
+  scheduleDeleteTransaction.setGrpcDeadline(SdkClient::DEFAULT_TCK_REQUEST_TIMEOUT);
+
+  if (params.mScheduleId.has_value())
+  {
+    scheduleDeleteTransaction.setScheduleId(ScheduleId::fromString(params.mScheduleId.value()));
+  }
+
+  if (params.mCommonTxParams.has_value())
+  {
+    params.mCommonTxParams->fillOutTransaction(scheduleDeleteTransaction, SdkClient::getClient());
+  }
+
+  return {
+    {"status",
+     gStatusToString.at(
+        scheduleDeleteTransaction.execute(SdkClient::getClient()).getReceipt(SdkClient::getClient()).mStatus)},
+  };
+}
 
 //-----
 nlohmann::json createSchedule(const CreateScheduleParams& params)
