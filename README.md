@@ -107,6 +107,48 @@ cmake --preset linux-x64-release -DBUILD_TESTS=ON -DBUILD_TCK=ON -DBUILD_EXAMPLE
 cmake --build --preset linux-x64-release
 ```
 
+### Linux Clang + libc++ Build
+
+The project supports building with Clang and libc++ (LLVM's C++ standard library) on Linux. This configuration tests compatibility with the standard library used on macOS and catches portability issues that might not surface with libstdc++.
+
+#### Requirements
+
+In addition to the standard prerequisites, you'll need:
+
+```sh
+sudo apt-get install libc++-dev libc++abi-dev
+```
+
+#### Building with libc++
+
+```sh
+# Configure (Debug)
+cmake --preset linux-x64-clang-libcxx-debug -DBUILD_TESTS=ON
+
+# Build (Debug)
+cmake --build --preset linux-x64-clang-libcxx-debug -j 6
+
+# Run unit tests
+ctest -j 6 -C Debug --test-dir build/linux-x64-clang-libcxx-debug -R "TestVectors|UnitTests" --output-on-failure
+
+# Configure (Release)
+cmake --preset linux-x64-clang-libcxx-release -DBUILD_TESTS=ON
+
+# Build (Release)
+cmake --build --preset linux-x64-clang-libcxx-release -j 6
+
+# Run unit tests
+ctest -j 6 -C Release --test-dir build/linux-x64-clang-libcxx-release -R "TestVectors|UnitTests" --output-on-failure
+```
+
+#### Important Notes
+
+- **First build will be slow** (30-60 minutes) as vcpkg rebuilds all C++ dependencies with libc++
+- Subsequent builds are much faster once the binary cache is populated
+- This configuration uses a custom vcpkg triplet (`x64-linux-clang-libcxx`) located in `vcpkg-triplets/`
+- All dependencies (gRPC, Protobuf, abseil, log4cxx, etc.) are rebuilt against libc++ to ensure ABI compatibility
+- This build runs in nightly CI to catch libc++-specific issues
+
 ## Testing
 
 ### Running Tests

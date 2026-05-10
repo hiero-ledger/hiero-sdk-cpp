@@ -9,7 +9,7 @@
     {
       "name": "vcpkg-base",
       "hidden": true,
-      "displayName": "VCPkg Base Build",
+      "displayName": "VCPkg Base",
       "description": "Configured via the vcpkg toolchain",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/package",
@@ -39,113 +39,115 @@
     {
       "name": "linux-x64-release",
       "inherits": ["vcpkg-base"],
+      "displayName": "Linux x64 Release",
+      "description": "Linux x64 Release build",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": {
-          "type": "STRING",
-          "value": "x64-linux"
-        },
-        "CMAKE_BUILD_TYPE": {
-          "type": "STRING",
-          "value": "Release"
-        }
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
+        "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
       "name": "linux-x64-debug",
       "inherits": ["vcpkg-base"],
+      "displayName": "Linux x64 Debug",
+      "description": "Linux x64 Debug build",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": {
-          "type": "STRING",
-          "value": "x64-linux"
-        },
-        "CMAKE_BUILD_TYPE": {
-          "type": "STRING",
-          "value": "Debug"
-        }
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
+        "CMAKE_BUILD_TYPE": "Debug"
       }
+    },
+    {
+      "name": "linux-x64-clang-libcxx-debug",
+      "displayName": "Linux x64 Clang libc++ Debug",
+      "description": "Linux x64 build with Clang and libc++ (Debug)",
+      "inherits": "vcpkg-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_CXX_FLAGS_INIT": "-stdlib=libc++",
+        "CMAKE_EXE_LINKER_FLAGS_INIT": "-stdlib=libc++ -lc++abi",
+        "CMAKE_SHARED_LINKER_FLAGS_INIT": "-stdlib=libc++ -lc++abi",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-clang-libcxx",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg-triplets"
+      },
+      "binaryDir": "${sourceDir}/build/linux-x64-clang-libcxx-debug"
+    },
+    {
+      "name": "linux-x64-clang-libcxx-release",
+      "displayName": "Linux x64 Clang libc++ Release",
+      "description": "Linux x64 build with Clang and libc++ (Release)",
+      "inherits": "vcpkg-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_CXX_FLAGS_INIT": "-stdlib=libc++",
+        "CMAKE_EXE_LINKER_FLAGS_INIT": "-stdlib=libc++ -lc++abi",
+        "CMAKE_SHARED_LINKER_FLAGS_INIT": "-stdlib=libc++ -lc++abi",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-clang-libcxx",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg-triplets"
+      },
+      "binaryDir": "${sourceDir}/build/linux-x64-clang-libcxx-release"
     },
     {
       "name": "macos-x64-release",
       "inherits": ["vcpkg-base"],
+      "displayName": "macOS x64 Release",
+      "description": "macOS x64 Release build",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": {
-          "type": "STRING",
-          "value": "x64-osx"
-        },
-        "CMAKE_BUILD_TYPE": {
-          "type": "STRING",
-          "value": "Release"
-        }
+        "VCPKG_TARGET_TRIPLET": "x64-osx",
+        "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
       "name": "macos-x64-debug",
       "inherits": ["vcpkg-base"],
+      "displayName": "macOS x64 Debug",
+      "description": "macOS x64 Debug build",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": {
-          "type": "STRING",
-          "value": "x64-osx"
-        },
-        "CMAKE_BUILD_TYPE": {
-          "type": "STRING",
-          "value": "Debug"
-        }
+        "VCPKG_TARGET_TRIPLET": "x64-osx",
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "macos-arm64-release",
       "inherits": ["vcpkg-base"],
+      "displayName": "macOS ARM64 Release",
+      "description": "macOS ARM64 Release build",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": {
-          "type": "STRING",
-          "value": "arm64-osx"
-        },
-        "CMAKE_BUILD_TYPE": {
-          "type": "STRING",
-          "value": "Release"
-        }
+        "VCPKG_TARGET_TRIPLET": "arm64-osx",
+        "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
       "name": "macos-arm64-debug",
       "inherits": ["vcpkg-base"],
+      "displayName": "macOS ARM64 Debug",
+      "description": "macOS ARM64 Debug build",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": {
-          "type": "STRING",
-          "value": "arm64-osx"
-        },
-        "CMAKE_BUILD_TYPE": {
-          "type": "STRING",
-          "value": "Debug"
-        }
+        "VCPKG_TARGET_TRIPLET": "arm64-osx",
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "windows-x64-release",
       "inherits": ["vcpkg-msbuild-base"],
+      "displayName": "Windows x64 Release",
+      "description": "Windows x64 Release build",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": {
-          "type": "STRING",
-          "value": "x64-windows"
-        },
-        "CMAKE_BUILD_TYPE": {
-          "type": "STRING",
-          "value": "Release"
-        }
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
       "name": "windows-x64-debug",
       "inherits": ["vcpkg-msbuild-base"],
+      "displayName": "Windows x64 Debug",
+      "description": "Windows x64 Debug build",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": {
-          "type": "STRING",
-          "value": "x64-windows"
-        },
-        "CMAKE_BUILD_TYPE": {
-          "type": "STRING",
-          "value": "Debug"
-        }
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     }
   ],
@@ -153,69 +155,81 @@
     {
       "name": "linux-x64-release",
       "configurePreset": "linux-x64-release",
-      "displayName": "Build ninja-multi-vcpkg",
-      "description": "Build ninja-multi-vcpkg Configurations",
+      "displayName": "Linux x64 Release",
+      "description": "Build Linux x64 Release",
       "configuration": "Release",
       "targets": ["install"]
     },
     {
       "name": "linux-x64-debug",
       "configurePreset": "linux-x64-debug",
-      "displayName": "Build ninja-multi-vcpkg",
-      "description": "Build ninja-multi-vcpkg Configurations",
+      "displayName": "Linux x64 Debug",
+      "description": "Build Linux x64 Debug",
       "configuration": "Debug",
       "targets": ["install"]
     },
     {
+      "name": "linux-x64-clang-libcxx-debug",
+      "displayName": "Linux x64 Clang libc++ Debug",
+      "description": "Linux x64 build with Clang and libc++ (Debug)",
+      "configurePreset": "linux-x64-clang-libcxx-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "linux-x64-clang-libcxx-release",
+      "displayName": "Linux x64 Clang libc++ Release",
+      "description": "Linux x64 build with Clang and libc++ (Release)",
+      "configurePreset": "linux-x64-clang-libcxx-release",
+      "configuration": "Release"
+    },
+    {
       "name": "macos-x64-release",
       "configurePreset": "macos-x64-release",
-      "displayName": "Build ninja-multi-vcpkg",
-      "description": "Build ninja-multi-vcpkg Configurations",
+      "displayName": "macOS x64 Release",
+      "description": "Build macOS x64 Release",
       "configuration": "Release",
       "targets": ["install"]
     },
     {
       "name": "macos-x64-debug",
       "configurePreset": "macos-x64-debug",
-      "displayName": "Build ninja-multi-vcpkg",
-      "description": "Build ninja-multi-vcpkg Configurations",
+      "displayName": "macOS x64 Debug",
+      "description": "Build macOS x64 Debug",
       "configuration": "Debug",
       "targets": ["install"]
     },
     {
       "name": "macos-arm64-release",
       "configurePreset": "macos-arm64-release",
-      "displayName": "Build ninja-multi-vcpkg",
-      "description": "Build ninja-multi-vcpkg Configurations",
+      "displayName": "macOS ARM64 Release",
+      "description": "Build macOS ARM64 Release",
       "configuration": "Release",
       "targets": ["install"]
     },
     {
       "name": "macos-arm64-debug",
       "configurePreset": "macos-arm64-debug",
-      "displayName": "Build ninja-multi-vcpkg",
-      "description": "Build ninja-multi-vcpkg Configurations",
+      "displayName": "macOS ARM64 Debug",
+      "description": "Build macOS ARM64 Debug",
       "configuration": "Debug",
       "targets": ["install"]
     },
     {
       "name": "windows-x64-release",
       "configurePreset": "windows-x64-release",
-      "displayName": "MSVC Release (x64)",
-      "description": "Build MSVC Configurations",
+      "displayName": "Windows x64 Release",
+      "description": "Build Windows x64 Release",
       "configuration": "Release",
       "targets": ["install"]
     },
     {
       "name": "windows-x64-debug",
       "configurePreset": "windows-x64-debug",
-      "displayName": "MSVC Debug (x64)",
-      "description": "Build MSVC Configurations",
+      "displayName": "Windows x64 Debug",
+      "description": "Build Windows x64 Debug",
       "configuration": "Debug",
       "targets": ["install"]
     }
   ],
-  "testPresets": [
-
-  ]
+  "testPresets": []
 }
