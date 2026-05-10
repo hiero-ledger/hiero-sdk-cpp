@@ -245,6 +245,13 @@ public:
    * This value SHALL NOT be set following any other transaction.
    */
   std::optional<uint64_t> mNodeId;
+
+  /**
+   * In the receipt of a RegisteredNodeCreate, the ID of the newly created registered node.
+   * This value SHALL be set following a successful `RegisteredNodeCreate` transaction.
+   * This value SHALL NOT be set following any other transaction.
+   */
+  std::optional<uint64_t> mRegisteredNodeId;
 };
 
 } // namespace Hiero

@@ -15,7 +15,13 @@ const { handleAssign } = require('./commands/assign');
 const { handleUnassign } = require('./commands/unassign');
 const { handleFinalize } = require('./commands/finalize');
 
-const KNOWN_COMMANDS = ['assign', 'unassign', 'finalize'];
+const COMMAND_HANDLERS = {
+  assign: handleAssign,
+  unassign: handleUnassign,
+  finalize: handleFinalize,
+};
+
+const KNOWN_COMMANDS = Object.keys(COMMAND_HANDLERS);
 
 let logger = createLogger('on-comment');
 
@@ -100,12 +106,10 @@ module.exports = async ({ github, context }) => {
       // (postComment, addLabels, etc.) log with the correct tag.
       logger = createLogger(`on-${command}`);
 
-      if (command === 'assign') {
-        await handleAssign(botContext);
-      } else if (command === 'unassign') {
-        await handleUnassign(botContext);
-      } else if (command === 'finalize') {
-        await handleFinalize(botContext);
+      const handler = COMMAND_HANDLERS[command];
+
+      if (handler) {
+        await handler(botContext);
       } else {
         logger.log('Unknown command:', command);
       }

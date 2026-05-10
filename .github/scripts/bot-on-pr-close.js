@@ -12,10 +12,65 @@
 //   - Only runs on merged PRs
 //   - Ignores bot users to prevent loops
 
-const { createLogger, buildBotContext, resolveLinkedIssue } = require('./helpers');
+const {
+    MAINTAINER_TEAM,
+    createLogger,
+    buildBotContext,
+    fetchClosingIssueNumbers,
+    fetchIssue,
+    fetchLatestMilestone,
+    getLabelsByPrefix,
+    postComment,
+    removeLabel,
+    resolveLinkedIssue,
+    setMilestone,
+} = require('./helpers');
 const { handleRecommendIssues } = require('./bot/bot-recommend-issues');
 
 let logger = createLogger('on-pr-close');
+
+function buildMissingMilestoneComment() {
+    return [
+        `${MAINTAINER_TEAM} a PR was merged, but there are no open milestones available.`,
+        '',
+        'Please create an open milestone so this merged work can be assigned appropriately.',
+    ].join('\n');
+}
+
+async function removeStatusLabels(botContext, item) {
+    const statusLabels = getLabelsByPrefix(item, 'status:');
+    for (const label of statusLabels) {
+        const result = await removeLabel(botContext, label);
+        if (!result.success) {
+            logger.error(`Failed to remove status label "${label}" from #${botContext.number}: ${result.error}`);
+        }
+    }
+}
+
+async function applyMergeMilestoneAutomation(botContext) {
+    await removeStatusLabels(botContext, botContext.pr);
+
+    const milestone = await fetchLatestMilestone(botContext);
+    if (!milestone) {
+        await postComment(botContext, buildMissingMilestoneComment());
+        return false;
+    }
+
+    const issueNumbers = await fetchClosingIssueNumbers(botContext);
+    if (issueNumbers.length === 0) {
+        await setMilestone(botContext, botContext.number, milestone.number);
+        return true;
+    }
+
+    for (const issueNumber of issueNumbers) {
+        const issue = await fetchIssue(botContext, issueNumber);
+        const issueContext = { ...botContext, number: issueNumber, issue };
+        await removeStatusLabels(issueContext, issue);
+        await setMilestone(botContext, issueNumber, milestone.number);
+    }
+
+    return true;
+}
 
 // =============================================================================
 // ENTRY POINT
@@ -43,6 +98,12 @@ module.exports = async ({ github, context }) => {
 
         if (!pr.merged) {
             logger.log('Exit: PR closed but not merged');
+            return;
+        }
+
+        const milestoneReady = await applyMergeMilestoneAutomation(botContext);
+        if (!milestoneReady) {
+            logger.log('Exit: no open milestone available');
             return;
         }
 

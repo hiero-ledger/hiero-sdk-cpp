@@ -18,6 +18,7 @@
 
 namespace Hiero
 {
+class FeeEstimateQuery;
 class PrivateKey;
 class TransactionResponse;
 class ScheduleCreateTransaction;
@@ -363,6 +364,20 @@ public:
    */
   [[nodiscard]] size_t getTransactionBodySize() const;
 
+  /**
+   * Is this Transaction frozen?
+   *
+   * @return \c TRUE if this Transaction is frozen, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool isFrozen() const;
+
+  /**
+   * Build a FeeEstimateQuery wrapping this Transaction. The returned query may be further configured (mode,
+   * high-volume throttle) before calling execute() against a Client whose mirror network supports the
+   * HIP-1261 fee estimation endpoint.
+   */
+  [[nodiscard]] FeeEstimateQuery estimateFee() const;
+
 protected:
   /**
    * Dummy transaction and account IDs used to assist in deserializing incomplete Transactions.
@@ -460,13 +475,6 @@ protected:
   void requireNotFrozen() const;
 
   /**
-   * Is this Transaction frozen?
-   *
-   * @return \c TRUE if this Transaction is frozen, otherwise \c FALSE.
-   */
-  [[nodiscard]] bool isFrozen() const;
-
-  /**
    * Set the default maximum transaction fee for this Transaction.
    *
    * @param fee The default maximum transaction fee for this Transaction.
@@ -503,6 +511,15 @@ protected:
    * @return The ID of this Transaction.
    */
   [[nodiscard]] virtual TransactionId getCurrentTransactionId() const;
+
+  /**
+   * Build a Transaction protobuf object from the SignedTransaction protobuf object at the specified index.
+   * Materializes `mTransactions[index]` from `mSignedTransactions[index]` and the registered signer functions.
+   *
+   * @param index The index in the Transaction's SignedTransaction list from which the Transaction protobuf object
+   *              should be built.
+   */
+  void buildTransaction(unsigned int index) const;
 
 private:
   friend class PrivateKey;
@@ -569,14 +586,6 @@ private:
    * @return The ID of this Transaction.
    */
   [[nodiscard]] std::optional<TransactionId> getTransactionIdInternal() const override;
-
-  /**
-   * Build a Transaction protobuf object from the SignedTransaction protobuf object at the specified index.
-   *
-   * @param index The index in the Transaction's SignedTransaction list from which the Transaction protobuf object
-   *              should be built.
-   */
-  void buildTransaction(unsigned int index) const;
 
   /**
    * Determine if a PublicKey has already signed this Transaction.
