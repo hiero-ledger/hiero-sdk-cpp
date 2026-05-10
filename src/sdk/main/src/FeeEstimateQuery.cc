@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
-#include "FeeEstimateQuery.h"
+// Windows build requires this to be included first for some reason.
+#include <services/basic_types.pb.h> // NOLINT
+
 #include "Client.h"
+#include "FeeEstimateQuery.h"
 #include "FileAppendTransaction.h"
 #include "TopicMessageSubmitTransaction.h"
 #include "exceptions/IllegalStateException.h"
