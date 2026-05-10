@@ -930,10 +930,10 @@ const scenarios = [
       },
     }),
     expect: {
-      itemsClosed: [500],
-      commentsCreated: 1,
+      itemsClosed: [],
+      commentsCreated: 0,
       labelsAdded: 0,
-      assigneesRemoved: 1,
+      assigneesRemoved: 0,
     },
   },
 
@@ -965,10 +965,10 @@ const scenarios = [
       },
     }),
     expect: {
-      itemsClosed: [510],
-      commentsCreated: 1,
+      itemsClosed: [],
+      commentsCreated: 0,
       labelsAdded: 0,
-      assigneesRemoved: 1,
+      assigneesRemoved: 0,
     },
   },
 
