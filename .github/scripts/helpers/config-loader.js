@@ -90,51 +90,48 @@ function validateLabels(config, errors) {
 }
 
 /**
+ * Validates a single hierarchy array: non-empty, unique entries,
+ * and all values exist in the corresponding label group.
+ * @param {object} config - The parsed config object.
+ * @param {string[]} errors - Mutable array to push error messages into.
+ * @param {string} hierarchyKey - 'skillHierarchy' or 'priorityHierarchy'.
+ * @param {string} labelGroup - 'skill' or 'priority' (key in config.labels).
+ */
+function validateSingleHierarchy(config, errors, hierarchyKey, labelGroup) {
+  const hierarchy = config[hierarchyKey];
+
+  if (!Array.isArray(hierarchy) || hierarchy.length === 0) {
+    errors.push(`${hierarchyKey} must be a non-empty array`);
+    return;
+  }
+
+  const seen = new Set();
+  for (const entry of hierarchy) {
+    if (seen.has(entry)) {
+      errors.push(`${hierarchyKey} entry "${entry}" appears more than once`);
+    }
+    seen.add(entry);
+  }
+
+  if (config.labels && config.labels[labelGroup]) {
+    const labelValues = Object.values(config.labels[labelGroup]);
+    for (const entry of hierarchy) {
+      if (!labelValues.includes(entry)) {
+        errors.push(`${hierarchyKey} entry "${entry}" not found in labels.${labelGroup} values`);
+      }
+    }
+  }
+}
+
+/**
  * Validates that skillHierarchy and priorityHierarchy are non-empty arrays
  * whose entries are unique and exist in the corresponding label group values.
  * @param {object} config - The parsed config object.
  * @param {string[]} errors - Mutable array to push error messages into.
  */
 function validateHierarchies(config, errors) {
-  if (!Array.isArray(config.skillHierarchy) || config.skillHierarchy.length === 0) {
-    errors.push('skillHierarchy must be a non-empty array');
-  } else {
-    const seen = new Set();
-    for (const entry of config.skillHierarchy) {
-      if (seen.has(entry)) {
-        errors.push(`skillHierarchy entry "${entry}" appears more than once`);
-      }
-      seen.add(entry);
-    }
-    if (config.labels && config.labels.skill) {
-      const skillValues = Object.values(config.labels.skill);
-      for (const entry of config.skillHierarchy) {
-        if (!skillValues.includes(entry)) {
-          errors.push(`skillHierarchy entry "${entry}" not found in labels.skill values`);
-        }
-      }
-    }
-  }
-
-  if (!Array.isArray(config.priorityHierarchy) || config.priorityHierarchy.length === 0) {
-    errors.push('priorityHierarchy must be a non-empty array');
-  } else {
-    const seen = new Set();
-    for (const entry of config.priorityHierarchy) {
-      if (seen.has(entry)) {
-        errors.push(`priorityHierarchy entry "${entry}" appears more than once`);
-      }
-      seen.add(entry);
-    }
-    if (config.labels && config.labels.priority) {
-      const priorityValues = Object.values(config.labels.priority);
-      for (const entry of config.priorityHierarchy) {
-        if (!priorityValues.includes(entry)) {
-          errors.push(`priorityHierarchy entry "${entry}" not found in labels.priority values`);
-        }
-      }
-    }
-  }
+  validateSingleHierarchy(config, errors, 'skillHierarchy', 'skill');
+  validateSingleHierarchy(config, errors, 'priorityHierarchy', 'priority');
 }
 
 /**
