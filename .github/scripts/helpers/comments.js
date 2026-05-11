@@ -111,6 +111,22 @@ function buildMergeConflictNotificationComment(prAuthor, mergedPRNumber) {
 }
 
 /**
+ * Builds a standalone notification comment to alert a PR author that CI failed.
+ * This is posted once when the dashboard transitions into a CI failure state.
+ *
+ * @param {string} prAuthor - GitHub username of the PR author.
+ * @param {string} runUrl - URL for the failing workflow run.
+ * @returns {string}
+ */
+function buildCIFailureNotificationComment(prAuthor, runUrl) {
+  return [
+    `Hi @${prAuthor} :wave: — the check just failed on this PR.`,
+    `Take a look at the [failing run](${runUrl}) and push a fix when you're ready.`,
+    'Feel free to ping the maintainers if you need a hand.',
+  ].join(' ');
+}
+
+/**
  * @param {{ passed: boolean, reason?: string, issues?: Array<{ number: number, title: string, isAssigned: boolean }>, error?: boolean, errorMessage?: string }} issueLink
  * @returns {string}
  */
@@ -138,11 +154,47 @@ function buildIssueLinkSection(issueLink) {
 }
 
 /**
- * Builds the ### PR Checks section of the dashboard comment.
- * @param {{ dco: object, gpg: object, merge: object, issueLink: object }} results
+ * @param {{ passed?: boolean, failed?: boolean, checkName?: string, runUrl?: string, error?: boolean, errorMessage?: string }} [ci]
  * @returns {string}
  */
-function buildChecksSection({ dco, gpg, merge, issueLink }) {
+function buildCISection(ci) {
+  if (!ci) {
+    return [
+      ':hourglass_flowing_sand: **CI Checks** -- Waiting for the PR Checks workflow to report.',
+      '',
+      'A maintainer will run CI after the PR helper checks pass.',
+    ].join('\n');
+  }
+
+  const common = buildSection({ title: 'CI Checks', result: ci, passMessage: 'All CI checks passed.' });
+  if (common) return common;
+
+  const checkName = ci.checkName || 'CI';
+  const runLink = ci.runUrl ? `[failing run](${ci.runUrl})` : 'failing run';
+  return [
+    `:x: **CI Checks** -- ${checkName} failed in the PR Checks workflow.`,
+    '',
+    `Please review the ${runLink}, push a fix, and rerun CI when you're ready.`,
+  ].join('\n');
+}
+
+/**
+ * Checks whether a dashboard body currently contains a CI failure section.
+ *
+ * @param {string} body
+ * @returns {boolean}
+ */
+function dashboardHasCIFailure(body) {
+  if (typeof body !== 'string') return false;
+  return body.includes(':x: **CI Checks**');
+}
+
+/**
+ * Builds the ### PR Checks section of the dashboard comment.
+ * @param {{ dco: object, gpg: object, merge: object, issueLink: object, ci?: object }} results
+ * @returns {string}
+ */
+function buildChecksSection({ dco, gpg, merge, issueLink, ci }) {
   return [
     '### PR Checks',
     '',
@@ -159,39 +211,45 @@ function buildChecksSection({ dco, gpg, merge, issueLink }) {
     '---',
     '',
     buildIssueLinkSection(issueLink),
+    '',
+    '---',
+    '',
+    buildCISection(ci),
   ].join('\n');
 }
 
 /**
  * Determines whether all checks passed (errors count as not passed).
- * @param {{ dco: object, gpg: object, merge: object, issueLink: object }} results
+ * @param {{ dco: object, gpg: object, merge: object, issueLink: object, ci?: object }} results
  * @returns {boolean}
  */
-function allChecksPassed({ dco, gpg, merge, issueLink }) {
+function allChecksPassed({ dco, gpg, merge, issueLink, ci }) {
   return (
     !dco.error && dco.passed &&
     !gpg.error && gpg.passed &&
     !merge.error && merge.passed &&
-    !issueLink.error && issueLink.passed
+    !issueLink.error && issueLink.passed &&
+    (!ci || (!ci.error && ci.passed))
   );
 }
 
 /**
  * Builds the full unified bot comment.
- * @param {{ prAuthor: string, dco: object, gpg: object, merge: object, issueLink: object }} params
+ * @param {{ prAuthor: string, dco: object, gpg: object, merge: object, issueLink: object, ci?: object }} params
  * @returns {{ marker: string, body: string, allPassed: boolean }}
  */
-function buildBotComment({ prAuthor, dco, gpg, merge, issueLink }) {
+function buildBotComment({ prAuthor, dco, gpg, merge, issueLink, ci }) {
   const greeting = [
     `Hey @${prAuthor} :wave: thanks for the PR!`,
     "I'm your friendly **PR Helper Bot** :robot: and I'll be riding shotgun on this one, keeping track of your PR's status to help you get it approved and merged.",
     '',
     "This comment updates automatically as you push changes -- think of it as your PR's live scoreboard!",
+    '`status: needs review` means the checks are clear for maintainer review; `status: needs revision` means something below needs your attention.',
     "Here's the latest:",
   ].join('\n');
 
-  const checksSection = buildChecksSection({ dco, gpg, merge, issueLink });
-  const passed = allChecksPassed({ dco, gpg, merge, issueLink });
+  const checksSection = buildChecksSection({ dco, gpg, merge, issueLink, ci });
+  const passed = allChecksPassed({ dco, gpg, merge, issueLink, ci });
 
   const footer = passed
     ? ':tada: *All checks passed! Your PR is ready for review. Great job!*'
@@ -206,5 +264,8 @@ module.exports = {
   buildBotComment,
   buildChecksSection,
   allChecksPassed,
+  buildCISection,
+  dashboardHasCIFailure,
   buildMergeConflictNotificationComment,
+  buildCIFailureNotificationComment,
 };
