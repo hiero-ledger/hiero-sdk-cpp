@@ -15,7 +15,8 @@ const {
 } = require('./validation');
 const { LABELS, SKILL_HIERARCHY, ISSUE_STATE } = require('./constants');
 const { checkDCO, checkGPG, checkMergeConflict, checkIssueLink } = require('./checks');
-const { buildBotComment } = require('./comments');
+const { buildBotComment } = require('../bot-pr-helper-comments');
+const { PR_HELPER_MARKER } = require('./markers');
 
 /**
  * Builds the bot context for any bot. Validates github, context, and payload; throws if invalid.
@@ -654,8 +655,8 @@ async function runAllChecksAndComment(botContext, precomputed = {}) {
   }
 
   const prAuthor = botContext.pr?.user?.login;
-  const { marker, body, allPassed } = buildBotComment({ prAuthor, dco, gpg, merge, issueLink });
-  await postOrUpdateComment(botContext, marker, body);
+  const { body, allPassed } = buildBotComment({ prAuthor, dco, gpg, merge, issueLink, ci });
+  await postOrUpdateComment(botContext, PR_HELPER_MARKER, body);
 
   return { allPassed };
 }
