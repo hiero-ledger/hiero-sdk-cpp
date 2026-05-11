@@ -6,7 +6,16 @@
 // Run with: node .github/scripts/tests/test-comments.js
 
 const { runTestSuite } = require('./test-utils');
-const { MARKER, buildBotComment, buildChecksSection, allChecksPassed, buildMergeConflictNotificationComment } = require('../helpers/comments');
+const {
+  MARKER,
+  buildBotComment,
+  buildChecksSection,
+  allChecksPassed,
+  buildCISection,
+  dashboardHasCIFailure,
+  buildMergeConflictNotificationComment,
+  buildCIFailureNotificationComment,
+} = require('../helpers/comments');
 
 // =============================================================================
 // TEST DATA HELPERS
@@ -400,6 +409,64 @@ const unitTests = [
   },
 
   // ---------------------------------------------------------------------------
+  // CI section
+  // ---------------------------------------------------------------------------
+  {
+    name: 'CI pending: dashboard contains waiting message',
+    test: () => {
+      const { body } = buildBotComment({ prAuthor: 'ci-pending', ...allPassing() });
+      return body.includes('**CI Checks**') && body.includes('Waiting for the PR Checks workflow');
+    },
+  },
+  {
+    name: 'CI pass: dashboard contains CI success',
+    test: () => {
+      const { body, allPassed } = buildBotComment({
+        prAuthor: 'ci-pass',
+        ...allPassing(),
+        ci: { passed: true, failed: false },
+      });
+      return allPassed === true && body.includes(':white_check_mark: **CI Checks**');
+    },
+  },
+  {
+    name: 'CI failure: dashboard contains failing run link and fails allPassed',
+    test: () => {
+      const { body, allPassed } = buildBotComment({
+        prAuthor: 'ci-fail',
+        ...allPassing(),
+        ci: {
+          passed: false,
+          failed: true,
+          checkName: 'Tests',
+          runUrl: 'https://github.com/hiero-ledger/hiero-sdk-cpp/actions/runs/1',
+        },
+      });
+      return (
+        allPassed === false &&
+        body.includes(':x: **CI Checks**') &&
+        body.includes('Tests failed') &&
+        body.includes('actions/runs/1')
+      );
+    },
+  },
+  {
+    name: 'CI error: dashboard tags maintainers',
+    test: () => {
+      const section = buildCISection({ passed: false, error: true, errorMessage: 'API error' });
+      return section.includes(':warning: **CI Checks**') && section.includes('@hiero-ledger/hiero-sdk-cpp-maintainers');
+    },
+  },
+  {
+    name: 'dashboardHasCIFailure: detects CI failure section',
+    test: () => dashboardHasCIFailure(':x: **CI Checks** -- Tests failed') === true,
+  },
+  {
+    name: 'dashboardHasCIFailure: ignores non-CI failure sections',
+    test: () => dashboardHasCIFailure(':x: **DCO Sign-off** -- Missing sign-off') === false,
+  },
+
+  // ---------------------------------------------------------------------------
   // buildMergeConflictNotificationComment
   // ---------------------------------------------------------------------------
   {
@@ -428,6 +495,13 @@ const unitTests = [
     test: () => {
       const comment = buildMergeConflictNotificationComment('dave', 99);
       return comment.includes('resolve the merge conflict');
+    },
+  },
+  {
+    name: 'CI failure notification contains @prAuthor and run link',
+    test: () => {
+      const comment = buildCIFailureNotificationComment('erin', 'https://github.com/run');
+      return comment.includes('@erin') && comment.includes('https://github.com/run');
     },
   },
 ];
