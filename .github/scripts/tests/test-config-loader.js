@@ -329,6 +329,24 @@ const unitTests = [
       return expectLoadError(p, 'priorityHierarchy entry "priority: ultra" not found in labels.priority values');
     },
   },
+  {
+    name: 'validation: duplicate skillHierarchy entry → error',
+    test: () => {
+      const cfg = getValidConfig();
+      cfg.skillHierarchy.push(cfg.skillHierarchy[0]);
+      const p = writeTempConfig('dup-skill-hier.json', cfg);
+      return expectLoadError(p, 'appears more than once');
+    },
+  },
+  {
+    name: 'validation: duplicate priorityHierarchy entry → error',
+    test: () => {
+      const cfg = getValidConfig();
+      cfg.priorityHierarchy.push(cfg.priorityHierarchy[0]);
+      const p = writeTempConfig('dup-prio-hier.json', cfg);
+      return expectLoadError(p, 'appears more than once');
+    },
+  },
 
   // ---------------------------------------------------------------------------
   // Validation: skill prerequisites

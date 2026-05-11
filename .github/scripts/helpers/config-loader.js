@@ -91,29 +91,47 @@ function validateLabels(config, errors) {
 
 /**
  * Validates that skillHierarchy and priorityHierarchy are non-empty arrays
- * whose entries exist in the corresponding label group values.
+ * whose entries are unique and exist in the corresponding label group values.
  * @param {object} config - The parsed config object.
  * @param {string[]} errors - Mutable array to push error messages into.
  */
 function validateHierarchies(config, errors) {
   if (!Array.isArray(config.skillHierarchy) || config.skillHierarchy.length === 0) {
     errors.push('skillHierarchy must be a non-empty array');
-  } else if (config.labels && config.labels.skill) {
-    const skillValues = Object.values(config.labels.skill);
+  } else {
+    const seen = new Set();
     for (const entry of config.skillHierarchy) {
-      if (!skillValues.includes(entry)) {
-        errors.push(`skillHierarchy entry "${entry}" not found in labels.skill values`);
+      if (seen.has(entry)) {
+        errors.push(`skillHierarchy entry "${entry}" appears more than once`);
+      }
+      seen.add(entry);
+    }
+    if (config.labels && config.labels.skill) {
+      const skillValues = Object.values(config.labels.skill);
+      for (const entry of config.skillHierarchy) {
+        if (!skillValues.includes(entry)) {
+          errors.push(`skillHierarchy entry "${entry}" not found in labels.skill values`);
+        }
       }
     }
   }
 
   if (!Array.isArray(config.priorityHierarchy) || config.priorityHierarchy.length === 0) {
     errors.push('priorityHierarchy must be a non-empty array');
-  } else if (config.labels && config.labels.priority) {
-    const priorityValues = Object.values(config.labels.priority);
+  } else {
+    const seen = new Set();
     for (const entry of config.priorityHierarchy) {
-      if (!priorityValues.includes(entry)) {
-        errors.push(`priorityHierarchy entry "${entry}" not found in labels.priority values`);
+      if (seen.has(entry)) {
+        errors.push(`priorityHierarchy entry "${entry}" appears more than once`);
+      }
+      seen.add(entry);
+    }
+    if (config.labels && config.labels.priority) {
+      const priorityValues = Object.values(config.labels.priority);
+      for (const entry of config.priorityHierarchy) {
+        if (!priorityValues.includes(entry)) {
+          errors.push(`priorityHierarchy entry "${entry}" not found in labels.priority values`);
+        }
       }
     }
   }
@@ -330,8 +348,9 @@ function buildConstants(config) {
 
   const SKILL_PREREQUISITES = {};
   for (const [key, value] of Object.entries(config.skillPrerequisites)) {
-    SKILL_PREREQUISITES[key] = { ...value };
+    SKILL_PREREQUISITES[key] = Object.freeze({ ...value });
   }
+  Object.freeze(SKILL_PREREQUISITES);
 
   return {
     MAINTAINER_TEAM: config.maintainerTeam,
