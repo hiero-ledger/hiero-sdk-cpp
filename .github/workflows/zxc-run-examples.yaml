@@ -1,0 +1,190 @@
+# SPDX-License-Identifier: Apache-2.0
+name: "ZXC: Run Examples"
+
+on:
+  workflow_call:
+    inputs:
+      preset:
+        description: "CMake preset to build and test (e.g. linux-x64)"
+        type: string
+        required: false
+        default: linux-x64
+      build-type:
+        description: "CMake build configuration (Debug | Release)"
+        type: string
+        required: false
+        default: Debug
+      run-network-examples:
+        description: "Also run network examples against solo (slower, needs solo)"
+        type: boolean
+        required: false
+        default: true
+
+  workflow_dispatch:
+    inputs:
+      preset:
+        description: "CMake preset to build and test (e.g. linux-x64)"
+        type: string
+        required: false
+        default: linux-x64
+      build-type:
+        description: "CMake build configuration (Debug | Release)"
+        type: string
+        required: false
+        default: Debug
+      run-network-examples:
+        description: "Also run network examples against solo (slower, needs solo)"
+        type: boolean
+        required: false
+        default: true
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+env:
+  PRESET: ${{ inputs.preset || 'linux-x64' }}
+  BUILD_TYPE: ${{ inputs.build-type || 'Debug' }}
+
+jobs:
+  run-examples:
+    name: "Run Examples (${{ inputs.build-type || 'Debug' }})"
+    runs-on: hiero-client-sdk-linux-large
+
+    steps:
+      # ── Security hardening ─────────────────────────────────────────────────
+      - name: Harden Runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      # ── Checkout ───────────────────────────────────────────────────────────
+      - name: Checkout Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+
+      # ── Build toolchain setup ──────────────────────────────────────────────
+      - name: Use Node.js 22
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 22
+
+      - name: Install Linux Prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libc6-dbg libgtest-dev build-essential
+
+      - name: Ensure Binary Cache Path Exists
+        run: mkdir -p "${{ github.workspace }}/b/vcpkg_cache"
+
+      - name: Install CMake & Ninja
+        uses: step-security/get-cmake@082f0e11945209d5c8d8476a791e39d4d041005d # v4.3.1
+        with:
+          useCloudCache: true
+
+      - name: Setup VCPkg
+        uses: step-security/run-vcpkg@48490398616947b0df92dc1b24aab5339a66f9f0 # v11.5.2
+        with:
+          binaryCachePath: ${{ github.workspace }}/b/vcpkg_cache
+
+      - name: Convert VCPkg to Full Clone
+        working-directory: vcpkg
+        run: git fetch --unshallow --prune
+
+      # ── Build (examples only, no tests/TCK to keep it fast) ───────────────
+      - name: Configure Project
+        env:
+          VCPKG_BINARY_SOURCES: clear
+        run: |
+          echo "::group::CMake Configure"
+          cmake --preset "${{ env.PRESET }}-$(echo ${{ env.BUILD_TYPE }} | tr '[:upper:]' '[:lower:]')" \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_TCK=OFF \
+            -DBUILD_TCK_TESTS=OFF \
+            -DBUILD_EXAMPLES=ON
+          echo "::endgroup::"
+
+      - name: Build Examples
+        env:
+          VCPKG_BINARY_SOURCES: clear
+        run: |
+          echo "::group::CMake Build"
+          cmake --build --preset "${{ env.PRESET }}-$(echo ${{ env.BUILD_TYPE }} | tr '[:upper:]' '[:lower:]')" -j 6
+          echo "::endgroup::"
+
+      # ── Offline examples (no network required) ─────────────────────────────
+      - name: Run Offline Examples
+        run: |
+          echo "::group::CTest – offline examples"
+          ctest -C "${{ env.BUILD_TYPE }}" \
+                --test-dir "build/${{ env.PRESET }}-$(echo ${{ env.BUILD_TYPE }} | tr '[:upper:]' '[:lower:]')" \
+                -L "example-offline" \
+                --output-on-failure \
+                --no-compress-output \
+                -j 4
+          echo "::endgroup::"
+
+      # ── Start solo (only when network examples are requested) ──────────────
+      - name: Prepare Hiero Solo
+        id: solo
+        if: ${{ inputs.run-network-examples }}
+        uses: hiero-ledger/hiero-solo-action@328bc84c3b00a990a151418144fd682a4eb76ea6 # v0.19.0
+        with:
+          soloVersion: v0.71.0
+          installMirrorNode: true
+          mirrorNodeVersion: v0.154.0
+          hieroVersion: v0.73.0
+          dualMode: true
+
+      # Write a .env file into every examples binary directory so dotenv picks
+      # up the solo credentials automatically.
+      - name: Write .env for Solo Credentials
+        if: ${{ inputs.run-network-examples }}
+        run: |
+          EXAMPLES_BIN_DIR="build/${{ env.PRESET }}-$(echo ${{ env.BUILD_TYPE }} | tr '[:upper:]' '[:lower:]')/src/sdk/examples/${{ env.BUILD_TYPE }}"
+          echo "Writing .env to ${EXAMPLES_BIN_DIR}"
+          cat > "${EXAMPLES_BIN_DIR}/.env" <<EOF
+          OPERATOR_ID=${{ steps.solo.outputs.OPERATOR_ID }}
+          OPERATOR_KEY=${{ steps.solo.outputs.OPERATOR_KEY }}
+          HIERO_NETWORK=localhost
+          EOF
+          echo "Done."
+
+      # ── Network examples ───────────────────────────────────────────────────
+      - name: Run Network Examples
+        if: ${{ inputs.run-network-examples }}
+        # Continue even if some network examples fail so all results are visible;
+        # the subsequent reporting step will fail the job if needed.
+        continue-on-error: true
+        id: network-examples
+        run: |
+          echo "::group::CTest – network examples"
+          ctest -C "${{ env.BUILD_TYPE }}" \
+                --test-dir "build/${{ env.PRESET }}-$(echo ${{ env.BUILD_TYPE }} | tr '[:upper:]' '[:lower:]')" \
+                -L "example-network" \
+                --output-on-failure \
+                --no-compress-output \
+                -j 2
+          echo "::endgroup::"
+
+      # ── Result summary ─────────────────────────────────────────────────────
+      - name: Upload CTest Results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: example-ctest-results-${{ env.PRESET }}-${{ env.BUILD_TYPE }}
+          path: |
+            build/${{ env.PRESET }}-*/Testing/
+          if-no-files-found: warn
+
+      # Fail the job explicitly if network examples reported failures so that
+      # the continue-on-error above doesn't hide broken examples.
+      - name: Fail on Network Example Failures
+        if: ${{ inputs.run-network-examples && steps.network-examples.outcome == 'failure' }}
+        run: |
+          echo "::error::One or more network examples failed. Check the CTest output above."
+          exit 1
