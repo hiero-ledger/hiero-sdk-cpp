@@ -365,23 +365,6 @@ async function enforceAssignmentLimit(botContext, requesterUsername) {
       return false;
     }
 
-    if (freshIssue.assignees?.length > 0) {
-      logger.log(
-        "Exit: issue already assigned to",
-        freshIssue.assignees.map((assignee) => assignee.login),
-      );
-      await postComment(
-        botContext,
-        buildAlreadyAssignedComment(
-          requesterUsername,
-          freshIssue,
-          botContext.owner,
-          botContext.repo,
-        ),
-      );
-      return false;
-    }
-
     // --- Needs-review bypass check ---
     // If every open (non-blocked) assigned issue has an open PR authored by
     // the contributor with "status: needs review", allow the bypass.
