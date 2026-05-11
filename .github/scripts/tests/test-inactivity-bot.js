@@ -902,7 +902,7 @@ const scenarios = [
     },
   },
 
-  // ── 29 ─────────────────────────────────────────────────────────────────────
+  // ── 30 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR: comment on linked issue — no action (not stale)',
     description: 'A participant comment on a linked issue should reset PR inactivity.',
@@ -937,7 +937,7 @@ const scenarios = [
     },
   },
 
-  // ── 30 ─────────────────────────────────────────────────────────────────────
+  // ── 31 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR: regular comment on linked issue — no action (not stale)',
     description: 'Any participant comment on linked issue should reset the clock.',
@@ -972,7 +972,7 @@ const scenarios = [
     },
   },
 
-  // ── 31 ─────────────────────────────────────────────────────────────────────
+  // ── 32 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR: no linked issues — stale behavior unchanged',
     description: 'A PR with no linked issues should behave exactly as before.',
@@ -993,7 +993,7 @@ const scenarios = [
     },
   },
 
-  // ── 32 ─────────────────────────────────────────────────────────────────────
+  // ── 33 ─────────────────────────────────────────────────────────────────────
   {
     name: 'PR: non-participant comment on linked issue — still stale, closed',
     description: 'A comment from someone who is not the PR author/assignee must not reset inactivity.',
@@ -1024,6 +1024,35 @@ const scenarios = [
       itemsClosed: [530],
       closureCommentOn: [530],
       assigneesRemoved: [{ issue_number: 530, assignees: ['diana'] }],
+    },
+  },
+
+  // ── 34 ─────────────────────────────────────────────────────────────────────
+  {
+    name: 'PR closed for inactivity should not get ready-for-dev and should remove status labels',
+    description: 'Closed PR should have all status labels removed and not receive ready-for-dev label',
+    github: createMockGithub({
+      openPRs: [
+        makePR(30, {
+          createdAt: daysAgo(10),
+          assignees: ['alice'],
+          labels: [LABELS.IN_PROGRESS, LABELS.NEEDS_REVISION]
+        })
+      ],
+      eventsByNumber: {
+        30: [makeAssignedEvent(daysAgo(10))]
+      }
+    }),
+    expect: {
+      itemsClosed: [30],
+      commentsCreated: 1,
+      labelsAdded: 0,
+      labelsRemoved: [
+        { issue_number: 30, name: LABELS.IN_PROGRESS },
+        { issue_number: 30, name: LABELS.NEEDS_REVISION }
+      ],
+      assigneesRemoved: 1,
+      summaryLogs: ['#30 (PR): last activity 10d ago (assigned: alice), closing PR'],
     },
   },
 ];
