@@ -1,0 +1,508 @@
+# SPDX-License-Identifier: Apache-2.0
+# SDK Examples Manifest
+#
+# Categorizes all examples for CI execution. Used by:
+#   - .github/workflows/zxc-run-examples.yaml
+#   - run_examples.sh
+#
+# Categories:
+#   offline - No network required. Runs in every CI job, must always pass.
+#   network - Requires a live Hiero node (solo in CI). OPERATOR_ID / OPERATOR_KEY
+#             must be present in a .env file or as environment variables.
+#   skip    - Not suitable for automated CI (interactive stdin, infinite loop, etc.)
+#
+# Fields:
+#   name        - Human-readable example name (matches source file without .cpp)
+#   binary      - CMake target name (hiero-sdk-cpp-<kebab-case>)
+#   category    - offline | network | skip
+#   skip_reason - Required when category is skip
+#   timeout     - Per-example timeout in seconds (default: 60)
+#   solo_ready  - (network only) true if the example uses Client::forName(networkName)
+#                 and will work against the local solo node. false if it hardcodes
+#                 Client::forTestnet() and requires real testnet credentials.
+#   description - What the example demonstrates
+
+examples:
+
+  # ─── OFFLINE ──────────────────────────────────────────────────────────────
+  # These examples perform only local cryptographic or parsing operations.
+  # They require no network and no operator credentials.
+
+  - name: AccountCreationWaysExample
+    binary: hiero-sdk-cpp-account-creation-ways-example
+    category: offline
+    timeout: 30
+    description: >
+      Demonstrates the four account ID representations (shard.realm.num,
+      public-key alias, long-zero, EVM address). Pure local operations.
+
+  - name: ConstructClientExample
+    binary: hiero-sdk-cpp-construct-client-example
+    category: offline
+    timeout: 30
+    description: >
+      Constructs Client objects for various networks and closes them immediately.
+      No transactions are executed; the HIERO_NETWORK env var is read but the
+      example does not make any RPC calls, so it is effectively network-free.
+    env:
+      HIERO_NETWORK: testnet
+
+  - name: GenerateKeyExample
+    binary: hiero-sdk-cpp-generate-key-example
+    category: offline
+    timeout: 30
+    description: >
+      Generates an ED25519 and an ECDSAsecp256k1 key pair and prints them.
+      Pure cryptographic operation; no network calls.
+
+  - name: GeneratePrivateKeyFromMnemonicExample
+    binary: hiero-sdk-cpp-generate-private-key-from-mnemonic-example
+    category: offline
+    timeout: 30
+    description: >
+      Derives ED25519 and ECDSA keys from randomly generated 12- and 24-word
+      BIP39 mnemonics. Pure local crypto; no network calls.
+
+  - name: GeneratePrivateKeyFromSpecificMnemonicExample
+    binary: hiero-sdk-cpp-generate-private-key-from-specific-mnemonic-example
+    category: offline
+    timeout: 30
+    description: >
+      Derives an ED25519 key from a fixed mnemonic and compares the DER output
+      against a known Java-SDK reference value. No network calls.
+
+  - name: VersionExample
+    binary: hiero-sdk-cpp-version-example
+    category: offline
+    timeout: 30
+    description: Prints PROJECT_VERSION and PROJECT_DESCRIPTION. No network calls.
+
+  # ─── SKIP ─────────────────────────────────────────────────────────────────
+  # These examples cannot run unattended in CI.
+
+  - name: ConsensusPubSubExample
+    binary: hiero-sdk-cpp-consensus-pub-sub-example
+    category: skip
+    skip_reason: infinite-loop
+    description: >
+      Subscribes to an HCS topic and publishes messages in an infinite loop.
+      Requires an explicit kill signal; not suitable for automated CI.
+
+  - name: ConsensusPubSubChunkedExample
+    binary: hiero-sdk-cpp-consensus-pub-sub-chunked-example
+    category: skip
+    skip_reason: infinite-loop
+    description: >
+      Sends large chunked messages to an HCS topic in an infinite loop.
+
+  - name: ConsensusPubSubWithSubmitKeyExample
+    binary: hiero-sdk-cpp-consensus-pub-sub-with-submit-key-example
+    category: skip
+    skip_reason: infinite-loop
+    description: >
+      PubSub with a submit key; runs in an infinite loop.
+
+  - name: ValidateChecksumExample
+    binary: hiero-sdk-cpp-validate-checksum-example
+    category: skip
+    skip_reason: interactive-stdin
+    description: >
+      Reads account IDs interactively from stdin in a while(true) loop.
+      Cannot be automated without piping input indefinitely.
+
+  # ─── NETWORK ──────────────────────────────────────────────────────────────
+  # These examples require a running Hiero node and operator credentials.
+  # In CI they run against the solo local network.
+  #
+  # solo_ready: true  → uses Client::forName(networkName) – works with solo.
+  # solo_ready: false → hardcodes Client::forTestnet() – needs real testnet
+  #                     credentials or a code change to support solo.
+  #
+  # NOTE: A follow-up task should migrate solo_ready: false examples to use
+  #       Client::forName(std::getenv("HIERO_NETWORK")) so they run cleanly
+  #       against solo in CI.
+
+  - name: AccountAliasExample
+    binary: hiero-sdk-cpp-account-alias-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Creates an account via public-key alias and transfers HBAR to it.
+
+  - name: AccountAllowanceExample
+    binary: hiero-sdk-cpp-account-allowance-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Demonstrates HBAR and token allowances between accounts.
+
+  - name: AccountAllowanceSerializedExample
+    binary: hiero-sdk-cpp-account-allowance-serialized-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Allowance example that serialises and deserialises transactions.
+
+  - name: AccountCreateWithHtsExample
+    binary: hiero-sdk-cpp-account-create-with-hts-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Creates an account and associates it with an HTS token.
+
+  - name: AccountHooksExample
+    binary: hiero-sdk-cpp-account-hooks-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Demonstrates account hook functionality.
+
+  - name: AutoCreateAccountTransferTransactionExample
+    binary: hiero-sdk-cpp-auto-create-account-transfer-transaction-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Auto-creates an account via a crypto transfer to an alias.
+
+  - name: BatchTransactionExample
+    binary: hiero-sdk-cpp-batch-transaction-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Executes multiple transactions in a single atomic batch.
+
+  - name: ContractHooksExample
+    binary: hiero-sdk-cpp-contract-hooks-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Demonstrates smart-contract hooks.
+
+  - name: ContractNoncesExample
+    binary: hiero-sdk-cpp-contract-nonces-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Shows contract nonce tracking after child-contract deployment.
+
+  - name: CreateAccountExample
+    binary: hiero-sdk-cpp-create-account-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Creates a new account with an initial balance.
+
+  - name: CreateAccountThresholdKeyExample
+    binary: hiero-sdk-cpp-create-account-threshold-key-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Creates an account protected by a threshold key list.
+
+  - name: CreateFileExample
+    binary: hiero-sdk-cpp-create-file-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Creates a file on the Hiero file service.
+
+  - name: CreateSimpleContractExample
+    binary: hiero-sdk-cpp-create-simple-contract-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Deploys a simple stateless smart contract.
+
+  - name: CreateStatefulContractExample
+    binary: hiero-sdk-cpp-create-stateful-contract-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Deploys a stateful smart contract and calls it.
+
+  - name: CreateTopicExample
+    binary: hiero-sdk-cpp-create-topic-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Creates an HCS topic and publishes a message.
+
+  - name: CustomFeesExample
+    binary: hiero-sdk-cpp-custom-fees-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Creates tokens with custom fee schedules.
+
+  - name: DeleteAccountExample
+    binary: hiero-sdk-cpp-delete-account-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Creates then deletes an account, transferring the remaining balance.
+
+  - name: DeleteFileExample
+    binary: hiero-sdk-cpp-delete-file-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Creates then deletes a file.
+
+  - name: ExemptCustomFeesExample
+    binary: hiero-sdk-cpp-exempt-custom-fees-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Demonstrates custom-fee exemption for treasury/fee-collector accounts.
+
+  - name: FileAppendChunkedExample
+    binary: hiero-sdk-cpp-file-append-chunked-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Appends a large payload to a file using chunked transactions.
+
+  - name: GetAccountBalanceExample
+    binary: hiero-sdk-cpp-get-account-balance-example
+    category: network
+    solo_ready: false
+    timeout: 60
+    description: Queries the HBAR balance of the operator account.
+
+  - name: GetAccountInfoExample
+    binary: hiero-sdk-cpp-get-account-info-example
+    category: network
+    solo_ready: false
+    timeout: 60
+    description: Retrieves full account information for the operator.
+
+  - name: GetAddressBookExample
+    binary: hiero-sdk-cpp-get-address-book-example
+    category: network
+    solo_ready: false
+    timeout: 60
+    description: Fetches the current network address book.
+
+  - name: GetExchangeRatesExample
+    binary: hiero-sdk-cpp-get-exchange-rates-example
+    category: network
+    solo_ready: false
+    timeout: 60
+    description: Retrieves the HBAR/USD exchange rate file.
+
+  - name: GetFileContentsExample
+    binary: hiero-sdk-cpp-get-file-contents-example
+    category: network
+    solo_ready: false
+    timeout: 60
+    description: Creates a file and reads its contents back.
+
+  - name: GrpcDeadlineExample
+    binary: hiero-sdk-cpp-grpc-deadline-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Shows how gRPC deadlines affect query execution.
+
+  - name: HookStoreExample
+    binary: hiero-sdk-cpp-hook-store-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Demonstrates hook storage operations.
+
+  - name: InitializeClientWithMirrorNodeAddressBookExample
+    binary: hiero-sdk-cpp-initialize-client-with-mirror-node-address-book-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Bootstraps a client from the mirror-node address book.
+
+  - name: LongTermScheduledTransactionExample
+    binary: hiero-sdk-cpp-long-term-scheduled-transaction-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Schedules a transaction with a long expiry and waits for execution.
+
+  - name: MirrorNodeContractQueryExample
+    binary: hiero-sdk-cpp-mirror-node-contract-query-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Executes a contract query via the mirror node REST API.
+
+  - name: MultiAppTransferExample
+    binary: hiero-sdk-cpp-multi-app-transfer-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Demonstrates multi-party HBAR transfers.
+
+  - name: MultiSigOfflineExample
+    binary: hiero-sdk-cpp-multi-sig-offline-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Signs a transaction offline with multiple keys then submits it.
+
+  - name: NftAddRemoveAllowancesExample
+    binary: hiero-sdk-cpp-nft-add-remove-allowances-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Adds and removes NFT allowances.
+
+  - name: PrngExample
+    binary: hiero-sdk-cpp-prng-example
+    category: network
+    solo_ready: false
+    timeout: 60
+    description: Uses the PRNG transaction to obtain a pseudo-random number.
+
+  - name: RevenueGeneratingTopicsExample
+    binary: hiero-sdk-cpp-revenue-generating-topics-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Creates topics with custom message fees (HIP-991).
+
+  - name: ScheduleExample
+    binary: hiero-sdk-cpp-schedule-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Schedules a crypto-transfer and collects signatures.
+
+  - name: ScheduleIdenticalTransactionExample
+    binary: hiero-sdk-cpp-schedule-identical-transaction-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Shows that scheduling identical transactions returns the same ScheduleId.
+
+  - name: ScheduleMultiSigTransactionExample
+    binary: hiero-sdk-cpp-schedule-multisig-transaction-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Schedules a multi-sig transaction and collects all required signatures.
+
+  - name: ScheduleNetworkUpdateExample
+    binary: hiero-sdk-cpp-schedule-network-update-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Schedules a network-update transaction.
+
+  - name: ScheduleTransactionMultiSigThresholdExample
+    binary: hiero-sdk-cpp-schedule-transaction-multisig-threshold-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Schedules a transaction requiring a threshold of signatures.
+
+  - name: ScheduleTransferExample
+    binary: hiero-sdk-cpp-schedule-transfer-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Schedules an HBAR transfer transaction.
+
+  - name: SignTransactionExample
+    binary: hiero-sdk-cpp-sign-transaction-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Signs a transaction with multiple keys before submission.
+
+  - name: SolidityPrecompileExample
+    binary: hiero-sdk-cpp-solidity-precompile-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Calls the Hiero Solidity precompile from a smart contract.
+
+  - name: StakingExample
+    binary: hiero-sdk-cpp-staking-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Stakes an account to a node and queries its staking info.
+
+  - name: StakingWithUpdateExample
+    binary: hiero-sdk-cpp-staking-with-update-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Creates an account with staking, then updates the staked node.
+
+  - name: TokenAirdropExample
+    binary: hiero-sdk-cpp-token-airdrop-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Airdrops fungible tokens to multiple accounts (HIP-904).
+
+  - name: TokenCreateFreezeDeleteExample
+    binary: hiero-sdk-cpp-token-create-freeze-delete-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Creates, freezes, and deletes an HTS token.
+
+  - name: TokenMetadataExample
+    binary: hiero-sdk-cpp-token-metadata-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Creates a token with metadata and updates it.
+
+  - name: TopicWithAdminKeyExample
+    binary: hiero-sdk-cpp-topic-with-admin-key-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Creates an HCS topic with an admin key and updates it.
+
+  - name: TransferCryptoExample
+    binary: hiero-sdk-cpp-transfer-crypto-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Transfers HBAR between two accounts.
+
+  - name: TransferTokensExample
+    binary: hiero-sdk-cpp-transfer-tokens-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Transfers fungible and non-fungible tokens between accounts.
+
+  - name: TransferTransactionHooksExample
+    binary: hiero-sdk-cpp-transfer-transaction-hooks-example
+    category: network
+    solo_ready: false
+    timeout: 180
+    description: Demonstrates transfer transaction hooks.
+
+  - name: TransferUsingEvmAddressExample
+    binary: hiero-sdk-cpp-transfer-using-evm-address-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Transfers HBAR to an account identified by its EVM address.
+
+  - name: UpdateAccountPublicKeyExample
+    binary: hiero-sdk-cpp-update-account-public-key-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Updates the public key on an account.
+
+  - name: ZeroTokenOperationsExample
+    binary: hiero-sdk-cpp-zero-token-operations-example
+    category: network
+    solo_ready: false
+    timeout: 120
+    description: Performs zero-amount token transfers (HIP-564).
