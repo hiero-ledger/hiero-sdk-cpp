@@ -224,13 +224,9 @@ function buildChecksSection({ dco, gpg, merge, issueLink, ci }) {
  * @returns {boolean}
  */
 function allChecksPassed({ dco, gpg, merge, issueLink, ci }) {
-  return (
-    !dco.error && dco.passed &&
-    !gpg.error && gpg.passed &&
-    !merge.error && merge.passed &&
-    !issueLink.error && issueLink.passed &&
-    (!ci || (!ci.error && ci.passed))
-  );
+  const requiredChecks = [dco, gpg, merge, issueLink];
+  const checks = ci ? [...requiredChecks, ci] : requiredChecks;
+  return checks.every(check => !check.error && check.passed);
 }
 
 /**

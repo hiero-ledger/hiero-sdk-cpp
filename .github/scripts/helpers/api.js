@@ -540,6 +540,31 @@ function classifyFailedJob(job) {
   return { check: 'build', checkName: 'Build' };
 }
 
+async function fetchWorkflowRunJobs(botContext, workflowRunId) {
+  const jobs = [];
+  let page = 1;
+  const perPage = 100;
+
+  while (true) {
+    const { data } = await botContext.github.rest.actions.listJobsForWorkflowRun({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      run_id: workflowRunId,
+      filter: 'latest',
+      per_page: perPage,
+      page,
+    });
+
+    const pageJobs = data.jobs || [];
+    jobs.push(...pageJobs);
+
+    if (pageJobs.length < perPage) break;
+    page++;
+  }
+
+  return jobs;
+}
+
 /**
  * Classifies the PR Checks workflow result into lint, build, or test failure.
  *
@@ -555,26 +580,7 @@ async function classifyWorkflowRunCI(botContext, workflowRun) {
   }
 
   try {
-    const jobs = [];
-    let page = 1;
-    const perPage = 100;
-
-    while (true) {
-      const { data } = await botContext.github.rest.actions.listJobsForWorkflowRun({
-        owner: botContext.owner,
-        repo: botContext.repo,
-        run_id: workflowRun.id,
-        filter: 'latest',
-        per_page: perPage,
-        page,
-      });
-
-      jobs.push(...(data.jobs || []));
-
-      if (!data.jobs || data.jobs.length < perPage) break;
-      page++;
-    }
-
+    const jobs = await fetchWorkflowRunJobs(botContext, workflowRun.id);
     const failedJob = jobs.find(job => job.conclusion === 'failure');
     const classification = failedJob ? classifyFailedJob(failedJob) : { check: 'build', checkName: 'Build' };
     return {
