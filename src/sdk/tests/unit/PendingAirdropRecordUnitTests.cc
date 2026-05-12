@@ -122,10 +122,10 @@ TEST_F(PendingAirdropRecordUnitTests, OperatorEquality)
   AccountId receiver(4, 5, 6);
   TokenId tokenId(7, 8, 9);
   PendingAirdropId pendingAirdropId(sender, receiver, tokenId);
-  uint64_t amount = 1000;
+  const uint64_t amount = 1000;
   
-  PendingAirdropRecord defaultConstructed1;
-  PendingAirdropRecord defaultConstructed2;
+  const PendingAirdropRecord defaultConstructed1;
+  const PendingAirdropRecord defaultConstructed2;
   
   PendingAirdropRecord identical1(pendingAirdropId, amount);
   PendingAirdropRecord identical2(pendingAirdropId, amount);
