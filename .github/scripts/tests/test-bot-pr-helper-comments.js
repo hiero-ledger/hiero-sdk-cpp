@@ -11,10 +11,7 @@ const {
   buildBotComment,
   buildChecksSection,
   allChecksPassed,
-  buildCISection,
-  dashboardHasCIFailure,
   buildMergeConflictNotificationComment,
-  buildCIFailureNotificationComment,
 } = require('../bot-pr-helper-comments'); 
 
 // =============================================================================
