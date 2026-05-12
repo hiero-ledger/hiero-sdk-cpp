@@ -6,7 +6,8 @@
 // structure so future sections (commands, instructions) can be added alongside
 // checks without changing the overall shape.
 
-const { PR_HELPER_MARKER, MAINTAINER_TEAM, DOCUMENTATION } = require('./helpers');
+const { PR_HELPER_MARKER } = require('./helpers/markers');
+const { MAINTAINER_TEAM, DOCUMENTATION } = require('./helpers/constants');
 
 const SIGNING_GUIDE = DOCUMENTATION.signingGuide;
 const MERGE_CONFLICTS_GUIDE = DOCUMENTATION.mergeConflictsGuide;
@@ -177,7 +178,7 @@ function allChecksPassed({ dco, gpg, merge, issueLink }) {
 /**
  * Builds the full unified bot comment.
  * @param {{ prAuthor: string, dco: object, gpg: object, merge: object, issueLink: object, ci?: object }} params
- * @returns {{ marker: string, body: string, allPassed: boolean }}
+ * @returns {{ body: string, allPassed: boolean }}
  */
 function buildBotComment({ prAuthor, dco, gpg, merge, issueLink }) {
   const greeting = [
