@@ -26,9 +26,10 @@ int main(int argc, char** argv)
   const std::shared_ptr<PrivateKey> operatorPrivateKey =
     ECDSAsecp256k1PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
 
-  // Get a client for the Hiero testnet, and set the operator account ID and key such that all generated transactions
-  // will be paid for by this account and be signed by this key.
-  Client client = Client::forTestnet();
+  // Get a client for the configured Hiero network (defaults to testnet when HIERO_NETWORK is unset), and set
+  // the operator so all generated transactions will be paid for by this account and signed by this key.
+  const char* const network = std::getenv("HIERO_NETWORK");
+  Client client = network ? Client::forName(network) : Client::forTestnet();
   client.setOperator(operatorAccountId, operatorPrivateKey);
 
   // Create three clients, each having a different account and private key.
@@ -51,7 +52,7 @@ int main(int argc, char** argv)
                       .mAccountId.value();
     std::cout << "Generated account " << i + 1 << ": " << accountIds.at(i).toString() << std::endl;
 
-    clients[i] = Client::forTestnet();
+    clients[i] = network ? Client::forName(network) : Client::forTestnet();
     clients.at(i).setOperator(accountIds.at(i), privateKeys.at(i));
     std::cout << "Generated client " << i + 1 << std::endl;
   }

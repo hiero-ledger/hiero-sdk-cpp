@@ -15,7 +15,8 @@ int main(int argc, char** argv)
   const AccountId operatorAccountId = AccountId::fromString(std::getenv("OPERATOR_ID"));
 
   // Get a client for the Hiero testnet
-  Client client = Client::forTestnet();
+  const char* const network = std::getenv("HIERO_NETWORK");
+  Client client = network ? Client::forName(network) : Client::forTestnet();
 
   // Because AccountBalanceQuery is a free query, we can make it without setting an operator on the client.
   const AccountBalance accountBalance = AccountBalanceQuery().setAccountId(operatorAccountId).execute(client);

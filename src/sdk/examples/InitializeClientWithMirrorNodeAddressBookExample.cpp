@@ -17,9 +17,10 @@ int main(int argc, char** argv)
   const std::shared_ptr<PrivateKey> operatorPrivateKey =
     ECDSAsecp256k1PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
 
-  // Initialize the client with the testnet mirror node. This will also get the address book from the mirror node and
-  // use it to populate the Client's consensus network.
-  Client client = Client::forMirrorNetwork({ "testnet.mirrornode.hedera.com:443" });
+  // Initialize the client from a mirror node address book. The mirror node endpoint is read from
+  // MIRROR_NODE (e.g. "127.0.0.1:5600" for a local solo node, or the default testnet endpoint).
+  const char* const mirrorNode = std::getenv("MIRROR_NODE");
+  Client client = Client::forMirrorNetwork({ mirrorNode ? mirrorNode : "testnet.mirrornode.hedera.com:443" });
   client.setOperator(operatorAccountId, operatorPrivateKey);
 
   // Attempt to execute a transaction.
