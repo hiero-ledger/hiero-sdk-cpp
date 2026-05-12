@@ -6,12 +6,12 @@
 // structure so future sections (commands, instructions) can be added alongside
 // checks without changing the overall shape.
 
-const { MAINTAINER_TEAM } = require('./constants');
+const { MAINTAINER_TEAM, DOCUMENTATION } = require('./constants');
 
 const MARKER = '<!-- bot:pr-helper -->';
 
-const SIGNING_GUIDE = 'https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/docs/training/signing.md';
-const MERGE_CONFLICTS_GUIDE = 'https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/docs/training/merge-conflicts.md';
+const SIGNING_GUIDE = DOCUMENTATION.signingGuide;
+const MERGE_CONFLICTS_GUIDE = DOCUMENTATION.mergeConflictsGuide;
 
 /**
  * Determines the display state of a check result.
