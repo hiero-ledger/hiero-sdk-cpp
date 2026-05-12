@@ -53,9 +53,11 @@ function createMockBotContext(overrides = {}) {
               calls.updated.push(params);
             },
             addLabels: async (params) => {
+              if (overrides.addLabelsError) throw new Error(overrides.addLabelsError);
               calls.labelsAdded.push(params.labels);
             },
             removeLabel: async (params) => {
+              if (overrides.removeLabelError) throw new Error(overrides.removeLabelError);
               calls.labelsRemoved.push(params.name);
             },
             listMilestones: async ({ page, per_page }) => {
@@ -753,6 +755,39 @@ const unitTests = [
       });
       await swapStatusLabel(botContext, false);
       return calls.labelsRemoved.length === 0 && calls.labelsAdded.length === 0;
+    },
+  },
+  {
+    name: 'swapStatusLabel: removeLabel fails → returns failure details',
+    test: async () => {
+      const { botContext, calls } = createMockBotContext({
+        pr: { labels: [{ name: LABELS.NEEDS_REVISION }] },
+        removeLabelError: 'Simulated remove label failure',
+      });
+      const result = await swapStatusLabel(botContext, true);
+      return (
+        result.success === false &&
+        result.errorDetails === `Failed to remove '${LABELS.NEEDS_REVISION}': Simulated remove label failure` &&
+        calls.labelsAdded.length === 1 &&
+        Array.isArray(calls.labelsAdded[0]) &&
+        calls.labelsAdded[0][0] === LABELS.NEEDS_REVIEW
+      );
+    },
+  },
+  {
+    name: 'swapStatusLabel: addLabels fails after removeLabel succeeds → returns failure details',
+    test: async () => {
+      const { botContext, calls } = createMockBotContext({
+        pr: { labels: [{ name: LABELS.NEEDS_REVIEW }] },
+        addLabelsError: 'Simulated add label failure',
+      });
+      const result = await swapStatusLabel(botContext, false);
+      return (
+        result.success === false &&
+        result.errorDetails === `Failed to add '${LABELS.NEEDS_REVISION}': Simulated add label failure` &&
+        calls.labelsRemoved.length === 1 &&
+        calls.labelsRemoved[0] === LABELS.NEEDS_REVIEW
+      );
     },
   },
 
