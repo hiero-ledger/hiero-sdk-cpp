@@ -14,10 +14,10 @@ const {
   runAllChecksAndComment, 
   swapStatusLabel,
   postComment,
-  PR_HELPER_MARKER,
 } = require('./helpers');
 const { checkMergeConflict } = require('./helpers/checks');
 const { buildMergeConflictNotificationComment } = require('./bot-pr-helper-comments');
+const { PR_HELPER_MARKER } = require('./helpers/markers');
 
 const logger = createLogger('on-pr-merged');
 
