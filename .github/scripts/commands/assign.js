@@ -329,6 +329,42 @@ async function enforceAssignmentLimit(botContext, requesterUsername) {
       currentCount: openAssignmentCount,
     });
 
+    // Suppress limit failures caused by a duplicate /assign for this issue.
+    let freshIssue;
+    try {
+      const response = await botContext.github.rest.issues.get({
+        owner: botContext.owner,
+        repo: botContext.repo,
+        issue_number: botContext.number,
+      });
+      freshIssue = response.data;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      logger.error("Failed to fetch fresh issue state:", errorMsg);
+      await postComment(botContext, buildApiErrorComment(requesterUsername));
+      return false;
+    }
+
+    const requesterAlreadyAssigned = freshIssue.assignees?.some(
+      (assignee) =>
+        (assignee.login || "").toLowerCase() ===
+        requesterUsername.toLowerCase(),
+    );
+
+    if (requesterAlreadyAssigned) {
+      logger.log("Exit: user is already assigned (caught during limit check)");
+      await postComment(
+        botContext,
+        buildAlreadyAssignedComment(
+          requesterUsername,
+          freshIssue,
+          botContext.owner,
+          botContext.repo,
+        ),
+      );
+      return false;
+    }
+
     // --- Needs-review bypass check ---
     // If every open (non-blocked) assigned issue has an open PR authored by
     // the contributor with "status: needs review", allow the bypass.
