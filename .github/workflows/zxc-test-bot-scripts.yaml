@@ -49,8 +49,8 @@ jobs:
       - name: Run Check Helpers Tests
         run: node .github/scripts/tests/test-checks.js
 
-      - name: Run Comment Helpers Tests
-        run: node .github/scripts/tests/test-comments.js
+      - name: Run PR Helper Comment Tests
+        run: node .github/scripts/tests/test-bot-pr-helper-comments.js
 
       - name: Run API Helpers Tests
         run: node .github/scripts/tests/test-api.js
