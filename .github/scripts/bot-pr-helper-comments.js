@@ -6,7 +6,7 @@
 // structure so future sections (commands, instructions) can be added alongside
 // checks without changing the overall shape.
 
-const { MAINTAINER_TEAM, DOCUMENTATION, PR_HELPER_MARKER } = require('./constants');
+const { PR_HELPER_MARKER, MAINTAINER_TEAM, DOCUMENTATION } = require('./helpers');
 
 const SIGNING_GUIDE = DOCUMENTATION.signingGuide;
 const MERGE_CONFLICTS_GUIDE = DOCUMENTATION.mergeConflictsGuide;
