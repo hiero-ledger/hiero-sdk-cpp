@@ -250,7 +250,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup-msbuild
-        uses: step-security/setup-msbuild@69786077a2e27336b48df68c84de440e078bd905 # v2.0.0
+        uses: step-security/setup-msbuild@f01243490939309baa8e659042bec579fa10db95 # v2.0.1
         with:
           msbuild-architecture: x64
 
