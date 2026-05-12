@@ -655,7 +655,7 @@ async function runAllChecksAndComment(botContext, precomputed = {}) {
   }
 
   const prAuthor = botContext.pr?.user?.login;
-  const { body, allPassed } = buildBotComment({ prAuthor, dco, gpg, merge, issueLink, ci });
+  const { body, allPassed } = buildBotComment({ prAuthor, dco, gpg, merge, issueLink });
   await postOrUpdateComment(botContext, PR_HELPER_MARKER, body);
 
   return { allPassed };
