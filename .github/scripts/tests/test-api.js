@@ -13,8 +13,6 @@ const {
   fetchOpenPRs,
   fetchIssue,
   fetchClosingIssueNumbers,
-  resolveWorkflowRunPR,
-  classifyWorkflowRunCI,
   fetchLatestMilestone,
   setMilestone,
   swapStatusLabel,
@@ -77,30 +75,17 @@ function createMockBotContext(overrides = {}) {
             },
           },
           pulls: {
-            list: async ({ page = 1, per_page = 100 }) => {
+            list: async ({ page, per_page }) => {
               const allPRs = overrides.openPRs || [];
               const start = (page - 1) * per_page;
               const slice = allPRs.slice(start, start + per_page);
               return { data: slice };
-            },
-            get: async ({ pull_number }) => {
-              const pr = (overrides.pullRequests || {})[pull_number];
-              if (!pr) throw new Error('PR Not Found');
-              return { data: pr };
             },
             listCommits: async ({ page, per_page }) => {
               const allCommits = overrides.commits || [];
               const start = (page - 1) * per_page;
               const slice = allCommits.slice(start, start + per_page);
               return { data: slice };
-            },
-          },
-          actions: {
-            listJobsForWorkflowRun: async ({ page, per_page }) => {
-              const allJobs = overrides.workflowJobs || [];
-              const start = (page - 1) * per_page;
-              const slice = allJobs.slice(start, start + per_page);
-              return { data: { jobs: slice } };
             },
           },
         },
@@ -502,107 +487,6 @@ const unitTests = [
       });
       const result = await fetchClosingIssueNumbers(botContext);
       return Array.isArray(result) && result.length === 0;
-    },
-  },
-
-  // ---------------------------------------------------------------------------
-  // resolveWorkflowRunPR
-  // ---------------------------------------------------------------------------
-  {
-    name: 'resolveWorkflowRunPR: uses pull_requests array when present',
-    test: async () => {
-      const pr = { number: 12, title: 'Same repo PR' };
-      const { botContext } = createMockBotContext({
-        pullRequests: { 12: pr },
-      });
-      const result = await resolveWorkflowRunPR(botContext, {
-        pull_requests: [{ number: 12 }],
-      });
-      return result === pr;
-    },
-  },
-  {
-    name: 'resolveWorkflowRunPR: falls back to fork head branch and SHA',
-    test: async () => {
-      const pr = {
-        number: 34,
-        title: 'Fork PR',
-        head: { sha: 'abc123' },
-      };
-      const { botContext } = createMockBotContext({
-        openPRs: [pr],
-      });
-      const result = await resolveWorkflowRunPR(botContext, {
-        pull_requests: [],
-        head_branch: 'feature/ci',
-        head_sha: 'abc123',
-        head_repository: { owner: { login: 'contributor' } },
-      });
-      return result === pr;
-    },
-  },
-
-  // ---------------------------------------------------------------------------
-  // classifyWorkflowRunCI
-  // ---------------------------------------------------------------------------
-  {
-    name: 'classifyWorkflowRunCI: successful workflow passes',
-    test: async () => {
-      const { botContext } = createMockBotContext();
-      const result = await classifyWorkflowRunCI(botContext, {
-        id: 1,
-        conclusion: 'success',
-        html_url: 'https://github.com/run',
-      });
-      return result.passed === true && result.failed === false && result.check === null;
-    },
-  },
-  {
-    name: 'classifyWorkflowRunCI: lint job failure returns lint',
-    test: async () => {
-      const { botContext } = createMockBotContext({
-        workflowJobs: [
-          { name: 'Code / Lint', conclusion: 'failure', steps: [{ name: 'Run Clang-Format', conclusion: 'failure' }] },
-        ],
-      });
-      const result = await classifyWorkflowRunCI(botContext, {
-        id: 1,
-        conclusion: 'failure',
-        html_url: 'https://github.com/run',
-      });
-      return result.failed === true && result.check === 'lint' && result.checkName === 'Lint';
-    },
-  },
-  {
-    name: 'classifyWorkflowRunCI: CTest step failure returns tests',
-    test: async () => {
-      const { botContext } = createMockBotContext({
-        workflowJobs: [
-          { name: 'Code / Build', conclusion: 'failure', steps: [{ name: 'Start CTest suite (Debug)', conclusion: 'failure' }] },
-        ],
-      });
-      const result = await classifyWorkflowRunCI(botContext, {
-        id: 1,
-        conclusion: 'failure',
-        html_url: 'https://github.com/run',
-      });
-      return result.failed === true && result.check === 'tests' && result.checkName === 'Tests';
-    },
-  },
-  {
-    name: 'classifyWorkflowRunCI: CMake build step failure returns build',
-    test: async () => {
-      const { botContext } = createMockBotContext({
-        workflowJobs: [
-          { name: 'Code / Build', conclusion: 'failure', steps: [{ name: 'CMake Build (Debug)', conclusion: 'failure' }] },
-        ],
-      });
-      const result = await classifyWorkflowRunCI(botContext, {
-        id: 1,
-        conclusion: 'failure',
-        html_url: 'https://github.com/run',
-      });
-      return result.failed === true && result.check === 'build' && result.checkName === 'Build';
     },
   },
 

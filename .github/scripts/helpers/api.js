@@ -478,132 +478,6 @@ async function fetchClosingIssueNumbers(botContext) {
 }
 
 /**
- * Resolves the pull request associated with a completed workflow_run event.
- * Same-repository PRs usually include workflow_run.pull_requests. Fork PRs can
- * leave that array empty, so fall back to the head owner and branch.
- *
- * @param {object} botContext
- * @param {object} workflowRun
- * @returns {Promise<object|null>}
- */
-async function resolveWorkflowRunPR(botContext, workflowRun) {
-  const pullRequest = workflowRun.pull_requests?.[0];
-  if (pullRequest?.number) {
-    const { data } = await botContext.github.rest.pulls.get({
-      owner: botContext.owner,
-      repo: botContext.repo,
-      pull_number: pullRequest.number,
-    });
-    return data;
-  }
-
-  const headBranch = workflowRun.head_branch;
-  const headOwner = workflowRun.head_repository?.owner?.login || workflowRun.repository?.owner?.login;
-  if (!headBranch || !headOwner || !isSafeSearchToken(headOwner) || !isSafeSearchToken(headBranch)) {
-    getLogger().log('Could not resolve workflow_run PR: missing or unsafe head owner/branch');
-    return null;
-  }
-
-  const { data } = await botContext.github.rest.pulls.list({
-    owner: botContext.owner,
-    repo: botContext.repo,
-    state: 'open',
-    head: `${headOwner}:${headBranch}`,
-    per_page: 100,
-  });
-
-  const match = data.find(pr => pr.head?.sha === workflowRun.head_sha) || data[0];
-  if (!match) {
-    getLogger().log('Could not resolve workflow_run PR from head branch', {
-      head: `${headOwner}:${headBranch}`,
-      headSha: workflowRun.head_sha,
-    });
-    return null;
-  }
-
-  return match;
-}
-
-function classifyFailedJob(job) {
-  const jobName = (job.name || '').toLowerCase();
-  const failedSteps = (job.steps || []).filter(step => step.conclusion === 'failure');
-  const failedText = [jobName, ...failedSteps.map(step => (step.name || '').toLowerCase())].join(' ');
-
-  if (failedText.includes('lint') || failedText.includes('clang-format')) {
-    return { check: 'lint', checkName: 'Lint' };
-  }
-
-  if (failedText.includes('ctest') || failedText.includes('test')) {
-    return { check: 'tests', checkName: 'Tests' };
-  }
-
-  return { check: 'build', checkName: 'Build' };
-}
-
-async function fetchWorkflowRunJobs(botContext, workflowRunId) {
-  const jobs = [];
-  let page = 1;
-  const perPage = 100;
-
-  while (true) {
-    const { data } = await botContext.github.rest.actions.listJobsForWorkflowRun({
-      owner: botContext.owner,
-      repo: botContext.repo,
-      run_id: workflowRunId,
-      filter: 'latest',
-      per_page: perPage,
-      page,
-    });
-
-    const pageJobs = data.jobs || [];
-    jobs.push(...pageJobs);
-
-    if (pageJobs.length < perPage) break;
-    page++;
-  }
-
-  return jobs;
-}
-
-/**
- * Classifies the PR Checks workflow result into lint, build, or test failure.
- *
- * @param {object} botContext
- * @param {object} workflowRun
- * @returns {Promise<{passed: boolean, failed: boolean, check: string|null, checkName: string|null, runUrl: string, error?: boolean, errorMessage?: string}>}
- */
-async function classifyWorkflowRunCI(botContext, workflowRun) {
-  const runUrl = workflowRun.html_url || '';
-
-  if (workflowRun.conclusion === 'success') {
-    return { passed: true, failed: false, check: null, checkName: null, runUrl };
-  }
-
-  try {
-    const jobs = await fetchWorkflowRunJobs(botContext, workflowRun.id);
-    const failedJob = jobs.find(job => job.conclusion === 'failure');
-    const classification = failedJob ? classifyFailedJob(failedJob) : { check: 'build', checkName: 'Build' };
-    return {
-      passed: false,
-      failed: true,
-      ...classification,
-      runUrl,
-    };
-  } catch (error) {
-    getLogger().error(`Could not classify workflow_run CI result: ${error.message}`);
-    return {
-      passed: false,
-      failed: false,
-      check: null,
-      checkName: null,
-      runUrl,
-      error: true,
-      errorMessage: error.message,
-    };
-  }
-}
-
-/**
  * Fetches the latest open milestone for the repository.
  * Milestones with due dates are sorted by latest due_on. If none have due
  * dates, falls back to the highest milestone number.
@@ -748,7 +622,7 @@ async function acknowledgeComment(botContext, commentId) {
  * @returns {Promise<{ allPassed: boolean }>}
  */
 async function runAllChecksAndComment(botContext, precomputed = {}) {
-  let { dco, gpg, merge, issueLink, ci } = precomputed;
+  let { dco, gpg, merge, issueLink } = precomputed;
   let commits = [];
 
   try {
@@ -780,7 +654,7 @@ async function runAllChecksAndComment(botContext, precomputed = {}) {
   }
 
   const prAuthor = botContext.pr?.user?.login;
-  const { marker, body, allPassed } = buildBotComment({ prAuthor, dco, gpg, merge, issueLink, ci });
+  const { marker, body, allPassed } = buildBotComment({ prAuthor, dco, gpg, merge, issueLink });
   await postOrUpdateComment(botContext, marker, body);
 
   return { allPassed };
@@ -1241,8 +1115,6 @@ module.exports = {
   fetchOpenPRs,
   fetchIssue,
   fetchClosingIssueNumbers,
-  resolveWorkflowRunPR,
-  classifyWorkflowRunCI,
   fetchLatestMilestone,
   setMilestone,
   swapStatusLabel,
