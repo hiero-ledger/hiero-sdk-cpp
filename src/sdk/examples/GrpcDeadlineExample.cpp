@@ -19,7 +19,8 @@ int main(int argc, char** argv)
     ECDSAsecp256k1PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
 
   // Create a client for Testnet
-  Client client = Client::forTestnet();
+  const char* const network = std::getenv("HIERO_NETWORK");
+  Client client = network ? Client::forName(network) : Client::forTestnet();
   client.setOperator(operatorAccountId, operatorPrivateKey);
 
   std::cout << "=== Global gRPC Deadline Demo ===" << std::endl;

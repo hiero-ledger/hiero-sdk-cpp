@@ -154,7 +154,8 @@ int main(int argc, char** argv)
     std::cerr << "Environment variables OPERATOR_ID, NETWORK_NAME, and OPERATOR_KEY are required." << std::endl;
     return 1;
   }
-  Client client = Client::forName(std::getenv("NETWORK_NAME"));
+  const char* const network = std::getenv("HIERO_NETWORK");
+  Client client = network ? Client::forName(network) : Client::forTestnet();
   client.setOperator(AccountId::fromString(std::getenv("OPERATOR_ID")),
                      ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY")));
   try

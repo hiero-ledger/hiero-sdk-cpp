@@ -170,14 +170,17 @@ Examples demonstrate various SDK features and must be run from the project root 
 
 ### Environment Setup
 
-Create a `.env` file in the project root with the following variables:
+Create a `.env` file in the project root (use `.env.sample` as a template) with the following variables:
 
 | Variable | Description |
 |----------|-------------|
 | `OPERATOR_ID` | The ID of the operator account (e.g., `0.0.1234`) |
 | `OPERATOR_KEY` | The DER-encoded hex private key of the operator account |
-| `HIERO_NETWORK` | Network name: `mainnet`, `testnet`, or `previewnet` |
+| `HIERO_NETWORK` | Network name: `mainnet`, `testnet`, `previewnet`, or `localhost` |
 | `PASSPHRASE` | (Optional) Passphrase for mnemonic-based key generation |
+| `MIRROR_NODE` | (Optional) Mirror-node endpoint for `InitializeClientWithMirrorNodeAddressBookExample` (e.g. `127.0.0.1:5600` for a local solo node) |
+
+> **Note**: `run_examples.sh` automatically copies the project-root `.env` into the examples binary directory, so you do not need to place `.env` files anywhere else.
 
 ### Running Examples
 
@@ -207,12 +210,40 @@ examples/<EXAMPLE_NAME>
 
 ### Batch Execution
 
-You can run all examples using the provided scripts:
+Use `run_examples.sh` to run examples locally (macOS/Linux):
 
-- macOS/Linux: `run_examples.sh`
-- Windows: `run_examples.bat`
+```sh
+# Run only offline examples – no network or credentials needed:
+./run_examples.sh --category offline
 
-Before running, update the `EXECUTABLES_DIRECTORY` variable in the script to point to your build output folder.
+# Run all examples against a local solo node:
+./run_examples.sh --category all --env-file .env
+
+# Run only network examples with a custom build directory:
+./run_examples.sh --category network --build-dir build/linux-x64-debug --config Debug
+```
+
+Available flags:
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-b, --build-dir DIR` | `build/linux-x64-debug` | CMake preset build directory |
+| `-c, --config CFG` | `Debug` | Build configuration (`Debug` or `Release`) |
+| `-C, --category CAT` | `all` | Which examples to run: `offline`, `network`, or `all` |
+| `-t, --timeout SECONDS` | `120` | Per-example timeout |
+| `-e, --env-file FILE` | `.env` | Credentials file for network examples |
+
+To reproduce exactly what CI runs, use CTest directly:
+
+```sh
+# Offline examples (no network, no credentials):
+ctest -L example-offline -C Debug --test-dir build/<PRESET> --output-on-failure
+
+# Network examples (requires a running solo node and .env in the binary dir):
+ctest -L example-network -C Debug --test-dir build/<PRESET> --output-on-failure
+```
+
+> **Adding a new example?** Register it in `src/sdk/examples/CMakeLists.txt` with `register_offline_example()` or `register_network_example()`, and add an entry to `src/sdk/examples/examples-manifest.yaml` with the matching category.
 
 ## Contributing
 

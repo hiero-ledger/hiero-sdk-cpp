@@ -23,7 +23,8 @@ int main(int argc, char** argv)
    * and subsequent updates will occur every 24 hours.
    * This is controlled by network update period, which defaults to 24 hours.
    */
-  Client client = Client::forTestnet();
+  const char* const network = std::getenv("HIERO_NETWORK");
+  Client client = network ? Client::forName(network) : Client::forTestnet();
 
   const auto defaultNetworkUpdatePeriod = client.getNetworkUpdatePeriod();
   std::cout << "The network update period is " << defaultNetworkUpdatePeriod.count() << " seconds" << std::endl;

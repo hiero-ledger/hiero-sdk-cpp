@@ -151,6 +151,7 @@ jobs:
           OPERATOR_ID=${{ steps.solo.outputs.OPERATOR_ID }}
           OPERATOR_KEY=${{ steps.solo.outputs.OPERATOR_KEY }}
           HIERO_NETWORK=localhost
+          MIRROR_NODE=127.0.0.1:5600
           EOF
           echo "Done."
 
