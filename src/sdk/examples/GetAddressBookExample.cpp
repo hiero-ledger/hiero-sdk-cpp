@@ -11,7 +11,8 @@ using namespace Hiero;
 int main(int argc, char** argv)
 {
   // Create a client for the Hiero network of which to get the address book.
-  Client client = Client::forTestnet();
+  const char* const network = std::getenv("HIERO_NETWORK");
+  Client client = network ? Client::forName(network) : Client::forTestnet();
 
   // Query for the address book using the client.
   const NodeAddressBook nodeAddressBook = AddressBookQuery().setFileId(FileId::ADDRESS_BOOK).execute(client);

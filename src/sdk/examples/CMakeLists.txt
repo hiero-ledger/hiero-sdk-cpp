@@ -305,3 +305,127 @@ install(TARGETS
         ${VERSION_EXAMPLE_NAME}
         ${ZERO_TOKEN_OPERATIONS_EXAMPLE_NAME}
         RUNTIME DESTINATION examples)
+
+# =============================================================================
+# CTest registrations for automated example validation
+#
+# Labels
+#   example          – all runnable examples (offline + network)
+#   example-offline  – no network required; always run in CI
+#   example-network  – requires a live Hiero node + OPERATOR_ID / OPERATOR_KEY
+#
+# Skipped examples (not registered):
+#   ConsensusPubSubExample              – infinite loop
+#   ConsensusPubSubChunkedExample       – infinite loop
+#   ConsensusPubSubWithSubmitKeyExample – infinite loop
+#   ValidateChecksumExample             – reads stdin interactively
+#
+# Each test runs from the directory containing the compiled binary so that
+# dotenv::init() picks up any .env file written there by the CI workflow,
+# and so that auxiliary files (config/, addressbook/) are reachable.
+# =============================================================================
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+# Register an offline example (no network, no credentials required).
+macro(register_offline_example TARGET TIMEOUT_S)
+    add_test(
+        NAME    "example-offline-${TARGET}"
+        COMMAND $<TARGET_FILE:${TARGET}>
+        WORKING_DIRECTORY $<TARGET_FILE_DIR:${TARGET}>
+    )
+    set_tests_properties("example-offline-${TARGET}" PROPERTIES
+        LABELS   "example;example-offline"
+        TIMEOUT  ${TIMEOUT_S}
+    )
+endmacro()
+
+# Register a network example (requires a running Hiero node + credentials).
+macro(register_network_example TARGET TIMEOUT_S)
+    add_test(
+        NAME    "example-network-${TARGET}"
+        COMMAND $<TARGET_FILE:${TARGET}>
+        WORKING_DIRECTORY $<TARGET_FILE_DIR:${TARGET}>
+    )
+    set_tests_properties("example-network-${TARGET}" PROPERTIES
+        LABELS   "example;example-network"
+        TIMEOUT  ${TIMEOUT_S}
+    )
+endmacro()
+
+# ── Offline examples ──────────────────────────────────────────────────────────
+register_offline_example(${ACCOUNT_CREATION_WAYS_EXAMPLE_NAME}                     30)
+register_offline_example(${GENERATE_KEY_EXAMPLE_NAME}                              30)
+register_offline_example(${GENERATE_PRIVATE_KEY_FROM_MNEMONIC_EXAMPLE_NAME}        30)
+register_offline_example(${GENERATE_PRIVATE_KEY_FROM_SPECIFIC_MNEMONIC_EXAMPLE_NAME} 30)
+register_offline_example(${VERSION_EXAMPLE_NAME}                                   30)
+
+# ConstructClientExample reads HIERO_NETWORK from the environment but issues
+# no RPC calls, so it is classified offline.  The environment variable is set
+# here to a safe default; CI can override it.
+add_test(
+    NAME    "example-offline-${CONSTRUCT_CLIENT_EXAMPLE_NAME}"
+    COMMAND $<TARGET_FILE:${CONSTRUCT_CLIENT_EXAMPLE_NAME}>
+    WORKING_DIRECTORY $<TARGET_FILE_DIR:${CONSTRUCT_CLIENT_EXAMPLE_NAME}>
+)
+set_tests_properties("example-offline-${CONSTRUCT_CLIENT_EXAMPLE_NAME}" PROPERTIES
+    LABELS              "example;example-offline"
+    TIMEOUT             30
+    ENVIRONMENT         "HIERO_NETWORK=testnet"
+)
+
+# ── Network examples ──────────────────────────────────────────────────────────
+register_network_example(${ACCOUNT_ALIAS_EXAMPLE_NAME}                             120)
+register_network_example(${ACCOUNT_ALLOWANCE_EXAMPLE_NAME}                         120)
+register_network_example(${ACCOUNT_ALLOWANCE_SERIALIZED_EXAMPLE_NAME}              120)
+register_network_example(${ACCOUNT_CREATE_WITH_HTS_EXAMPLE_NAME}                   120)
+register_network_example(${ACCOUNT_HOOKS_EXAMPLE_NAME}                             120)
+register_network_example(${AUTO_CREATE_ACCOUNT_TRANSFER_TRANSACTION_EXAMPLE_NAME}  120)
+register_network_example(${BATCH_TRANSACTION_EXAMPLE_NAME}                         120)
+register_network_example(${CONTRACT_HOOKS_EXAMPLE_NAME}                            180)
+register_network_example(${CONTRACT_NONCES_EXAMPLE_NAME}                           180)
+register_network_example(${CREATE_ACCOUNT_EXAMPLE_NAME}                            120)
+register_network_example(${CREATE_ACCOUNT_THRESHOLD_KEY_EXAMPLE_NAME}              120)
+register_network_example(${CREATE_FILE_EXAMPLE_NAME}                               120)
+register_network_example(${CREATE_SIMPLE_CONTRACT_EXAMPLE_NAME}                    180)
+register_network_example(${CREATE_STATEFUL_CONTRACT_EXAMPLE_NAME}                  180)
+register_network_example(${CREATE_TOPIC_EXAMPLE_NAME}                              120)
+register_network_example(${CUSTOM_FEES_EXAMPLE_NAME}                               180)
+register_network_example(${DELETE_ACCOUNT_EXAMPLE_NAME}                            120)
+register_network_example(${DELETE_FILE_EXAMPLE_NAME}                               120)
+register_network_example(${EXEMPT_CUSTOM_FEES_EXAMPLE_NAME}                        180)
+register_network_example(${FILE_APPEND_CHUNKED_EXAMPLE_NAME}                       120)
+register_network_example(${GET_ACCOUNT_BALANCE_EXAMPLE_NAME}                        60)
+register_network_example(${GET_ACCOUNT_INFO_EXAMPLE_NAME}                           60)
+register_network_example(${GET_ADDRESS_BOOK_EXAMPLE_NAME}                           60)
+register_network_example(${GET_EXCHANGE_RATES_EXAMPLE_NAME}                         60)
+register_network_example(${GET_FILE_CONTENTS_EXAMPLE_NAME}                          60)
+register_network_example(${GRPC_DEADLINE_EXAMPLE_NAME}                             120)
+register_network_example(${HOOK_STORE_EXAMPLE_NAME}                                180)
+register_network_example(${INITIALIZE_CLIENT_WITH_MIRROR_NODE_ADDRESS_BOOK_EXAMPLE_NAME} 120)
+register_network_example(${LONG_TERM_SCHEDULED_TRANSACTION_EXAMPLE_NAME}           180)
+register_network_example(${MIRROR_NODE_CONTRACT_QUERY_EXAMPLE}                     180)
+register_network_example(${MULTI_APP_TRANSFER_EXAMPLE_NAME}                        120)
+register_network_example(${MULTI_SIG_OFFLINE_EXAMPLE_NAME}                         120)
+register_network_example(${NFT_ADD_REMOVE_ALLOWANCES_EXAMPLE_NAME}                 180)
+register_network_example(${PRNG_EXAMPLE_NAME}                                       60)
+register_network_example(${REVENUE_GENERATING_TOPICS_EXAMPLE_NAME}                 180)
+register_network_example(${SCHEDULE_EXAMPLE_NAME}                                  120)
+register_network_example(${SCHEDULE_IDENTICAL_TRANSACTION_EXAMPLE_NAME}            120)
+register_network_example(${SCHEDULE_MULTI_SIG_TRANSACTION_EXAMPLE_NAME}            120)
+register_network_example(${SCHEDULE_NETWORK_UPDATE_EXAMPLE_NAME}                   120)
+register_network_example(${SCHEDULE_TRANSACTION_MULTI_SIG_TRANSACTION_EXAMPLE_NAME} 120)
+register_network_example(${SCHEDULE_TRANSFER_EXAMPLE_NAME}                         120)
+register_network_example(${SIGN_TRANSACTION_EXAMPLE_NAME}                          120)
+register_network_example(${SOLIDITY_PRECOMPILE_EXAMPLE_NAME}                       180)
+register_network_example(${STAKING_EXAMPLE_NAME}                                   120)
+register_network_example(${STAKING_WITH_UPDATE_EXAMPLE_NAME}                       120)
+register_network_example(${TOKEN_AIRDROP_EXAMPLE_NAME}                             180)
+register_network_example(${TOKEN_CREATE_FREEZE_DELETE_EXAMPLE_NAME}                120)
+register_network_example(${TOKEN_METADATA_EXAMPLE_NAME}                            120)
+register_network_example(${TOPIC_WITH_ADMIN_KEY_EXAMPLE_NAME}                      120)
+register_network_example(${TRANSFER_CRYPTO_EXAMPLE_NAME}                           120)
+register_network_example(${TRANSFER_TOKENS_EXAMPLE_NAME}                           120)
+register_network_example(${TRANSFER_TRANSACTION_HOOKS_EXAMPLE_NAME}                180)
+register_network_example(${TRANSFER_USING_EVM_ADDRESS_EXAMPLE_NAME}                120)
+register_network_example(${UPDATE_ACCOUNT_PUBLIC_KEY_EXAMPLE_NAME}                 120)
+register_network_example(${ZERO_TOKEN_OPERATIONS_EXAMPLE_NAME}                     120)
