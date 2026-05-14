@@ -14,4 +14,5 @@ jobs:
     with:
       run-windows-builds: true
       run-macos-builds: true
+      run-clang-libcxx-build: true
       upload-artifacts: false

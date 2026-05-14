@@ -12,8 +12,14 @@ on:
         description: "Select this option when you want to run the MacOS builds."
         type: boolean
         required: false
-        default: false 
-       
+        default: false
+
+      run-clang-libcxx-build:
+        description: "Run the Linux Clang+libc++ build"
+        required: false
+        type: boolean
+        default: false
+
       upload-artifacts:
         description: "Select this option when you want to upload the artifacts."
         type: boolean
@@ -32,11 +38,17 @@ on:
         description: "Select this option when you want to run the MacOS builds."
         type: boolean
         required: false
-        default: false 
-         
+        default: false
+
+      run-clang-libcxx-build:
+        description: "Run the Linux Clang+libc++ build"
+        required: false
+        type: boolean
+        default: false
+
       upload-artifacts:
         description: "Select this option when you want to upload the artifacts."
-        type: boolean 
+        type: boolean
         required: false
         default: true
 
@@ -336,3 +348,61 @@ jobs:
           name: hapi-library-${{ runner.os }}-${{ steps.sha.outputs.short }}
           path: package/
           if-no-files-found: warn
+
+  build-linux-clang-libcxx:
+    name: "Build (Linux, clang+libc++)"
+    if: ${{ (inputs.run-clang-libcxx-build) && !cancelled() }}
+    runs-on: hiero-client-sdk-linux-large
+
+    env:
+      HIERO_NETWORK: localhost
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: recursive
+
+      - name: Install libc++ and libc++abi
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libc++-dev libc++abi-dev
+
+      - name: Install CMake & Ninja
+        uses: step-security/get-cmake@082f0e11945209d5c8d8476a791e39d4d041005d # v4.3.1
+        with:
+          useCloudCache: true
+
+      - name: Setup VCPkg
+        uses: step-security/run-vcpkg@48490398616947b0df92dc1b24aab5339a66f9f0 # v11.5.2
+        with:
+          binaryCachePath: ${{ github.workspace }}/b/vcpkg_cache
+
+      - name: Convert VCPkg to Full Clone
+        working-directory: vcpkg
+        run: git fetch --unshallow --prune
+
+      - name: Configure CMake (Debug)
+        run: cmake --preset linux-x64-clang-libcxx-debug -DBUILD_TESTS=ON
+
+      - name: Build (Debug)
+        run: cmake --build --preset linux-x64-clang-libcxx-debug -j 6
+
+      - name: Run Unit Tests (Debug)
+        run: ctest -j 6 -C Debug --test-dir build/linux-x64-clang-libcxx-debug -R "TestVectors|UnitTests" --output-on-failure
+        continue-on-error: false
+
+      - name: Configure CMake (Release)
+        run: cmake --preset linux-x64-clang-libcxx-release -DBUILD_TESTS=ON
+
+      - name: Build (Release)
+        run: cmake --build --preset linux-x64-clang-libcxx-release -j 6
+
+      - name: Run Unit Tests (Release)
+        run: ctest -j 6 -C Release --test-dir build/linux-x64-clang-libcxx-release -R "TestVectors|UnitTests" --output-on-failure
+        continue-on-error: false
