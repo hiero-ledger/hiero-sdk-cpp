@@ -83,8 +83,7 @@ EthereumTransaction& EthereumTransaction::sign(const std::shared_ptr<PrivateKey>
     throw std::runtime_error("Unexpected ECDSA signature size while signing Ethereum transaction");
   }
 
-  std::vector<std::byte> r(signatureBytes.cbegin(),
-                           signatureBytes.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE);
+  std::vector<std::byte> r(signatureBytes.cbegin(), signatureBytes.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE);
   std::vector<std::byte> s(signatureBytes.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE, signatureBytes.cend());
 
   const int recId = ecdsaKey->getRecoveryId(r, s, messageToSign);

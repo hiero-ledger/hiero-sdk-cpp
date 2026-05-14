@@ -77,7 +77,7 @@ public:
 
   /**
    * Sign this EthereumTransaction with the specified private key.
-    *
+   *
    * @param key The private key to use to sign this transaction.
    * @return A reference to this EthereumTransaction object.
    */
