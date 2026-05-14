@@ -2,7 +2,7 @@
 #ifndef HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_EVP_MD_H_
 #define HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_EVP_MD_H_
 
-#include "impl/openssl_utils/OpenSSLObjectWrapper.h"
+#include "impl/CryptoObjectWrapper.h"
 
 #include <openssl/evp.h>
 
@@ -11,7 +11,7 @@ namespace Hiero::internal::OpenSSLUtils
 /**
  * Wrapper class for the OpenSSL EVP_MD object.
  */
-class EVP_MD : public OpenSSLObjectWrapper<::EVP_MD>
+class EVP_MD : public CryptoObjectWrapper<::EVP_MD>
 {
 public:
   /**
@@ -29,7 +29,7 @@ public:
    * @param evpMd The EVP_MD OpenSSL object to wrap.
    */
   explicit EVP_MD(::EVP_MD* evpMd)
-    : OpenSSLObjectWrapper(evpMd, &EVP_MD_free)
+    : CryptoObjectWrapper(evpMd, &EVP_MD_free)
   {
   }
 };

@@ -2,7 +2,7 @@
 #ifndef HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_SECP256K1_CONTEXT_H_
 #define HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_SECP256K1_CONTEXT_H_
 
-#include "impl/openssl_utils/OpenSSLObjectWrapper.h"
+#include "impl/CryptoObjectWrapper.h"
 
 #include <secp256k1.h>
 
@@ -11,7 +11,7 @@ namespace Hiero::internal::OpenSSLUtils
 /**
  * Wrapper class for the secp256k1_context object.
  */
-class Secp256k1Context : public OpenSSLObjectWrapper<::secp256k1_context>
+class Secp256k1Context : public CryptoObjectWrapper<::secp256k1_context>
 {
 public:
   /**
@@ -29,7 +29,7 @@ public:
    * @param ctx The secp256k1_context object to wrap.
    */
   explicit Secp256k1Context(::secp256k1_context* ctx)
-    : OpenSSLObjectWrapper(ctx, &secp256k1_context_destroy)
+    : CryptoObjectWrapper(ctx, &secp256k1_context_destroy)
   {
   }
 };

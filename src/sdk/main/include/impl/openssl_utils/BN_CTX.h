@@ -2,7 +2,7 @@
 #ifndef HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_BN_CTX_H_
 #define HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_BN_CTX_H_
 
-#include "impl/openssl_utils/OpenSSLObjectWrapper.h"
+#include "impl/CryptoObjectWrapper.h"
 
 #include <openssl/bn.h>
 
@@ -11,7 +11,7 @@ namespace Hiero::internal::OpenSSLUtils
 /**
  * Wrapper class for the OpenSSL BN_CTX object.
  */
-class BN_CTX : public OpenSSLObjectWrapper<::BN_CTX>
+class BN_CTX : public CryptoObjectWrapper<::BN_CTX>
 {
 public:
   /**
@@ -29,7 +29,7 @@ public:
    * @param bnCtx The BN_CTX OpenSSL object to wrap.
    */
   explicit BN_CTX(::BN_CTX* bnCtx)
-    : OpenSSLObjectWrapper(bnCtx, &BN_CTX_free)
+    : CryptoObjectWrapper(bnCtx, &BN_CTX_free)
   {
   }
 };
