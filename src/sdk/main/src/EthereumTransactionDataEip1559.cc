@@ -89,6 +89,23 @@ std::vector<std::byte> EthereumTransactionDataEip1559::toBytes() const
 }
 
 //-----
+std::vector<std::byte> EthereumTransactionDataEip1559::toSignBytes() const
+{
+  RLPItem list(RLPItem::RLPType::LIST_TYPE);
+  list.pushBack(mChainId);
+  list.pushBack(mNonce);
+  list.pushBack(mMaxPriorityGas);
+  list.pushBack(mMaxGas);
+  list.pushBack(mGasLimit);
+  list.pushBack(mTo);
+  list.pushBack(mValue);
+  list.pushBack(mCallData);
+  list.pushBack(RLPItem());
+
+  return internal::Utilities::concatenateVectors({ { std::byte(0x02) }, list.write() });
+}
+
+//-----
 std::string EthereumTransactionDataEip1559::toString() const
 {
   return "mChainId: " + internal::HexConverter::bytesToHex(mChainId) +

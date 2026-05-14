@@ -76,6 +76,14 @@ public:
   EthereumTransaction& setMaxGasAllowance(const Hbar& maxGasAllowance);
 
   /**
+   * Sign this EthereumTransaction with the specified private key.
+    *
+   * @param key The private key to use to sign this transaction.
+   * @return A reference to this EthereumTransaction object.
+   */
+  EthereumTransaction& sign(const std::shared_ptr<PrivateKey>& key);
+
+  /**
    * Get the raw Ethereum transaction.
    *
    * @return The raw Ethereum transaction.
