@@ -65,17 +65,20 @@ TEST_F(EthereumTransactionIntegrationTests, SignerNonceChangedOnEthereumTransact
                              .mFileId.value());
 
   const std::string memo = "[e2e::ContractCreateTransaction]";
-  ContractId contractId;
-  EXPECT_NO_THROW(contractId =
+  const uint64_t createGas = 1000000ULL;
+  TransactionReceipt contractReceipt;
+  EXPECT_NO_THROW(contractReceipt =
                     ContractCreateTransaction()
                       .setBytecodeFileId(fileId)
                       .setAdminKey(getTestClient().getOperatorPublicKey())
-                      .setGas(200000ULL)
+                      .setGas(createGas)
                       .setConstructorParameters(ContractFunctionParameters().addString("Hello from Hiero.").toBytes())
                       .setMemo(memo)
                       .execute(getTestClient())
-                      .getReceipt(getTestClient())
-                      .mContractId.value());
+                      .getReceipt(getTestClient()));
+  EXPECT_EQ(contractReceipt.mStatus, Status::SUCCESS);
+  ASSERT_TRUE(contractReceipt.mContractId.has_value());
+  const ContractId contractId = contractReceipt.mContractId.value();
 
   // Prepare byte vectors for passing to RLP serialization
   std::vector<std::byte> type = internal::HexConverter::hexToBytes("02");
