@@ -3,9 +3,9 @@
 #define HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_BIGNUM_H_
 
 #include "exceptions/OpenSSLException.h"
+#include "impl/CryptoObjectWrapper.h"
 #include "impl/HexConverter.h"
 #include "impl/openssl_utils/BN_CTX.h"
-#include "impl/CryptoObjectWrapper.h"
 #include "impl/openssl_utils/OpenSSLUtils.h"
 
 #include <openssl/bn.h>
