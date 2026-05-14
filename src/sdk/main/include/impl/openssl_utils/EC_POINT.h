@@ -2,7 +2,7 @@
 #ifndef HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_EC_POINT_H_
 #define HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_EC_POINT_H_
 
-#include "impl/openssl_utils/OpenSSLObjectWrapper.h"
+#include "impl/CryptoObjectWrapper.h"
 
 #include <openssl/ec.h>
 
@@ -11,7 +11,7 @@ namespace Hiero::internal::OpenSSLUtils
 /**
  * Wrapper class for the OpenSSL EC_POINT object.
  */
-class EC_POINT : public OpenSSLObjectWrapper<::EC_POINT>
+class EC_POINT : public CryptoObjectWrapper<::EC_POINT>
 {
 public:
   /**
@@ -29,7 +29,7 @@ public:
    * @param ecPoint The EC_POINT OpenSSL object to wrap.
    */
   explicit EC_POINT(::EC_POINT* ecPoint)
-    : OpenSSLObjectWrapper(ecPoint, &EC_POINT_free)
+    : CryptoObjectWrapper(ecPoint, &EC_POINT_free)
   {
   }
 };

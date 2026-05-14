@@ -2,7 +2,7 @@
 #ifndef HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_EC_GROUP_H_
 #define HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_EC_GROUP_H_
 
-#include "impl/openssl_utils/OpenSSLObjectWrapper.h"
+#include "impl/CryptoObjectWrapper.h"
 
 #include <openssl/ec.h>
 
@@ -11,7 +11,7 @@ namespace Hiero::internal::OpenSSLUtils
 /**
  * Wrapper class for the OpenSSL EC_GROUP object.
  */
-class EC_GROUP : public OpenSSLObjectWrapper<::EC_GROUP>
+class EC_GROUP : public CryptoObjectWrapper<::EC_GROUP>
 {
 public:
   /**
@@ -20,7 +20,7 @@ public:
    * @param ecGroup The EC_GROUP OpenSSL object to wrap.
    */
   explicit EC_GROUP(::EC_GROUP* ecGroup)
-    : OpenSSLObjectWrapper(ecGroup, &EC_GROUP_free, &EC_GROUP_dup)
+    : CryptoObjectWrapper(ecGroup, &EC_GROUP_free, &EC_GROUP_dup)
   {
   }
 };

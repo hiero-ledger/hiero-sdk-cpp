@@ -3,9 +3,9 @@
 #define HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_BIGNUM_H_
 
 #include "exceptions/OpenSSLException.h"
+#include "impl/CryptoObjectWrapper.h"
 #include "impl/HexConverter.h"
 #include "impl/openssl_utils/BN_CTX.h"
-#include "impl/openssl_utils/OpenSSLObjectWrapper.h"
 #include "impl/openssl_utils/OpenSSLUtils.h"
 
 #include <openssl/bn.h>
@@ -17,7 +17,7 @@ namespace Hiero::internal::OpenSSLUtils
 /**
  * Wrapper class for the OpenSSL BIGNUM object.
  */
-class BIGNUM : public OpenSSLObjectWrapper<::BIGNUM>
+class BIGNUM : public CryptoObjectWrapper<::BIGNUM>
 {
 public:
   /**
@@ -26,7 +26,7 @@ public:
    * @param bignum The BIGNUM OpenSSL object to wrap.
    */
   explicit BIGNUM(::BIGNUM* bignum)
-    : OpenSSLObjectWrapper(bignum, &BN_clear_free, &BN_dup)
+    : CryptoObjectWrapper(bignum, &BN_clear_free, &BN_dup)
   {
   }
 

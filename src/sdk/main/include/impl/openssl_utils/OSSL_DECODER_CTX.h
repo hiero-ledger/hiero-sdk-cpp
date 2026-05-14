@@ -2,7 +2,7 @@
 #ifndef HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_OSSL_DECODER_CTX_H_
 #define HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_OSSL_DECODER_CTX_H_
 
-#include "impl/openssl_utils/OpenSSLObjectWrapper.h"
+#include "impl/CryptoObjectWrapper.h"
 
 #include <openssl/decoder.h>
 
@@ -11,7 +11,7 @@ namespace Hiero::internal::OpenSSLUtils
 /**
  * Wrapper class for the OpenSSL OSSL_DECODER_CTX object.
  */
-class OSSL_DECODER_CTX : public OpenSSLObjectWrapper<::OSSL_DECODER_CTX>
+class OSSL_DECODER_CTX : public CryptoObjectWrapper<::OSSL_DECODER_CTX>
 {
 public:
   /**
@@ -29,7 +29,7 @@ public:
    * @param osslDecoderCtx The OSSL_DECODER_CTX OpenSSL object to wrap.
    */
   explicit OSSL_DECODER_CTX(::OSSL_DECODER_CTX* osslDecoderCtx)
-    : OpenSSLObjectWrapper(osslDecoderCtx, &OSSL_DECODER_CTX_free)
+    : CryptoObjectWrapper(osslDecoderCtx, &OSSL_DECODER_CTX_free)
   {
   }
 };

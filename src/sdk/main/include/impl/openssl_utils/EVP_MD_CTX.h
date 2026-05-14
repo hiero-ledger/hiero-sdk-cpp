@@ -2,7 +2,7 @@
 #ifndef HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_EVP_MD_CTX_H_
 #define HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_EVP_MD_CTX_H_
 
-#include "impl/openssl_utils/OpenSSLObjectWrapper.h"
+#include "impl/CryptoObjectWrapper.h"
 
 #include <openssl/evp.h>
 
@@ -11,7 +11,7 @@ namespace Hiero::internal::OpenSSLUtils
 /**
  * Wrapper class for the OpenSSL EVP_MD_CTX object.
  */
-class EVP_MD_CTX : public OpenSSLObjectWrapper<::EVP_MD_CTX>
+class EVP_MD_CTX : public CryptoObjectWrapper<::EVP_MD_CTX>
 {
 public:
   /**
@@ -29,7 +29,7 @@ public:
    * @param evpMdCtx The EVP_MD_CTX OpenSSL object to wrap.
    */
   explicit EVP_MD_CTX(::EVP_MD_CTX* evpMdCtx)
-    : OpenSSLObjectWrapper(evpMdCtx, &EVP_MD_CTX_free)
+    : CryptoObjectWrapper(evpMdCtx, &EVP_MD_CTX_free)
   {
   }
 };

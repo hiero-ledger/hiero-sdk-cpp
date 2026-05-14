@@ -2,7 +2,7 @@
 #ifndef HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_ECDSA_SIG_H_
 #define HIERO_SDK_CPP_IMPL_OPENSSL_UTILS_ECDSA_SIG_H_
 
-#include "impl/openssl_utils/OpenSSLObjectWrapper.h"
+#include "impl/CryptoObjectWrapper.h"
 
 #include <openssl/ecdsa.h>
 
@@ -11,7 +11,7 @@ namespace Hiero::internal::OpenSSLUtils
 /**
  * Wrapper class for the OpenSSL ECDSA_SIG object.
  */
-class ECDSA_SIG : public OpenSSLObjectWrapper<::ECDSA_SIG>
+class ECDSA_SIG : public CryptoObjectWrapper<::ECDSA_SIG>
 {
 public:
   /**
@@ -29,7 +29,7 @@ public:
    * @param ecdsaSig The ECDSA_SIG OpenSSL object to wrap.
    */
   explicit ECDSA_SIG(::ECDSA_SIG* ecdsaSig)
-    : OpenSSLObjectWrapper(ecdsaSig, &ECDSA_SIG_free)
+    : CryptoObjectWrapper(ecdsaSig, &ECDSA_SIG_free)
   {
   }
 };
