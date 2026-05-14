@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "EthereumTransaction.h"
+#include "ECDSAsecp256k1PrivateKey.h"
+#include "EthereumTransactionData.h"
+#include "EthereumTransactionDataEip1559.h"
 #include "impl/Node.h"
 #include "impl/Utilities.h"
 
 #include <services/ethereum_transaction.pb.h>
 #include <services/transaction.pb.h>
+
+#include <stdexcept>
 
 namespace Hiero
 {
@@ -45,6 +50,56 @@ EthereumTransaction& EthereumTransaction::setMaxGasAllowance(const Hbar& maxGasA
   requireNotFrozen();
   mMaxGasAllowance = maxGasAllowance;
   return *this;
+}
+
+//-----
+EthereumTransaction& EthereumTransaction::sign(const std::shared_ptr<PrivateKey>& key)
+{
+  if (!key)
+  {
+    throw std::invalid_argument("Signing key must be set.");
+  }
+
+  EthereumTransaction& signedTransaction =
+    static_cast<EthereumTransaction&>(Transaction<EthereumTransaction>::sign(key));
+
+  const auto ecdsaKey = std::dynamic_pointer_cast<ECDSAsecp256k1PrivateKey>(key);
+  if (!ecdsaKey || mEthereumData.empty())
+  {
+    return signedTransaction;
+  }
+
+  std::unique_ptr<EthereumTransactionData> ethData = EthereumTransactionData::fromBytes(mEthereumData);
+  auto* eip1559Data = dynamic_cast<EthereumTransactionDataEip1559*>(ethData.get());
+  if (!eip1559Data)
+  {
+    return signedTransaction;
+  }
+
+  const std::vector<std::byte> messageToSign = eip1559Data->toSignBytes();
+  const std::vector<std::byte> signatureBytes = ecdsaKey->sign(messageToSign);
+  if (signatureBytes.size() != ECDSAsecp256k1PrivateKey::RAW_SIGNATURE_SIZE)
+  {
+    throw std::runtime_error("Unexpected ECDSA signature size while signing Ethereum transaction");
+  }
+
+  std::vector<std::byte> r(signatureBytes.cbegin(),
+                           signatureBytes.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE);
+  std::vector<std::byte> s(signatureBytes.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE, signatureBytes.cend());
+
+  const int recId = ecdsaKey->getRecoveryId(r, s, messageToSign);
+  if (recId < 0)
+  {
+    throw std::runtime_error("Failed to compute recovery ID during Ethereum transaction signing");
+  }
+
+  eip1559Data->mR = std::move(r);
+  eip1559Data->mS = std::move(s);
+  eip1559Data->mRecoveryId = { static_cast<std::byte>(recId) };
+  mEthereumData = eip1559Data->toBytes();
+
+  regenerateSignedTransactions(nullptr);
+  return signedTransaction;
 }
 
 //-----
