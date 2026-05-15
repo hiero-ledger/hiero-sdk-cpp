@@ -80,6 +80,15 @@ cmake --build --preset windows-x64-release
 cmake --preset linux-x64-release
 cmake --build --preset linux-x64-release
 
+# Note on Linux Presets: The standard '''linux-x64-release'''
+# and '''linux-x64-debug''' presets are the recommended
+# defaults for local development and will automatically
+# use the GCC Compiler. If you are specifically testing
+# toolchain portability or checking CI matrix
+# coverage, compiler-explicit alternatives are available:
+# '''linux-x64-gcc-release''' / '''linux-x64-gcc-debug'''
+# (with '''clang''' variants forthcoming)
+
 # macOS (Intel x64)
 cmake --preset macos-x64-release
 cmake --build --preset macos-x64-release

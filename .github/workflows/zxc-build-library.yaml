@@ -86,7 +86,7 @@ jobs:
       matrix:
         include:
           - os: Linux
-            preset: linux-x64
+            preset: linux-x64-gcc
 
     steps:
       - name: Harden Runner
