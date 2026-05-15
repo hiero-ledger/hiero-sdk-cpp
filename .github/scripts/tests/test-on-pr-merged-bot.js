@@ -8,7 +8,7 @@
 
 const { runTestSuite, createMockGithub } = require('./test-utils');
 const onPrMergedBot = require('../bot-on-pr-merged');
-const { MARKER } = require('../helpers/comments');
+const { PR_HELPER_MARKER } = require('../helpers/markers');
 
 // =============================================================================
 // SCENARIOS
@@ -31,7 +31,7 @@ const scenarios = [
       const mockGithub = createMockGithub({
         existingComments: [
           // PR 20 currently clean in its comment
-          { id: 201, body: `${MARKER}\nAll good` }
+          { id: 201, body: `${PR_HELPER_MARKER}\nAll good` }
           // PR 30 currently clean in its comment, but API says dirty!
         ],
       });
@@ -67,10 +67,10 @@ const scenarios = [
       // Also need to stub listComments to return comments per PR
       mockGithub.rest.issues.listComments = async ({ issue_number }) => {
         if (issue_number === 20) {
-          return { data: [{ id: 201, body: `${MARKER}\nNo conflicts previously` }] };
+          return { data: [{ id: 201, body: `${PR_HELPER_MARKER}\nNo conflicts previously` }] };
         }
         if (issue_number === 30) {
-          return { data: [{ id: 301, body: `${MARKER}\nNo conflicts previously` }] };
+          return { data: [{ id: 301, body: `${PR_HELPER_MARKER}\nNo conflicts previously` }] };
         }
         return { data: [] };
       };
@@ -124,7 +124,7 @@ const scenarios = [
       });
 
       mockGithub.rest.issues.listComments = async () => {
-        return { data: [{ id: 501, body: `${MARKER}\n:x: **Merge Conflicts**` }] };
+        return { data: [{ id: 501, body: `${PR_HELPER_MARKER}\n:x: **Merge Conflicts**` }] };
       };
 
       const context = {
@@ -176,7 +176,7 @@ const scenarios = [
     run: async () => {
       const mockGithub = createMockGithub({
         existingComments: [
-          { id: 601, body: `${MARKER}\nAll good` }
+          { id: 601, body: `${PR_HELPER_MARKER}\nAll good` }
         ],
       });
       
@@ -190,7 +190,7 @@ const scenarios = [
       });
 
       mockGithub.rest.issues.listComments = async () => {
-        return { data: [{ id: 601, body: `${MARKER}\nAll good` }] };
+        return { data: [{ id: 601, body: `${PR_HELPER_MARKER}\nAll good` }] };
       };
 
       const context = {
@@ -214,7 +214,7 @@ const scenarios = [
     run: async () => {
       const mockGithub = createMockGithub({
         existingComments: [
-          { id: 701, body: `${MARKER}\n:x: **Merge Conflicts**` }
+          { id: 701, body: `${PR_HELPER_MARKER}\n:x: **Merge Conflicts**` }
         ],
       });
       
@@ -227,7 +227,7 @@ const scenarios = [
       });
 
       mockGithub.rest.issues.listComments = async () => {
-        return { data: [{ id: 701, body: `${MARKER}\n:x: **Merge Conflicts**` }] };
+        return { data: [{ id: 701, body: `${PR_HELPER_MARKER}\n:x: **Merge Conflicts**` }] };
       };
 
       const context = {
@@ -267,7 +267,7 @@ const scenarios = [
 
       // Dashboard currently shows clean (no conflict marker)
       mockGithub.rest.issues.listComments = async () => {
-        return { data: [{ id: 801, body: `${MARKER}\nAll good` }] };
+        return { data: [{ id: 801, body: `${PR_HELPER_MARKER}\nAll good` }] };
       };
 
       const context = {
@@ -308,7 +308,7 @@ const scenarios = [
     run: async () => {
       const mockGithub = createMockGithub({
         existingComments: [
-          { id: 901, body: `${MARKER}\n:x: **Merge Conflicts**` }
+          { id: 901, body: `${PR_HELPER_MARKER}\n:x: **Merge Conflicts**` }
         ],
       });
 
@@ -321,7 +321,7 @@ const scenarios = [
       });
 
       mockGithub.rest.issues.listComments = async () => {
-        return { data: [{ id: 901, body: `${MARKER}\n:x: **Merge Conflicts**` }] };
+        return { data: [{ id: 901, body: `${PR_HELPER_MARKER}\n:x: **Merge Conflicts**` }] };
       };
 
       const context = {
@@ -362,7 +362,7 @@ const scenarios = [
 
       // Dashboard already shows conflict
       mockGithub.rest.issues.listComments = async () => {
-        return { data: [{ id: 1001, body: `${MARKER}\n:x: **Merge Conflicts**` }] };
+        return { data: [{ id: 1001, body: `${PR_HELPER_MARKER}\n:x: **Merge Conflicts**` }] };
       };
 
       const context = {

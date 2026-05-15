@@ -1,12 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 //
-// tests/test-comments.js
+// tests/test-bot-pr-helper-comments.js
 //
-// Unit tests for helpers/comments.js (unified bot comment builder).
-// Run with: node .github/scripts/tests/test-comments.js
+// Unit tests for bot-pr-helper-comments.js (unified bot comment builder).
+// Run with: node .github/scripts/tests/test-bot-pr-helper-comments.js
 
 const { runTestSuite } = require('./test-utils');
-const { MARKER, buildBotComment, buildChecksSection, allChecksPassed, buildMergeConflictNotificationComment } = require('../helpers/comments');
+const { PR_HELPER_MARKER } = require('../helpers/markers');
+const {
+  buildBotComment,
+  buildChecksSection,
+  allChecksPassed,
+  buildMergeConflictNotificationComment,
+} = require('../bot-pr-helper-comments'); 
 
 // =============================================================================
 // TEST DATA HELPERS
@@ -89,10 +95,10 @@ const unitTests = [
   // Structure and greeting
   // ---------------------------------------------------------------------------
   {
-    name: 'Comment starts with <!-- bot:pr-helper --> marker',
+    name: 'Comment starts with PR_HELPER_MARKER',
     test: () => {
-      const { body } = buildBotComment({ prAuthor: 'alice', ...allPassing() });
-      return body.startsWith('<!-- bot:pr-helper -->');
+      const { body } = buildBotComment({ prAuthor: 'dave', ...allPassing() });
+      return body.startsWith(PR_HELPER_MARKER);
     },
   },
   {
@@ -107,13 +113,6 @@ const unitTests = [
     test: () => {
       const { body } = buildBotComment({ prAuthor: 'carol', ...allPassing() });
       return body.includes('PR Helper Bot');
-    },
-  },
-  {
-    name: 'marker field equals MARKER constant',
-    test: () => {
-      const { marker } = buildBotComment({ prAuthor: 'dave', ...allPassing() });
-      return marker === MARKER;
     },
   },
   {

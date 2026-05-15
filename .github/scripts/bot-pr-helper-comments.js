@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
-// helpers/comments.js
+// bot-pr-helper-comments.js
 //
 // Builds the unified PR Helper Bot dashboard comment. Designed with a layered
 // structure so future sections (commands, instructions) can be added alongside
 // checks without changing the overall shape.
 
-const { MAINTAINER_TEAM, DOCUMENTATION } = require('./constants');
-
-const MARKER = '<!-- bot:pr-helper -->';
+const { PR_HELPER_MARKER } = require('./helpers/markers');
+const { MAINTAINER_TEAM, DOCUMENTATION } = require('./helpers/constants');
 
 const SIGNING_GUIDE = DOCUMENTATION.signingGuide;
 const MERGE_CONFLICTS_GUIDE = DOCUMENTATION.mergeConflictsGuide;
@@ -178,8 +177,8 @@ function allChecksPassed({ dco, gpg, merge, issueLink }) {
 
 /**
  * Builds the full unified bot comment.
- * @param {{ prAuthor: string, dco: object, gpg: object, merge: object, issueLink: object }} params
- * @returns {{ marker: string, body: string, allPassed: boolean }}
+ * @param {{ prAuthor: string, dco: object, gpg: object, merge: object, issueLink: object, ci?: object }} params
+ * @returns {{ body: string, allPassed: boolean }}
  */
 function buildBotComment({ prAuthor, dco, gpg, merge, issueLink }) {
   const greeting = [
@@ -197,14 +196,17 @@ function buildBotComment({ prAuthor, dco, gpg, merge, issueLink }) {
     ? ':tada: *All checks passed! Your PR is ready for review. Great job!*'
     : ':hourglass_flowing_sand: *All checks must pass before this PR can be reviewed. You\'ve got this!*';
 
-  const body = [MARKER, greeting, '', '---', '', checksSection, '', '---', '', footer].join('\n');
-  return { marker: MARKER, body, allPassed: passed };
+  const body = [PR_HELPER_MARKER, greeting, '', '---', '', checksSection, '', '---', '', footer].join('\n');
+  return { body, allPassed: passed };
 }
 
 module.exports = {
-  MARKER,
   buildBotComment,
   buildChecksSection,
+  buildDCOSection,
+  buildGPGSection,
+  buildMergeSection,
+  buildIssueLinkSection,
   allChecksPassed,
   buildMergeConflictNotificationComment,
 };
