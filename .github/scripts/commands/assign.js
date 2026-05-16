@@ -44,6 +44,49 @@ const {
 // This ensures the correct prefix is used after command parsing.
 const logger = createDelegatingLogger();
 
+// =============================================================================
+// ASSIGNMENT DECISION OUTCOMES
+// =============================================================================
+
+/**
+ * Enumeration of all possible assignment decision outcomes.
+ * These represent the result of eligibility checks without performing any
+ * GitHub mutations.
+ * @enum {string}
+ */
+const AssignmentOutcome = {
+  ELIGIBLE: 'eligible',
+  ALREADY_ASSIGNED: 'already_assigned',
+  NOT_READY: 'not_ready',
+  MISSING_SKILL_LABEL: 'missing_skill_label',
+  ASSIGNMENT_LIMIT_EXCEEDED: 'assignment_limit_exceeded',
+  GFI_LIMIT_EXCEEDED: 'gfi_limit_exceeded',
+  PREREQUISITE_NOT_MET: 'prerequisite_not_met',
+  SKILL_LEVEL_CHANGED: 'skill_level_changed',
+  API_ERROR: 'api_error',
+  COMMENT_DELETED: 'comment_deleted',
+};
+
+// =============================================================================
+// DECISION LAYER - Pure eligibility checks without GitHub mutations
+// =============================================================================
+
+/**
+ * Represents the result of an assignment eligibility decision.
+ * @typedef {Object} AssignmentDecision
+ * @property {string} outcome - One of the AssignmentOutcome enum values
+ * @property {string} requesterUsername - The GitHub username requesting assignment
+ * @property {string|null} skillLevel - The skill level label on the issue (if available)
+ * @property {Object} metadata - Additional context for the decision
+ * @property {number|null} [metadata.completedCount] - Completed prerequisite count
+ * @property {number|null} [metadata.openAssignmentCount] - Current open assignments
+ * @property {number|null} [metadata.blockedCount] - Blocked issue count
+ * @property {string|null} [metadata.previousSkillLevel] - Previous skill level (for skill_level_changed)
+ * @property {string|null} [metadata.currentSkillLevel] - Current skill level (for skill_level_changed)
+ * @property {string|null} [metadata.error] - Error message (for api_error)
+ * @property {object|null} [metadata.freshIssue] - Fresh issue state (for race condition checks)
+ */
+
 /**
  * Formats a count for user-facing text when a threshold short-circuit may have
  * capped the value. If count reaches the short-circuit threshold, return an
@@ -83,6 +126,574 @@ async function getBlockedCount(github, owner, repo, username) {
 }
 
 /**
+ * Determines assignment eligibility by running all checks in order without
+ * performing any GitHub mutations. Returns a structured decision object that
+ * describes the outcome and provides context for the effect layer.
+ *
+ * This function performs the following checks in order:
+ *   1. Issue already assigned?
+ *   2. Missing "status: ready for dev" label?
+ *   3. No skill-level label?
+ *   4. At or above MAX_OPEN_ASSIGNMENTS?
+ *   5. GFI cap reached (skill: good first issue only)?
+ *   6. Skill prerequisites not met?
+ *   7. Fresh issue state checks (race conditions)
+ *
+ * @param {object} botContext - Bot context from buildBotContext.
+ * @param {string} requesterUsername - GitHub username requesting assignment.
+ * @returns {Promise<AssignmentDecision>} Structured decision result.
+ */
+async function determineAssignmentEligibility(botContext, requesterUsername) {
+  // Gate 1: Issue already assigned?
+  if (botContext.issue.assignees?.length > 0) {
+    logger.log(
+      "Exit: issue already assigned to",
+      botContext.issue.assignees.map((a) => a.login),
+    );
+    return {
+      outcome: AssignmentOutcome.ALREADY_ASSIGNED,
+      requesterUsername,
+      skillLevel: null,
+      metadata: { issue: botContext.issue },
+    };
+  }
+
+  // Gate 2: Missing "status: ready for dev" label?
+  if (!hasLabel(botContext.issue, LABELS.READY_FOR_DEV)) {
+    logger.log("Exit: issue missing ready for dev label");
+    return {
+      outcome: AssignmentOutcome.NOT_READY,
+      requesterUsername,
+      skillLevel: null,
+      metadata: {},
+    };
+  }
+
+  // Gate 3: No skill-level label?
+  const skillLevel = getHighestIssueSkillLevel(botContext.issue);
+  if (!skillLevel) {
+    logger.log("Exit: issue has no skill level label");
+    return {
+      outcome: AssignmentOutcome.MISSING_SKILL_LABEL,
+      requesterUsername,
+      skillLevel: null,
+      metadata: {},
+    };
+  }
+  logger.log("Issue skill level:", skillLevel);
+
+  // Gate 4: At or above MAX_OPEN_ASSIGNMENTS?
+  const openAssignmentCount = await countIssuesByAssignee(
+    botContext.github,
+    botContext.owner,
+    botContext.repo,
+    requesterUsername,
+    ISSUE_STATE.OPEN,
+    null,
+    MAX_OPEN_ASSIGNMENTS + 1,
+  );
+  if (openAssignmentCount === null) {
+    logger.log("Exit: could not verify open assignments due to API error");
+    return {
+      outcome: AssignmentOutcome.API_ERROR,
+      requesterUsername,
+      skillLevel,
+      metadata: { error: "Failed to count open assignments" },
+    };
+  }
+
+  if (openAssignmentCount >= MAX_OPEN_ASSIGNMENTS) {
+    logger.log("Contributor at or above assignment cap", {
+      maxAllowed: MAX_OPEN_ASSIGNMENTS,
+      currentCount: openAssignmentCount,
+    });
+
+    // Suppress limit failures caused by a duplicate /assign for this issue.
+    let freshIssue;
+    try {
+      const response = await botContext.github.rest.issues.get({
+        owner: botContext.owner,
+        repo: botContext.repo,
+        issue_number: botContext.number,
+      });
+      freshIssue = response.data;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      logger.error("Failed to fetch fresh issue state:", errorMsg);
+      return {
+        outcome: AssignmentOutcome.API_ERROR,
+        requesterUsername,
+        skillLevel,
+        metadata: { error: errorMsg },
+      };
+    }
+
+    const requesterAlreadyAssigned = freshIssue.assignees?.some(
+      (assignee) =>
+        (assignee.login || "").toLowerCase() ===
+        requesterUsername.toLowerCase(),
+    );
+
+    if (requesterAlreadyAssigned) {
+      logger.log("Exit: user is already assigned (caught during limit check)");
+      return {
+        outcome: AssignmentOutcome.ALREADY_ASSIGNED,
+        requesterUsername,
+        skillLevel,
+        metadata: { issue: freshIssue },
+      };
+    }
+
+    // --- Needs-review bypass check ---
+    const assignedIssues = await listAssignedIssues(
+      botContext.github,
+      botContext.owner,
+      botContext.repo,
+      requesterUsername,
+    );
+
+    if (assignedIssues === null) {
+      logger.log("Exit: could not fetch assigned issues due to API error");
+      return {
+        outcome: AssignmentOutcome.API_ERROR,
+        requesterUsername,
+        skillLevel,
+        metadata: { error: "Failed to fetch assigned issues" },
+      };
+    }
+
+    // Guard against vacuous truth
+    if (assignedIssues.length > 0) {
+      let allHaveNeedsReviewPR = true;
+      for (const issue of assignedIssues) {
+        const result = await hasNeedsReviewPR(
+          botContext.github,
+          botContext.owner,
+          botContext.repo,
+          requesterUsername,
+          issue.number,
+        );
+        if (result === null) {
+          logger.log(
+            `Exit: API error checking needs-review PR for issue #${issue.number}`,
+          );
+          return {
+            outcome: AssignmentOutcome.API_ERROR,
+            requesterUsername,
+            skillLevel,
+            metadata: { error: `Failed to check needs-review PR for issue #${issue.number}` },
+          };
+        }
+        if (!result) {
+          allHaveNeedsReviewPR = false;
+          break;
+        }
+      }
+
+      if (allHaveNeedsReviewPR) {
+        logger.log(
+          "Bypass: all assigned issues have linked needs-review PRs",
+          { issueCount: assignedIssues.length },
+        );
+        // Continue to next gates - bypass successful
+      } else {
+        // Fall through to limit exceeded
+        logger.log("Exit: contributor has too many open assignments", {
+          maxAllowed: MAX_OPEN_ASSIGNMENTS,
+          currentCount: openAssignmentCount,
+        });
+        const blockedCount = await getBlockedCount(
+          botContext.github,
+          botContext.owner,
+          botContext.repo,
+          requesterUsername,
+        );
+        return {
+          outcome: AssignmentOutcome.ASSIGNMENT_LIMIT_EXCEEDED,
+          requesterUsername,
+          skillLevel,
+          metadata: {
+            openAssignmentCount,
+            blockedCount,
+          },
+        };
+      }
+    } else {
+      logger.log(
+        "Bypass skipped: listAssignedIssues returned 0 issues despite count >= limit",
+      );
+      // Fall through to limit exceeded
+      logger.log("Exit: contributor has too many open assignments", {
+        maxAllowed: MAX_OPEN_ASSIGNMENTS,
+        currentCount: openAssignmentCount,
+      });
+      const blockedCount = await getBlockedCount(
+        botContext.github,
+        botContext.owner,
+        botContext.repo,
+        requesterUsername,
+      );
+      return {
+        outcome: AssignmentOutcome.ASSIGNMENT_LIMIT_EXCEEDED,
+        requesterUsername,
+        skillLevel,
+        metadata: {
+          openAssignmentCount,
+          blockedCount,
+        },
+      };
+    }
+  } else {
+    logger.log("Open assignment count OK:", {
+      maxAllowed: MAX_OPEN_ASSIGNMENTS,
+      currentCount: openAssignmentCount,
+    });
+  }
+
+  // Gate 5: GFI cap reached?
+  if (skillLevel === LABELS.GOOD_FIRST_ISSUE) {
+    const completedCount = await countIssuesByAssignee(
+      botContext.github,
+      botContext.owner,
+      botContext.repo,
+      requesterUsername,
+      ISSUE_STATE.CLOSED,
+      LABELS.GOOD_FIRST_ISSUE,
+      MAX_GFI_COMPLETIONS + 1,
+    );
+    if (completedCount === null) {
+      logger.log("Exit: could not verify GFI completion count due to API error");
+      return {
+        outcome: AssignmentOutcome.API_ERROR,
+        requesterUsername,
+        skillLevel,
+        metadata: { error: "Failed to count GFI completions" },
+      };
+    }
+    if (completedCount >= MAX_GFI_COMPLETIONS) {
+      logger.log("Exit: contributor has reached GFI completion cap", {
+        maxAllowed: MAX_GFI_COMPLETIONS,
+        completedCount,
+      });
+      return {
+        outcome: AssignmentOutcome.GFI_LIMIT_EXCEEDED,
+        requesterUsername,
+        skillLevel,
+        metadata: { completedCount },
+      };
+    }
+    logger.log("GFI completion count OK:", {
+      maxAllowed: MAX_GFI_COMPLETIONS,
+      completedCount,
+    });
+  }
+
+  // Gate 6: Skill prerequisites not met?
+  const prereq = SKILL_PREREQUISITES[skillLevel];
+  if (prereq.requiredLabel && prereq.requiredCount > 0) {
+    // Bypass: If the user already has worked on any level or higher then bypass them.
+    const skillIndex = SKILL_HIERARCHY.indexOf(skillLevel);
+    let bypassGranted = false;
+    if (skillIndex !== -1) {
+      for (let i = skillIndex; i < SKILL_HIERARCHY.length; i++) {
+        const checkCurrLevel = SKILL_HIERARCHY[i];
+        const countAtLevel = await countIssuesByAssignee(
+          botContext.github,
+          botContext.owner,
+          botContext.repo,
+          requesterUsername,
+          ISSUE_STATE.CLOSED,
+          checkCurrLevel,
+          1,
+        );
+
+        if (countAtLevel !== null && countAtLevel > 0) {
+          logger.log(
+            `Bypassing prerequisites: user has completed ${countAtLevel} issues with label "${checkCurrLevel}"`,
+          );
+          bypassGranted = true;
+          break;
+        }
+      }
+    }
+
+    if (!bypassGranted) {
+      // Normal validation
+      const completedCount = await countIssuesByAssignee(
+        botContext.github,
+        botContext.owner,
+        botContext.repo,
+        requesterUsername,
+        ISSUE_STATE.CLOSED,
+        prereq.requiredLabel,
+        prereq.requiredCount,
+      );
+      if (completedCount === null) {
+        logger.log("Exit: could not verify prerequisites due to API error");
+        return {
+          outcome: AssignmentOutcome.API_ERROR,
+          requesterUsername,
+          skillLevel,
+          metadata: { error: "Failed to verify prerequisites" },
+        };
+      }
+      if (completedCount < prereq.requiredCount) {
+        logger.log("Exit: prerequisites not met", {
+          required: prereq.requiredCount,
+          completed: completedCount,
+        });
+        return {
+          outcome: AssignmentOutcome.PREREQUISITE_NOT_MET,
+          requesterUsername,
+          skillLevel,
+          metadata: { completedCount },
+        };
+      }
+      logger.log("Prerequisites met:", {
+        required: prereq.requiredCount,
+        completed: completedCount,
+      });
+    }
+  }
+
+  // Gate 7: Fresh issue state checks (race conditions)
+  let freshIssue;
+  try {
+    const response = await botContext.github.rest.issues.get({
+      owner: botContext.owner,
+      repo: botContext.repo,
+      issue_number: botContext.number,
+    });
+    freshIssue = response.data;
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    logger.error("Failed to pre-fetch fresh issue state:", errorMsg);
+    return {
+      outcome: AssignmentOutcome.API_ERROR,
+      requesterUsername,
+      skillLevel,
+      metadata: { error: errorMsg },
+    };
+  }
+
+  const alreadyAssigned = freshIssue.assignees?.some(
+    (a) => a.login === requesterUsername,
+  );
+
+  if (alreadyAssigned) {
+    logger.log("Exit: user is already assigned (caught during fresh fetch)");
+    return {
+      outcome: AssignmentOutcome.ALREADY_ASSIGNED,
+      requesterUsername,
+      skillLevel,
+      metadata: { issue: freshIssue },
+    };
+  }
+
+  if (freshIssue.assignees?.length > 0) {
+    logger.log("Exit: issue was assigned by another user while queued");
+    return {
+      outcome: AssignmentOutcome.ALREADY_ASSIGNED,
+      requesterUsername,
+      skillLevel,
+      metadata: { issue: freshIssue },
+    };
+  }
+
+  // Revalidate labels from the fresh issue snapshot
+  if (!hasLabel(freshIssue, LABELS.READY_FOR_DEV)) {
+    logger.log("Exit: fresh issue state is missing ready for dev label");
+    return {
+      outcome: AssignmentOutcome.NOT_READY,
+      requesterUsername,
+      skillLevel,
+      metadata: { freshIssue },
+    };
+  }
+
+  const freshSkillLevel = getHighestIssueSkillLevel(freshIssue);
+  if (!freshSkillLevel) {
+    logger.log("Exit: fresh issue state has no skill level label");
+    return {
+      outcome: AssignmentOutcome.MISSING_SKILL_LABEL,
+      requesterUsername,
+      skillLevel,
+      metadata: { freshIssue },
+    };
+  }
+
+  // If the skill level changed while this run was queued, abort
+  if (freshSkillLevel !== skillLevel) {
+    logger.log("Exit: skill level changed while queued", {
+      stalePayloadLevel: skillLevel,
+      freshReadLevel: freshSkillLevel,
+    });
+    return {
+      outcome: AssignmentOutcome.SKILL_LEVEL_CHANGED,
+      requesterUsername,
+      skillLevel,
+      metadata: {
+        previousSkillLevel: skillLevel,
+        currentSkillLevel: freshSkillLevel,
+      },
+    };
+  }
+
+  // All checks passed - eligible for assignment
+  return {
+    outcome: AssignmentOutcome.ELIGIBLE,
+    requesterUsername,
+    skillLevel: freshSkillLevel,
+    metadata: { freshIssue },
+  };
+}
+
+// =============================================================================
+// EFFECT LAYER - GitHub mutations and comment posting
+// =============================================================================
+
+/**
+ * Executes GitHub side effects based on an assignment decision.
+ * Posts appropriate comments, adds reactions, assigns users, and updates labels.
+ *
+ * @param {object} botContext - Bot context from buildBotContext.
+ * @param {AssignmentDecision} decision - The decision result from determineAssignmentEligibility.
+ * @returns {Promise<void>}
+ */
+async function executeAssignmentEffects(botContext, decision) {
+  const { outcome, requesterUsername, skillLevel, metadata } = decision;
+
+  switch (outcome) {
+    case AssignmentOutcome.ALREADY_ASSIGNED: {
+      const issue = metadata.issue || botContext.issue;
+      await postComment(
+        botContext,
+        buildAlreadyAssignedComment(
+          requesterUsername,
+          issue,
+          botContext.owner,
+          botContext.repo,
+        ),
+      );
+      logger.log("Posted already-assigned comment");
+      break;
+    }
+
+    case AssignmentOutcome.NOT_READY: {
+      await postComment(
+        botContext,
+        buildNotReadyComment(
+          requesterUsername,
+          botContext.owner,
+          botContext.repo,
+        ),
+      );
+      logger.log("Posted not-ready comment");
+      break;
+    }
+
+    case AssignmentOutcome.MISSING_SKILL_LABEL: {
+      await postComment(botContext, buildNoSkillLevelComment(requesterUsername));
+      logger.log("Posted no-skill-level comment");
+      break;
+    }
+
+    case AssignmentOutcome.ASSIGNMENT_LIMIT_EXCEEDED: {
+      const { openAssignmentCount, blockedCount } = metadata;
+      await postComment(
+        botContext,
+        buildAssignmentLimitExceededComment(
+          requesterUsername,
+          formatThresholdedCount(openAssignmentCount, MAX_OPEN_ASSIGNMENTS + 1),
+          botContext.owner,
+          botContext.repo,
+          blockedCount,
+        ),
+      );
+      logger.log("Posted assignment-limit-exceeded comment");
+      break;
+    }
+
+    case AssignmentOutcome.GFI_LIMIT_EXCEEDED: {
+      const { completedCount } = metadata;
+      await postComment(
+        botContext,
+        buildGfiLimitExceededComment(
+          requesterUsername,
+          formatThresholdedCount(completedCount, MAX_GFI_COMPLETIONS + 1),
+          botContext.owner,
+          botContext.repo,
+        ),
+      );
+      logger.log("Posted GFI-limit-exceeded comment");
+      break;
+    }
+
+    case AssignmentOutcome.PREREQUISITE_NOT_MET: {
+      const { completedCount } = metadata;
+      await postComment(
+        botContext,
+        buildPrerequisiteNotMetComment(
+          requesterUsername,
+          skillLevel,
+          completedCount,
+          botContext.owner,
+          botContext.repo,
+        ),
+      );
+      logger.log("Posted prerequisite-not-met comment");
+      break;
+    }
+
+    case AssignmentOutcome.SKILL_LEVEL_CHANGED: {
+      const { previousSkillLevel, currentSkillLevel } = metadata;
+      await postComment(
+        botContext,
+        buildSkillLevelChangedComment(
+          requesterUsername,
+          previousSkillLevel,
+          currentSkillLevel,
+        ),
+      );
+      logger.log("Posted skill-level-changed comment");
+      break;
+    }
+
+    case AssignmentOutcome.API_ERROR: {
+      await postComment(botContext, buildApiErrorComment(requesterUsername));
+      logger.log("Posted API error comment, tagged maintainers");
+      break;
+    }
+
+    case AssignmentOutcome.ELIGIBLE: {
+      // Perform the actual assignment
+      logger.log("Assigning issue to", requesterUsername);
+      const assignResult = await addAssignees(botContext, [requesterUsername]);
+      if (!assignResult.success) {
+        await postComment(
+          botContext,
+          buildAssignmentFailureComment(requesterUsername, assignResult.error),
+        );
+        logger.log("Posted assignment failure comment, tagged maintainers");
+        return;
+      }
+
+      await postComment(
+        botContext,
+        buildWelcomeComment(requesterUsername, skillLevel),
+      );
+      logger.log("Posted welcome comment");
+      await updateLabels(botContext, requesterUsername);
+      logger.log("Assignment flow completed successfully");
+      break;
+    }
+
+    default:
+      logger.error("Unknown assignment outcome:", outcome);
+  }
+}
+
+/**
  * Checks skill-level prerequisites for the requesting user. Looks up the
  * required number of completed issues at the prerequisite level (e.g. a
  * Beginner issue requires 2 completed Good First Issues). Posts a comment
@@ -93,6 +704,7 @@ async function getBlockedCount(github, owner, repo, username) {
  * @param {string} skillLevel - The skill-level label on the issue (a LABELS constant).
  * @param {string} requesterUsername - The GitHub username requesting assignment.
  * @returns {Promise<boolean>} True if prerequisites are met or none required; false otherwise.
+ * @deprecated Use determineAssignmentEligibility instead
  */
 async function checkPrerequisites(botContext, skillLevel, requesterUsername) {
   const prereq = SKILL_PREREQUISITES[skillLevel];
@@ -196,6 +808,7 @@ async function updateLabels(botContext, requesterUsername) {
  * @param {string} skillLevel - The skill-level label on the issue (a LABELS constant).
  * @param {string} requesterUsername - GitHub username requesting assignment.
  * @returns {Promise<boolean>} True if under the cap or not a GFI; false otherwise.
+ * @deprecated Use determineAssignmentEligibility instead
  */
 async function enforceGfiCompletionLimit(
   botContext,
@@ -252,6 +865,7 @@ async function enforceGfiCompletionLimit(
  * @param {object} botContext - Bot context from buildBotContext.
  * @param {string} requesterUsername - GitHub username requesting assignment.
  * @returns {Promise<string|null>} The skill-level label, or null if a gate failed.
+ * @deprecated Use determineAssignmentEligibility instead
  */
 async function validateIssueState(botContext, requesterUsername) {
   if (botContext.issue.assignees?.length > 0) {
@@ -305,6 +919,7 @@ async function validateIssueState(botContext, requesterUsername) {
  * @param {object} botContext - Bot context from buildBotContext.
  * @param {string} requesterUsername - GitHub username requesting assignment.
  * @returns {Promise<boolean>} True if within assignment limits; false otherwise.
+ * @deprecated Use determineAssignmentEligibility instead
  */
 async function enforceAssignmentLimit(botContext, requesterUsername) {
   const openAssignmentCount = await countIssuesByAssignee(
@@ -471,6 +1086,7 @@ async function enforceAssignmentLimit(botContext, requesterUsername) {
  * @param {string} requesterUsername - GitHub username being assigned.
  * @param {string} skillLevel - The skill-level label on the issue.
  * @returns {Promise<void>}
+ * @deprecated Use determineAssignmentEligibility and executeAssignmentEffects instead
  */
 async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
   logger.log("Assigning issue to", requesterUsername);
@@ -586,23 +1202,28 @@ async function assignAndFinalize(botContext, requesterUsername, skillLevel) {
 }
 
 /**
- * Main handler for the /assign command. Runs the following gates in order, posting
- * an informative comment and returning early if any gate fails:
+ * Main handler for the /assign command. Uses a two-layer architecture:
  *
+ * 1. Decision Layer: Determines eligibility without performing GitHub mutations
+ * 2. Effect Layer: Applies GitHub side effects based on the decision
+ *
+ * This separation makes the command easier to test, reason about, and migrate
+ * into a reusable automation service.
+ *
+ * The decision layer runs the following checks in order:
  *   1. Acknowledge the comment with a thumbs-up reaction.
- *   2. Issue already assigned? -> already-assigned comment.
- *   3. Missing "status: ready for dev" label? -> not-ready comment.
- *   4. No skill-level label? -> no-skill-level comment (tags maintainers).
- *   5. Open-assignment count API error? -> API-error comment (tags maintainers).
- *   6. At or above MAX_OPEN_ASSIGNMENTS? -> limit-exceeded comment.
- *   7. GFI cap reached (skill: good first issue only)? -> GFI-limit-exceeded comment.
- *   8. Skill prerequisites not met? -> prerequisite-not-met comment.
- *   9. Issue snatched while queued (fresh fetch)? -> already-assigned comment.
- *   10. Fresh labels invalid while queued? -> not-ready/no-skill-level comment.
- *   11. Skill level changed while queued? -> skill-level-changed comment (ask to retry).
- *   12. Assignment API failure? -> assignment-failure comment (tags maintainers).
+ *   2. Issue already assigned? -> already-assigned outcome.
+ *   3. Missing "status: ready for dev" label? -> not-ready outcome.
+ *   4. No skill-level label? -> missing-skill-level outcome.
+ *   5. Open-assignment count API error? -> api-error outcome.
+ *   6. At or above MAX_OPEN_ASSIGNMENTS? -> assignment-limit-exceeded outcome.
+ *   7. GFI cap reached (skill: good first issue only)? -> gfi-limit-exceeded outcome.
+ *   8. Skill prerequisites not met? -> prerequisite-not-met outcome.
+ *   9. Issue snatched while queued (fresh fetch)? -> already-assigned outcome.
+ *   10. Fresh labels invalid while queued? -> not-ready/missing-skill-level outcome.
+ *   11. Skill level changed while queued? -> skill-level-changed outcome.
  *
- * If all checks pass, the bot assigns the issue, posts a welcome comment,
+ * If all checks pass, the effect layer assigns the issue, posts a welcome comment,
  * and swaps the "status: ready for dev" label with "status: in progress".
  *
  * @param {{ github: object, owner: string, repo: string, number: number,
@@ -621,30 +1242,19 @@ async function handleAssign(botContext) {
     return;
   }
 
-  const skillLevel = await validateIssueState(botContext, requesterUsername);
-  if (!skillLevel) return;
-
-  const withinLimit = await enforceAssignmentLimit(
+  // Decision layer: determine eligibility without mutations
+  const decision = await determineAssignmentEligibility(
     botContext,
     requesterUsername,
   );
-  if (!withinLimit) return;
 
-  const withinGfiCap = await enforceGfiCompletionLimit(
-    botContext,
-    skillLevel,
-    requesterUsername,
-  );
-  if (!withinGfiCap) return;
-
-  const prereqsPassed = await checkPrerequisites(
-    botContext,
-    skillLevel,
-    requesterUsername,
-  );
-  if (!prereqsPassed) return;
-
-  await assignAndFinalize(botContext, requesterUsername, skillLevel);
+  // Effect layer: apply GitHub mutations based on decision
+  await executeAssignmentEffects(botContext, decision);
 }
 
-module.exports = { handleAssign };
+module.exports = { 
+  handleAssign,
+  determineAssignmentEligibility,
+  executeAssignmentEffects,
+  AssignmentOutcome,
+};
