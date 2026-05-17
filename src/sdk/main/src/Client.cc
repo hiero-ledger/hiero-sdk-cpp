@@ -1218,7 +1218,6 @@ void Client::scheduleNetworkUpdate()
     }
     catch (const std::exception& exception)
     {
-      std::unique_lock lock(mImpl->mMutex);
       mImpl->mLogger.warn(std::string("Failed to update address book via mirror node query ") + exception.what());
       break;
     }
