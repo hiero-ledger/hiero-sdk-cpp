@@ -135,7 +135,7 @@ const scenarios = [
 ];
 
 async function runTest(scenario, index) {
-  console.log('\\n' + '='.repeat(70));
+  console.log('\n' + '='.repeat(70));
   console.log(`TEST ${index + 1}: ${scenario.name}`);
   console.log('='.repeat(70));
 
@@ -147,7 +147,7 @@ async function runTest(scenario, index) {
       context: scenario.context,
     });
   } catch (error) {
-    console.log(`\\n❌ SCRIPT THREW ERROR: ${error.message}`);
+    console.log(`\n❌ SCRIPT THREW ERROR: ${error.message}`);
 
     if (error.stack) {
       console.log(error.stack);
@@ -166,16 +166,16 @@ async function runTest(scenario, index) {
     expected.some((label, i) => label !== actual[i])
   ) {
     console.log(
-      `\\n❌ labelsRemoved: expected [${expected.join(', ')}], got [${actual.join(', ')}]`
+      `\n❌ labelsRemoved: expected [${expected.join(', ')}], got [${actual.join(', ')}]`
     );
 
     passed = false;
   } else {
-    console.log(`\\n✅ labelsRemoved: [${actual.join(', ')}]`);
+    console.log(`\n✅ labelsRemoved: [${actual.join(', ')}]`);
   }
 
   if (passed) {
-    console.log('\\n✅ PASSED');
+    console.log('\n✅ PASSED');
   }
 
   return passed;
@@ -185,4 +185,4 @@ runTestSuite(
   'ON-PR-CONVERTED-TO-DRAFT BOT TEST SUITE',
   scenarios,
   runTest
-);
+); 

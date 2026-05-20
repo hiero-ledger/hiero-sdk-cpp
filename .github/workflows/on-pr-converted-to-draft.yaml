@@ -1,5 +1,9 @@
-name: Bot - On PR Converted To Draft
-
+name: Bot - On PR Converted To Draft 
+ 
+# Runs when a PR is converted to draft.
+# Removes status: needs review and status: needs revision
+# labels via bot-on-pr-converted-to-draft.js.
+# Skips bot-authored PRs. 
 on:
   pull_request_target:
     types:
@@ -19,18 +23,16 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450
-
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
         with:
           egress-policy: audit
 
       - name: Checkout Repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Run Bot
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
-
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const script = require('./.github/scripts/bot-on-pr-converted-to-draft.js');
-            await script({ github, context });
+            await script({ github, context }); 

@@ -8,9 +8,10 @@
 const {
   createLogger,
   buildBotContext,
+  hasLabel,
+  removeLabel,
+  LABELS,
 } = require('./helpers');
-
-const { LABELS } = require('./helpers/constants');
 
 const logger = createLogger('on-pr-converted-to-draft');
 
@@ -28,18 +29,17 @@ module.exports = async ({ github, context }) => {
       LABELS.NEEDS_REVISION,
     ];
 
-    const existingLabels = botContext.pr.labels.map((label) => label.name);
-
     for (const label of labelsToRemove) {
-      if (existingLabels.includes(label)) {
-        await github.rest.issues.removeLabel({
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-          issue_number: botContext.pr.number,
-          name: label,
-        });
+      if (!hasLabel(botContext.pr, label)) {
+        continue;
+      }
 
-        logger.log(`Removed label: ${label}`);
+      const result = await removeLabel(botContext, label);
+
+      if (!result.success) {
+        logger.error(
+          `Failed to remove '${label}' from #${botContext.number}: ${result.error}`
+        );
       }
     }
 
@@ -52,4 +52,4 @@ module.exports = async ({ github, context }) => {
 
     throw error;
   }
-};
+}; 
