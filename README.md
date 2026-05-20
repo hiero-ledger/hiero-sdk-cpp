@@ -19,6 +19,14 @@ The C++ SDK for interacting with a [Hiero](https://hiero.org) network.
 - [Support](#support)
 - [License](#license)
 
+## Architecture Overview
+
+The SDK is built around:
+- gRPC for network communication
+- Protobuf-generated transaction models
+- CMake + vcpkg dependency management
+- Modular transaction/query APIs
+  
 ## Prerequisites
 
 ### macOS and Linux
@@ -34,6 +42,15 @@ The C++ SDK for interacting with a [Hiero](https://hiero.org) network.
   - Linux: `apt-get install cmake`
 
 > **Note**: Ensure you install all three dependencies (`ninja`, `pkg-config`, and `cmake`) to avoid errors in subsequent steps. The installations might take a few minutes.
+
+
+
+Core modules:
+- Client
+- Transactions
+- Queries
+- Cryptography
+- Mirror Node APIs
 
 ### Windows
 
