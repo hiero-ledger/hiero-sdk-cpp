@@ -89,7 +89,7 @@ EthereumTransaction& EthereumTransaction::sign(const std::shared_ptr<PrivateKey>
   std::vector<std::byte> s(signatureBytes.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE, signatureBytes.cend());
 
   const int recId = ecdsaKey->getRecoveryId(r, s, messageToSign);
-  if (recId < 0)
+  if (recId < 0 || recId > 1)
   {
     throw std::runtime_error("Failed to compute recovery ID during Ethereum transaction signing");
   }

@@ -100,7 +100,9 @@ std::vector<std::byte> EthereumTransactionDataEip1559::toSignBytes() const
   list.pushBack(mTo);
   list.pushBack(mValue);
   list.pushBack(mCallData);
-  list.pushBack(RLPItem());
+  RLPItem accessListItem(mAccessList);
+  accessListItem.setType(RLPItem::RLPType::LIST_TYPE);
+  list.pushBack(accessListItem);
 
   return internal::Utilities::concatenateVectors({ { std::byte(0x02) }, list.write() });
 }
