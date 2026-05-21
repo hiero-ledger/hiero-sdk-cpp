@@ -415,6 +415,20 @@ ChunkedTransaction<SdkRequestType>::ChunkedTransaction(
     return;
   }
 
+  // Security: Determine the expected transaction type from the first entry.
+  // All chunks must have the same transaction type to prevent transaction smuggling attacks.
+  proto::TransactionBody::DataCase expectedDataCase = proto::TransactionBody::DATA_NOT_SET;
+  if (!transactions.empty() && !transactions.cbegin()->second.empty())
+  {
+    const proto::Transaction& firstTx = transactions.cbegin()->second.cbegin()->second;
+    proto::SignedTransaction signedTx;
+    signedTx.ParseFromArray(firstTx.signedtransactionbytes().data(),
+                            static_cast<int>(firstTx.signedtransactionbytes().size()));
+    proto::TransactionBody txBody;
+    txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
+    expectedDataCase = txBody.data_case();
+  }
+
   // Go through each additional TransactionId and store its information.
   auto iter = transactions.cbegin();
   std::advance(iter, 1);
@@ -432,6 +446,23 @@ ChunkedTransaction<SdkRequestType>::ChunkedTransaction(
       // ID, then no more account IDs will be in the map.
       if (!(accountId == Transaction<SdkRequestType>::DUMMY_ACCOUNT_ID))
       {
+        // Security: Validate that this chunk has the same transaction type as the first chunk.
+        // This is defense-in-depth against transaction smuggling attacks where an attacker
+        // might try to inject a different transaction type (e.g., CryptoTransfer) as a "chunk"
+        // of what appears to be a FileAppend or TopicMessageSubmit transaction.
+        proto::SignedTransaction signedTx;
+        signedTx.ParseFromArray(transaction.signedtransactionbytes().data(),
+                                static_cast<int>(transaction.signedtransactionbytes().size()));
+        proto::TransactionBody txBody;
+        txBody.ParseFromArray(signedTx.bodybytes().data(), static_cast<int>(signedTx.bodybytes().size()));
+
+        if (txBody.data_case() != expectedDataCase)
+        {
+          throw std::invalid_argument(
+            "ChunkedTransaction contains chunks with inconsistent transaction types. "
+            "All chunks must have the same transaction type to prevent transaction smuggling attacks.");
+        }
+
         Transaction<SdkRequestType>::addTransaction(transaction);
       }
     }
@@ -568,6 +599,30 @@ unsigned int ChunkedTransaction<SdkRequestType>::getNumberOfChunksRequired() con
 {
   return static_cast<unsigned int>(
     std::ceil(static_cast<double>(mImpl->mData.size()) / static_cast<double>(mImpl->mChunkSize)));
+}
+
+//-----
+template<typename SdkRequestType>
+std::vector<proto::Transaction> ChunkedTransaction<SdkRequestType>::getChunkedTransactionProtobufObjects()
+{
+  const unsigned int requiredChunks = getNumberOfChunksRequired();
+  if (requiredChunks > mImpl->mMaxChunks)
+  {
+    throw IllegalStateException("Transaction requires " + std::to_string(requiredChunks) +
+                                " chunks but is only allotted " + std::to_string(mImpl->mMaxChunks) +
+                                ". Try using setMaxChunks()");
+  }
+
+  const unsigned int savedChunk = mImpl->mCurrentChunk;
+  std::vector<proto::Transaction> result;
+  result.reserve(requiredChunks);
+  for (unsigned int i = 0; i < requiredChunks; ++i)
+  {
+    mImpl->mCurrentChunk = i;
+    result.push_back(makeRequest(0));
+  }
+  mImpl->mCurrentChunk = savedChunk;
+  return result;
 }
 
 /**

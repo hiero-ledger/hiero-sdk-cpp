@@ -91,9 +91,9 @@ public:
   /**
    * Set the memo for the new file. The memo cannot exceed 100 bytes.
    *
-   * @param contents The contents of the new file.
-   * @return A reference to this FileCreateTransaction object with the newly-set contents.
-   * @throws std::invalid_argument If the number of bytes exceeds 4096.
+   * @param memo The memo of the new file.
+   * @return A reference to this FileCreateTransaction object with the newly-set memo.
+   * @throws std::invalid_argument If the number of bytes exceeds 100.
    * @throws IllegalStateException If this FileCreateTransaction is frozen.
    */
   FileCreateTransaction& setFileMemo(std::string_view memo);

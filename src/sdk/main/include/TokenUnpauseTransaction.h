@@ -18,6 +18,17 @@ namespace Hiero
  * in transactions. The token's pause key is required to sign the transaction. Once the unpause transaction is submitted
  * the token pause status is updated to unpause.
  *
+ * Once a token is unpaused, the following operations are restored and can be performed again:
+ *  - Updating the token
+ *  - Transferring the token
+ *  - Transferring any other token where it has its paused key in a custom fee schedule
+ *  - Deleting the token
+ *  - Minting or burning a token
+ *  - Freezing or unfreezing an account that holds the token
+ *  - Enabling or disabling KYC
+ *  - Associating or disassociating a token
+ *  - Wiping a token
+ *
  * Transaction Signing Requirements:
  *  - The pause key of the token.
  *  - Transaction fee payer account key.

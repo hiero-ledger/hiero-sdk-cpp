@@ -18,6 +18,7 @@
 
 namespace Hiero
 {
+class FeeEstimateQuery;
 class PrivateKey;
 class TransactionResponse;
 class ScheduleCreateTransaction;
@@ -144,6 +145,22 @@ public:
   [[nodiscard]] inline const std::shared_ptr<Key>& getBatchKey() { return mImpl->mBatchKey; }
 
   /**
+   * Set whether this Transaction should use high-volume entity creation throttles and pricing.
+   *
+   * @param highVolume \c TRUE if this Transaction should use high-volume throttles and pricing, otherwise \c FALSE.
+   * @return A reference to this derived Transaction object with the newly-set high-volume flag.
+   * @throws IllegalStateException If this Transaction is frozen.
+   */
+  SdkRequestType& setHighVolume(bool highVolume);
+
+  /**
+   * Get whether this Transaction uses high-volume entity creation throttles and pricing.
+   *
+   * @return \c TRUE if this Transaction uses high-volume throttles and pricing, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool getHighVolume() const;
+
+  /**
    * Add a signature to this Transaction.
    *
    * @param publicKey The associated PublicKey of the PrivateKey that generated the signature.
@@ -161,6 +178,23 @@ public:
    */
   [[nodiscard]] virtual std::map<AccountId, std::map<std::shared_ptr<PublicKey>, std::vector<std::byte>>>
   getSignatures() const;
+
+  /**
+   * Remove the signature(s) associated with a specific public key from the transaction.
+   *
+   * @param publicKey The public key whose signature should be removed.
+   * @return The removed signatures.
+   * @throws IllegalStateException If the transaction is not frozen or the public key has not signed this transaction.
+   */
+  std::vector<std::vector<std::byte>> removeSignature(const std::shared_ptr<PublicKey>& publicKey);
+
+  /**
+   * Remove all signatures from the transaction.
+   *
+   * @return The removed signatures grouped by their associated public key.
+   * @throws IllegalStateException if the transaction is not frozen.
+   */
+  std::map<std::shared_ptr<PublicKey>, std::vector<std::vector<std::byte>>> removeAllSignatures();
 
   /**
    * Freeze this Transaction.
@@ -330,6 +364,20 @@ public:
    */
   [[nodiscard]] size_t getTransactionBodySize() const;
 
+  /**
+   * Is this Transaction frozen?
+   *
+   * @return \c TRUE if this Transaction is frozen, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool isFrozen() const;
+
+  /**
+   * Build a FeeEstimateQuery wrapping this Transaction. The returned query may be further configured (mode,
+   * high-volume throttle) before calling execute() against a Client whose mirror network supports the
+   * HIP-1261 fee estimation endpoint.
+   */
+  [[nodiscard]] FeeEstimateQuery estimateFee() const;
+
 protected:
   /**
    * Dummy transaction and account IDs used to assist in deserializing incomplete Transactions.
@@ -427,13 +475,6 @@ protected:
   void requireNotFrozen() const;
 
   /**
-   * Is this Transaction frozen?
-   *
-   * @return \c TRUE if this Transaction is frozen, otherwise \c FALSE.
-   */
-  [[nodiscard]] bool isFrozen() const;
-
-  /**
    * Set the default maximum transaction fee for this Transaction.
    *
    * @param fee The default maximum transaction fee for this Transaction.
@@ -470,6 +511,15 @@ protected:
    * @return The ID of this Transaction.
    */
   [[nodiscard]] virtual TransactionId getCurrentTransactionId() const;
+
+  /**
+   * Build a Transaction protobuf object from the SignedTransaction protobuf object at the specified index.
+   * Materializes `mTransactions[index]` from `mSignedTransactions[index]` and the registered signer functions.
+   *
+   * @param index The index in the Transaction's SignedTransaction list from which the Transaction protobuf object
+   *              should be built.
+   */
+  void buildTransaction(unsigned int index) const;
 
 private:
   friend class PrivateKey;
@@ -538,14 +588,6 @@ private:
   [[nodiscard]] std::optional<TransactionId> getTransactionIdInternal() const override;
 
   /**
-   * Build a Transaction protobuf object from the SignedTransaction protobuf object at the specified index.
-   *
-   * @param index The index in the Transaction's SignedTransaction list from which the Transaction protobuf object
-   *              should be built.
-   */
-  void buildTransaction(unsigned int index) const;
-
-  /**
    * Determine if a PublicKey has already signed this Transaction.
    *
    * @param publicKey The PublicKey that could have already signed this Transaction.
@@ -558,7 +600,7 @@ private:
    * function was generated.
    *
    * @param publicKey  The PublicKey to add.
-   * @param signer     The singer function to add.
+   * @param signer     The signer function to add.
    * @param privateKey The PrivateKey to add.
    * @return A reference to this derived Transaction object with the newly-set "signature(s)".
    */

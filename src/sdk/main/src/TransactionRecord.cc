@@ -152,6 +152,8 @@ TransactionRecord TransactionRecord::fromProtobuf(const proto::TransactionRecord
       PendingAirdropRecord::fromProtobuf(proto.new_pending_airdrops(i)));
   }
 
+  transactionRecord.mHighVolumePricingMultiplier = proto.high_volume_pricing_multiplier();
+
   return transactionRecord;
 }
 
@@ -303,6 +305,8 @@ std::unique_ptr<proto::TransactionRecord> TransactionRecord::toProtobuf() const
     pr->set_allocated_pending_airdrop_value(value.release());
   }
 
+  proto->set_high_volume_pricing_multiplier(mHighVolumePricingMultiplier);
+
   return proto;
 }
 
@@ -402,6 +406,8 @@ std::string TransactionRecord::toString() const
                 mPendingAirdropRecords.cend(),
                 [&json](const PendingAirdropRecord& record)
                 { json["mPendingAirdropRecords"].push_back(record.toString()); });
+
+  json["mHighVolumePricingMultiplier"] = mHighVolumePricingMultiplier;
 
   std::for_each(mChildren.cbegin(),
                 mChildren.cend(),

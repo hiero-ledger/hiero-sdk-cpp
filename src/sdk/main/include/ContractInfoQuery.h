@@ -27,7 +27,7 @@ public:
    * Set the ID of the contract of which to request the info.
    *
    * @param contractId The ID of the contract of which to request the info.
-   * @return A reference to this ContractInfoQuery object with the newly-set account ID.
+   * @return A reference to this ContractInfoQuery object with the newly-set contract ID.
    */
   ContractInfoQuery& setContractId(const ContractId& contractId);
 
@@ -36,7 +36,7 @@ public:
    *
    * @return The ID of the contract for which this query is meant.
    */
-  [[nodiscard]] inline ContractId getContractId() { return mContractId; }
+  [[nodiscard]] inline ContractId getContractId() const { return mContractId; }
 
 private:
   /**

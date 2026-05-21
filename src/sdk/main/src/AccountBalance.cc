@@ -65,4 +65,10 @@ std::ostream& operator<<(std::ostream& os, const AccountBalance& balance)
   return os;
 }
 
+//-----
+bool AccountBalance::operator==(const AccountBalance& other) const
+{
+  return (mBalance == other.mBalance) && (mTokens == other.mTokens);
+}
+
 } // namespace Hiero

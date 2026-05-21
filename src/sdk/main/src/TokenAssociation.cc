@@ -58,4 +58,10 @@ std::string TokenAssociation::toString() const
   return json.dump();
 }
 
+//-----
+std::ostream& operator<<(std::ostream& os, const TokenAssociation& record)
+{
+  os << record.toString();
+  return os;
+}
 } // namespace Hiero

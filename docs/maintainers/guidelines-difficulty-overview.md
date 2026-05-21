@@ -60,12 +60,15 @@ The candidate label is a friendly “almost ready” marker, giving maintainers 
 
 ### Difficulty Progression
 
-| Level | Focus | What to Expect |
-|------|--------|----------------|
-| **Good First Issue** | Getting started | Clear, step-by-step tasks |
-| **Beginner** | Building confidence | Small, guided improvements |
-| **Intermediate** | Growing ownership | Flexible, multi-file changes |
-| **Advanced** | Shaping the system | Design-focused, high-impact work |
+| Level | Focus | What to Expect | Prerequisite |
+|------|--------|----------------|--------------|
+| **Good First Issue** | Getting started | Clear, step-by-step tasks | None |
+| **Beginner** | Building confidence | Small, guided improvements | 2 Good First Issues |
+| **Intermediate** | Growing ownership | Flexible, multi-file changes | 3 Beginner Issues |
+| **Advanced** | Shaping the system | Design-focused, high-impact work | 3 Intermediate Issues |
+
+Prerequisites are enforced automatically by the `/assign` bot when contributors request assignment.
+*Note: If a contributor has already completed at least one issue at a given skill level (or higher), they bypass the prerequisite and can always take on more issues at that level.*
 
 Each level reflects a gradual increase in:
 

@@ -146,6 +146,24 @@ ContractCreateTransaction& ContractCreateTransaction::setDeclineStakingReward(bo
 }
 
 //-----
+ContractCreateTransaction& ContractCreateTransaction::addHook(const HookCreationDetails& hook)
+{
+  requireNotFrozen();
+
+  mHookCreationDetails.push_back(hook);
+  return *this;
+}
+
+//-----
+ContractCreateTransaction& ContractCreateTransaction::setHooks(const std::vector<HookCreationDetails>& hooks)
+{
+  requireNotFrozen();
+
+  mHookCreationDetails = hooks;
+  return *this;
+}
+
+//-----
 grpc::Status ContractCreateTransaction::submitRequest(const proto::Transaction& request,
                                                       const std::shared_ptr<internal::Node>& node,
                                                       const std::chrono::system_clock::time_point& deadline,
@@ -235,6 +253,11 @@ void ContractCreateTransaction::initFromSourceTransactionBody()
   }
 
   mDeclineStakingReward = body.decline_reward();
+
+  for (int i = 0; i < body.hook_creation_details_size(); ++i)
+  {
+    mHookCreationDetails.push_back(HookCreationDetails::fromProtobuf(body.hook_creation_details(i)));
+  }
 }
 
 //-----
@@ -280,6 +303,11 @@ proto::ContractCreateTransactionBody* ContractCreateTransaction::build() const
   }
 
   body->set_decline_reward(mDeclineStakingReward);
+
+  for (const HookCreationDetails& hook : mHookCreationDetails)
+  {
+    *body->add_hook_creation_details() = *hook.toProtobuf();
+  }
 
   return body.release();
 }

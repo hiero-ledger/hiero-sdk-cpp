@@ -26,7 +26,7 @@ namespace Hiero
  * any of the token properties. The admin key can update existing keys, but cannot add new keys if they were not set
  * during the creation of the token. If no value is given for a field, that field is left unchanged. For an immutable
  * token (that is, a token created without an admin key), only the expiry may be updated. Setting any other field, in
- * that case, will cause the transaction status to resolve to TOKEN_IS_IMMUTABlE.
+ * that case, will cause the transaction status to resolve to TOKEN_IS_IMMUTABLE.
  *
  * Transaction Signing Requirements
  *  - Admin key is required to sign to update any token properties.
@@ -318,6 +318,13 @@ public:
    * @return The new metadata key for the token. Returns nullptr if no new metadata key has been set.
    */
   [[nodiscard]] inline std::shared_ptr<Key> getMetadataKey() const { return mMetadataKey; }
+
+  /**
+   * Get the new metadata for the token.
+   *
+   * @return The new metadata for the token.
+   */
+  [[nodiscard]] inline std::vector<std::byte> getMetadata() const { return mMetadata; }
 
   /**
    * Get the token verification mode for the token.

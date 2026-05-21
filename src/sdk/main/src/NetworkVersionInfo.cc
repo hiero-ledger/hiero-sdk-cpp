@@ -40,6 +40,12 @@ std::unique_ptr<proto::NetworkGetVersionInfoResponse> NetworkVersionInfo::toProt
 }
 
 //-----
+bool NetworkVersionInfo::operator==(const NetworkVersionInfo& rhs) const
+{
+  return mProtobufVersion == rhs.mProtobufVersion && mServicesVersion == rhs.mServicesVersion;
+}
+
+//-----
 std::vector<std::byte> NetworkVersionInfo::toBytes() const
 {
   return internal::Utilities::stringToByteVector(toProtobuf()->SerializeAsString());

@@ -15,9 +15,15 @@
 #include "impl/openssl_utils/EVP_MD_CTX.h"
 #include "impl/openssl_utils/OSSL_LIB_CTX.h"
 #include "impl/openssl_utils/OpenSSLUtils.h"
+#include "impl/openssl_utils/Secp256k1Context.h"
 
 #include <openssl/ec.h>
 #include <openssl/x509.h>
+
+#include <secp256k1.h>
+#include <secp256k1_recovery.h>
+
+#include <cstring>
 
 #include <services/basic_types.pb.h>
 
@@ -69,6 +75,42 @@ const internal::OpenSSLUtils::BIGNUM CURVE_ORDER =
   }
 
   return key;
+}
+
+/**
+ * Attempt to recover a public key using the given recovery ID and compare it to the expected key.
+ *
+ * @param ctx              The secp256k1 context.
+ * @param compactSig       The compact signature (r || s) as 64 bytes.
+ * @param recId            The recovery ID to try (0-3).
+ * @param messageHash      The 32-byte Keccak-256 hash of the original message.
+ * @param expectedPubKey   The expected uncompressed public key bytes (65 bytes).
+ * @return True if the recovered public key matches the expected key.
+ */
+[[nodiscard]] bool tryRecoverWithId(const secp256k1_context* ctx,
+                                    const unsigned char* compactSig,
+                                    int recId,
+                                    const unsigned char* messageHash,
+                                    const std::vector<std::byte>& expectedPubKey)
+{
+  secp256k1_ecdsa_recoverable_signature recoverableSig;
+  if (secp256k1_ecdsa_recoverable_signature_parse_compact(ctx, &recoverableSig, compactSig, recId) != 1)
+  {
+    return false;
+  }
+
+  secp256k1_pubkey recoveredPubKey;
+  if (secp256k1_ecdsa_recover(ctx, &recoveredPubKey, &recoverableSig, messageHash) != 1)
+  {
+    return false;
+  }
+
+  // Serialize the recovered public key in uncompressed form.
+  unsigned char serializedPubKey[ECDSAsecp256k1PublicKey::UNCOMPRESSED_KEY_SIZE];
+  size_t outputLen = sizeof(serializedPubKey);
+  secp256k1_ec_pubkey_serialize(ctx, serializedPubKey, &outputLen, &recoveredPubKey, SECP256K1_EC_UNCOMPRESSED);
+
+  return outputLen == expectedPubKey.size() && std::memcmp(serializedPubKey, expectedPubKey.data(), outputLen) == 0;
 }
 
 } // namespace
@@ -261,6 +303,52 @@ std::vector<std::byte> ECDSAsecp256k1PrivateKey::sign(const std::vector<std::byt
   }
 
   return outputArray;
+}
+
+//-----
+int ECDSAsecp256k1PrivateKey::getRecoveryId(const std::vector<std::byte>& r,
+                                            const std::vector<std::byte>& s,
+                                            const std::vector<std::byte>& message) const
+{
+  // Validate input sizes.
+  if (r.size() != R_SIZE || s.size() != S_SIZE)
+  {
+    return -1;
+  }
+
+  // Compute the Keccak-256 hash of the message.
+  const std::vector<std::byte> messageHash = internal::OpenSSLUtils::computeKECCAK256(message);
+
+  // Build compact signature (r || s) as 64-byte array.
+  std::vector<unsigned char> compactSig(RAW_SIGNATURE_SIZE);
+  std::memcpy(compactSig.data(), r.data(), R_SIZE);
+  std::memcpy(compactSig.data() + R_SIZE, s.data(), S_SIZE);
+
+  // Get the expected uncompressed public key bytes (65 bytes: 0x04 || x || y).
+  const std::vector<std::byte> expectedPubKeyBytes =
+    ECDSAsecp256k1PublicKey::uncompressBytes(getPublicKey()->toBytesRaw());
+
+  // Create a secp256k1 context for verification/recovery using RAII.
+  internal::OpenSSLUtils::Secp256k1Context ctx(secp256k1_context_create(SECP256K1_CONTEXT_NONE));
+  if (!ctx)
+  {
+    return -1;
+  }
+
+  // Try each recovery ID (0-3) and check which one recovers our public key.
+  for (int recId = 0; recId < 4; ++recId)
+  {
+    if (tryRecoverWithId(ctx.get(),
+                         compactSig.data(),
+                         recId,
+                         reinterpret_cast<const unsigned char*>(messageHash.data()),
+                         expectedPubKeyBytes))
+    {
+      return recId;
+    }
+  }
+
+  return -1;
 }
 
 //-----

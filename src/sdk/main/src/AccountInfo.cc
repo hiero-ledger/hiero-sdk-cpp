@@ -174,6 +174,61 @@ std::string AccountInfo::toString() const
 }
 
 //-----
+// Note: mKey and mPublicKeyAlias (std::shared_ptr) are intentionally excluded to avoid
+// pointer identity comparison. Comparing the pointed-to values would require knowing the
+// concrete Key type, which is not available here.
+bool AccountInfo::operator==(const AccountInfo& rhs) const
+{
+  if (!(mAccountId == rhs.mAccountId) || (mContractAccountId != rhs.mContractAccountId) ||
+      (mIsDeleted != rhs.mIsDeleted) || !(mProxyReceived == rhs.mProxyReceived) || !(mBalance == rhs.mBalance) ||
+      (mReceiverSignatureRequired != rhs.mReceiverSignatureRequired) || (mExpirationTime != rhs.mExpirationTime) ||
+      (mAutoRenewPeriod != rhs.mAutoRenewPeriod) || (mMemo != rhs.mMemo) || (mOwnedNfts != rhs.mOwnedNfts) ||
+      (mMaxAutomaticTokenAssociations != rhs.mMaxAutomaticTokenAssociations) || !(mLedgerId == rhs.mLedgerId))
+  {
+    return false;
+  }
+
+  // EvmAddress does not implement operator==, compare via serialized bytes.
+  if (mEvmAddressAlias.has_value() != rhs.mEvmAddressAlias.has_value())
+  {
+    return false;
+  }
+
+  if (mEvmAddressAlias.has_value() && mEvmAddressAlias->toBytes() != rhs.mEvmAddressAlias->toBytes())
+  {
+    return false;
+  }
+
+  // StakingInfo does not implement operator==, compare via serialized protobuf bytes.
+  if (mStakingInfo.toProtobuf()->SerializeAsString() != rhs.mStakingInfo.toProtobuf()->SerializeAsString())
+  {
+    return false;
+  }
+
+  // TokenRelationship does not implement operator==, compare map entries via serialized protobuf bytes.
+  if (mTokenRelationships.size() != rhs.mTokenRelationships.size())
+  {
+    return false;
+  }
+
+  for (const auto& [tokenId, tokenRelationship] : mTokenRelationships)
+  {
+    const auto it = rhs.mTokenRelationships.find(tokenId);
+    if (it == rhs.mTokenRelationships.end())
+    {
+      return false;
+    }
+
+    if (tokenRelationship.toProtobuf()->SerializeAsString() != it->second.toProtobuf()->SerializeAsString())
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+//-----
 std::ostream& operator<<(std::ostream& os, const AccountInfo& info)
 {
   os << info.toString();

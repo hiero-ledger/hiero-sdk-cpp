@@ -11,8 +11,8 @@
 #include <cstddef>
 #include <gtest/gtest.h>
 #include <memory>
-#include <string>
 #include <services/transaction.pb.h>
+#include <string>
 #include <vector>
 
 using namespace Hiero;

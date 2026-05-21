@@ -75,4 +75,16 @@ std::string FeeComponents::toString() const
   return json.dump();
 }
 
+//-----
+bool FeeComponents::operator==(const FeeComponents& rhs) const
+{
+  return (mMin == rhs.mMin) && (mMax == rhs.mMax) && (mConstant == rhs.mConstant) &&
+         (mTransactionBandwidthBytes == rhs.mTransactionBandwidthBytes) &&
+         (mTransactionVerification == rhs.mTransactionVerification) &&
+         (mTransactionRamByteHour == rhs.mTransactionRamByteHour) &&
+         (mTransactionStorageByteHour == rhs.mTransactionStorageByteHour) &&
+         (mContractTransactionGas == rhs.mContractTransactionGas) && (mTransferVolumeHbar == rhs.mTransferVolumeHbar) &&
+         (mResponseMemoryByte == rhs.mResponseMemoryByte) && (mResponseDiskByte == rhs.mResponseDiskByte);
+}
+
 } // namespace Hiero

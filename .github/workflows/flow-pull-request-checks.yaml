@@ -22,4 +22,27 @@ permissions:
 jobs:
   build:
     name: Code
+    # Skip the full build when a PR is closed without being merged.
+    if: github.event.action != 'closed' || github.event.pull_request.merged == true
     uses: ./.github/workflows/zxc-build-library.yaml
+    
+  check-links:
+    # Link checking is only useful while the PR is open.
+    if: github.event.action != 'closed'
+    runs-on: hiero-client-sdk-linux-large
+    steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@9ca718d3bf646d6534007c269a635b3e54cadf99 # v2.19.2
+      with:
+        egress-policy: audit
+
+    - name: Checkout Code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Check Markdown links
+      uses: tcort/github-action-markdown-link-check@e7c7a18363c842693fadde5d41a3bd3573a7a225 # v1.1.2
+      with:
+        check-modified-files-only: 'yes'
+        config-file: '.mlc_config.json'
+        use-quiet-mode: 'yes'
+        base-branch: 'main'

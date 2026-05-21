@@ -245,18 +245,18 @@ TEST_F(ScheduleCreateTransactionTests, ToFromSchedulableTransactionBodyWithCusto
 
   // Wrap the transaction to get access to protobuf methods
   WrappedTransaction tempWrappedTx(allowanceTx);
-  
+
   // Get the transaction body protobuf and manually add custom fee limits
   auto txBodyPtr = tempWrappedTx.toProtobuf();
   auto txBody = *txBodyPtr;
-  
+
   // Add custom fee limit manually to the transaction body
   CustomFeeLimit customFeeLimit;
   customFeeLimit.setPayerId(payerId);
   CustomFixedFee customFee;
   customFee.setAmount(static_cast<uint64_t>(feeAmount.toTinybars()));
   customFeeLimit.addCustomFee(customFee);
-  
+
   txBody.mutable_max_custom_fees()->AddAllocated(customFeeLimit.toProtobuf().release());
 
   // Create a new wrapped transaction from the modified transaction body
@@ -275,7 +275,7 @@ TEST_F(ScheduleCreateTransactionTests, ToFromSchedulableTransactionBodyWithCusto
   EXPECT_TRUE(feeLimit.has_account_id());
   EXPECT_EQ(AccountId::fromProtobuf(feeLimit.account_id()), payerId);
   EXPECT_EQ(feeLimit.fees_size(), 1);
-  
+
   const auto& fee = feeLimit.fees(0);
   EXPECT_EQ(fee.amount(), static_cast<uint64_t>(feeAmount.toTinybars()));
   EXPECT_FALSE(fee.has_denominating_token_id()); // Should be HBAR (no token ID)

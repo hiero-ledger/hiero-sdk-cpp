@@ -80,6 +80,15 @@ public:
   ContractDeleteTransaction& setTransferContractId(const ContractId& contractId);
 
   /**
+   * Set the permanent removal flag. If true, marks this as a system-initiated permanent removal.
+   *
+   * @param permanentRemoval The permanent removal flag.
+   * @return A reference to this ContractDeleteTransaction object with the newly-set permanent removal flag.
+   * @throws IllegalStateException If this ContractDeleteTransaction is frozen.
+   */
+  ContractDeleteTransaction& setPermanentRemoval(bool permanentRemoval);
+
+  /**
    * Get the ID of the contract to delete.
    *
    * @return The ID of the contract to delete.
@@ -101,6 +110,13 @@ public:
    *         uninitialized if a value has not yet been set, or if a transfer account ID has been set most recently.
    */
   [[nodiscard]] inline std::optional<ContractId> getTransferContractId() const { return mTransferContractId; }
+
+  /**
+   * Get the permanent removal flag.
+   *
+   * @return The permanent removal flag. Returns uninitialized if a value has not yet been set.
+   */
+  [[nodiscard]] inline std::optional<bool> getPermanentRemoval() const { return mPermanentRemoval; }
 
 private:
   friend class WrappedTransaction;
@@ -164,6 +180,11 @@ private:
    * The ID of the contract that will receive the deleted smart contract's remaining Hbars.
    */
   std::optional<ContractId> mTransferContractId;
+
+  /**
+   * If set to true, marks this as a system-initiated permanent removal.
+   */
+  std::optional<bool> mPermanentRemoval;
 };
 
 } // namespace Hiero

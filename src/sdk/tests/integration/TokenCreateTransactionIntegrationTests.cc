@@ -611,7 +611,7 @@ TEST_F(TokenCreateTransactionIntegrationTests, CanCreateTokenWithDifferentDecima
         "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137")
         .release()));
 
-  std::vector<int> decimalValues = {0, 1, 2, 6, 8, 18};
+  std::vector<int> decimalValues = { 0, 1, 2, 6, 8, 18 };
   int64_t userInputSupply = 100;
 
   for (int decimals : decimalValues)
@@ -642,8 +642,8 @@ TEST_F(TokenCreateTransactionIntegrationTests, CanCreateTokenWithDifferentDecima
     ASSERT_EQ(tokenInfo.mTotalSupply, expectedSupply);
 
     // Clean up
-    ASSERT_NO_THROW(txReceipt =
-                      TokenDeleteTransaction().setTokenId(tokenId).execute(getTestClient()).getReceipt(getTestClient()));
+    ASSERT_NO_THROW(
+      txReceipt = TokenDeleteTransaction().setTokenId(tokenId).execute(getTestClient()).getReceipt(getTestClient()));
   }
 }
 //-----

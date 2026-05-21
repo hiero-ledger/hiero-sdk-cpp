@@ -36,6 +36,16 @@ These issues often involve shaping how the SDK evolves over time.
 
 ---
 
+## Prerequisites
+
+Contributors must have completed at least **3 Intermediate Issues** in this repository before being assigned an Advanced issue.
+
+*Note: Contributors who have already completed at least one Advanced issue bypass this prerequisite and can always take on more Advanced issues.*
+
+This requirement is enforced automatically by the `/assign` bot.
+
+---
+
 ## What to Expect
 
 Advanced Issues are designed for contributors who:

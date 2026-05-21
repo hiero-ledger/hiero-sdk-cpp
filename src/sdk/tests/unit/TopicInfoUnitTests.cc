@@ -6,8 +6,8 @@
 #include "impl/TimestampConverter.h"
 #include "impl/Utilities.h"
 
-#include <services/consensus_get_topic_info.pb.h>
 #include <gtest/gtest.h>
+#include <services/consensus_get_topic_info.pb.h>
 
 using namespace Hiero;
 

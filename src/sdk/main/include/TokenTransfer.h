@@ -4,6 +4,7 @@
 
 #include "AccountId.h"
 #include "TokenId.h"
+#include "hooks/FungibleHookCall.h"
 
 #include <cstddef>
 #include <memory>
@@ -43,6 +44,21 @@ public:
   TokenTransfer(TokenId tokenId, AccountId accountId, int64_t amount, bool isApproved);
 
   /**
+   * Construct with a token ID, account ID, amount, approval, and hook call.
+   *
+   * @param tokenId    The ID of the token involved with this TokenTransfer.
+   * @param accountId  The ID of the account to/from which the token is being transferred.
+   * @param amount     The amount of the token being transferred.
+   * @param isApproved \c TRUE if this transfer is approved, otherwise \c FALSE.
+   * @param hookCall   A hook call associated with this token transfer.
+   */
+  TokenTransfer(TokenId tokenId,
+                AccountId accountId,
+                int64_t amount,
+                bool isApproved,
+                const FungibleHookCall& hookCall);
+
+  /**
    * Construct with a token ID, account ID, amount, expected decimals of the token, and approval.
    *
    * @param tokenId    The ID of the token involved with this TokenTransfer.
@@ -80,6 +96,14 @@ public:
    * @throws BadEntityException If a checksum of one of the entities is not valid.
    */
   void validateChecksums(const Client& client) const;
+
+  /**
+   * Compare this TokenTransfer to another TokenTransfer and determine if they represent the same TokenTransfer.
+   *
+   * @param other The other TokenTransfer with which to compare this TokenTransfer.
+   * @return \c TRUE if this TokenTransfer is the same as the input TokenTransfer, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const TokenTransfer& other) const;
 
   /**
    * Construct an AccountAmount protobuf object from this TokenTransfer object.
@@ -135,6 +159,11 @@ public:
    * If \c TRUE then the transfer is expected to be an approved allowance.
    */
   bool mIsApproval = false;
+
+  /**
+   * A hook call associated with this token transfer.
+   */
+  FungibleHookCall mHookCall;
 };
 
 } // namespace Hiero

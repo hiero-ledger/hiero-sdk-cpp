@@ -8,8 +8,8 @@
 #include "exceptions/IllegalStateException.h"
 
 #include <gtest/gtest.h>
-#include <stdexcept>
 #include <services/transaction.pb.h>
+#include <stdexcept>
 #include <vector>
 
 using namespace Hiero;

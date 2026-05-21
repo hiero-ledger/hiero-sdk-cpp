@@ -2,8 +2,8 @@
 #include "SemanticVersion.h"
 #include "impl/Utilities.h"
 
-#include <services/basic_types.pb.h>
 #include <gtest/gtest.h>
+#include <services/basic_types.pb.h>
 #include <string>
 
 using namespace Hiero;
@@ -115,4 +115,23 @@ TEST_F(SemanticVersionUnitTests, ToBytes)
 
   // Then
   EXPECT_EQ(bytes, internal::Utilities::stringToByteVector(semanticVersion.toProtobuf()->SerializeAsString()));
+}
+
+//-----
+TEST_F(SemanticVersionUnitTests, ToString)
+{
+  // Given
+  const SemanticVersion semanticVersion(
+    getTestMajor(), getTestMinor(), getTestPatch(), getTestPrerelease(), getTestBuildMetadata());
+
+  // When
+  const std::string result = semanticVersion.toString();
+
+  // Then
+  EXPECT_FALSE(result.empty());
+  EXPECT_NE(result.find(std::to_string(getTestMajor())), std::string::npos);
+  EXPECT_NE(result.find(std::to_string(getTestMinor())), std::string::npos);
+  EXPECT_NE(result.find(std::to_string(getTestPatch())), std::string::npos);
+  EXPECT_NE(result.find(getTestPrerelease()), std::string::npos);
+  EXPECT_NE(result.find(getTestBuildMetadata()), std::string::npos);
 }

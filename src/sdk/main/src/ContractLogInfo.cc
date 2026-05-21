@@ -69,6 +69,13 @@ std::string ContractLogInfo::toString() const
 }
 
 //-----
+bool ContractLogInfo::operator==(const ContractLogInfo& other) const
+{
+  return (mContractId == other.mContractId) && (mBloom == other.mBloom) && (mTopics == other.mTopics) &&
+         (mData == other.mData);
+}
+
+//-----
 std::ostream& operator<<(std::ostream& os, const ContractLogInfo& logInfo)
 {
   os << logInfo.toString();

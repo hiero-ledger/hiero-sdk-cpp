@@ -56,7 +56,7 @@ public:
    * Set the Pending Airdrops to be claimed
    *
    * @param pendingAirdrops The list of Pending Airdrop Id objects
-   * @return A reference to this TokenClaimAirdropTransaction with the newly-set pending airdrops.
+   * @return A reference to this TokenCancelAirdropTransaction with the newly-set pending airdrops.
    */
   TokenCancelAirdropTransaction& setPendingAirdrops(const std::vector<PendingAirdropId>& pendingAirdrops);
 

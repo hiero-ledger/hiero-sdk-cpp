@@ -2,9 +2,9 @@
 #include "StakingInfo.h"
 #include "impl/TimestampConverter.h"
 
-#include <services/basic_types.pb.h>
 #include <chrono>
 #include <gtest/gtest.h>
+#include <services/basic_types.pb.h>
 
 using namespace Hiero;
 
@@ -52,4 +52,71 @@ TEST_F(StakingInfoUnitTests, FromProtobuf)
   EXPECT_FALSE(stakingInfo.mStakedAccountId.has_value());
   ASSERT_TRUE(stakingInfo.mStakedNodeId.has_value());
   EXPECT_EQ(*stakingInfo.mStakedNodeId, getTestStakedNodeId());
+}
+
+//-----
+TEST_F(StakingInfoUnitTests, ToString)
+{
+  // Given
+  StakingInfo stakingInfo;
+  stakingInfo.mDeclineRewards = getTestDeclineReward();
+  stakingInfo.mStakePeriodStart = getTestStakePeriodStart();
+  stakingInfo.mPendingReward = Hbar(getTestPendingReward(), HbarUnit::TINYBAR());
+  stakingInfo.mStakedToMe = Hbar(getTestStakedToMe(), HbarUnit::TINYBAR());
+  stakingInfo.mStakedNodeId = getTestStakedNodeId();
+
+  // When
+  const std::string result = stakingInfo.toString();
+
+  // Then
+  EXPECT_NE(result.find("mDeclineRewards"), std::string::npos);
+  EXPECT_NE(result.find("mStakePeriodStart"), std::string::npos);
+  EXPECT_NE(result.find("mPendingReward"), std::string::npos);
+  EXPECT_NE(result.find("mStakedToMe"), std::string::npos);
+  EXPECT_NE(result.find(std::to_string(getTestStakedNodeId())), std::string::npos);
+}
+
+//-----
+TEST_F(StakingInfoUnitTests, OperatorEqual)
+{
+  // Given
+  StakingInfo stakingInfo1;
+  StakingInfo stakingInfo2;
+
+  // Two default-constructed instances are equal
+  EXPECT_EQ(stakingInfo1, stakingInfo2);
+
+  // Two identically-constructed instances are equal
+  stakingInfo1.mDeclineRewards = getTestDeclineReward();
+  stakingInfo1.mStakePeriodStart = getTestStakePeriodStart();
+  stakingInfo1.mPendingReward = Hbar(getTestPendingReward(), HbarUnit::TINYBAR());
+  stakingInfo1.mStakedToMe = Hbar(getTestStakedToMe(), HbarUnit::TINYBAR());
+  stakingInfo1.mStakedNodeId = getTestStakedNodeId();
+
+  stakingInfo2 = stakingInfo1;
+  EXPECT_EQ(stakingInfo1, stakingInfo2);
+
+  // Instances differing in each field are not equal
+  stakingInfo2.mDeclineRewards = !getTestDeclineReward();
+  EXPECT_FALSE(stakingInfo1 == stakingInfo2);
+  stakingInfo2 = stakingInfo1;
+
+  stakingInfo2.mStakePeriodStart = getTestStakePeriodStart() + std::chrono::seconds(1);
+  EXPECT_FALSE(stakingInfo1 == stakingInfo2);
+  stakingInfo2 = stakingInfo1;
+
+  stakingInfo2.mPendingReward = Hbar(getTestPendingReward() + 1LL, HbarUnit::TINYBAR());
+  EXPECT_FALSE(stakingInfo1 == stakingInfo2);
+  stakingInfo2 = stakingInfo1;
+
+  stakingInfo2.mStakedToMe = Hbar(getTestStakedToMe() + 1LL, HbarUnit::TINYBAR());
+  EXPECT_FALSE(stakingInfo1 == stakingInfo2);
+  stakingInfo2 = stakingInfo1;
+
+  stakingInfo2.mStakedAccountId = AccountId(1ULL);
+  EXPECT_FALSE(stakingInfo1 == stakingInfo2);
+  stakingInfo2 = stakingInfo1;
+
+  stakingInfo2.mStakedNodeId = getTestStakedNodeId() + 1LL;
+  EXPECT_FALSE(stakingInfo1 == stakingInfo2);
 }

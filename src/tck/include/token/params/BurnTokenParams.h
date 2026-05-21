@@ -37,7 +37,7 @@ struct BurnTokenParams
   std::optional<CommonTransactionParams> mCommonTxParams;
 };
 
-} // namespace Hedera::TCK::TokenService
+} // namespace Hiero::TCK::TokenService
 
 namespace nlohmann
 {

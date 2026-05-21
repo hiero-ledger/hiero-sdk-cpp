@@ -45,6 +45,12 @@ The focus is on learning the workflow — not on researching, guessing, or filli
 
 ---
 
+## Prerequisites
+
+Good First Issues have **no prerequisites**. They are open to anyone who wants to contribute.
+
+---
+
 ## What to Expect
 
 Good First Issues are meant to be accessible to contributors who:

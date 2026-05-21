@@ -153,6 +153,63 @@ std::string ContractInfo::toString() const
 }
 
 //-----
+bool ContractInfo::operator==(const ContractInfo& other) const
+{
+  // Compare admin keys: both null, or both non-null with matching bytes
+  if ((mAdminKey == nullptr) != (other.mAdminKey == nullptr))
+  {
+    return false;
+  }
+
+  if (mAdminKey != nullptr && other.mAdminKey != nullptr && mAdminKey->toBytes() != other.mAdminKey->toBytes())
+  {
+    return false;
+  }
+
+  // Compare StakingInfo fields inline (StakingInfo has no operator==)
+  // Note: using !(a == b) instead of a != b because some SDK types only define operator==
+  if (mStakingInfo.mDeclineRewards != other.mStakingInfo.mDeclineRewards ||
+      !(mStakingInfo.mStakePeriodStart == other.mStakingInfo.mStakePeriodStart) ||
+      !(mStakingInfo.mPendingReward == other.mStakingInfo.mPendingReward) ||
+      !(mStakingInfo.mStakedToMe == other.mStakingInfo.mStakedToMe) ||
+      !(mStakingInfo.mStakedAccountId == other.mStakingInfo.mStakedAccountId) ||
+      !(mStakingInfo.mStakedNodeId == other.mStakingInfo.mStakedNodeId))
+  {
+    return false;
+  }
+
+  // Compare TokenRelationship map inline (TokenRelationship has no operator==)
+  if (mTokenRelationships.size() != other.mTokenRelationships.size())
+  {
+    return false;
+  }
+
+  for (const auto& [tokenId, rel] : mTokenRelationships)
+  {
+    auto it = other.mTokenRelationships.find(tokenId);
+    if (it == other.mTokenRelationships.end())
+    {
+      return false;
+    }
+
+    const auto& otherRel = it->second;
+    if (!(rel.mTokenId == otherRel.mTokenId) || rel.mSymbol != otherRel.mSymbol || rel.mBalance != otherRel.mBalance ||
+        rel.mDecimals != otherRel.mDecimals || !(rel.mKycStatus == otherRel.mKycStatus) ||
+        !(rel.mFreezeStatus == otherRel.mFreezeStatus) || rel.mAutomaticAssociation != otherRel.mAutomaticAssociation)
+    {
+      return false;
+    }
+  }
+
+  return (mContractId == other.mContractId) && (mAccountId == other.mAccountId) &&
+         (mContractAccountId == other.mContractAccountId) && (mExpirationTime == other.mExpirationTime) &&
+         (mAutoRenewPeriod == other.mAutoRenewPeriod) && (mStorage == other.mStorage) && (mMemo == other.mMemo) &&
+         (mBalance == other.mBalance) && (mIsDeleted == other.mIsDeleted) && (mLedgerId == other.mLedgerId) &&
+         (mAutoRenewAccountId == other.mAutoRenewAccountId) &&
+         (mMaxAutomaticTokenAssociations == other.mMaxAutomaticTokenAssociations);
+}
+
+//-----
 std::ostream& operator<<(std::ostream& os, const ContractInfo& info)
 {
   os << info.toString();

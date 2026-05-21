@@ -12,7 +12,10 @@ SubscriptionHandle::~SubscriptionHandle()
 //-----
 void SubscriptionHandle::unsubscribe() const
 {
-  mUnsubscribeFunc();
+  if (mUnsubscribeFunc)
+  {
+    mUnsubscribeFunc();
+  }
 }
 
 //-----

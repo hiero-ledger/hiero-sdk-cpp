@@ -7,6 +7,7 @@
 #include "Transaction.h"
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 
 namespace proto

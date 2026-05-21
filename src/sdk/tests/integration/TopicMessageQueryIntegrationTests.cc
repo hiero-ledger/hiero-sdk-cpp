@@ -12,6 +12,7 @@
 #include "TransactionResponse.h"
 #include "impl/Utilities.h"
 
+#include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
 #include <thread>
 
@@ -268,4 +269,34 @@ TEST_F(TopicMessageQueryIntegrationTests, CanReceiveLargeTopicMessage)
   // Clean up
   ASSERT_NO_THROW(const TransactionReceipt txReceipt =
                     TopicDeleteTransaction().setTopicId(topicId).execute(getTestClient()).getReceipt(getTestClient()));
+}
+
+//-----
+TEST_F(TopicMessageQueryIntegrationTests, SubscribeWithEmptyMirrorNetwork)
+{
+  // Given
+  Client client = Client::fromConfigFile("local_node.json");
+  client.setMirrorNetwork({});
+
+  bool errorHandlerCalled = false;
+  grpc::StatusCode capturedErrorCode = grpc::StatusCode::OK;
+  std::string capturedErrorMessage;
+
+  TopicMessageQuery query;
+  query.setTopicId(TopicId(1ULL, 2ULL, 3ULL));
+  query.setErrorHandler(
+    [&errorHandlerCalled, &capturedErrorCode, &capturedErrorMessage](const grpc::Status& status)
+    {
+      errorHandlerCalled = true;
+      capturedErrorCode = status.error_code();
+      capturedErrorMessage = status.error_message();
+    });
+
+  // When
+  std::shared_ptr<SubscriptionHandle> handle = query.subscribe(client, [](const TopicMessage&) {});
+
+  // Then
+  EXPECT_TRUE(errorHandlerCalled);
+  EXPECT_EQ(capturedErrorCode, grpc::StatusCode::FAILED_PRECONDITION);
+  EXPECT_NE(capturedErrorMessage.find("No mirror node is available"), std::string::npos);
 }

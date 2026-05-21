@@ -117,6 +117,26 @@ NodeUpdateTransaction& NodeUpdateTransaction::deleteGrpcWebProxyEndpoint()
 }
 
 //-----
+NodeUpdateTransaction& NodeUpdateTransaction::addAssociatedRegisteredNode(uint64_t registeredNodeId)
+{
+  requireNotFrozen();
+  if (!mAssociatedRegisteredNodes.has_value())
+  {
+    mAssociatedRegisteredNodes = std::vector<uint64_t>{};
+  }
+  mAssociatedRegisteredNodes->push_back(registeredNodeId);
+  return *this;
+}
+
+//-----
+NodeUpdateTransaction& NodeUpdateTransaction::clearAssociatedRegisteredNodes()
+{
+  requireNotFrozen();
+  mAssociatedRegisteredNodes = std::vector<uint64_t>{};
+  return *this;
+}
+
+//-----
 grpc::Status NodeUpdateTransaction::submitRequest(const proto::Transaction& request,
                                                   const std::shared_ptr<internal::Node>& node,
                                                   const std::chrono::system_clock::time_point& deadline,
@@ -128,7 +148,10 @@ grpc::Status NodeUpdateTransaction::submitRequest(const proto::Transaction& requ
 //-----
 void NodeUpdateTransaction::validateChecksums(const Client& client) const
 {
-  mAccountId.validateChecksum(client);
+  if (!(mAccountId == AccountId()))
+  {
+    mAccountId.validateChecksum(client);
+  }
 }
 
 //-----
@@ -189,6 +212,16 @@ void NodeUpdateTransaction::initFromSourceTransactionBody()
   {
     mGrpcWebProxyEndpoint = Endpoint::fromProtobuf(body.grpc_proxy_endpoint());
   }
+
+  if (body.has_associated_registered_node_list())
+  {
+    std::vector<uint64_t> ids;
+    for (int i = 0; i < body.associated_registered_node_list().associated_registered_node_size(); ++i)
+    {
+      ids.push_back(body.associated_registered_node_list().associated_registered_node(i));
+    }
+    mAssociatedRegisteredNodes = std::move(ids);
+  }
 }
 
 //-----
@@ -203,7 +236,10 @@ aproto::NodeUpdateTransactionBody* NodeUpdateTransaction::build() const
   auto body = std::make_unique<aproto::NodeUpdateTransactionBody>();
 
   body->set_node_id(mNodeId);
-  body->set_allocated_account_id(mAccountId.toProtobuf().release());
+  if (!(mAccountId == AccountId()))
+  {
+    body->set_allocated_account_id(mAccountId.toProtobuf().release());
+  }
 
   if (mDescription.has_value())
   {
@@ -245,6 +281,15 @@ aproto::NodeUpdateTransactionBody* NodeUpdateTransaction::build() const
   if (mGrpcWebProxyEndpoint.has_value())
   {
     body->set_allocated_grpc_proxy_endpoint(mGrpcWebProxyEndpoint->toProtobuf().release());
+  }
+
+  if (mAssociatedRegisteredNodes.has_value())
+  {
+    auto* list = body->mutable_associated_registered_node_list();
+    for (uint64_t id : mAssociatedRegisteredNodes.value())
+    {
+      list->add_associated_registered_node(id);
+    }
   }
 
   return body.release();

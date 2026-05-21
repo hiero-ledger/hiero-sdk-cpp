@@ -68,6 +68,7 @@ TEST_F(AccountCreateTransactionUnitTests, ConstructAccountCreateTransaction)
   EXPECT_FALSE(transaction.getStakedNodeId().has_value());
   EXPECT_FALSE(transaction.getDeclineStakingReward());
   EXPECT_FALSE(transaction.getAlias().has_value());
+  EXPECT_FALSE(transaction.getHighVolume());
 }
 
 //-----
@@ -467,4 +468,50 @@ TEST_F(AccountCreateTransactionUnitTests, ResetStakedNodeId)
   // Then
   EXPECT_TRUE(transaction.getStakedAccountId().has_value());
   EXPECT_FALSE(transaction.getStakedNodeId().has_value());
+}
+
+//-----
+TEST_F(AccountCreateTransactionUnitTests, GetSetHighVolume)
+{
+  // Given
+  AccountCreateTransaction transaction;
+
+  // When
+  EXPECT_FALSE(transaction.getHighVolume());
+  EXPECT_NO_THROW(transaction.setHighVolume(true));
+
+  // Then
+  EXPECT_TRUE(transaction.getHighVolume());
+}
+
+//-----
+TEST_F(AccountCreateTransactionUnitTests, GetSetHighVolumeFrozen)
+{
+  // Given
+  AccountCreateTransaction transaction = AccountCreateTransaction()
+                                           .setNodeAccountIds({ AccountId(1ULL) })
+                                           .setTransactionId(TransactionId::generate(AccountId(1ULL)));
+
+  ASSERT_NO_THROW(transaction.freeze());
+
+  // When / Then
+  EXPECT_THROW(transaction.setHighVolume(true), IllegalStateException);
+}
+
+//-----
+TEST_F(AccountCreateTransactionUnitTests, ConstructFromTransactionBodyProtobufWithHighVolume)
+{
+  // Given
+  auto body = std::make_unique<proto::CryptoCreateTransactionBody>();
+  body->set_allocated_key(getTestPublicKey()->toProtobufKey().release());
+
+  proto::TransactionBody txBody;
+  txBody.set_allocated_cryptocreateaccount(body.release());
+  txBody.set_high_volume(true);
+
+  // When
+  const AccountCreateTransaction accountCreateTransaction(txBody);
+
+  // Then
+  EXPECT_TRUE(accountCreateTransaction.getHighVolume());
 }

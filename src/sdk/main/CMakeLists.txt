@@ -1,7 +1,7 @@
 FetchContent_Declare(
         log4cxx
         GIT_REPOSITORY https://github.com/apache/logging-log4cxx.git
-        GIT_TAG rel/v1.1.0
+        GIT_TAG rel/v1.7.0
 )
 
 set(BUILD_SHARED_LIBS OFF)
@@ -82,6 +82,7 @@ add_library(${PROJECT_NAME} STATIC
         src/FeeComponents.cc
         src/FeeData.cc
         src/FeeDataType.cc
+        src/FeeEstimateQuery.cc
         src/FeeSchedule.cc
         src/FeeSchedules.cc
         src/FileAppendTransaction.cc
@@ -93,6 +94,9 @@ add_library(${PROJECT_NAME} STATIC
         src/FileInfoQuery.cc
         src/FileUpdateTransaction.cc
         src/FreezeTransaction.cc
+        src/BlockNodeApi.cc
+        src/BlockNodeServiceEndpoint.cc
+        src/GeneralServiceEndpoint.cc
         src/FreezeType.cc
         src/Hbar.cc
         src/HbarAllowance.cc
@@ -100,6 +104,7 @@ add_library(${PROJECT_NAME} STATIC
         src/IPv4Address.cc
         src/Key.cc
         src/KeyList.cc
+        src/HookStoreTransaction.cc
         src/LedgerId.cc
         src/Logger.cc
         src/Mnemonic.cc
@@ -115,7 +120,16 @@ add_library(${PROJECT_NAME} STATIC
         src/PendingAirdropId.cc
         src/PendingAirdropRecord.cc
         src/PrivateKey.cc
+        src/MirrorNodeServiceEndpoint.cc
         src/PrngTransaction.cc
+        src/RegisteredNode.cc
+        src/RegisteredNodeAddressBook.cc
+        src/RegisteredNodeAddressBookQuery.cc
+        src/RegisteredNodeCreateTransaction.cc
+        src/RegisteredNodeDeleteTransaction.cc
+        src/RegisteredServiceEndpoint.cc
+        src/RegisteredNodeUpdateTransaction.cc
+        src/RpcRelayServiceEndpoint.cc
         src/ProxyStaker.cc
         src/PublicKey.cc
         src/Query.cc
@@ -188,6 +202,23 @@ add_library(${PROJECT_NAME} STATIC
         src/TransferTransaction.cc
         src/WrappedTransaction.cc
 
+        src/hooks/EvmHookCall.cc
+        src/hooks/EvmHookSpec.cc
+        src/hooks/FungibleHookCall.cc
+        src/hooks/FungibleHookType.cc
+        src/hooks/HookCall.cc
+        src/hooks/HookCreationDetails.cc
+        src/hooks/HookEntityId.cc
+        src/hooks/HookExtensionPoint.cc
+        src/hooks/HookId.cc
+        src/hooks/EvmHook.cc
+        src/hooks/EvmHookMappingEntries.cc
+        src/hooks/EvmHookMappingEntry.cc
+        src/hooks/EvmHookStorageSlot.cc
+        src/hooks/EvmHookStorageUpdate.cc
+        src/hooks/NftHookCall.cc
+        src/hooks/NftHookType.cc
+
         src/impl/ASN1ECKey.cc
         src/impl/ASN1ECPrivateKey.cc
         src/impl/ASN1ECPublicKey.cc
@@ -239,6 +270,10 @@ endif ()
 target_link_libraries(${PROJECT_NAME} PRIVATE
         OpenSSL::SSL
         OpenSSL::Crypto)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        unofficial::secp256k1
+        unofficial::secp256k1_precomputed)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         gRPC::address_sorting

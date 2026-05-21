@@ -1,4 +1,28 @@
 // SPDX-License-Identifier: Apache-2.0
+
+/**
+ * This example demonstrates Hiero's Hbar allowance mechanism.
+ *
+ * An allowance enables one account (the owner) to authorize another account (the spender)
+ *  to transfer a limited amount of Hbar on its behalf without
+ * requiring the owner's signature for every transaction.
+ *
+ * Essential steps:
+ * - Create accounts for Alice (owner), Bob (spender), and Charlie (receiver).
+ * - Fund each account with initial Hbar balance.
+ * - Alice approves Bob to spend a fixed amount of her Hbar.
+ * - Bob performs a transfer from Alice to Charlie using the approved allowance.
+ *
+ * Optional steps (for illustration or closure purposes):
+ * - Attempt a transfer that exceeds the remaining allowance to demonstrate enforcement.
+ * - Update the allowance amount and perform another transfer.
+ * - Revoke the allowance by setting it to zero.
+ * - Delete the created accounts after the example completes.
+ *
+ * No owner signature is required for approved transfers.
+ * The spender signs and pays for transactions executed using the allowance.
+ */
+
 #include "AccountAllowanceApproveTransaction.h"
 #include "AccountBalance.h"
 #include "AccountBalanceQuery.h"

@@ -31,12 +31,16 @@
 #include "FileInfoQuery.h"
 #include "FileUpdateTransaction.h"
 #include "FreezeTransaction.h"
+#include "HookStoreTransaction.h"
 #include "NetworkVersionInfo.h"
 #include "NetworkVersionInfoQuery.h"
 #include "NodeCreateTransaction.h"
 #include "NodeDeleteTransaction.h"
 #include "NodeUpdateTransaction.h"
 #include "PrngTransaction.h"
+#include "RegisteredNodeCreateTransaction.h"
+#include "RegisteredNodeDeleteTransaction.h"
+#include "RegisteredNodeUpdateTransaction.h"
 #include "ScheduleCreateTransaction.h"
 #include "ScheduleDeleteTransaction.h"
 #include "ScheduleInfo.h"
@@ -655,11 +659,24 @@ template class Executable<FileDeleteTransaction, proto::Transaction, proto::Tran
 template class Executable<FileInfoQuery, proto::Query, proto::Response, FileInfo>;
 template class Executable<FileUpdateTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 template class Executable<FreezeTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
+template class Executable<HookStoreTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 template class Executable<NetworkVersionInfoQuery, proto::Query, proto::Response, NetworkVersionInfo>;
 template class Executable<NodeCreateTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 template class Executable<NodeDeleteTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 template class Executable<NodeUpdateTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
 template class Executable<PrngTransaction, proto::Transaction, proto::TransactionResponse, TransactionResponse>;
+template class Executable<RegisteredNodeCreateTransaction,
+                          proto::Transaction,
+                          proto::TransactionResponse,
+                          TransactionResponse>;
+template class Executable<RegisteredNodeDeleteTransaction,
+                          proto::Transaction,
+                          proto::TransactionResponse,
+                          TransactionResponse>;
+template class Executable<RegisteredNodeUpdateTransaction,
+                          proto::Transaction,
+                          proto::TransactionResponse,
+                          TransactionResponse>;
 template class Executable<ScheduleCreateTransaction,
                           proto::Transaction,
                           proto::TransactionResponse,

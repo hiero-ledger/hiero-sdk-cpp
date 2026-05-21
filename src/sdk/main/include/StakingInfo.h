@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
@@ -61,6 +62,14 @@ public:
    * @return The string representation of this StakingInfo object.
    */
   [[nodiscard]] std::string toString() const;
+
+  /**
+   * Compare this StakingInfo to another StakingInfo and determine if they represent the same staking metadata.
+   *
+   * @param rhs The other StakingInfo with which to compare this StakingInfo.
+   * @return \c TRUE if this StakingInfo is the same as the input StakingInfo, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const StakingInfo& rhs) const;
 
   /**
    * Write this StakingInfo to an output stream.

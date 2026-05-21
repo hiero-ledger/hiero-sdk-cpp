@@ -73,7 +73,7 @@ public:
    * Set the maximum amount of time for this BaseNode to backoff after a bad gRPC status is received.
    *
    * @param backoff The maximum backoff time for this BaseNode after a bad gRPC status is received.
-   * @return A reference to this derived BaseNode object with the newly-set minimum backoff.
+   * @return A reference to this derived BaseNode object with the newly-set maximum backoff.
    */
   NodeType& setMaxNodeBackoff(const std::chrono::system_clock::duration& backoff);
 

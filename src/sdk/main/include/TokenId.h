@@ -3,6 +3,7 @@
 #define HIERO_SDK_CPP_TOKEN_ID_H_
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -100,7 +101,7 @@ public:
    * Construct an NftId from this TokenId and a serial number.
    *
    * @param serial The serial number of the NftId.
-   * @param The constructed NftId.
+   * @return The constructed NftId.
    */
   [[nodiscard]] NftId nft(uint64_t serial) const;
 
@@ -134,9 +135,9 @@ public:
   [[nodiscard]] std::vector<std::byte> toBytes() const;
 
   /**
-   * Get the checksum of this ContractId.
+   * Get the checksum of this TokenId.
    *
-   * @return The checksum of this ContractId.
+   * @return The checksum of this TokenId.
    */
   [[nodiscard]] inline std::string getChecksum() const { return mChecksum; }
 
@@ -157,7 +158,7 @@ public:
 
 private:
   /**
-   * The checksum of this TokenIds.
+   * The checksum of this TokenId.
    */
   mutable std::string mChecksum;
 };

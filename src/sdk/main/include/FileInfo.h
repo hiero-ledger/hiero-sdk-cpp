@@ -65,6 +65,14 @@ public:
   [[nodiscard]] std::string toString() const;
 
   /**
+   * Compare this FileInfo object to another FileInfo object for equality.
+   *
+   * @param rhs The FileInfo object to compare against.
+   * @return \c TRUE if this FileInfo object is equal to the input FileInfo object, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const FileInfo& rhs) const;
+
+  /**
    * Write this FileInfo to an output stream.
    *
    * @param os   The output stream.

@@ -4,6 +4,7 @@
 
 #include "AccountId.h"
 #include "Hbar.h"
+#include "hooks/FungibleHookCall.h"
 
 #include <cstddef>
 #include <memory>
@@ -33,6 +34,16 @@ public:
   explicit HbarTransfer(AccountId accountId, const Hbar& amount, bool approval);
 
   /**
+   * Construct with an account ID, amount, approval, and hook call.
+   *
+   * @param accountId The ID of the account doing the transfer.
+   * @param amount    The amount to transfer.
+   * @param approval  \c TRUE if this is an approved allowance transfer, otherwise \c FALSE.
+   * @param hookCall  A hook call associated with this Hbar transfer.
+   */
+  explicit HbarTransfer(AccountId accountId, const Hbar& amount, bool approval, const FungibleHookCall& hookCall);
+
+  /**
    * Construct an HbarTransfer object from an AccountAmount protobuf object.
    *
    * @param proto The AccountAmount protobuf object from which to construct an HbarTransfer object.
@@ -47,6 +58,14 @@ public:
    * @return The constructed HbarTransfer object.
    */
   [[nodiscard]] static HbarTransfer fromBytes(const std::vector<std::byte>& bytes);
+
+  /**
+   * Compare this HbarTransfer to another HbarTransfer and determine if they represent the same transfer.
+   *
+   * @param other The other HbarTransfer with which to compare this HbarTransfer.
+   * @return \c TRUE if this HbarTransfer is the same as the input HbarTransfer, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const HbarTransfer& other) const;
 
   /**
    * Construct an AccountAmount protobuf object from this HbarTransfer object.
@@ -92,6 +111,11 @@ public:
    * Is this transfer approved or not?
    */
   bool mIsApproved = false;
+
+  /**
+   * A hook call associated with this Hbar transfer.
+   */
+  FungibleHookCall mHookCall;
 };
 
 } // namespace Hiero

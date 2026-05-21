@@ -4,6 +4,7 @@
 #include "impl/MirrorNodeGateway.h"
 
 #include "string"
+#include <string_view>
 
 namespace Hiero
 {
@@ -36,7 +37,7 @@ MirrorNodeContractQuery& MirrorNodeContractQuery::setSenderEvmAddress(const std:
 }
 
 //-----
-MirrorNodeContractQuery& MirrorNodeContractQuery::setFunction(const std::string& functionName,
+MirrorNodeContractQuery& MirrorNodeContractQuery::setFunction(std::string_view functionName,
                                                               std::optional<ContractFunctionParameters>& parameters)
 {
   mCallData = parameters.value_or(ContractFunctionParameters()).toBytes(functionName);

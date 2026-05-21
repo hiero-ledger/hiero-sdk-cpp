@@ -6,6 +6,7 @@
 #include "Hbar.h"
 #include "TokenId.h"
 
+#include <cstdint>
 #include <memory>
 #include <optional>
 

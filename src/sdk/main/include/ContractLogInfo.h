@@ -71,6 +71,14 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const ContractLogInfo& logInfo);
 
   /**
+   * Compare this ContractLogInfo to another ContractLogInfo and determine if they represent the same log event.
+   *
+   * @param other The other ContractLogInfo with which to compare this ContractLogInfo.
+   * @return \c TRUE if this ContractLogInfo is the same as the input ContractLogInfo, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const ContractLogInfo& other) const;
+
+  /**
    * The ID of the contract that emitted this log event.
    */
   ContractId mContractId;

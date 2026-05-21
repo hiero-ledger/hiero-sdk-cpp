@@ -8,7 +8,7 @@ namespace Hiero::internal::asn1
 {
 constexpr size_t EC_KEY_LENGTH = 32; // bytes
 // more than this would be a malicious attempt
-constexpr size_t MAX_ENCRYPTED_KEY_LENGHT = 160; // bytes ~ 320 characters
+constexpr size_t MAX_ENCRYPTED_KEY_LENGTH = 160; // bytes ~ 320 characters
 
 /**
  * @class ASN1Key

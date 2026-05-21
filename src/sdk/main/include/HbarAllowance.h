@@ -60,6 +60,14 @@ public:
   [[nodiscard]] std::unique_ptr<proto::CryptoAllowance> toProtobuf() const;
 
   /**
+   * Compare this HbarAllowance to another HbarAllowance and determine if they represent the same allowance.
+   *
+   * @param rhs The other HbarAllowance with which to compare this HbarAllowance.
+   * @return \c TRUE if this HbarAllowance is the same as the input HbarAllowance, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const HbarAllowance& rhs) const;
+
+  /**
    * The ID of the account approving an allowance of its Hbars.
    */
   AccountId mOwnerAccountId;

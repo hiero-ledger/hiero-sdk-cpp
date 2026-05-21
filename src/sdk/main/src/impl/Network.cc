@@ -10,6 +10,7 @@
 #include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <string_view>
 
 namespace Hiero::internal
 {
@@ -26,16 +27,16 @@ namespace
  * @note This function ONLY maps specific local development Kubernetes service DNS names.
  *       All other addresses (testnet, mainnet, previewnet, custom networks) pass through unchanged.
  */
-std::string mapEndpointForLocalDevelopment(const std::string& endpoint)
+std::string mapEndpointForLocalDevelopment(std::string_view endpoint)
 {
   // Map network-node2 from port 50211 to 51211 for local port-forwarding
-  if (endpoint.find("network-node2-svc.solo.svc.cluster.local:50211") != std::string::npos)
+  if (endpoint.find("network-node2-svc.solo.svc.cluster.local:50211") != std::string_view::npos)
   {
     return "network-node2-svc.solo.svc.cluster.local:51211";
   }
 
   // All other addresses (including network-node1) pass through unchanged
-  return endpoint;
+  return std::string(endpoint);
 }
 } // anonymous namespace
 

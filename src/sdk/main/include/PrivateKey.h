@@ -47,7 +47,7 @@ public:
    * Construct a PrivateKey object from a hex-encoded, DER-encoded key string.
    *
    * @param key The DER-encoded hex string from which to construct a PrivateKey.
-   * @return A pointer to an PrivateKey representing the input DER-encoded hex string.
+   * @return A pointer to a PrivateKey representing the input DER-encoded hex string.
    * @throws BadKeyException If the private key type (ED25519 or ECDSAsecp256k1) is unable to be determined or realized
    *                         from the input hex string.
    */

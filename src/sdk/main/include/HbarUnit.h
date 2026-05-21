@@ -2,6 +2,7 @@
 #ifndef HBAR_UNIT_H_
 #define HBAR_UNIT_H_
 
+#include <cstdint>
 #include <map>
 #include <string>
 
@@ -14,40 +15,42 @@ class HbarUnit
 {
 public:
   /**
-   * The atomic (smallest) unit of hbar, used natively by the Hiero network. It is equivalent to 1/100,000,000 hbar.
+   * The atomic (smallest) unit of hbar, used natively by the Hiero network.
+   * It is equivalent to 1/100,000,000 hbar.
    */
-  static constexpr HbarUnit TINYBAR() { return { "tℏ", 1ULL }; }
+  static constexpr HbarUnit TINYBAR() { return { "tinybar", 1ULL }; }
 
   /**
    * Equivalent to 100 tinybar or 1/1,000,000 hbar.
    */
-  static constexpr HbarUnit MICROBAR() { return { "μℏ", 100ULL }; }
+  static constexpr HbarUnit MICROBAR() { return { "ubar", 100ULL }; }
 
   /**
    * Equivalent to 100,000 tinybar or 1/1,000 hbar.
    */
-  static constexpr HbarUnit MILLIBAR() { return { "mℏ", 100000ULL }; }
+  static constexpr HbarUnit MILLIBAR() { return { "mbar", 100000ULL }; }
 
   /**
    * The base unit of hbar, equivalent to 100 million tinybar.
    */
-  static constexpr HbarUnit HBAR() { return { "ℏ", 100000000ULL }; }
+  static constexpr HbarUnit HBAR() { return { "hbar", 100000000ULL }; }
 
   /**
    * Equivalent to 1 thousand hbar or 100 billion tinybar.
    */
-  static constexpr HbarUnit KILOBAR() { return { "kℏ", 100000000000ULL }; }
+  static constexpr HbarUnit KILOBAR() { return { "kbar", 100000000000ULL }; }
 
   /**
    * Equivalent to 1 million hbar or 100 trillion tinybar.
    */
-  static constexpr HbarUnit MEGABAR() { return { "Mℏ", 100000000000000ULL }; }
+  static constexpr HbarUnit MEGABAR() { return { "Mbar", 100000000000000ULL }; }
 
   /**
-   * Equivalent to 1 billion hbar or 100 quadrillion tinybar. The maximum hbar amount supported by Hiero in any context
+   * Equivalent to 1 billion hbar or 100 quadrillion tinybar.
+   * The maximum hbar amount supported by Hiero in any context
    * is ~92 gigabar (2^63 tinybar); use this unit sparingly.
    */
-  static constexpr HbarUnit GIGABAR() { return { "Gℏ", 100000000000000000ULL }; }
+  static constexpr HbarUnit GIGABAR() { return { "Gbar", 100000000000000000ULL }; }
 
   /**
    * Get the symbol of the current unit.

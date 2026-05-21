@@ -5,6 +5,7 @@
 #include "SubscriptionHandle.h"
 #include "TopicId.h"
 #include "TopicMessage.h"
+#include "exceptions/IllegalStateException.h"
 #include "impl/MirrorNetwork.h"
 #include "impl/MirrorNode.h"
 #include "impl/TimestampConverter.h"
@@ -31,10 +32,20 @@ enum class CallStatus
 // Helper function used to get a connected mirror node.
 std::shared_ptr<internal::MirrorNode> getConnectedMirrorNode(const std::shared_ptr<internal::MirrorNetwork>& network)
 {
+  if (!network)
+  {
+    throw IllegalStateException("Mirror network is not configured");
+  }
+
   std::shared_ptr<internal::MirrorNode> node = network->getNextMirrorNode();
-  while (node->channelFailedToConnect())
+  while (node && node->channelFailedToConnect())
   {
     node = network->getNextMirrorNode();
+  }
+
+  if (!node)
+  {
+    throw IllegalStateException("No mirror node is available for topic message subscription");
   }
 
   return node;
@@ -218,8 +229,16 @@ void startSubscription(
 
         // Reset the call status and send the query.
         *callStatus = CallStatus::STATUS_CREATE;
-        reader = getConnectedMirrorNode(network)->getConsensusServiceStub()->AsyncsubscribeTopic(
-          contexts.back().get(), query, queues.back().get(), callStatus.get());
+        try
+        {
+          reader = getConnectedMirrorNode(network)->getConsensusServiceStub()->AsyncsubscribeTopic(
+            contexts.back().get(), query, queues.back().get(), callStatus.get());
+        }
+        catch (const IllegalStateException& e)
+        {
+          errorHandler(grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what()));
+          complete = true;
+        }
 
         break;
       }
@@ -330,23 +349,33 @@ std::shared_ptr<SubscriptionHandle> TopicMessageQuery::subscribe(const Client& c
   auto queue = std::make_unique<grpc::CompletionQueue>();
   auto callStatus = std::make_unique<CallStatus>();
 
+  std::shared_ptr<internal::MirrorNode> node;
+  try
+  {
+    node = getConnectedMirrorNode(client.getClientMirrorNetwork());
+  }
+  catch (const IllegalStateException& e)
+  {
+    mImpl->mErrorHandler(grpc::Status(grpc::StatusCode::FAILED_PRECONDITION, e.what()));
+    return handle;
+  }
+
   // Send the query and initiate the subscription.
-  std::thread(&startSubscription,
-              client.getClientMirrorNetwork(),
-              getConnectedMirrorNode(client.getClientMirrorNetwork())
-                ->getConsensusServiceStub()
-                ->AsyncsubscribeTopic(context.get(), mImpl->mQuery, queue.get(), callStatus.get()),
-              std::move(context),
-              std::move(queue),
-              std::move(callStatus),
-              mImpl->mQuery,
-              mImpl->mErrorHandler,
-              mImpl->mRetryHandler,
-              mImpl->mCompletionHandler,
-              onNext,
-              mImpl->mMaxAttempts,
-              mImpl->mMaxBackoff,
-              handle)
+  std::thread(
+    &startSubscription,
+    client.getClientMirrorNetwork(),
+    node->getConsensusServiceStub()->AsyncsubscribeTopic(context.get(), mImpl->mQuery, queue.get(), callStatus.get()),
+    std::move(context),
+    std::move(queue),
+    std::move(callStatus),
+    mImpl->mQuery,
+    mImpl->mErrorHandler,
+    mImpl->mRetryHandler,
+    mImpl->mCompletionHandler,
+    onNext,
+    mImpl->mMaxAttempts,
+    mImpl->mMaxBackoff,
+    handle)
     .detach();
 
   return handle;

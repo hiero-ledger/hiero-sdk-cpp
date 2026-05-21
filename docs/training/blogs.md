@@ -1,6 +1,6 @@
 # Writing Blog Posts 
 
-We welcome blog posts to the **Hiero Website Reposiory** about the C++ SDK
+We welcome blog posts to the **Hiero Website Repository** about the C++ SDK
 
 Blog posts have to be submitted as pull requests to [Hiero Website Repository](https://github.com/hiero-ledger/hiero-website).
 

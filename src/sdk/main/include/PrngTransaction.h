@@ -60,7 +60,7 @@ public:
   /**
    * Get the range of the pseudorandom number to generate.
    *
-   * @return The the range of the pseudorandom number to generate.
+   * @return The range of the pseudorandom number to generate.
    */
   [[nodiscard]] inline int getRange() const { return mRange; }
 

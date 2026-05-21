@@ -25,7 +25,7 @@ The C++ SDK for interacting with a [Hiero](https://hiero.org) network.
 
 - **ninja**
   - macOS: `brew install ninja`
-  - Linux: `apt-get install ninja-build`
+  - Linux: `apt-get install ninja-build zip unzip linux-libc-dev`
 - **pkg-config**
   - macOS: `brew install pkg-config`
   - Linux: `apt-get install pkg-config`
@@ -41,6 +41,14 @@ The C++ SDK for interacting with a [Hiero](https://hiero.org) network.
 - [CMake](https://cmake.org/download/) (select "Add CMake to the system PATH" during installation)
 - [Perl](http://strawberryperl.com/) (`perl.exe` must be added to `%PATH%`)
 - [NASM](https://www.nasm.us) (`nasm.exe` must be added to `%PATH%`)
+
+#### Run
+```powershell
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+```
+
+> [!NOTE]
+> Please make sure to run the commands in **x64 Native Tools Command Prompt for VS 2022**
 
 ## Build
 
@@ -90,11 +98,12 @@ The following optional flags can be added during configuration:
 | `BUILD_TESTS` | `OFF` | Include the test suite in the build |
 | `BUILD_TCK` | `OFF` | Include TCK tests in the build |
 | `BUILD_EXAMPLES` | `OFF` | Include example programs in the build |
+| `BUILD_TCK_TESTS`| `OFF` | Include TCK Server unit tests in the build |
 
 Example with all options enabled:
 
 ```sh
-cmake --preset linux-x64-release -DBUILD_TESTS=ON -DBUILD_TCK=ON -DBUILD_EXAMPLES=ON
+cmake --preset linux-x64-release -DBUILD_TESTS=ON -DBUILD_TCK=ON -DBUILD_EXAMPLES=ON -DBUILD_TCK_TESTS=ON
 cmake --build --preset linux-x64-release
 ```
 
@@ -172,8 +181,14 @@ Create a `.env` file in the project root with the following variables:
 
 ### Running Examples
 
-```sh
-build/<PRESET>/sdk/examples/Release/<EXAMPLE_NAME>
+#### Mac
+```C++
+package/Release/Darwin/arm64/examples/Release/<EXAMPLE-NAME>
+```
+
+#### Windows
+```C++
+package\Release\Windows\AMD64\examples\Release\<EXAMPLE-NAME>
 ```
 
 - `<PRESET>`: The CMake preset used during build (e.g., `linux-x64-release`)
@@ -221,7 +236,7 @@ Users and Maintainers guidelines are located in **[Hiero-Ledger's CONTRIBUTING.m
 
 ## Support
 
-- [Discord](https://hiero.org/discord)
+- [Discord](https://discord.gg/hyperledger)
 - [GitHub Issues](https://github.com/hiero-ledger/hiero-sdk-cpp/issues)
 
 ## Code of Conduct

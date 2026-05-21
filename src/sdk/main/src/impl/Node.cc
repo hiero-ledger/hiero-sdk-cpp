@@ -86,12 +86,6 @@ grpc::Status Node::submitTransaction(proto::TransactionBody::DataCase funcEnum,
 
   switch (funcEnum)
   {
-    case proto::TransactionBody::DataCase::kNodeCreate:
-      return mAddressBookStub->createNode(&context, transaction, response);
-    case proto::TransactionBody::DataCase::kNodeDelete:
-      return mAddressBookStub->createNode(&context, transaction, response);
-    case proto::TransactionBody::DataCase::kNodeUpdate:
-      return mAddressBookStub->createNode(&context, transaction, response);
     case proto::TransactionBody::DataCase::kConsensusCreateTopic:
       return mConsensusStub->createTopic(&context, transaction, response);
     case proto::TransactionBody::DataCase::kConsensusDeleteTopic:
@@ -136,6 +130,20 @@ grpc::Status Node::submitTransaction(proto::TransactionBody::DataCase funcEnum,
       return mFileStub->updateFile(&context, transaction, response);
     case proto::TransactionBody::DataCase::kFreeze:
       return mFreezeStub->freeze(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kHookStore:
+      return mSmartContractStub->hookStore(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kNodeCreate:
+      return mAddressBookStub->createNode(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kNodeDelete:
+      return mAddressBookStub->deleteNode(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kNodeUpdate:
+      return mAddressBookStub->updateNode(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kRegisteredNodeCreate:
+      return mAddressBookStub->createRegisteredNode(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kRegisteredNodeDelete:
+      return mAddressBookStub->deleteRegisteredNode(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kRegisteredNodeUpdate:
+      return mAddressBookStub->updateRegisteredNode(&context, transaction, response);
     case proto::TransactionBody::DataCase::kScheduleCreate:
       return mScheduleStub->createSchedule(&context, transaction, response);
     case proto::TransactionBody::DataCase::kScheduleDelete:

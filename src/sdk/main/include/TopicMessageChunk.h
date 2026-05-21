@@ -6,6 +6,7 @@
 
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <vector>
 
 namespace com::hedera::mirror::api::proto

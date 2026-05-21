@@ -73,6 +73,14 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const AssessedCustomFee& fee);
 
   /**
+   * Check if this AssessedCustomFee is equal to another AssessedCustomFee.
+   *
+   * @param other The other AssessedCustomFee to compare to.
+   * @return True if this AssessedCustomFee is equal to the other, false otherwise.
+   */
+  [[nodiscard]] bool operator==(const AssessedCustomFee& other) const;
+
+  /**
    * The number of units assessed for the fee.
    */
   int64_t mAmount = 0LL;

@@ -216,4 +216,3 @@ TEST_F(HIP1300IntegrationTests, CannotCreateTransactionWithMoreThan6KBSignatures
                     .execute(getTestClient())
                     .getReceipt(getTestClient()));
 }
-
