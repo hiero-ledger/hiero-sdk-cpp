@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "EthereumTransactionDataEip1559.h"
 #include "impl/HexConverter.h"
+#include "impl/RLPItem.h"
+#include "impl/Utilities.h"
 
 #include <gtest/gtest.h>
 
@@ -79,4 +81,36 @@ TEST_F(EthereumTransactionDataEip1559UnitTests, ToString)
             "mRecoveryId: 01\n"
             "mR: DF48F2EFD10421811DE2BFB125AB75B2D3C44139C4642837FB1FCCCE911FD479\n"
             "mS: 1AAF7AE92BEE896651DFC9D99AE422A296BF5D9F1CA49B2D96D82B79EB112D66");
+}
+
+//-----
+TEST_F(EthereumTransactionDataEip1559UnitTests, ToBytesPlacesRecoveryIdAndSignature)
+{
+  // Given
+  EthereumTransactionDataEip1559 data;
+  data.mChainId = internal::HexConverter::hexToBytes("01");
+  data.mNonce = internal::HexConverter::hexToBytes("00");
+  data.mMaxPriorityGas = internal::HexConverter::hexToBytes("01");
+  data.mMaxGas = internal::HexConverter::hexToBytes("02");
+  data.mGasLimit = internal::HexConverter::hexToBytes("03");
+  data.mTo = internal::HexConverter::hexToBytes("7e3a9eaf9bcc39e2ffa38eb30bf7a93feacbc181");
+  data.mValue = internal::HexConverter::hexToBytes("04");
+  data.mCallData = internal::HexConverter::hexToBytes("1234");
+  data.mAccessList = {};
+  data.mRecoveryId = { std::byte(0x01) };
+  data.mR = internal::HexConverter::hexToBytes("df48f2efd10421811de2bfb125ab75b2d3c44139c4642837fb1fccce911fd479");
+  data.mS = internal::HexConverter::hexToBytes("1aaf7ae92bee896651dfc9d99ae422a296bf5d9f1ca49b2d96d82b79eb112d66");
+
+  // When
+  const std::vector<std::byte> encoded = data.toBytes();
+
+  // Then
+  RLPItem decoded;
+  decoded.read(internal::Utilities::removePrefix(encoded, 1));
+  const std::vector<RLPItem> values = decoded.getValues();
+
+  ASSERT_EQ(values.size(), 12u);
+  EXPECT_EQ(values.at(9).getValue(), data.mRecoveryId);
+  EXPECT_EQ(values.at(10).getValue(), data.mR);
+  EXPECT_EQ(values.at(11).getValue(), data.mS);
 }

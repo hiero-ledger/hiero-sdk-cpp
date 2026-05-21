@@ -76,6 +76,8 @@ EthereumTransaction& EthereumTransaction::sign(const std::shared_ptr<PrivateKey>
     return signedTransaction;
   }
 
+  // messageToSign is the raw preimage (RLP list + type byte).
+  // sign() hashes this internally, and getRecoveryId() does the same.
   const std::vector<std::byte> messageToSign = eip1559Data->toSignBytes();
   const std::vector<std::byte> signatureBytes = ecdsaKey->sign(messageToSign);
   if (signatureBytes.size() != ECDSAsecp256k1PrivateKey::RAW_SIGNATURE_SIZE)
