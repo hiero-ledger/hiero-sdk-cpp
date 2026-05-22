@@ -320,9 +320,9 @@ install(TARGETS
 #   ConsensusPubSubWithSubmitKeyExample – infinite loop
 #   ValidateChecksumExample             – reads stdin interactively
 #
-# Each test runs from the directory containing the compiled binary so that
-# dotenv::init() picks up any .env file written there by the CI workflow,
-# and so that auxiliary files (config/, addressbook/) are reachable.
+# Each test runs from the project root (CMAKE_SOURCE_DIR) so that:
+#   - dotenv::init() finds .env written there by the CI workflow
+#   - config/local_node.json and other root-relative paths are reachable
 # =============================================================================
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -331,7 +331,7 @@ macro(register_offline_example TARGET TIMEOUT_S)
     add_test(
         NAME    "example-offline-${TARGET}"
         COMMAND $<TARGET_FILE:${TARGET}>
-        WORKING_DIRECTORY $<TARGET_FILE_DIR:${TARGET}>
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
     set_tests_properties("example-offline-${TARGET}" PROPERTIES
         LABELS   "example;example-offline"
@@ -344,7 +344,7 @@ macro(register_network_example TARGET TIMEOUT_S)
     add_test(
         NAME    "example-network-${TARGET}"
         COMMAND $<TARGET_FILE:${TARGET}>
-        WORKING_DIRECTORY $<TARGET_FILE_DIR:${TARGET}>
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
     set_tests_properties("example-network-${TARGET}" PROPERTIES
         LABELS   "example;example-network"
@@ -365,7 +365,7 @@ register_offline_example(${VERSION_EXAMPLE_NAME}                                
 add_test(
     NAME    "example-offline-${CONSTRUCT_CLIENT_EXAMPLE_NAME}"
     COMMAND $<TARGET_FILE:${CONSTRUCT_CLIENT_EXAMPLE_NAME}>
-    WORKING_DIRECTORY $<TARGET_FILE_DIR:${CONSTRUCT_CLIENT_EXAMPLE_NAME}>
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties("example-offline-${CONSTRUCT_CLIENT_EXAMPLE_NAME}" PROPERTIES
     LABELS              "example;example-offline"

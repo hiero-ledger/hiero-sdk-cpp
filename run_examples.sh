@@ -163,9 +163,10 @@ run_example() {
     return 1
   fi
 
-  # Run from the binary directory so dotenv finds its .env file.
+  # Run from the project root (script directory) so dotenv::init() finds .env
+  # at the project root, and config/local_node.json is reachable by relative path.
   local output
-  if output=$(cd "${EXAMPLES_BIN_DIR}" && timeout "${TIMEOUT_S}" "./${binary}" 2>&1); then
+  if output=$(timeout "${TIMEOUT_S}" "${path}" 2>&1); then
     echo -e "  ${GREEN}PASS${RESET}     ${binary}"
     return 0
   else
@@ -197,9 +198,13 @@ SKIP=0
 # Load .env for network examples if available
 if [[ "${CATEGORY}" == "network" || "${CATEGORY}" == "all" ]]; then
   if [[ -f "${ENV_FILE}" ]]; then
-    echo -e "${CYAN}Sourcing credentials from ${ENV_FILE}${RESET}"
-    # Copy the .env file into the examples binary directory so dotenv picks it up
-    cp "${ENV_FILE}" "${EXAMPLES_BIN_DIR}/.env"
+    echo -e "${CYAN}Using credentials from ${ENV_FILE}${RESET}"
+    # If the env file is not already named .env at the project root, copy it there
+    # so dotenv::init() (which reads from the CWD) picks it up automatically.
+    if [[ "$(realpath "${ENV_FILE}")" != "$(realpath .env)" ]]; then
+      cp "${ENV_FILE}" .env
+      echo -e "${CYAN}Copied ${ENV_FILE} → .env (project root)${RESET}"
+    fi
   else
     echo -e "${YELLOW}WARNING: .env file not found at '${ENV_FILE}'.${RESET}"
     echo -e "${YELLOW}         Network examples will likely fail without credentials.${RESET}"

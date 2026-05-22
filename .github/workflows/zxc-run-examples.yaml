@@ -140,20 +140,16 @@ jobs:
           hieroVersion: v0.73.0
           dualMode: true
 
-      # Write a .env file into every examples binary directory so dotenv picks
-      # up the solo credentials automatically.
+      # Write .env to the project root so dotenv::init() finds it when CTest
+      # runs examples with WORKING_DIRECTORY set to CMAKE_SOURCE_DIR.
       - name: Write .env for Solo Credentials
         if: ${{ inputs.run-network-examples }}
         run: |
-          EXAMPLES_BIN_DIR="build/${{ env.PRESET }}-$(echo ${{ env.BUILD_TYPE }} | tr '[:upper:]' '[:lower:]')/src/sdk/examples/${{ env.BUILD_TYPE }}"
-          echo "Writing .env to ${EXAMPLES_BIN_DIR}"
-          cat > "${EXAMPLES_BIN_DIR}/.env" <<EOF
-          OPERATOR_ID=${{ steps.solo.outputs.OPERATOR_ID }}
-          OPERATOR_KEY=${{ steps.solo.outputs.OPERATOR_KEY }}
-          HIERO_NETWORK=localhost
-          MIRROR_NODE=127.0.0.1:5600
-          EOF
-          echo "Done."
+          echo "OPERATOR_ID=${{ steps.solo.outputs.OPERATOR_ID }}" >  .env
+          echo "OPERATOR_KEY=${{ steps.solo.outputs.OPERATOR_KEY }}" >> .env
+          echo "HIERO_NETWORK=localhost"                             >> .env
+          echo "MIRROR_NODE=127.0.0.1:5600"                         >> .env
+          echo "Wrote .env to project root with solo credentials."
 
       # ── Network examples ───────────────────────────────────────────────────
       - name: Run Network Examples
