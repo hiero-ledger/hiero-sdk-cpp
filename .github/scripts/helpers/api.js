@@ -622,7 +622,7 @@ async function acknowledgeComment(botContext, commentId) {
  * @returns {Promise<{ allPassed: boolean }>}
  */
 async function runAllChecksAndComment(botContext, precomputed = {}) {
-  let { dco, gpg, merge, issueLink } = precomputed;
+  let { dco, gpg, merge, issueLink, ci } = precomputed;
   let commits = [];
 
   try {
@@ -654,7 +654,7 @@ async function runAllChecksAndComment(botContext, precomputed = {}) {
   }
 
   const prAuthor = botContext.pr?.user?.login;
-  const { marker, body, allPassed } = buildBotComment({ prAuthor, dco, gpg, merge, issueLink });
+  const { marker, body, allPassed } = buildBotComment({ prAuthor, dco, gpg, merge, issueLink, ci });
   await postOrUpdateComment(botContext, marker, body);
 
   return { allPassed };

@@ -11,6 +11,7 @@ const validation = require('./validation');
 const api = require('./api');
 const checks = require('./checks');
 const comments = require('./comments');
+const ci = require('./ci');
 
 module.exports = {
   ...constants,
@@ -19,4 +20,5 @@ module.exports = {
   ...api,
   ...checks,
   ...comments,
+  ...ci,
 };

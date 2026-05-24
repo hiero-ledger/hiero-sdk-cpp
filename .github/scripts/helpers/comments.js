@@ -138,12 +138,28 @@ function buildIssueLinkSection(issueLink) {
 }
 
 /**
- * Builds the ### PR Checks section of the dashboard comment.
- * @param {{ dco: object, gpg: object, merge: object, issueLink: object }} results
+ * @param {{ passed: boolean, check?: string, runUrl?: string, error?: boolean, errorMessage?: string }} ci
  * @returns {string}
  */
-function buildChecksSection({ dco, gpg, merge, issueLink }) {
+function buildCISection(ci) {
+  const common = buildSection({ title: 'CI Checks', result: ci, passMessage: 'All CI checks passed. Nice work!' });
+  if (common) return common;
+
+  const checkName = ci.check === 'lint' ? 'Lint' : ci.check === 'build' ? 'Build' : ci.check === 'tests' ? 'Tests' : 'CI';
   return [
+    `:x: **CI Checks** -- The ${checkName} check failed.`,
+    '',
+    `Take a look at the [failing run](${ci.runUrl}) and push a fix when you're ready. Feel free to ping the maintainers if you need a hand.`,
+  ].join('\n');
+}
+
+/**
+ * Builds the ### PR Checks section of the dashboard comment.
+ * @param {{ dco: object, gpg: object, merge: object, issueLink: object, ci?: object }} results
+ * @returns {string}
+ */
+function buildChecksSection({ dco, gpg, merge, issueLink, ci }) {
+  const sections = [
     '### PR Checks',
     '',
     buildDCOSection(dco),
@@ -159,39 +175,52 @@ function buildChecksSection({ dco, gpg, merge, issueLink }) {
     '---',
     '',
     buildIssueLinkSection(issueLink),
-  ].join('\n');
+  ];
+
+  if (ci) {
+    sections.push('', '---', '', buildCISection(ci));
+  }
+
+  return sections.join('\n');
 }
 
 /**
  * Determines whether all checks passed (errors count as not passed).
- * @param {{ dco: object, gpg: object, merge: object, issueLink: object }} results
+ * @param {{ dco: object, gpg: object, merge: object, issueLink: object, ci?: object }} results
  * @returns {boolean}
  */
-function allChecksPassed({ dco, gpg, merge, issueLink }) {
-  return (
+function allChecksPassed({ dco, gpg, merge, issueLink, ci }) {
+  const baseChecks = (
     !dco.error && dco.passed &&
     !gpg.error && gpg.passed &&
     !merge.error && merge.passed &&
     !issueLink.error && issueLink.passed
   );
+  
+  if (!ci) return baseChecks;
+  
+  return baseChecks && !ci.error && ci.passed;
 }
 
 /**
  * Builds the full unified bot comment.
- * @param {{ prAuthor: string, dco: object, gpg: object, merge: object, issueLink: object }} params
+ * @param {{ prAuthor: string, dco: object, gpg: object, merge: object, issueLink: object, ci?: object }} params
  * @returns {{ marker: string, body: string, allPassed: boolean }}
  */
-function buildBotComment({ prAuthor, dco, gpg, merge, issueLink }) {
+function buildBotComment({ prAuthor, dco, gpg, merge, issueLink, ci }) {
   const greeting = [
     `Hey @${prAuthor} :wave: thanks for the PR!`,
     "I'm your friendly **PR Helper Bot** :robot: and I'll be riding shotgun on this one, keeping track of your PR's status to help you get it approved and merged.",
     '',
     "This comment updates automatically as you push changes -- think of it as your PR's live scoreboard!",
+    '',
+    'When all checks pass, your PR will be labeled **status: needs review** and a maintainer will take a look. If something needs attention, the label will flip to **status: needs revision** so you know to take another pass.',
+    '',
     "Here's the latest:",
   ].join('\n');
 
-  const checksSection = buildChecksSection({ dco, gpg, merge, issueLink });
-  const passed = allChecksPassed({ dco, gpg, merge, issueLink });
+  const checksSection = buildChecksSection({ dco, gpg, merge, issueLink, ci });
+  const passed = allChecksPassed({ dco, gpg, merge, issueLink, ci });
 
   const footer = passed
     ? ':tada: *All checks passed! Your PR is ready for review. Great job!*'
@@ -201,10 +230,27 @@ function buildBotComment({ prAuthor, dco, gpg, merge, issueLink }) {
   return { marker: MARKER, body, allPassed: passed };
 }
 
+/**
+ * Builds a standalone notification comment to alert a PR author that CI has failed.
+ * This is posted once when the CI state changes from pass/unknown to failed.
+ *
+ * @param {string} prAuthor - GitHub username of the PR author.
+ * @param {string} runUrl - URL to the failing CI run.
+ * @returns {string}
+ */
+function buildCIFailureNotificationComment(prAuthor, runUrl) {
+  return [
+    `Hi @${prAuthor} :wave: — the CI check just failed on this PR.`,
+    `Take a look at the [failing run](${runUrl}) and push a fix when you're ready.`,
+    `Feel free to ping the maintainers if you need a hand.`,
+  ].join(' ');
+}
+
 module.exports = {
   MARKER,
   buildBotComment,
   buildChecksSection,
   allChecksPassed,
   buildMergeConflictNotificationComment,
+  buildCIFailureNotificationComment,
 };
