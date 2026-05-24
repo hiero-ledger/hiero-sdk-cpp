@@ -30,6 +30,8 @@ set(CUSTOM_FEES_EXAMPLE_NAME ${PROJECT_NAME}-custom-fees-example)
 set(DELETE_ACCOUNT_EXAMPLE_NAME ${PROJECT_NAME}-delete-account-example)
 set(DELETE_FILE_EXAMPLE_NAME ${PROJECT_NAME}-delete-file-example)
 set(EXEMPT_CUSTOM_FEES_EXAMPLE_NAME ${PROJECT_NAME}-exempt-custom-fees-example)
+set(FEE_ESTIMATE_TRANSFER_EXAMPLE_NAME ${PROJECT_NAME}-fee-estimate-transfer-example)
+set(FEE_ESTIMATE_INTRINSIC_VS_STATE_EXAMPLE_NAME ${PROJECT_NAME}-fee-estimate-intrinsic-vs-state-example)
 set(FILE_APPEND_CHUNKED_EXAMPLE_NAME ${PROJECT_NAME}-file-append-chunked-example)
 set(GENERATE_KEY_EXAMPLE_NAME ${PROJECT_NAME}-generate-key-example)
 set(GENERATE_PRIVATE_KEY_FROM_MNEMONIC_EXAMPLE_NAME ${PROJECT_NAME}-generate-private-key-from-mnemonic-example)
@@ -49,6 +51,7 @@ set(MULTI_APP_TRANSFER_EXAMPLE_NAME ${PROJECT_NAME}-multi-app-transfer-example)
 set(MULTI_SIG_OFFLINE_EXAMPLE_NAME ${PROJECT_NAME}-multi-sig-offline-example)
 set(NFT_ADD_REMOVE_ALLOWANCES_EXAMPLE_NAME ${PROJECT_NAME}-nft-add-remove-allowances-example)
 set(PRNG_EXAMPLE_NAME ${PROJECT_NAME}-prng-example)
+set(REGISTERED_NODE_LIFECYCLE_EXAMPLE_NAME ${PROJECT_NAME}-registered-node-lifecycle-example)
 set(REVENUE_GENERATING_TOPICS_EXAMPLE_NAME ${PROJECT_NAME}-revenue-generating-topics-example)
 set(SCHEDULE_EXAMPLE_NAME ${PROJECT_NAME}-schedule-example)
 set(SCHEDULE_IDENTICAL_TRANSACTION_EXAMPLE_NAME ${PROJECT_NAME}-schedule-identical-transaction-example)
@@ -97,6 +100,8 @@ add_executable(${CUSTOM_FEES_EXAMPLE_NAME} CustomFeesExample.cpp)
 add_executable(${DELETE_ACCOUNT_EXAMPLE_NAME} DeleteAccountExample.cpp)
 add_executable(${DELETE_FILE_EXAMPLE_NAME} DeleteFileExample.cpp)
 add_executable(${EXEMPT_CUSTOM_FEES_EXAMPLE_NAME} ExemptCustomFeesExample.cpp)
+add_executable(${FEE_ESTIMATE_TRANSFER_EXAMPLE_NAME} FeeEstimateTransferExample.cpp)
+add_executable(${FEE_ESTIMATE_INTRINSIC_VS_STATE_EXAMPLE_NAME} FeeEstimateIntrinsicVsStateExample.cpp)
 add_executable(${FILE_APPEND_CHUNKED_EXAMPLE_NAME} FileAppendChunkedExample.cpp)
 add_executable(${GENERATE_KEY_EXAMPLE_NAME} GenerateKeyExample.cpp)
 add_executable(${GENERATE_PRIVATE_KEY_FROM_MNEMONIC_EXAMPLE_NAME} GeneratePrivateKeyFromMnemonicExample.cpp)
@@ -115,6 +120,7 @@ add_executable(${MULTI_APP_TRANSFER_EXAMPLE_NAME} MultiAppTransferExample.cpp)
 add_executable(${MULTI_SIG_OFFLINE_EXAMPLE_NAME} MultiSigOfflineExample.cpp)
 add_executable(${NFT_ADD_REMOVE_ALLOWANCES_EXAMPLE_NAME} NftAddRemoveAllowancesExample.cpp)
 add_executable(${PRNG_EXAMPLE_NAME} PrngExample.cpp)
+add_executable(${REGISTERED_NODE_LIFECYCLE_EXAMPLE_NAME} RegisteredNodeLifecycleExample.cpp)
 add_executable(${REVENUE_GENERATING_TOPICS_EXAMPLE_NAME} RevenueGeneratingTopicsExample.cpp)
 add_executable(${SCHEDULE_EXAMPLE_NAME} ScheduleExample.cpp)
 add_executable(${SCHEDULE_IDENTICAL_TRANSACTION_EXAMPLE_NAME} ScheduleIdenticalTransactionExample.cpp)
@@ -185,6 +191,8 @@ target_link_libraries(${CUSTOM_FEES_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${DELETE_ACCOUNT_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${DELETE_FILE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${EXEMPT_CUSTOM_FEES_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${FEE_ESTIMATE_TRANSFER_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${FEE_ESTIMATE_INTRINSIC_VS_STATE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${FILE_APPEND_CHUNKED_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GENERATE_KEY_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${GENERATE_PRIVATE_KEY_FROM_MNEMONIC_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
@@ -203,6 +211,7 @@ target_link_libraries(${MULTI_APP_TRANSFER_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${MULTI_SIG_OFFLINE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${NFT_ADD_REMOVE_ALLOWANCES_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${PRNG_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
+target_link_libraries(${REGISTERED_NODE_LIFECYCLE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${REVENUE_GENERATING_TOPICS_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${SCHEDULE_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
 target_link_libraries(${SCHEDULE_IDENTICAL_TRANSACTION_EXAMPLE_NAME} PUBLIC ${PROJECT_NAME})
@@ -253,6 +262,8 @@ install(TARGETS
         ${DELETE_ACCOUNT_EXAMPLE_NAME}
         ${DELETE_FILE_EXAMPLE_NAME}
         ${EXEMPT_CUSTOM_FEES_EXAMPLE_NAME}
+        ${FEE_ESTIMATE_TRANSFER_EXAMPLE_NAME}
+        ${FEE_ESTIMATE_INTRINSIC_VS_STATE_EXAMPLE_NAME}
         ${FILE_APPEND_CHUNKED_EXAMPLE_NAME}
         ${GENERATE_KEY_EXAMPLE_NAME}
         ${GENERATE_PRIVATE_KEY_FROM_MNEMONIC_EXAMPLE_NAME}
@@ -271,6 +282,7 @@ install(TARGETS
         ${MULTI_SIG_OFFLINE_EXAMPLE_NAME}
         ${NFT_ADD_REMOVE_ALLOWANCES_EXAMPLE_NAME}
         ${PRNG_EXAMPLE_NAME}
+        ${REGISTERED_NODE_LIFECYCLE_EXAMPLE_NAME}
         ${REVENUE_GENERATING_TOPICS_EXAMPLE_NAME}
         ${SCHEDULE_EXAMPLE_NAME}
         ${SCHEDULE_IDENTICAL_TRANSACTION_EXAMPLE_NAME}

@@ -222,6 +222,34 @@ public:
    */
   NodeUpdateTransaction& deleteGrpcWebProxyEndpoint();
 
+  /**
+   * Get the associated registered node IDs. nullopt means associations will not be changed. An empty vector clears all
+   * associations. A non-empty vector replaces all associations.
+   *
+   * @return An optional vector of associated registered node IDs.
+   */
+  [[nodiscard]] const std::optional<std::vector<uint64_t>>& getAssociatedRegisteredNodes() const
+  {
+    return mAssociatedRegisteredNodes;
+  }
+
+  /**
+   * Add a registered node ID to the list of associated registered nodes. If any IDs are added, the entire association
+   * list will replace the existing one.
+   *
+   * @param registeredNodeId The registered node ID to associate.
+   * @return A reference to this NodeUpdateTransaction with the newly-added association.
+   */
+  NodeUpdateTransaction& addAssociatedRegisteredNode(uint64_t registeredNodeId);
+
+  /**
+   * Clear all associated registered node IDs. Sets the list to an empty value, which will clear all existing
+   * associations when executed.
+   *
+   * @return A reference to this NodeUpdateTransaction with the association list set to empty (clear all).
+   */
+  NodeUpdateTransaction& clearAssociatedRegisteredNodes();
+
 private:
   friend class WrappedTransaction;
 
@@ -385,6 +413,14 @@ private:
    * This field SHALL enable frontend clients to avoid hard-coded proxy endpoints.
    */
   std::optional<Endpoint> mGrpcWebProxyEndpoint;
+
+  /**
+   * A list of associated registered node IDs for this consensus node.
+   * nullopt = do not change existing associations (default).
+   * some(empty) = clear all existing associations.
+   * some(non-empty) = replace all existing associations with this list.
+   */
+  std::optional<std::vector<uint64_t>> mAssociatedRegisteredNodes;
 };
 
 } // namespace Hiero

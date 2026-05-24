@@ -13,6 +13,7 @@
 #include "ContractUpdateTransaction.h"
 #include "Defaults.h"
 #include "EthereumTransaction.h"
+#include "FeeEstimateQuery.h"
 #include "FileAppendTransaction.h"
 #include "FileCreateTransaction.h"
 #include "FileDeleteTransaction.h"
@@ -25,6 +26,9 @@
 #include "PrivateKey.h"
 #include "PrngTransaction.h"
 #include "PublicKey.h"
+#include "RegisteredNodeCreateTransaction.h"
+#include "RegisteredNodeDeleteTransaction.h"
+#include "RegisteredNodeUpdateTransaction.h"
 #include "ScheduleCreateTransaction.h"
 #include "ScheduleDeleteTransaction.h"
 #include "ScheduleSignTransaction.h"
@@ -373,6 +377,12 @@ WrappedTransaction Transaction<SdkRequestType>::fromBytes(const std::vector<std:
       return WrappedTransaction(NodeDeleteTransaction(transactions));
     case proto::TransactionBody::kNodeUpdate:
       return WrappedTransaction(NodeUpdateTransaction(transactions));
+    case proto::TransactionBody::kRegisteredNodeCreate:
+      return WrappedTransaction(RegisteredNodeCreateTransaction(transactions));
+    case proto::TransactionBody::kRegisteredNodeDelete:
+      return WrappedTransaction(RegisteredNodeDeleteTransaction(transactions));
+    case proto::TransactionBody::kRegisteredNodeUpdate:
+      return WrappedTransaction(RegisteredNodeUpdateTransaction(transactions));
     case proto::TransactionBody::kUtilPrng:
       return WrappedTransaction(PrngTransaction(transactions));
     case proto::TransactionBody::kScheduleCreate:
@@ -1650,6 +1660,16 @@ SdkRequestType& Transaction<SdkRequestType>::signInternal(
   return static_cast<SdkRequestType&>(*this);
 }
 
+//-----
+template<typename SdkRequestType>
+FeeEstimateQuery Transaction<SdkRequestType>::estimateFee() const
+{
+  WrappedTransaction wrapped(WrappedTransaction::AnyPossibleTransaction(static_cast<const SdkRequestType&>(*this)));
+  FeeEstimateQuery query;
+  query.setTransaction(wrapped);
+  return query;
+}
+
 /**
  * Explicit template instantiations.
  */
@@ -1674,6 +1694,9 @@ template class Transaction<NodeCreateTransaction>;
 template class Transaction<NodeDeleteTransaction>;
 template class Transaction<NodeUpdateTransaction>;
 template class Transaction<PrngTransaction>;
+template class Transaction<RegisteredNodeCreateTransaction>;
+template class Transaction<RegisteredNodeDeleteTransaction>;
+template class Transaction<RegisteredNodeUpdateTransaction>;
 template class Transaction<ScheduleCreateTransaction>;
 template class Transaction<ScheduleDeleteTransaction>;
 template class Transaction<ScheduleSignTransaction>;

@@ -4,55 +4,45 @@
 //
 // Shared constants for bot scripts: maintainer team, labels, issue state.
 
+const { loadAutomationConfig, buildConstants } = require('./config-loader');
+
+/**
+ * Parsed and validated automation config loaded from .github/hiero-automation.json.
+ * Exposed for modules that need access to nested config values (e.g. assignment limits).
+ */
+const AUTOMATION_CONFIG = loadAutomationConfig();
+
+/**
+ * Derived constants built from the automation config. Preserves the flat
+ * constant shapes (MAINTAINER_TEAM, LABELS, SKILL_HIERARCHY, etc.) that
+ * the rest of the bot scripts expect.
+ */
+const derived = buildConstants(AUTOMATION_CONFIG);
+
 /**
  * Team to tag when manual intervention is needed.
  */
-const MAINTAINER_TEAM = '@hiero-ledger/hiero-sdk-cpp-maintainers';
+const MAINTAINER_TEAM = derived.MAINTAINER_TEAM;
+
+/**
+ * Team to tag in Good First Issue welcome comments.
+ */
+const GFI_SUPPORT_TEAM = derived.GFI_SUPPORT_TEAM;
 
 /**
  * Common label constants used across bot scripts.
  */
-const LABELS = Object.freeze({
-  // Status labels
-  AWAITING_TRIAGE: 'status: awaiting triage',
-  READY_FOR_DEV: 'status: ready for dev',
-  IN_PROGRESS: 'status: in progress',
-  BLOCKED: 'status: blocked',
-  NEEDS_REVIEW: 'status: needs review',
-  NEEDS_REVISION: 'status: needs revision',
-
-  // Skill level labels
-  GOOD_FIRST_ISSUE: 'skill: good first issue',
-  BEGINNER: 'skill: beginner',
-  INTERMEDIATE: 'skill: intermediate',
-  ADVANCED: 'skill: advanced',
-
-  // Priority labels
-  PRIORITY_CRITICAL: 'priority: critical',
-  PRIORITY_HIGH: 'priority: high',
-  PRIORITY_MEDIUM: 'priority: medium',
-  PRIORITY_LOW: 'priority: low',
-});
+const LABELS = derived.LABELS;
 
 /**
  * Skill hierarchy used to determine progression for recommendations.
  */
-const SKILL_HIERARCHY = Object.freeze([
-    LABELS.GOOD_FIRST_ISSUE,
-    LABELS.BEGINNER,
-    LABELS.INTERMEDIATE,
-    LABELS.ADVANCED,
-]);
+const SKILL_HIERARCHY = derived.SKILL_HIERARCHY;
 
 /**
  * Priority hierarchy for issue recommendations.
  */
-const PRIORITY_HIERARCHY = Object.freeze([
-    LABELS.PRIORITY_CRITICAL,
-    LABELS.PRIORITY_HIGH,
-    LABELS.PRIORITY_MEDIUM,
-    LABELS.PRIORITY_LOW,
-]);
+const PRIORITY_HIERARCHY = derived.PRIORITY_HIERARCHY;
 
 /**
  * Issue state values for GitHub search queries.
@@ -72,37 +62,29 @@ const ISSUE_STATE = Object.freeze({
  * Progression: Good First Issue (no prereqs) -> Beginner (2 GFI) -> Intermediate (3 Beginner) -> Advanced (3 Intermediate).
  * @type {Object<string, { requiredLabel: string|null, requiredCount: number, displayName: string, prerequisiteDisplayName?: string }>}
  */
-const SKILL_PREREQUISITES = {
-  [LABELS.GOOD_FIRST_ISSUE]: {
-    requiredLabel: null,
-    requiredCount: 0,
-    displayName: "Good First Issue",
-  },
-  [LABELS.BEGINNER]: {
-    requiredLabel: LABELS.GOOD_FIRST_ISSUE,
-    requiredCount: 2,
-    displayName: "Beginner",
-    prerequisiteDisplayName: "Good First Issues",
-  },
-  [LABELS.INTERMEDIATE]: {
-    requiredLabel: LABELS.BEGINNER,
-    requiredCount: 3,
-    displayName: "Intermediate",
-    prerequisiteDisplayName: "Beginner Issues",
-  },
-  [LABELS.ADVANCED]: {
-    requiredLabel: LABELS.INTERMEDIATE,
-    requiredCount: 3,
-    displayName: "Advanced",
-    prerequisiteDisplayName: "Intermediate Issues",
-  },
-};
+const SKILL_PREREQUISITES = derived.SKILL_PREREQUISITES;
+
+/**
+ * Documentation links loaded from the automation config.
+ * @type {{ workflowGuide: string, readme: string, signingGuide: string, mergeConflictsGuide: string }}
+ */
+const DOCUMENTATION = derived.DOCUMENTATION;
+
+/**
+ * Community links loaded from the automation config.
+ * @type {{ discordChannel: string }}
+ */
+const COMMUNITY = derived.COMMUNITY;
 
 module.exports = {
   MAINTAINER_TEAM,
+  GFI_SUPPORT_TEAM,
   LABELS,
   ISSUE_STATE,
   SKILL_HIERARCHY,
   SKILL_PREREQUISITES,
   PRIORITY_HIERARCHY,
+  DOCUMENTATION,
+  COMMUNITY,
+  AUTOMATION_CONFIG,
 };

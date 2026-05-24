@@ -4,6 +4,7 @@
 #include "ED25519PrivateKey.h"
 #include "exceptions/BadKeyException.h"
 #include "exceptions/UninitializedException.h"
+#include "impl/HexConverter.h"
 #include "impl/Utilities.h"
 
 #include <algorithm>
@@ -302,4 +303,139 @@ TEST_F(ECDSAsecp256k1PrivateKeyUnitTests, ECDSACompatibility)
     ASSERT_EQ(actualResultKeyPair->toStringRaw(), expectedPrivateKey);
     ASSERT_EQ(actualResultKeyPair->getPublicKey()->toStringRaw(), expectedPublicKey);
   }
+}
+
+//-----
+TEST_F(ECDSAsecp256k1PrivateKeyUnitTests, GetRecoveryIdReturnsValidId)
+{
+  // Given
+  const std::unique_ptr<ECDSAsecp256k1PrivateKey> privateKey =
+    ECDSAsecp256k1PrivateKey::fromString(getTestPrivateKeyHexString());
+  const std::vector<std::byte> message = { std::byte(0x01), std::byte(0x02), std::byte(0x03) };
+
+  // When
+  const std::vector<std::byte> signature = privateKey->sign(message);
+  const std::vector<std::byte> r(signature.cbegin(), signature.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE);
+  const std::vector<std::byte> s(signature.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE, signature.cend());
+  const int recoveryId = privateKey->getRecoveryId(r, s, message);
+
+  // Then
+  EXPECT_GE(recoveryId, 0);
+  EXPECT_LE(recoveryId, 3);
+}
+
+//-----
+TEST_F(ECDSAsecp256k1PrivateKeyUnitTests, GetRecoveryIdConsistentAcrossMultipleSignings)
+{
+  // Given - ECDSA signatures are non-deterministic, so we verify recovery works across multiple signings.
+  const std::unique_ptr<ECDSAsecp256k1PrivateKey> privateKey =
+    ECDSAsecp256k1PrivateKey::fromString(getTestPrivateKeyHexString());
+  const std::vector<std::byte> message = { std::byte(0xDE), std::byte(0xAD), std::byte(0xBE), std::byte(0xEF) };
+
+  for (int i = 0; i < 10; ++i)
+  {
+    // When
+    const std::vector<std::byte> signature = privateKey->sign(message);
+    const std::vector<std::byte> r(signature.cbegin(), signature.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE);
+    const std::vector<std::byte> s(signature.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE, signature.cend());
+    const int recoveryId = privateKey->getRecoveryId(r, s, message);
+
+    // Then
+    EXPECT_GE(recoveryId, 0);
+    EXPECT_LE(recoveryId, 3);
+  }
+}
+
+//-----
+TEST_F(ECDSAsecp256k1PrivateKeyUnitTests, GetRecoveryIdWithEmptyMessage)
+{
+  // Given
+  const std::unique_ptr<ECDSAsecp256k1PrivateKey> privateKey =
+    ECDSAsecp256k1PrivateKey::fromString(getTestPrivateKeyHexString());
+  const std::vector<std::byte> message = {};
+
+  // When
+  const std::vector<std::byte> signature = privateKey->sign(message);
+  const std::vector<std::byte> r(signature.cbegin(), signature.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE);
+  const std::vector<std::byte> s(signature.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE, signature.cend());
+  const int recoveryId = privateKey->getRecoveryId(r, s, message);
+
+  // Then
+  EXPECT_GE(recoveryId, 0);
+  EXPECT_LE(recoveryId, 3);
+}
+
+//-----
+TEST_F(ECDSAsecp256k1PrivateKeyUnitTests, GetRecoveryIdInvalidRSize)
+{
+  // Given
+  const std::unique_ptr<ECDSAsecp256k1PrivateKey> privateKey =
+    ECDSAsecp256k1PrivateKey::fromString(getTestPrivateKeyHexString());
+  const std::vector<std::byte> invalidR = { std::byte(0x01) }; // Too small
+  const std::vector<std::byte> validS(ECDSAsecp256k1PrivateKey::S_SIZE, std::byte(0x01));
+  const std::vector<std::byte> message = { std::byte(0x01) };
+
+  // When
+  const int recoveryId = privateKey->getRecoveryId(invalidR, validS, message);
+
+  // Then
+  EXPECT_EQ(recoveryId, -1);
+}
+
+//-----
+TEST_F(ECDSAsecp256k1PrivateKeyUnitTests, GetRecoveryIdInvalidSSize)
+{
+  // Given
+  const std::unique_ptr<ECDSAsecp256k1PrivateKey> privateKey =
+    ECDSAsecp256k1PrivateKey::fromString(getTestPrivateKeyHexString());
+  const std::vector<std::byte> validR(ECDSAsecp256k1PrivateKey::R_SIZE, std::byte(0x01));
+  const std::vector<std::byte> invalidS = { std::byte(0x01) }; // Too small
+  const std::vector<std::byte> message = { std::byte(0x01) };
+
+  // When
+  const int recoveryId = privateKey->getRecoveryId(validR, invalidS, message);
+
+  // Then
+  EXPECT_EQ(recoveryId, -1);
+}
+
+//-----
+TEST_F(ECDSAsecp256k1PrivateKeyUnitTests, GetRecoveryIdMatchesKnownVector)
+{
+  // Given - a known-good (privateKey, message, r, s, recoveryId) tuple computed via eth_keys (RFC6979 deterministic
+  // signing). This verifies the exact recovery ID value, catching endianness or off-by-one bugs.
+  const std::unique_ptr<ECDSAsecp256k1PrivateKey> privateKey =
+    ECDSAsecp256k1PrivateKey::fromString(getTestPrivateKeyHexString());
+  const std::vector<std::byte> message = { std::byte(0x01), std::byte(0x02), std::byte(0x03) };
+  const std::vector<std::byte> r =
+    internal::HexConverter::hexToBytes("A931117D9902782D36D000B958C7941BCC427B0032AB214D903E2BD78FD3C00E");
+  const std::vector<std::byte> s =
+    internal::HexConverter::hexToBytes("7189064C335CDB98B97483549B175D63E2F76EAEDF06A3F69C46F54F6F36B31D");
+  const int expectedRecoveryId = 0;
+
+  // When
+  const int recoveryId = privateKey->getRecoveryId(r, s, message);
+
+  // Then
+  EXPECT_EQ(recoveryId, expectedRecoveryId);
+}
+
+//-----
+TEST_F(ECDSAsecp256k1PrivateKeyUnitTests, GetRecoveryIdReturnsNegativeOneForForeignSignature)
+{
+  // Given - sign with one key, try recovery with another. When a signature was produced by a different key, no recovery
+  // ID can recover this key's public key, so -1 is returned.
+  const std::unique_ptr<ECDSAsecp256k1PrivateKey> signingKey =
+    ECDSAsecp256k1PrivateKey::fromString(getTestPrivateKeyHexString());
+  const std::unique_ptr<ECDSAsecp256k1PrivateKey> differentKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
+  const std::vector<std::byte> message = { std::byte(0x01), std::byte(0x02), std::byte(0x03) };
+
+  // When
+  const std::vector<std::byte> signature = signingKey->sign(message);
+  const std::vector<std::byte> r(signature.cbegin(), signature.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE);
+  const std::vector<std::byte> s(signature.cbegin() + ECDSAsecp256k1PrivateKey::R_SIZE, signature.cend());
+  const int recoveryId = differentKey->getRecoveryId(r, s, message);
+
+  // Then
+  EXPECT_EQ(recoveryId, -1);
 }

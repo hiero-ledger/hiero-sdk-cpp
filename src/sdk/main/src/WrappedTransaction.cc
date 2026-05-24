@@ -96,6 +96,18 @@ WrappedTransaction WrappedTransaction::fromProtobuf(const proto::TransactionBody
   {
     return WrappedTransaction(NodeUpdateTransaction(proto));
   }
+  else if (proto.has_registerednodecreate())
+  {
+    return WrappedTransaction(RegisteredNodeCreateTransaction(proto));
+  }
+  else if (proto.has_registerednodedelete())
+  {
+    return WrappedTransaction(RegisteredNodeDeleteTransaction(proto));
+  }
+  else if (proto.has_registerednodeupdate())
+  {
+    return WrappedTransaction(RegisteredNodeUpdateTransaction(proto));
+  }
   else if (proto.has_util_prng())
   {
     return WrappedTransaction(PrngTransaction(proto));
@@ -307,6 +319,21 @@ WrappedTransaction WrappedTransaction::fromProtobuf(const proto::SchedulableTran
   {
     *txBody.mutable_nodeupdate() = proto.nodeupdate();
     return WrappedTransaction(NodeUpdateTransaction(txBody));
+  }
+  else if (proto.has_registerednodecreate())
+  {
+    *txBody.mutable_registerednodecreate() = proto.registerednodecreate();
+    return WrappedTransaction(RegisteredNodeCreateTransaction(txBody));
+  }
+  else if (proto.has_registerednodedelete())
+  {
+    *txBody.mutable_registerednodedelete() = proto.registerednodedelete();
+    return WrappedTransaction(RegisteredNodeDeleteTransaction(txBody));
+  }
+  else if (proto.has_registerednodeupdate())
+  {
+    *txBody.mutable_registerednodeupdate() = proto.registerednodeupdate();
+    return WrappedTransaction(RegisteredNodeUpdateTransaction(txBody));
   }
   else if (proto.has_util_prng())
   {
@@ -585,6 +612,24 @@ std::unique_ptr<proto::TransactionBody> WrappedTransaction::toProtobuf() const
       transaction->updateSourceTransactionBody(nullptr);
       return std::make_unique<proto::TransactionBody>(transaction->getSourceTransactionBody());
     }
+    case REGISTERED_NODE_CREATE_TRANSACTION:
+    {
+      const auto transaction = getTransaction<RegisteredNodeCreateTransaction>();
+      transaction->updateSourceTransactionBody(nullptr);
+      return std::make_unique<proto::TransactionBody>(transaction->getSourceTransactionBody());
+    }
+    case REGISTERED_NODE_DELETE_TRANSACTION:
+    {
+      const auto transaction = getTransaction<RegisteredNodeDeleteTransaction>();
+      transaction->updateSourceTransactionBody(nullptr);
+      return std::make_unique<proto::TransactionBody>(transaction->getSourceTransactionBody());
+    }
+    case REGISTERED_NODE_UPDATE_TRANSACTION:
+    {
+      const auto transaction = getTransaction<RegisteredNodeUpdateTransaction>();
+      transaction->updateSourceTransactionBody(nullptr);
+      return std::make_unique<proto::TransactionBody>(transaction->getSourceTransactionBody());
+    }
     case SCHEDULE_CREATE_TRANSACTION:
     {
       const auto transaction = getTransaction<ScheduleCreateTransaction>();
@@ -780,256 +825,325 @@ std::unique_ptr<proto::Transaction> WrappedTransaction::toProtobufTransaction() 
     case ACCOUNT_ALLOWANCE_APPROVE_TRANSACTION:
     {
       const auto transaction = getTransaction<AccountAllowanceApproveTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case ACCOUNT_ALLOWANCE_DELETE_TRANSACTION:
     {
       const auto transaction = getTransaction<AccountAllowanceDeleteTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case ACCOUNT_CREATE_TRANSACTION:
     {
       const auto transaction = getTransaction<AccountCreateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case ACCOUNT_DELETE_TRANSACTION:
     {
       const auto transaction = getTransaction<AccountDeleteTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case ACCOUNT_UPDATE_TRANSACTION:
     {
       const auto transaction = getTransaction<AccountUpdateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case BATCH_TRANSACTION:
     {
       const auto transaction = getTransaction<BatchTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case CONTRACT_CREATE_TRANSACTION:
     {
       const auto transaction = getTransaction<ContractCreateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case CONTRACT_DELETE_TRANSACTION:
     {
       const auto transaction = getTransaction<ContractDeleteTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case CONTRACT_EXECUTE_TRANSACTION:
     {
       const auto transaction = getTransaction<ContractExecuteTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case CONTRACT_UPDATE_TRANSACTION:
     {
       const auto transaction = getTransaction<ContractUpdateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case ETHEREUM_TRANSACTION:
     {
       const auto transaction = getTransaction<EthereumTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case FILE_APPEND_TRANSACTION:
     {
       const auto transaction = getTransaction<FileAppendTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case FILE_CREATE_TRANSACTION:
     {
       const auto transaction = getTransaction<FileCreateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case FILE_DELETE_TRANSACTION:
     {
       const auto transaction = getTransaction<FileDeleteTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case FILE_UPDATE_TRANSACTION:
     {
       const auto transaction = getTransaction<FileUpdateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case FREEZE_TRANSACTION:
     {
       const auto transaction = getTransaction<FreezeTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case HOOK_STORE_TRANSACTION:
     {
       const auto transaction = getTransaction<HookStoreTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case NODE_CREATE_TRANSACTION:
     {
       const auto transaction = getTransaction<NodeCreateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case NODE_DELETE_TRANSACTION:
     {
       const auto transaction = getTransaction<NodeDeleteTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case NODE_UPDATE_TRANSACTION:
     {
       const auto transaction = getTransaction<NodeUpdateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case PRNG_TRANSACTION:
     {
       const auto transaction = getTransaction<PrngTransaction>();
+      transaction->buildTransaction(0);
+      return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
+    }
+    case REGISTERED_NODE_CREATE_TRANSACTION:
+    {
+      const auto transaction = getTransaction<RegisteredNodeCreateTransaction>();
+      transaction->buildTransaction(0);
+      return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
+    }
+    case REGISTERED_NODE_DELETE_TRANSACTION:
+    {
+      const auto transaction = getTransaction<RegisteredNodeDeleteTransaction>();
+      transaction->buildTransaction(0);
+      return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
+    }
+    case REGISTERED_NODE_UPDATE_TRANSACTION:
+    {
+      const auto transaction = getTransaction<RegisteredNodeUpdateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case SCHEDULE_CREATE_TRANSACTION:
     {
       const auto transaction = getTransaction<ScheduleCreateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case SCHEDULE_DELETE_TRANSACTION:
     {
       const auto transaction = getTransaction<ScheduleDeleteTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case SCHEDULE_SIGN_TRANSACTION:
     {
       const auto transaction = getTransaction<ScheduleSignTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case SYSTEM_DELETE_TRANSACTION:
     {
       const auto transaction = getTransaction<SystemDeleteTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case SYSTEM_UNDELETE_TRANSACTION:
     {
       const auto transaction = getTransaction<SystemUndeleteTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_AIRDROP_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenAirdropTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_ASSOCIATE_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenAssociateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_BURN_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenBurnTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_CANCEL_AIRDROP_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenCancelAirdropTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_CLAIM_AIRDROP_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenClaimAirdropTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_CREATE_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenCreateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_DELETE_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenDeleteTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_DISSOCIATE_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenDissociateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_FEE_SCHEDULE_UPDATE_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenFeeScheduleUpdateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_FREEZE_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenFreezeTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_GRANT_KYC_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenGrantKycTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_MINT_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenMintTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_PAUSE_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenPauseTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_REJECT_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenRejectTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_REVOKE_KYC_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenRevokeKycTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_UNFREEZE_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenUnfreezeTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_UNPAUSE_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenUnpauseTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_UPDATE_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenUpdateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_UPDATE_NFTS_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenUpdateNftsTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOKEN_WIPE_TRANSACTION:
     {
       const auto transaction = getTransaction<TokenWipeTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOPIC_CREATE_TRANSACTION:
     {
       const auto transaction = getTransaction<TopicCreateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOPIC_DELETE_TRANSACTION:
     {
       const auto transaction = getTransaction<TopicDeleteTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOPIC_MESSAGE_SUBMIT_TRANSACTION:
     {
       const auto transaction = getTransaction<TopicMessageSubmitTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TOPIC_UPDATE_TRANSACTION:
     {
       const auto transaction = getTransaction<TopicUpdateTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     case TRANSFER_TRANSACTION:
     {
       const auto transaction = getTransaction<TransferTransaction>();
+      transaction->buildTransaction(0);
       return std::make_unique<proto::Transaction>(transaction->getTransactionProtobufObject(0));
     }
     default:

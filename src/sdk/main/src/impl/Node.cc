@@ -135,9 +135,15 @@ grpc::Status Node::submitTransaction(proto::TransactionBody::DataCase funcEnum,
     case proto::TransactionBody::DataCase::kNodeCreate:
       return mAddressBookStub->createNode(&context, transaction, response);
     case proto::TransactionBody::DataCase::kNodeDelete:
-      return mAddressBookStub->createNode(&context, transaction, response);
+      return mAddressBookStub->deleteNode(&context, transaction, response);
     case proto::TransactionBody::DataCase::kNodeUpdate:
-      return mAddressBookStub->createNode(&context, transaction, response);
+      return mAddressBookStub->updateNode(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kRegisteredNodeCreate:
+      return mAddressBookStub->createRegisteredNode(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kRegisteredNodeDelete:
+      return mAddressBookStub->deleteRegisteredNode(&context, transaction, response);
+    case proto::TransactionBody::DataCase::kRegisteredNodeUpdate:
+      return mAddressBookStub->updateRegisteredNode(&context, transaction, response);
     case proto::TransactionBody::DataCase::kScheduleCreate:
       return mScheduleStub->createSchedule(&context, transaction, response);
     case proto::TransactionBody::DataCase::kScheduleDelete:

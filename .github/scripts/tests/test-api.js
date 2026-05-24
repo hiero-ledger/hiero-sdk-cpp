@@ -13,6 +13,8 @@ const {
   fetchOpenPRs,
   fetchIssue,
   fetchClosingIssueNumbers,
+  fetchLatestMilestone,
+  setMilestone,
   swapStatusLabel,
   hasLabel,
   resolveLinkedIssue,
@@ -31,6 +33,7 @@ function createMockBotContext(overrides = {}) {
     updated: [],
     labelsAdded: [],
     labelsRemoved: [],
+    milestonesUpdated: [],
   };
   const comments = overrides.comments || [];
   return {
@@ -54,6 +57,16 @@ function createMockBotContext(overrides = {}) {
             },
             removeLabel: async (params) => {
               calls.labelsRemoved.push(params.name);
+            },
+            listMilestones: async ({ page, per_page }) => {
+              const allMilestones = overrides.milestones || [];
+              const start = (page - 1) * per_page;
+              const slice = allMilestones.slice(start, start + per_page);
+              return { data: slice };
+            },
+            update: async (params) => {
+              calls.milestonesUpdated.push(params);
+              return {};
             },
             get: async ({ issue_number }) => {
               const issue = (overrides.issues || {})[issue_number];
@@ -474,6 +487,63 @@ const unitTests = [
       });
       const result = await fetchClosingIssueNumbers(botContext);
       return Array.isArray(result) && result.length === 0;
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // fetchLatestMilestone
+  // ---------------------------------------------------------------------------
+  {
+    name: 'fetchLatestMilestone: milestones with due dates → returns latest due date',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        milestones: [
+          { number: 1, title: 'Earlier', due_on: '2026-05-01T00:00:00Z' },
+          { number: 2, title: 'Later', due_on: '2026-06-01T00:00:00Z' },
+          { number: 3, title: 'No due date', due_on: null },
+        ],
+      });
+      const result = await fetchLatestMilestone(botContext);
+      return result !== null && result.number === 2;
+    },
+  },
+  {
+    name: 'fetchLatestMilestone: no due dates → returns highest milestone number',
+    test: async () => {
+      const { botContext } = createMockBotContext({
+        milestones: [
+          { number: 4, title: 'Older', due_on: null },
+          { number: 7, title: 'Newest', due_on: null },
+          { number: 5, title: 'Middle', due_on: null },
+        ],
+      });
+      const result = await fetchLatestMilestone(botContext);
+      return result !== null && result.number === 7;
+    },
+  },
+  {
+    name: 'fetchLatestMilestone: no open milestones → returns null',
+    test: async () => {
+      const { botContext } = createMockBotContext({ milestones: [] });
+      const result = await fetchLatestMilestone(botContext);
+      return result === null;
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // setMilestone
+  // ---------------------------------------------------------------------------
+  {
+    name: 'setMilestone: updates issue milestone',
+    test: async () => {
+      const { botContext, calls } = createMockBotContext();
+      const result = await setMilestone(botContext, 42, 9);
+      return (
+        result.success === true &&
+        calls.milestonesUpdated.length === 1 &&
+        calls.milestonesUpdated[0].issue_number === 42 &&
+        calls.milestonesUpdated[0].milestone === 9
+      );
     },
   },
 

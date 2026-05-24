@@ -347,6 +347,38 @@ const scenarios = [
     ],
   },
   {
+    name: "Race Condition - Duplicate Assignment Trigger At Limit",
+    description:
+      "A duplicate queued /assign sees the current issue in the live assignment count and must not post a limit-exceeded comment",
+    context: {
+      eventName: "issue_comment",
+      payload: {
+        issue: {
+          number: 127,
+          assignees: [], // stale payload: appears unassigned
+          labels: [
+            { name: "status: ready for dev" },
+            { name: "skill: good first issue" },
+          ],
+        },
+        comment: {
+          id: 1028,
+          body: "/assign",
+          user: { login: "duplicate-requester", type: "User" },
+        },
+      },
+      repo: { owner: "hiero-ledger", repo: "hiero-sdk-cpp" },
+    },
+    githubOptions: {
+      issueAlreadyAssignedTo: "duplicate-requester",
+      openAssignmentCount: 2,
+    },
+    expectedAssignee: null,
+    expectedComments: [
+      `👋 Hi @duplicate-requester! You're already assigned to this issue. You're all set to start working on it!\n\nIf you have any questions, feel free to ask here or reach out to the team.`,
+    ],
+  },
+  {
     name: "Race Condition - Fresh Issue Has Multiple Assignees",
     description:
       "Fresh fetch reveals a corrupted multi-assignee issue; bot must reject and list all assignees",

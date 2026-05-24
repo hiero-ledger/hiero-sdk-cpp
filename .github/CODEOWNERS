@@ -13,7 +13,6 @@
 # Protection Rules for Github Configuration Files and Actions Workflows
 /.github/                                       @hiero-ledger/github-maintainers
 /.github/scripts/                               @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
-/.github/workflows/                             @hiero-ledger/github-maintainers @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers
 
 # Cmake project files and inline plugins
 **/.clang*                                      @hiero-ledger/hiero-sdk-cpp-maintainers @hiero-ledger/hiero-sdk-cpp-committers

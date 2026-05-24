@@ -314,10 +314,12 @@ TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountUpdateAddressb
                                 .getReceipt(client));
   std::cout << "Node updated!" << std::endl;
 
-  // Poll the address book until we see the updated account ID, or timeout after 2 minutes
+  // Poll the address book until we see the updated account ID, or timeout after 5 minutes.
+  // CI mirror node propagation has been observed to take well over 2 minutes; the rest of the
+  // test relies on the mirror node having the new mapping, so a generous bound is needed.
   std::cout << "Waiting for mirror node to update..." << std::endl;
   const auto startTime = std::chrono::steady_clock::now();
-  const auto timeout = std::chrono::seconds(120);
+  const auto timeout = std::chrono::seconds(300);
   bool addressBookUpdated = false;
 
   while (std::chrono::steady_clock::now() - startTime < timeout)
@@ -349,10 +351,9 @@ TEST_F(NodeUpdateTransactionIntegrationTests, CanChangeNodeAccountUpdateAddressb
     }
   }
 
-  if (!addressBookUpdated)
-  {
-    std::cout << "WARNING: Mirror node did not update within timeout period" << std::endl;
-  }
+  // Without the address book being updated, the AccountCreate-with-retry assertion below would fail
+  // with a confusing "node proxies not in network" error far from the real cause. Surface it here.
+  ASSERT_TRUE(addressBookUpdated) << "Mirror node did not update within timeout period";
 
   // Submit a transaction targeting ONLY node 0.0.4 (which is now invalid)
   // This should trigger INVALID_NODE_ACCOUNT, update the address book to learn that node2 is now different

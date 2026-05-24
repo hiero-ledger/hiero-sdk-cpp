@@ -5,7 +5,7 @@
 // Comment builders and per-skill-level boilerplate for the /finalize command.
 // Pure formatting functions separated from finalize logic for readability and testability.
 
-const { MAINTAINER_TEAM, LABELS } = require('../helpers');
+const { MAINTAINER_TEAM, LABELS, DOCUMENTATION, COMMUNITY } = require('../helpers');
 
 // =============================================================================
 // TITLE PREFIX MAP
@@ -172,11 +172,11 @@ const CONTRIBUTION_GUIDE_CONTENT = [
   '- [ ] Sign each commit using `-s -S`',
   '- [ ] Push your branch and open a pull request',
   '',
-  'Read [Workflow Guide](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/docs/training/workflow.md) for step-by-step workflow guidance.',
-  'Read [README.md](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/README.md) for setup instructions.',
+  `Read [Workflow Guide](${DOCUMENTATION.workflowGuide}) for step-by-step workflow guidance.`,
+  `Read [README.md](${DOCUMENTATION.readme}) for setup instructions.`,
   '',
   '❗ Pull requests **cannot be merged** without `S` and `s` signed commits.',
-  'See the [Signing Guide](https://github.com/hiero-ledger/hiero-sdk-cpp/blob/main/docs/training/signing.md).',
+  `See the [Signing Guide](${DOCUMENTATION.signingGuide}).`,
 ].join('\n');
 
 // =============================================================================
@@ -192,7 +192,7 @@ const DEFAULT_ADDITIONAL_INFO_LABEL = '🤔 Additional Information';
 const DEFAULT_ADDITIONAL_INFO_CONTENT = [
   'If you have questions while working on this issue, feel free to ask!',
   '',
-  'You can reach the community and maintainers here: [Hiero-SDK-C++ Discord](https://discord.com/channels/905194001349627914/1337424839761465364)',
+  `You can reach the community and maintainers here: [Hiero-SDK-C++ Discord](${COMMUNITY.discordChannel})`,
   '',
   'Whether you need help finding the right file, understanding existing code, or confirming your approach — we\'re happy to help.',
 ].join('\n');

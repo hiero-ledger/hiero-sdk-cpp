@@ -26,11 +26,31 @@ namespace Hiero::internal::HttpClient
  * @param url         The URL to which to submit the request.
  * @param httpMethod  The HTTP method.
  * @param requestBody The HTTP request body.
+ * @param contentType The content type for POST requests (defaults to "application/json").
  * @return The response data as a string.
  */
 [[nodiscard]] std::string invokeREST(std::string_view url,
                                      std::string_view httpMethod = "GET",
-                                     std::string_view requestBody = "");
+                                     std::string_view requestBody = "",
+                                     std::string_view contentType = "application/json");
+
+/**
+ * Perform an HTTP request and return both the response body and status code, plus a flag
+ * indicating whether the failure (if any) was due to a request timeout.
+ * @param url         The URL to which to submit the request.
+ * @param httpMethod  The HTTP method.
+ * @param requestBody The HTTP request body.
+ * @param contentType The content type for POST requests.
+ * @param statusCode  Output parameter for the HTTP status code (-1 on connection error).
+ * @param isTimeout   Output parameter set to true when the failure was a request timeout.
+ * @return The response data as a string.
+ */
+[[nodiscard]] std::string invokeRESTWithStatus(std::string_view url,
+                                               std::string_view httpMethod,
+                                               std::string_view requestBody,
+                                               std::string_view contentType,
+                                               int& statusCode,
+                                               bool& isTimeout);
 
 } // namespace Hiero::internal
 

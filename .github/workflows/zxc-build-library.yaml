@@ -63,7 +63,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        uses: step-security/harden-runner@9ca718d3bf646d6534007c269a635b3e54cadf99 # v2.19.2
         with:
           egress-policy: audit
 
@@ -90,7 +90,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        uses: step-security/harden-runner@9ca718d3bf646d6534007c269a635b3e54cadf99 # v2.19.2
         with:
           egress-policy: audit
 
@@ -154,7 +154,7 @@ jobs:
         run: mkdir -p "${{ github.workspace }}/b/vcpkg_cache"
 
       - name: Install CMake & Ninja
-        uses: step-security/get-cmake@082f0e11945209d5c8d8476a791e39d4d041005d # v4.3.1
+        uses: step-security/get-cmake@16c2bcb98b44e2c3a92d9474f8fd6f038d42de03 # v4.3.2
         with:
           useCloudCache: true
 
@@ -198,9 +198,9 @@ jobs:
         id: solo
         uses: hiero-ledger/hiero-solo-action@328bc84c3b00a990a151418144fd682a4eb76ea6 # v0.19.0
         with:
-          soloVersion: v0.71.0
+          soloVersion: v0.65.0
           installMirrorNode: true
-          mirrorNodeVersion: v0.154.0
+          mirrorNodeVersion: v0.153.0
           hieroVersion: v0.73.0
           dualMode: true
 
@@ -240,7 +240,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        uses: step-security/harden-runner@9ca718d3bf646d6534007c269a635b3e54cadf99 # v2.19.2
         with:
           egress-policy: audit
 
@@ -250,12 +250,12 @@ jobs:
           fetch-depth: 0
 
       - name: Setup-msbuild
-        uses: step-security/setup-msbuild@69786077a2e27336b48df68c84de440e078bd905 # v2.0.0
+        uses: step-security/setup-msbuild@f01243490939309baa8e659042bec579fa10db95 # v2.0.1
         with:
           msbuild-architecture: x64
 
       - name: Setup-perl
-        uses: shogo82148/actions-setup-perl@9f8c263975569ff3b4e510cb1f8813115749e146 # v1.41.0
+        uses: shogo82148/actions-setup-perl@a198315ec4e9244f206879ea7b63078003aec8a6 # v1.41.1
         with:
           perl-version: "5.32"
           distribution: strawberry
@@ -302,7 +302,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        uses: step-security/harden-runner@9ca718d3bf646d6534007c269a635b3e54cadf99 # v2.19.2
         with:
           egress-policy: audit
 

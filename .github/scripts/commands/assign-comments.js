@@ -7,10 +7,12 @@
 
 const {
   MAINTAINER_TEAM,
+  GFI_SUPPORT_TEAM,
   LABELS,
   ISSUE_STATE,
   SKILL_HIERARCHY,
   SKILL_PREREQUISITES,
+  AUTOMATION_CONFIG,
 } = require("../helpers");
 
 /**
@@ -18,14 +20,14 @@ const {
  * at the same time. Enforced by handleAssign in assign.js.
  * @type {number}
  */
-const MAX_OPEN_ASSIGNMENTS = 2;
+const MAX_OPEN_ASSIGNMENTS = AUTOMATION_CONFIG.assignmentLimits.maxOpenAssignments;
 
 /**
  * Maximum number of Good First Issues a contributor may complete before being
  * redirected to Beginner and higher-level issues. Enforced by handleAssign in assign.js.
  * @type {number}
  */
-const MAX_GFI_COMPLETIONS = 5;
+const MAX_GFI_COMPLETIONS = AUTOMATION_CONFIG.assignmentLimits.maxGfiCompletions;
 
 /**
  * Builds the welcome comment posted after a successful assignment. Returns a
@@ -44,7 +46,7 @@ function buildWelcomeComment(username, skillLevel) {
     return [
       `👋 Hi @${username}, welcome to the Hiero C++ SDK community! Thank you for choosing to contribute — we're thrilled to have you here! 🎉`,
       "",
-      "You've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (@hiero-ledger/hiero-sdk-good-first-issue-support) is ready to help you succeed.",
+      `You've been assigned this **Good First Issue**, and the **Good First Issue Support Team** (${GFI_SUPPORT_TEAM}) is ready to help you succeed.`,
       "",
       "The issue description above has everything you need: implementation steps, contribution workflow, and links to guides. If anything is unclear, just ask — we're happy to help.",
       "",

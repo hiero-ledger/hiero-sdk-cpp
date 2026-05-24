@@ -18,6 +18,7 @@ static constexpr std::string_view ACCOUNT_INFO_QUERY = "accountInfoQuery";
 static constexpr std::string_view CONTRACT_INFO_QUERY = "contractInfoQuery";
 static constexpr std::string_view TOKEN_RELATIONSHIPS_QUERY = "tokenRelationshipsQuery";
 static constexpr std::string_view TOKEN_BALANCES_QUERY = "tokenBalancesQuery";
+static constexpr std::string_view REGISTERED_NODES_QUERY = "registeredNodesQuery";
 
 /**
  * Class responsible for routing requests to different mirror node routes.
@@ -38,10 +39,11 @@ private:
    * Internal mapping of mirror node query types to their respective routes.
    */
   const std::unordered_map<std::string, std::string> routes = {
-    {std::string(ACCOUNT_INFO_QUERY),         "/api/v1/accounts/$"       },
-    { std::string(CONTRACT_INFO_QUERY),       "/api/v1/contracts/$"      },
-    { std::string(TOKEN_RELATIONSHIPS_QUERY), "/api/v1/accounts/$/tokens"},
-    { std::string(TOKEN_BALANCES_QUERY),      "/api/v1/tokens/$/balances"}
+    {std::string(ACCOUNT_INFO_QUERY),         "/api/v1/accounts/$"              },
+    { std::string(CONTRACT_INFO_QUERY),       "/api/v1/contracts/$"             },
+    { std::string(TOKEN_RELATIONSHIPS_QUERY), "/api/v1/accounts/$/tokens"       },
+    { std::string(TOKEN_BALANCES_QUERY),      "/api/v1/tokens/$/balances"       },
+    { std::string(REGISTERED_NODES_QUERY),    "/api/v1/network/registered-nodes"},
   };
 };
 
