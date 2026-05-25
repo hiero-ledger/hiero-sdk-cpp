@@ -40,11 +40,21 @@ ENV_FILE=".env"
 # ── Argument parsing ───────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -b|--build-dir)  BUILD_DIR="$2";  shift 2 ;;
-    -c|--config)     CONFIG="$2";     shift 2 ;;
-    -C|--category)   CATEGORY="$2";   shift 2 ;;
-    -t|--timeout)    TIMEOUT_S="$2";  shift 2 ;;
-    -e|--env-file)   ENV_FILE="$2";   shift 2 ;;
+    -b|--build-dir)
+      [[ "${2-}" ]] || { echo "ERROR: $1 requires a value" >&2; exit 1; }
+      BUILD_DIR="$2"; shift 2 ;;
+    -c|--config)
+      [[ "${2-}" ]] || { echo "ERROR: $1 requires a value" >&2; exit 1; }
+      CONFIG="$2"; shift 2 ;;
+    -C|--category)
+      [[ "${2-}" ]] || { echo "ERROR: $1 requires a value" >&2; exit 1; }
+      CATEGORY="$2"; shift 2 ;;
+    -t|--timeout)
+      [[ "${2-}" ]] || { echo "ERROR: $1 requires a value" >&2; exit 1; }
+      TIMEOUT_S="$2"; shift 2 ;;
+    -e|--env-file)
+      [[ "${2-}" ]] || { echo "ERROR: $1 requires a value" >&2; exit 1; }
+      ENV_FILE="$2"; shift 2 ;;
     -h|--help)
       sed -n '4,30p' "$0"
       exit 0
@@ -201,7 +211,7 @@ if [[ "${CATEGORY}" == "network" || "${CATEGORY}" == "all" ]]; then
     echo -e "${CYAN}Using credentials from ${ENV_FILE}${RESET}"
     # If the env file is not already named .env at the project root, copy it there
     # so dotenv::init() (which reads from the CWD) picks it up automatically.
-    if [[ "$(realpath "${ENV_FILE}")" != "$(realpath .env)" ]]; then
+    if [[ "$(realpath "${ENV_FILE}")" != "$(pwd)/.env" ]]; then
       cp "${ENV_FILE}" .env
       echo -e "${CYAN}Copied ${ENV_FILE} → .env (project root)${RESET}"
     fi

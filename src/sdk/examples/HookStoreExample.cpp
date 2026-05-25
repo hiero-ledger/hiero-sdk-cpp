@@ -155,7 +155,7 @@ int main(int argc, char** argv)
     return 1;
   }
   const char* const network = std::getenv("HIERO_NETWORK");
-  Client client = network ? Client::forName(network) : Client::forTestnet();
+  Client client = (network != nullptr && network[0] != '\0') ? Client::forName(network) : Client::forTestnet();
   client.setOperator(AccountId::fromString(std::getenv("OPERATOR_ID")),
                      ED25519PrivateKey::fromString(std::getenv("OPERATOR_KEY")));
   try

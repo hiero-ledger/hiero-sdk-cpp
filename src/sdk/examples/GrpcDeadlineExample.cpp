@@ -18,9 +18,9 @@ int main(int argc, char** argv)
   const std::shared_ptr<PrivateKey> operatorPrivateKey =
     ECDSAsecp256k1PrivateKey::fromString(std::getenv("OPERATOR_KEY"));
 
-  // Create a client for Testnet
+  // Get a client for the configured Hiero network (defaults to testnet when HIERO_NETWORK is unset).
   const char* const network = std::getenv("HIERO_NETWORK");
-  Client client = network ? Client::forName(network) : Client::forTestnet();
+  Client client = (network != nullptr && network[0] != '\0') ? Client::forName(network) : Client::forTestnet();
   client.setOperator(operatorAccountId, operatorPrivateKey);
 
   std::cout << "=== Global gRPC Deadline Demo ===" << std::endl;

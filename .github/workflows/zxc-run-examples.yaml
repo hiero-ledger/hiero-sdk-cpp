@@ -48,6 +48,7 @@ permissions:
 env:
   PRESET: ${{ inputs.preset || 'linux-x64' }}
   BUILD_TYPE: ${{ inputs.build-type || 'Debug' }}
+  BUILD_TYPE_LC: ${{ inputs.build-type == 'Release' && 'release' || 'debug' }}
 
 jobs:
   run-examples:
@@ -66,6 +67,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: true
+          persist-credentials: false
 
       # ── Build toolchain setup ──────────────────────────────────────────────
       - name: Use Node.js 22
@@ -93,7 +95,10 @@ jobs:
 
       - name: Convert VCPkg to Full Clone
         working-directory: vcpkg
-        run: git fetch --unshallow --prune
+        run: |
+          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+            git fetch --unshallow --prune
+          fi
 
       # ── Build (examples only, no tests/TCK to keep it fast) ───────────────
       - name: Configure Project
@@ -101,7 +106,7 @@ jobs:
           VCPKG_BINARY_SOURCES: clear
         run: |
           echo "::group::CMake Configure"
-          cmake --preset "${{ env.PRESET }}-$(echo ${{ env.BUILD_TYPE }} | tr '[:upper:]' '[:lower:]')" \
+          cmake --preset "${{ env.PRESET }}-${{ env.BUILD_TYPE_LC }}" \
             -DBUILD_TESTS=OFF \
             -DBUILD_TCK=OFF \
             -DBUILD_TCK_TESTS=OFF \
@@ -113,7 +118,7 @@ jobs:
           VCPKG_BINARY_SOURCES: clear
         run: |
           echo "::group::CMake Build"
-          cmake --build --preset "${{ env.PRESET }}-$(echo ${{ env.BUILD_TYPE }} | tr '[:upper:]' '[:lower:]')" -j 6
+          cmake --build --preset "${{ env.PRESET }}-${{ env.BUILD_TYPE_LC }}" -j 6
           echo "::endgroup::"
 
       # ── Offline examples (no network required) ─────────────────────────────
@@ -121,7 +126,7 @@ jobs:
         run: |
           echo "::group::CTest – offline examples"
           ctest -C "${{ env.BUILD_TYPE }}" \
-                --test-dir "build/${{ env.PRESET }}-$(echo ${{ env.BUILD_TYPE }} | tr '[:upper:]' '[:lower:]')" \
+                --test-dir "build/${{ env.PRESET }}-${{ env.BUILD_TYPE_LC }}" \
                 -L "example-offline" \
                 --output-on-failure \
                 --no-compress-output \
@@ -161,7 +166,7 @@ jobs:
         run: |
           echo "::group::CTest – network examples"
           ctest -C "${{ env.BUILD_TYPE }}" \
-                --test-dir "build/${{ env.PRESET }}-$(echo ${{ env.BUILD_TYPE }} | tr '[:upper:]' '[:lower:]')" \
+                --test-dir "build/${{ env.PRESET }}-${{ env.BUILD_TYPE_LC }}" \
                 -L "example-network" \
                 --output-on-failure \
                 --no-compress-output \

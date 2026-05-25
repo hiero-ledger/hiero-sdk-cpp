@@ -180,7 +180,7 @@ Create a `.env` file in the project root (use `.env.sample` as a template) with 
 | `PASSPHRASE` | (Optional) Passphrase for mnemonic-based key generation |
 | `MIRROR_NODE` | (Optional) Mirror-node endpoint for `InitializeClientWithMirrorNodeAddressBookExample` (e.g. `127.0.0.1:5600` for a local solo node) |
 
-> **Note**: `run_examples.sh` automatically copies the project-root `.env` into the examples binary directory, so you do not need to place `.env` files anywhere else.
+> **Note**: `run_examples.sh` automatically ensures `.env` is present at the project root so `dotenv::init()` finds it. You do not need to place `.env` files anywhere else.
 
 ### Running Examples
 
@@ -239,7 +239,7 @@ To reproduce exactly what CI runs, use CTest directly:
 # Offline examples (no network, no credentials):
 ctest -L example-offline -C Debug --test-dir build/<PRESET> --output-on-failure
 
-# Network examples (requires a running solo node and .env in the binary dir):
+# Network examples (requires a running solo node and .env at the project root):
 ctest -L example-network -C Debug --test-dir build/<PRESET> --output-on-failure
 ```
 

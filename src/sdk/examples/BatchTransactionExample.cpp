@@ -26,7 +26,7 @@ int main(int argc, char** argv)
   // Get a client for the configured Hiero network (defaults to testnet when HIERO_NETWORK is unset), and set
   // the operator so all generated transactions will be paid for by this account and signed by this key.
   const char* const network = std::getenv("HIERO_NETWORK");
-  Client client = network ? Client::forName(network) : Client::forTestnet();
+  Client client = (network != nullptr && network[0] != '\0') ? Client::forName(network) : Client::forTestnet();
   client.setOperator(operatorAccountId, operatorPrivateKey);
 
   /*
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
    * Step 3:
    * Create client for alice
    */
-  Client aliceClient = network ? Client::forName(network) : Client::forTestnet();
+  Client aliceClient = (network != nullptr && network[0] != '\0') ? Client::forName(network) : Client::forTestnet();
   aliceClient.setOperator(alice, aliceKey);
 
   /*
