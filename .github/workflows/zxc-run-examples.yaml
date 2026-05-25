@@ -161,7 +161,7 @@ jobs:
       - name: Verify HIERO_NETWORK is set
         if: ${{ inputs.run-network-examples }}
         run: |
-          HIERO_NETWORK_VAL="$(grep -E '^HIERO_NETWORK=' .env | cut -d'=' -f2)"
+          HIERO_NETWORK_VAL="$(grep -E '^HIERO_NETWORK=' .env 2>/dev/null | cut -d'=' -f2 || true)"
           if [[ -z "${HIERO_NETWORK_VAL}" ]]; then
             echo "::error::HIERO_NETWORK is not set in .env — network examples would hit testnet with solo credentials."
             exit 1
