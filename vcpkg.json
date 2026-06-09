@@ -1,7 +1,7 @@
 {
   "name": "hiero-sdk-cpp",
   "version-string": "0.1.0",
-  "builtin-baseline": "ce613c41372b23b1f51333815feb3edd87ef8a8b",
+  "builtin-baseline": "f3e10653cc27d62a37a3763cd84b38bca07c6075",
   "dependencies": [
     {
       "name": "openssl",
