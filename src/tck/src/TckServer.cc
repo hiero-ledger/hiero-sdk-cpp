@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Windows build requires this to be included first for some reason.
+// Must be included before any header that pulls in <windows.h>, whose macros (e.g. GetMessage) collide with identifiers in the generated protobuf code.
 #include <Transaction.h> // NOLINT
 
 #include "TckServer.h"
