@@ -54,6 +54,14 @@ public:
   [[nodiscard]] std::string toString() const;
 
   /**
+   * Compare this PendingAirdropRecord to another PendingAirdropRecord and determine if they represent the same pending airdrop record.
+   *
+   * @param rhs The other PendingAirdropRecord to compare this PendingAirdropRecord to.
+   * @return \c true if this PendingAirdropRecord is the same as the input PendingAirdropRecord, otherwise \c false.
+   */
+  [[nodiscard]] bool operator==(const PendingAirdropRecord& rhs) const;
+
+  /**
    * A unique, composite, identifier for a pending airdrop.
    * This field is REQUIRED.
    */
@@ -66,7 +74,7 @@ public:
    * If the pending airdrop is for a non-fungible/unique token, this field SHALL NOT
    * be set.
    */
-  uint64_t mAmount;
+  uint64_t mAmount = 0ULL;
 };
 
 } // namespace Hiero
