@@ -14,7 +14,7 @@ const {
 } = require('./test-utils');
 const script = require('../bot-on-pr-open.js');
 const { LABELS } = require('../helpers/constants');
-const { MARKER } = require('../helpers/comments');
+const { PR_HELPER_MARKER } = require('../helpers/markers');
 
 // =============================================================================
 // DEFAULT CONTEXT
@@ -402,7 +402,7 @@ const scenarios = [
       existingComments: [
         {
           id: 999,
-          body: `${MARKER}\n\nOld comment content`,
+          body: `${PR_HELPER_MARKER}\n\nOld comment content`,
         },
       ],
     },
