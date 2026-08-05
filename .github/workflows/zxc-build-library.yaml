@@ -1,3 +1,14 @@
+# ZXC: Build Library Workflow
+# 
+# This is the main reusable workflow for building the Hiero C++ SDK.
+# It is called by:
+#   - PR builds (via zxc-build-library.yaml in the build job)
+#   - Scheduled nightly builds (on-schedule-builds.yaml)
+#   - Manual workflow_dispatch
+#
+# Linux builds now use explicit linux-x64-gcc-* presets (see CMakePresets.json).
+# Windows and macOS builds are optional and controlled via inputs.
+
 name: "ZXC: Build Library"
 on:
   workflow_call:
@@ -86,7 +97,7 @@ jobs:
       matrix:
         include:
           - os: Linux
-            preset: linux-x64
+            preset: linux-x64-gcc
 
     steps:
       - name: Harden Runner

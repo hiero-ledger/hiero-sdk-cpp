@@ -10,6 +10,9 @@ permissions:
 
 jobs:
   scheduled-build:
+    # Linux builds use the explicit linux-x64-gcc-* presets (via zxc-build-library.yaml)
+    # so that scheduled/nightly runs clearly advertise the GCC compiler being used.
+    # The linux-x64-* aliases remain the recommended defaults for local development.
     uses: ./.github/workflows/zxc-build-library.yaml
     with:
       run-windows-builds: true

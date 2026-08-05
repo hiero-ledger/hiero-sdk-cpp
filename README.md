@@ -76,9 +76,13 @@ git submodule update --init
 cmake --preset windows-x64-release
 cmake --build --preset windows-x64-release
 
-# Linux (x64)
+# Linux (x64) — defaults to GCC
 cmake --preset linux-x64-release
 cmake --build --preset linux-x64-release
+
+# Linux (x64) — Explicit GCC (for CI or toolchain testing)
+cmake --preset linux-x64-gcc-release
+cmake --build --preset linux-x64-gcc-release
 
 # macOS (Intel x64)
 cmake --preset macos-x64-release
