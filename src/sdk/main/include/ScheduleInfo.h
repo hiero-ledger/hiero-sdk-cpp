@@ -76,6 +76,13 @@ public:
    * @return The output stream with this ScheduleInfo written to it.
    */
   friend std::ostream& operator<<(std::ostream& os, const ScheduleInfo& info);
+  /**
+   * Compares this ScheduleInfo to another ScheduleInfo and determines if they represent the same schedule info.
+   *
+   * @param other The other ScheduleInfo with which to compare this ScheduleInfo.
+   * @return \c TRUE if this ScheduleInfo is the same as the other, otherwise \c FALSE.
+   */
+  [[nodiscard]] bool operator==(const ScheduleInfo& other) const;
 
   /**
    * The ID of the schedule.

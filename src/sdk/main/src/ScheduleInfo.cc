@@ -163,5 +163,42 @@ std::ostream& operator<<(std::ostream& os, const ScheduleInfo& info)
   os << info.toString();
   return os;
 }
+//-----
+bool ScheduleInfo::operator==(const ScheduleInfo& other) const
+{
+  if (!(mScheduleId == other.mScheduleId) ||
+      (mExecutionTime != other.mExecutionTime) ||
+      (mDeletionTime != other.mDeletionTime) ||
+      (mExpirationTime != other.mExpirationTime) ||
+      (mMemo != other.mMemo) ||
+      !(mCreatorAccountId == other.mCreatorAccountId) ||
+      !(mPayerAccountId == other.mPayerAccountId) ||
+      (mScheduledTransactionId != other.mScheduledTransactionId) ||
+      !(mLedgerId == other.mLedgerId) ||
+      (mWaitForExpiry != other.mWaitForExpiry))
+  {
+    return false;
+  }
 
+  if (mScheduledTransaction.toSchedulableProtobuf()->SerializeAsString() !=
+      other.mScheduledTransaction.toSchedulableProtobuf()->SerializeAsString())
+  {
+    return false;
+  }
+
+  if (mAdminKey && other.mAdminKey)
+  {
+    if (mAdminKey->toProtobufKey()->SerializeAsString() !=
+        other.mAdminKey->toProtobufKey()->SerializeAsString())
+    {
+      return false;
+    }
+  }
+  else if (mAdminKey || other.mAdminKey)
+  {
+    return false;
+  }
+
+  return mSignatories.toBytes() == other.mSignatories.toBytes();
+}
 } // namespace Hiero
