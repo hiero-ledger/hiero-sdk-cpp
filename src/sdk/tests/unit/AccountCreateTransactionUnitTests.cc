@@ -3,7 +3,6 @@
 #include "Client.h"
 #include "Defaults.h"
 #include "ECDSAsecp256k1PrivateKey.h"
-#include "ECDSAsecp256k1PublicKey.h"
 #include "ED25519PrivateKey.h"
 #include "Hbar.h"
 #include "PublicKey.h"
@@ -139,9 +138,7 @@ TEST_F(AccountCreateTransactionUnitTests, SetKeyWithAlias)
 {
   // Given
   AccountCreateTransaction transaction;
-  const std::shared_ptr<ECDSAsecp256k1PublicKey> ecdsaPublicKey =
-    std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(getTestPrivateKeyECDSA()->getPublicKey());
-  EvmAddress expectedEvmAddress = ecdsaPublicKey->toEvmAddress();
+  const EvmAddress expectedEvmAddress = getTestPrivateKeyECDSA()->getPublicKey()->toEvmAddress().value();
 
   // When
   EXPECT_NO_THROW(transaction.setKeyWithAlias(getTestPublicKey(), getTestPrivateKeyECDSA()));

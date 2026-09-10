@@ -3,6 +3,7 @@
 #include "AccountId.h"
 #include "ECDSAsecp256k1PublicKey.h"
 #include "ED25519PublicKey.h"
+#include "EvmAddress.h"
 #include "exceptions/BadKeyException.h"
 #include "impl/HexConverter.h"
 #include "impl/PublicKeyImpl.h"
@@ -84,6 +85,12 @@ std::unique_ptr<PublicKey> PublicKey::fromAliasBytes(const std::vector<std::byte
 AccountId PublicKey::toAccountId(uint64_t shard, uint64_t realm) const
 {
   return AccountId(shard, realm, getShared());
+}
+
+//-----
+std::optional<EvmAddress> PublicKey::toEvmAddress() const
+{
+  return std::nullopt;
 }
 
 //-----

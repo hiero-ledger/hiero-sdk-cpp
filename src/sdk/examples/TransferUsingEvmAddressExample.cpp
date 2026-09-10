@@ -5,9 +5,9 @@
 #include "AccountInfoQuery.h"
 #include "Client.h"
 #include "ECDSAsecp256k1PrivateKey.h"
-#include "ECDSAsecp256k1PublicKey.h"
 #include "EvmAddress.h"
 #include "Hbar.h"
+#include "PublicKey.h"
 #include "TransactionReceipt.h"
 #include "TransactionReceiptQuery.h"
 #include "TransactionResponse.h"
@@ -61,13 +61,12 @@ int main(int argc, char** argv)
   /*
    * Step 2: Extract the ECDSAsecp256k1PublicKey.
    */
-  const std::shared_ptr<ECDSAsecp256k1PublicKey> publicKey =
-    std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(privateKey->getPublicKey());
+  const std::shared_ptr<PublicKey> publicKey = privateKey->getPublicKey();
 
   /*
    * Step 3: Extract the Ethereum public address.
    */
-  const EvmAddress evmAddress = publicKey->toEvmAddress();
+  const EvmAddress evmAddress = publicKey->toEvmAddress().value();
   std::cout << "Corresponding EVM address: " << evmAddress.toString() << std::endl;
 
   /*

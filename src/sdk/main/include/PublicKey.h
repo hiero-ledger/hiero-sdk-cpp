@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <string_view>
@@ -25,6 +26,7 @@ class EVP_PKEY;
 }
 
 class AccountId;
+class EvmAddress;
 }
 
 namespace Hiero
@@ -136,6 +138,14 @@ public:
    * @return The constructed AccountId.
    */
   [[nodiscard]] AccountId toAccountId(uint64_t shard = 0ULL, uint64_t realm = 0ULL) const;
+
+  /**
+   * Get the EVM address derived from this PublicKey.
+   *
+   * @return The EvmAddress derived from this PublicKey, or std::nullopt if this key is not an
+   *         ECDSAsecp256k1PublicKey.
+   */
+  [[nodiscard]] virtual std::optional<EvmAddress> toEvmAddress() const;
 
   /**
    * Write this PublicKey in DER-encoded hex to an output stream.

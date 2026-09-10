@@ -91,7 +91,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, ExecuteAccountCreateTransaction
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> testPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
   const std::shared_ptr<ECDSAsecp256k1PublicKey> testPublicKey =
     std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(testPrivateKey->getPublicKey());
-  const EvmAddress testEvmAddress = testPublicKey->toEvmAddress();
+  const EvmAddress testEvmAddress = testPublicKey->toEvmAddress().value();
   const Hbar testInitialBalance(1000LL, HbarUnit::TINYBAR());
   const std::chrono::system_clock::duration testAutoRenewPeriod = std::chrono::seconds(2592000);
   const std::string testMemo = "test account memo";
@@ -238,7 +238,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, AliasFromAdminKey)
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> adminPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
   const std::shared_ptr<ECDSAsecp256k1PublicKey> adminPublicKey =
     std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(adminPrivateKey->getPublicKey());
-  const EvmAddress evmAddress = adminPublicKey->toEvmAddress();
+  const EvmAddress evmAddress = adminPublicKey->toEvmAddress().value();
 
   AccountId adminAccountId;
   ASSERT_NO_THROW(adminAccountId = AccountCreateTransaction()
@@ -284,7 +284,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, AliasFromAdminKeyWithReceiverSi
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> adminKeyPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
   const std::shared_ptr<ECDSAsecp256k1PublicKey> adminKeyPublicKey =
     std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(adminKeyPrivateKey->getPublicKey());
-  const EvmAddress evmAddress = adminKeyPublicKey->toEvmAddress();
+  const EvmAddress evmAddress = adminKeyPublicKey->toEvmAddress().value();
 
   AccountId adminAccountId;
   ASSERT_NO_THROW(adminAccountId = AccountCreateTransaction()
@@ -335,7 +335,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, CannotCreateAliasFromAdminKeyWi
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> adminKeyPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
   const std::shared_ptr<ECDSAsecp256k1PublicKey> adminKeyPublicKey =
     std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(adminKeyPrivateKey->getPublicKey());
-  const EvmAddress evmAddress = adminKeyPublicKey->toEvmAddress();
+  const EvmAddress evmAddress = adminKeyPublicKey->toEvmAddress().value();
 
   AccountId adminAccountId;
   ASSERT_NO_THROW(adminAccountId = AccountCreateTransaction()
@@ -375,8 +375,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, AliasDifferentFromAdminKeyWithR
                                      .mAccountId.value());
 
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> aliasPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
-  const EvmAddress alias =
-    std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(aliasPrivateKey->getPublicKey())->toEvmAddress();
+  const EvmAddress alias = aliasPrivateKey->getPublicKey()->toEvmAddress().value();
 
   // When
   TransactionResponse txResponse;
@@ -428,8 +427,7 @@ TEST_F(AccountCreateTransactionIntegrationTests,
                                      .mAccountId.value());
 
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> aliasPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
-  const EvmAddress alias =
-    std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(aliasPrivateKey->getPublicKey())->toEvmAddress();
+  const EvmAddress alias = aliasPrivateKey->getPublicKey()->toEvmAddress().value();
 
   // When
   EXPECT_THROW(const TransactionReceipt txReceipt = AccountCreateTransaction()
@@ -559,7 +557,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, FreezeSignSerializeDeserializeA
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> testPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
   const std::shared_ptr<ECDSAsecp256k1PublicKey> testPublicKey =
     std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(testPrivateKey->getPublicKey());
-  const EvmAddress testEvmAddress = testPublicKey->toEvmAddress();
+  const EvmAddress testEvmAddress = testPublicKey->toEvmAddress().value();
   const Hbar testInitialBalance(1000LL, HbarUnit::TINYBAR());
   const std::chrono::system_clock::duration testAutoRenewPeriod = std::chrono::seconds(2592000);
   const std::string testMemo = "test account memo";
@@ -647,9 +645,7 @@ TEST_F(AccountCreateTransactionIntegrationTests, CreateTransactionWithAliasCanEx
   // Given
   const std::shared_ptr<PrivateKey> edPrivateKey = ED25519PrivateKey::generatePrivateKey();
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
-  const std::shared_ptr<ECDSAsecp256k1PublicKey> ecdsaPublicKey =
-    std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(ecdsaPrivateKey->getPublicKey());
-  const EvmAddress expectedEvmAddress = ecdsaPublicKey->toEvmAddress();
+  const EvmAddress expectedEvmAddress = ecdsaPrivateKey->getPublicKey()->toEvmAddress().value();
   const Hbar testInitialBalance(1000LL, HbarUnit::TINYBAR());
 
   // When / Then

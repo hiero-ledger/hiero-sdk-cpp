@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 #include <memory>
+#include <optional>
 #include <services/basic_types.pb.h>
 #include <string>
 #include <string_view>
@@ -412,10 +413,28 @@ TEST_F(ECDSAsecp256k1PublicKeyUnitTests, ToEvmAddress)
   const auto publicKey = std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(privateKey->getPublicKey());
 
   // When
-  const EvmAddress evmAddress = publicKey->toEvmAddress();
+  const EvmAddress evmAddress = publicKey->toEvmAddress().value();
 
   // Then
   EXPECT_EQ(evmAddress.toString(), "D8EB8DB03C699FAA3F47ADCDCD2AE91773B10F8B");
+}
+
+//-----
+TEST_F(ECDSAsecp256k1PublicKeyUnitTests, ToEvmAddressThroughBaseClass)
+{
+  // Given
+  const std::shared_ptr<ECDSAsecp256k1PublicKey> ecdsaPublicKey =
+    ECDSAsecp256k1PublicKey::fromBytes(getTestUncompressedPublicKeyBytes());
+  const std::shared_ptr<PublicKey> publicKey = ecdsaPublicKey;
+
+  // When
+  const std::optional<EvmAddress> evmAddress = publicKey->toEvmAddress();
+  const std::optional<EvmAddress> expectedEvmAddress = ecdsaPublicKey->toEvmAddress();
+
+  // Then
+  ASSERT_TRUE(evmAddress.has_value());
+  ASSERT_TRUE(expectedEvmAddress.has_value());
+  EXPECT_EQ(evmAddress->toString(), expectedEvmAddress->toString());
 }
 
 //-----

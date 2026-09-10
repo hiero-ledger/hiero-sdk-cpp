@@ -2,6 +2,7 @@
 #include "ECDSAsecp256k1PublicKey.h"
 #include "ED25519PrivateKey.h"
 #include "ED25519PublicKey.h"
+#include "EvmAddress.h"
 #include "exceptions/BadKeyException.h"
 #include "impl/Utilities.h"
 
@@ -215,6 +216,16 @@ TEST_F(ED25519PublicKeyUnitTests, ToBytes)
   // Then
   EXPECT_EQ(bytesDer, concatenateVectors({ ED25519PublicKey::DER_ENCODED_PREFIX_BYTES, getTestPublicKeyBytes() }));
   EXPECT_EQ(bytesRaw, getTestPublicKeyBytes());
+}
+
+//-----
+TEST_F(ED25519PublicKeyUnitTests, ToEvmAddressThroughBaseClass)
+{
+  // Given
+  const std::shared_ptr<PublicKey> publicKey = ED25519PublicKey::fromBytes(getTestPublicKeyBytes());
+
+  // When / Then
+  EXPECT_FALSE(publicKey->toEvmAddress().has_value());
 }
 
 //-----

@@ -9,9 +9,9 @@
 #include "AccountInfoQuery.h"
 #include "BaseIntegrationTest.h"
 #include "ECDSAsecp256k1PrivateKey.h"
-#include "ECDSAsecp256k1PublicKey.h"
 #include "ED25519PrivateKey.h"
 #include "Hbar.h"
+#include "PublicKey.h"
 #include "TokenAssociateTransaction.h"
 #include "TokenCreateTransaction.h"
 #include "TokenMintTransaction.h"
@@ -101,8 +101,7 @@ TEST_F(TransferTransactionIntegrationTests, CanTransferHbarWithAliasID)
   // Given
   const std::shared_ptr<PrivateKey> privateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
   const Hbar amount(1LL);
-  const EvmAddress evmAddress =
-    std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(privateKey->getPublicKey())->toEvmAddress();
+  const EvmAddress evmAddress = privateKey->getPublicKey()->toEvmAddress().value();
   const AccountId aliasId(evmAddress);
 
   // When

@@ -401,7 +401,7 @@ std::unique_ptr<proto::SignaturePair> ECDSAsecp256k1PublicKey::toSignaturePairPr
 }
 
 //-----
-EvmAddress ECDSAsecp256k1PublicKey::toEvmAddress() const
+std::optional<EvmAddress> ECDSAsecp256k1PublicKey::toEvmAddress() const
 {
   // Generate hash without "0x04" prefix of uncompressed bytes.
   return EvmAddress::fromBytes(internal::Utilities::removePrefix(

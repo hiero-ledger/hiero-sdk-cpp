@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <algorithm>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
 #include <nlohmann/json.hpp>
 
 #include <ECDSAsecp256k1PrivateKey.h>
-#include <ECDSAsecp256k1PublicKey.h>
 #include <ED25519PrivateKey.h>
 #include <EvmAddress.h>
 #include <Key.h>
@@ -139,26 +139,24 @@ std::string generateKeyRecursively(const GenerateKeyParams& params, nlohmann::js
               std::dynamic_pointer_cast<ECDSAsecp256k1PrivateKey>(key);
             privateKey)
         {
-          return std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(privateKey->getPublicKey())
-            ->toEvmAddress()
-            .toString();
+          return privateKey->getPublicKey()->toEvmAddress()->toString();
         }
 
-        if (const std::shared_ptr<ECDSAsecp256k1PublicKey> publicKey =
-              std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(key);
-            publicKey)
+        // PublicKey::toEvmAddress() yields std::nullopt for every key type but ECDSAsecp256k1, so the "not
+        // ECDSAsecp256k1" case is the disengaged optional rather than a failed downcast.
+        if (const std::shared_ptr<PublicKey> publicKey = std::dynamic_pointer_cast<PublicKey>(key); publicKey)
         {
-          return publicKey->toEvmAddress().toString();
+          if (const std::optional<EvmAddress> evmAddress = publicKey->toEvmAddress(); evmAddress.has_value())
+          {
+            return evmAddress->toString();
+          }
         }
 
         throw JsonRpcException(JsonErrorType::INVALID_PARAMS,
                                "invalid parameters: fromKey for evmAddress is not ECDSAsecp256k1.");
       }
 
-      return std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(
-               ECDSAsecp256k1PrivateKey::generatePrivateKey()->getPublicKey())
-        ->toEvmAddress()
-        .toString();
+      return ECDSAsecp256k1PrivateKey::generatePrivateKey()->getPublicKey()->toEvmAddress()->toString();
     }
 
     default:

@@ -5,6 +5,7 @@
 #include "PublicKey.h"
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -183,9 +184,10 @@ public:
    * Construct an EvmAddress from this ECDSAsecp256k1PublicKey. The constructed EvmAddress will be the last 20 bytes of
    * the keccak-256 hash of this ECDSAsecp256k1PublicKey.
    *
-   * @return The constructed EvmAddress.
+   * @return The constructed EvmAddress. Unlike PublicKey::toEvmAddress(), this override always returns an engaged
+   *         optional, so callers holding an ECDSAsecp256k1PublicKey can dereference it without checking.
    */
-  [[nodiscard]] EvmAddress toEvmAddress() const;
+  [[nodiscard]] std::optional<EvmAddress> toEvmAddress() const override;
 
 private:
   /**
