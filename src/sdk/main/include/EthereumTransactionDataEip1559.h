@@ -71,6 +71,13 @@ public:
   [[nodiscard]] std::string toString() const override;
 
   /**
+   * Get the RLP-encoded bytes for the required 9 fields to be signed.
+   *
+   * @return The bytes required to be hashed and signed.
+   */
+  [[nodiscard]] std::vector<std::byte> toSignBytes() const;
+
+  /**
    * The ID of the chain.
    */
   std::vector<std::byte> mChainId;

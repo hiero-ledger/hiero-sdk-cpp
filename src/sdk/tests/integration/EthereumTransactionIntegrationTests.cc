@@ -35,7 +35,7 @@ class EthereumTransactionIntegrationTests : public BaseIntegrationTest
 };
 
 //-----
-TEST_F(EthereumTransactionIntegrationTests, DISABLED_SignerNonceChangedOnEthereumTransaction)
+TEST_F(EthereumTransactionIntegrationTests, SignerNonceChangedOnEthereumTransaction)
 {
   // Given
   const std::shared_ptr<ECDSAsecp256k1PrivateKey> testPrivateKey = ECDSAsecp256k1PrivateKey::fromString(
@@ -65,17 +65,20 @@ TEST_F(EthereumTransactionIntegrationTests, DISABLED_SignerNonceChangedOnEthereu
                              .mFileId.value());
 
   const std::string memo = "[e2e::ContractCreateTransaction]";
-  ContractId contractId;
-  EXPECT_NO_THROW(contractId =
+  const uint64_t createGas = 1000000ULL;
+  TransactionReceipt contractReceipt;
+  EXPECT_NO_THROW(contractReceipt =
                     ContractCreateTransaction()
                       .setBytecodeFileId(fileId)
                       .setAdminKey(getTestClient().getOperatorPublicKey())
-                      .setGas(200000ULL)
+                      .setGas(createGas)
                       .setConstructorParameters(ContractFunctionParameters().addString("Hello from Hiero.").toBytes())
                       .setMemo(memo)
                       .execute(getTestClient())
-                      .getReceipt(getTestClient())
-                      .mContractId.value());
+                      .getReceipt(getTestClient()));
+  EXPECT_EQ(contractReceipt.mStatus, Status::SUCCESS);
+  ASSERT_TRUE(contractReceipt.mContractId.has_value());
+  const ContractId contractId = contractReceipt.mContractId.value();
 
   // Prepare byte vectors for passing to RLP serialization
   std::vector<std::byte> type = internal::HexConverter::hexToBytes("02");
@@ -104,8 +107,9 @@ TEST_F(EthereumTransactionIntegrationTests, DISABLED_SignerNonceChangedOnEthereu
   list.pushBack(accessListItem);
 
   // signed bytes in r,s form
-  std::vector<std::byte> signedBytes =
-    testPrivateKey->sign(internal::Utilities::concatenateVectors({ type, list.write() }));
+  // storing message to pass it to the getRecoveryID
+  std::vector<std::byte> message = internal::Utilities::concatenateVectors({ type, list.write() });
+  std::vector<std::byte> signedBytes = testPrivateKey->sign(message);
 
   std::vector<std::byte> r(signedBytes.begin(),
                            signedBytes.begin() + std::min(signedBytes.size(), static_cast<size_t>(32)));
@@ -113,7 +117,12 @@ TEST_F(EthereumTransactionIntegrationTests, DISABLED_SignerNonceChangedOnEthereu
   std::vector<std::byte> s(signedBytes.end() - std::min(signedBytes.size(), static_cast<size_t>(32)),
                            signedBytes.end());
 
-  std::vector<std::byte> recoveryId = internal::HexConverter::hexToBytes("01");
+  int recID = testPrivateKey->getRecoveryId(r, s, message);
+  if (recID < 0)
+  {
+    throw std::runtime_error("Failed to compute Ethereum recovery ID during integration test");
+  }
+  std::vector<std::byte> recoveryId = { static_cast<std::byte>(recID) };
 
   // recId, r, s should be added to original RLP list as Ethereum Transactions require
   list.pushBack(recoveryId);
