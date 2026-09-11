@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "Client.h"
-#include "AccountBalance.h"
-#include "AccountBalanceQuery.h"
 #include "AccountId.h"
+#include "AccountInfoQuery.h"
 #include "AddressBookQuery.h"
 #include "Defaults.h"
 #include "FileId.h"
@@ -427,7 +426,19 @@ void Client::ping(const AccountId& nodeAccountId) const
 //-----
 void Client::ping(const AccountId& nodeAccountId, const std::chrono::system_clock::duration& timeout) const
 {
-  AccountBalanceQuery().setAccountId(nodeAccountId).execute(*this, timeout);
+  // A Query with node account IDs pinned skips the network check in Query::onExecute(), so do it here.
+  if (!mImpl->mNetwork)
+  {
+    throw UninitializedException("Client has not been initialized with a valid network");
+  }
+
+  // Probe the node with a COST_ANSWER getAccountInfo query for account 0.0.2. The node answers with the query fee
+  // without executing the query, so nothing is charged and no operator is needed. A cost response is success; a gRPC
+  // failure or a non-OK precheck throws, as the executed AccountBalanceQuery probe did before consensus node 0.77
+  // removed the CryptoGetAccountBalance throttle bucket.
+  AccountInfoQuery query;
+  query.setAccountId(AccountId(0ULL, 0ULL, 2ULL)).setNodeAccountIds({ nodeAccountId });
+  static_cast<void>(query.getCost(*this, timeout));
 }
 
 //-----
