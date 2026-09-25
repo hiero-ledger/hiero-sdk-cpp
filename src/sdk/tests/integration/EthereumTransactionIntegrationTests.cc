@@ -13,6 +13,7 @@
 #include "ECDSAsecp256k1PublicKey.h"
 #include "ED25519PrivateKey.h"
 #include "EthereumTransaction.h"
+#include "EthereumTransactionDataEip7702.h"
 #include "FileCreateTransaction.h"
 #include "FileDeleteTransaction.h"
 #include "FileId.h"
@@ -22,6 +23,7 @@
 #include "TransferTransaction.h"
 #include "exceptions/OpenSSLException.h"
 #include "impl/HexConverter.h"
+#include "impl/openssl_utils/OpenSSLUtils.h"
 #include "impl/RLPItem.h"
 #include "impl/Utilities.h"
 
@@ -134,4 +136,159 @@ TEST_F(EthereumTransactionIntegrationTests, DISABLED_SignerNonceChangedOnEthereu
   EXPECT_TRUE(txResponse.getRecord(getTestClient()).mContractFunctionResult.has_value());
   //  mSignerNonce should be incremented to 1 after the first contract execution
   EXPECT_EQ(txResponse.getRecord(getTestClient()).mContractFunctionResult.value().mSignerNonce, 1);
+}
+
+//-----
+// EIP-7702 test - Enable when pectra rolls out
+TEST_F(EthereumTransactionIntegrationTests, DISABLED_SignerNonceChangedOnEIP7702EthereumTransaction)
+{
+  // Given
+  // Generate an ECDSA key for the EOA
+  const std::shared_ptr<ECDSAsecp256k1PrivateKey> ecdsaPrivateKey = ECDSAsecp256k1PrivateKey::generatePrivateKey();
+  const std::shared_ptr<ECDSAsecp256k1PublicKey> ecdsaPublicKey =
+    std::dynamic_pointer_cast<ECDSAsecp256k1PublicKey>(ecdsaPrivateKey->getPublicKey());
+  const AccountId aliasAccountId = ecdsaPublicKey->toAccountId();
+
+  // Create a shallow account for the ECDSA key by transferring Hbar to it
+  TransactionReceipt aliasTransferReceipt;
+  EXPECT_NO_THROW(aliasTransferReceipt =
+                    TransferTransaction()
+                      .addHbarTransfer(getTestClient().getOperatorAccountId().value(), Hbar(1LL).negated())
+                      .addHbarTransfer(aliasAccountId, Hbar(1LL))
+                      .execute(getTestClient())
+                      .getReceipt(getTestClient()));
+
+  // Create file with contract bytecode
+  FileId fileId;
+  EXPECT_NO_THROW(fileId = FileCreateTransaction()
+                             .setKeys({ getTestClient().getOperatorPublicKey() })
+                             .setContents(internal::Utilities::stringToByteVector(getTestSmartContractBytecode()))
+                             .execute(getTestClient())
+                             .getReceipt(getTestClient())
+                             .mFileId.value());
+
+  // Create contract to be called by EthereumTransaction
+  const std::string memo = "[e2e::EthereumEIP7702Transaction]";
+  ContractId contractId;
+  EXPECT_NO_THROW(contractId =
+                    ContractCreateTransaction()
+                      .setBytecodeFileId(fileId)
+                      .setAdminKey(getTestClient().getOperatorPublicKey())
+                      .setGas(1000000ULL)
+                      .setConstructorParameters(ContractFunctionParameters().addString("hello from hiero").toBytes())
+                      .setMemo(memo)
+                      .execute(getTestClient())
+                      .getReceipt(getTestClient())
+                      .mContractId.value());
+
+  // Prepare byte vectors for EIP-7702 transaction
+  std::vector<std::byte> type = internal::HexConverter::hexToBytes("04");
+  std::vector<std::byte> chainId = internal::HexConverter::hexToBytes("012a");
+  std::vector<std::byte> nonce = internal::HexConverter::hexToBytes("00");
+  std::vector<std::byte> maxPriorityGas = internal::HexConverter::hexToBytes("00");
+  std::vector<std::byte> maxGas = internal::HexConverter::hexToBytes("d1385c7bf0");
+  std::vector<std::byte> gasLimit = internal::HexConverter::hexToBytes("0249f0"); // 150k
+  std::vector<std::byte> to = internal::HexConverter::hexToBytes(contractId.toSolidityAddress());
+  std::vector<std::byte> value = internal::HexConverter::hexToBytes("00");
+  std::vector<std::byte> callData = ContractFunctionParameters().addString("new message").toBytes("setMessage");
+
+  // Create empty access list
+  RLPItem accessListItem(RLPItem::RLPType::LIST_TYPE);
+
+  // Create authorization list: EIP-7702 authorization sets EOA's code to match contract's code
+  // The authorization message is: keccak256(0x05 || rlp([chain_id, address, nonce]))
+  std::vector<std::byte> contractAddressForAuthorization = to;
+  std::vector<std::byte> eip7702Magic = { std::byte(0x05) };
+
+  // RLP encode [chainId, contractAddress, nonce] for authorization message
+  RLPItem authRlpList(RLPItem::RLPType::LIST_TYPE);
+  authRlpList.pushBack(chainId);
+  authRlpList.pushBack(contractAddressForAuthorization);
+  authRlpList.pushBack(nonce);
+  std::vector<std::byte> authRlpBytes = authRlpList.write();
+
+  // Create authorization preimage: 0x05 || rlp([chainId, address, nonce])
+  std::vector<std::byte> authPreimage = internal::Utilities::concatenateVectors({ eip7702Magic, authRlpBytes });
+
+  // Hash the preimage with keccak256
+  std::vector<std::byte> authMessage = internal::OpenSSLUtils::computeKECCAK256(authPreimage);
+
+  // Sign the authorization message
+  std::vector<std::byte> authSignedBytes = ecdsaPrivateKey->sign(authMessage);
+  std::vector<std::byte> authR(authSignedBytes.begin(), authSignedBytes.begin() + 32);
+  std::vector<std::byte> authS(authSignedBytes.end() - 32, authSignedBytes.end());
+  std::vector<std::byte> authYParity = internal::HexConverter::hexToBytes("01"); // Default recovery ID
+
+  // Create authorization tuple: [chainId, contractAddress, nonce, yParity, r, s]
+  AuthorizationTuple authTuple;
+  authTuple.mChainId = chainId;
+  authTuple.mContractAddress = contractAddressForAuthorization;
+  authTuple.mNonce = nonce;
+  authTuple.mYParity = authYParity;
+  authTuple.mR = authR;
+  authTuple.mS = authS;
+
+  // Build the EIP-7702 transaction RLP for signing (without signature fields)
+  RLPItem txList(RLPItem::RLPType::LIST_TYPE);
+  txList.pushBack(chainId);
+  txList.pushBack(nonce);
+  txList.pushBack(maxPriorityGas);
+  txList.pushBack(maxGas);
+  txList.pushBack(gasLimit);
+  txList.pushBack(to);
+  txList.pushBack(value);
+  txList.pushBack(callData);
+  txList.pushBack(accessListItem);
+
+  // Add authorization list
+  RLPItem authorizationListItem(RLPItem::RLPType::LIST_TYPE);
+  RLPItem authTupleItem(RLPItem::RLPType::LIST_TYPE);
+  authTupleItem.pushBack(authTuple.mChainId);
+  authTupleItem.pushBack(authTuple.mContractAddress);
+  authTupleItem.pushBack(authTuple.mNonce);
+  authTupleItem.pushBack(authTuple.mYParity);
+  authTupleItem.pushBack(authTuple.mR);
+  authTupleItem.pushBack(authTuple.mS);
+  authorizationListItem.pushBack(authTupleItem);
+  txList.pushBack(authorizationListItem);
+
+  // Sign the transaction: sign(0x04 || rlp([...]))
+  std::vector<std::byte> txSigningBytes = internal::Utilities::concatenateVectors({ type, txList.write() });
+  std::vector<std::byte> txSignedBytes = ecdsaPrivateKey->sign(txSigningBytes);
+
+  std::vector<std::byte> r(txSignedBytes.begin(), txSignedBytes.begin() + 32);
+  std::vector<std::byte> s(txSignedBytes.end() - 32, txSignedBytes.end());
+  std::vector<std::byte> recoveryId = internal::HexConverter::hexToBytes("01");
+
+  // Add signature to RLP list
+  txList.pushBack(recoveryId);
+  txList.pushBack(r);
+  txList.pushBack(s);
+
+  // Create final transaction data: 0x04 || rlp([...])
+  std::vector<std::byte> ethereumTransactionData =
+    internal::Utilities::concatenateVectors({ type, txList.write() });
+
+  // When / Then
+  EthereumTransaction ethereumTransaction;
+  EXPECT_NO_THROW(ethereumTransaction = EthereumTransaction().setEthereumData(ethereumTransactionData));
+
+  TransactionResponse txResponse;
+  EXPECT_NO_THROW(txResponse = ethereumTransaction.execute(getTestClient()));
+
+  TransactionRecord txRecord;
+  EXPECT_NO_THROW(txRecord = txResponse.getRecord(getTestClient()));
+
+  EXPECT_TRUE(txRecord.mContractFunctionResult.has_value());
+  // mSignerNonce should be incremented to 1 after the first contract execution
+  EXPECT_EQ(txRecord.mContractFunctionResult.value().mSignerNonce, 1);
+
+  // Clean up - delete contract and file
+  EXPECT_NO_THROW(ContractDeleteTransaction()
+                    .setContractId(contractId)
+                    .setTransferAccountId(getTestClient().getOperatorAccountId().value())
+                    .execute(getTestClient())
+                    .getReceipt(getTestClient()));
+
+  EXPECT_NO_THROW(FileDeleteTransaction().setFileId(fileId).execute(getTestClient()).getReceipt(getTestClient()));
 }
