@@ -2,7 +2,7 @@
 #ifndef HIERO_SDK_CPP_IMPL_BASE_NODE_H_
 #define HIERO_SDK_CPP_IMPL_BASE_NODE_H_
 
-#include <services/basic_types.pb.h> // This is needed for Windows to build for some reason.
+#include <services/basic_types.pb.h> // Must be included before any header that pulls in <windows.h>, whose macros (e.g. GetMessage) collide with identifiers in the generated protobuf code.
 
 #include "BaseNodeAddress.h"
 #include "Defaults.h"
