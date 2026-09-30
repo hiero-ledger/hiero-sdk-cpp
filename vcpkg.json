@@ -1,7 +1,7 @@
 {
   "name": "hiero-sdk-cpp",
   "version-string": "0.1.0",
-  "builtin-baseline": "ce613c41372b23b1f51333815feb3edd87ef8a8b",
+  "builtin-baseline": "522253caf47268c1724f486a035e927a42a90092",
   "dependencies": [
     {
       "name": "openssl",
@@ -17,11 +17,11 @@
     },
     {
       "name": "protobuf",
-      "version>=": "3.21.6"
+      "version>=": "5.29.3"
     },
     {
       "name": "grpc",
-      "version>=": "1.49.0"
+      "version>=": "1.76.0"
     },
     {
       "name": "nlohmann-json"
