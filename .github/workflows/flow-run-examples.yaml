@@ -1,0 +1,66 @@
+# SPDX-License-Identifier: Apache-2.0
+name: "Examples CI"
+
+# Triggers:
+#   1. Push to main (catches regressions immediately after merge)
+#   2. Release tags (validates examples before/at release)
+#   3. Weekly schedule (catches network-protocol drift on live nodes)
+#   4. Manual dispatch (for ad-hoc validation)
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/sdk/examples/**"
+      - "src/sdk/main/**"
+      - ".github/workflows/flow-run-examples.yaml"
+      - ".github/workflows/zxc-run-examples.yaml"
+
+  release:
+    types:
+      - published
+
+  schedule:
+    # Every Monday at 06:00 UTC
+    - cron: "0 6 * * 1"
+
+  workflow_dispatch:
+    inputs:
+      preset:
+        description: "CMake preset (e.g. linux-x64)"
+        type: string
+        required: false
+        default: linux-x64
+      build-type:
+        description: "Build configuration (Debug | Release)"
+        type: choice
+        required: false
+        default: Debug
+        options:
+          - Debug
+          - Release
+      run-network-examples:
+        description: "Run network examples against solo"
+        type: boolean
+        required: false
+        default: true
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: flow-examples-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  run-examples:
+    name: Examples
+    uses: ./.github/workflows/zxc-run-examples.yaml
+    with:
+      preset: ${{ inputs.preset || 'linux-x64' }}
+      build-type: ${{ inputs.build-type || 'Debug' }}
+      run-network-examples: ${{ inputs.run-network-examples != false }}
