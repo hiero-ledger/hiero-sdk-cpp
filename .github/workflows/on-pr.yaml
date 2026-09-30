@@ -13,14 +13,16 @@ on:
       - ready_for_review
 
 permissions:
-  pull-requests: write
   contents: read
-  checks: write
 
 jobs:
   on-pr-open:
     runs-on: hiero-client-sdk-linux-large
     if: github.event.pull_request.draft == false
+    permissions:
+      pull-requests: write
+      contents: read
+      checks: write
 
     concurrency:
       group: pr-bot-${{ github.event.pull_request.number }}
