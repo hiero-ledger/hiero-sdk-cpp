@@ -268,6 +268,13 @@ public:
    * @return The price for data retrieved from disk.
    */
   [[nodiscard]] inline int64_t getResponseDiskByte() const { return mResponseDiskByte; }
+
+  /**
+   * Compare this FeeComponents to another and determine if they are equal.
+   *
+   * @param rhs The other FeeComponents with which to compare this FeeComponents.
+   * @return \c TRUE if this FeeComponents is the same as the input, otherwise \c FALSE.
+   */
   [[nodiscard]] bool operator==(const FeeComponents& rhs) const;
 
 private:
@@ -326,12 +333,6 @@ private:
    */
   int64_t mResponseDiskByte = 0LL;
 
-  /**
-   * Compare two FeeComponents instances and determine if they represent an equivalent set of fees.
-   *
-   * @param rhs The right-hand side FeeComponents to compare.
-   * @return \c TRUE if this FeeComponents and \p rhs represent equivalent fee component values, otherwise \c FALSE.
-   */
 };
 
 } // namespace Hiero
