@@ -212,3 +212,59 @@ TEST_F(ScheduleInfoUnitTests, ToBytes)
   // Then
   EXPECT_EQ(bytes, internal::Utilities::stringToByteVector(scheduleInfo.toProtobuf()->SerializeAsString()));
 }
+
+//-----
+TEST_F(ScheduleInfoUnitTests, Equality)
+{
+  // Given
+  ScheduleInfo scheduleInfo1;
+  scheduleInfo1.mScheduleId = getTestScheduleId();
+  scheduleInfo1.mExecutionTime = getTestExecutionTime();
+  scheduleInfo1.mExpirationTime = getTestExpirationTime();
+  scheduleInfo1.mScheduledTransaction = getTestSchedulableTransaction();
+  scheduleInfo1.mMemo = getTestMemo();
+  scheduleInfo1.mAdminKey = getTestAdminKey();
+  scheduleInfo1.mSignatories = getTestSigners();
+  scheduleInfo1.mCreatorAccountId = getTestCreatorAccountId();
+  scheduleInfo1.mPayerAccountId = getTestPayerAccountId();
+  scheduleInfo1.mScheduledTransactionId = getTestScheduledTransactionId();
+  scheduleInfo1.mLedgerId = getTestLedgerId();
+  scheduleInfo1.mWaitForExpiry = getTestWaitForExpiry();
+
+  ScheduleInfo scheduleInfo2 = scheduleInfo1;
+
+  // Then
+  EXPECT_TRUE(scheduleInfo1 == scheduleInfo2);
+}
+
+//-----
+TEST_F(ScheduleInfoUnitTests, Inequality)
+{
+  // Given
+  ScheduleInfo scheduleInfo1;
+  scheduleInfo1.mScheduleId = getTestScheduleId();
+  scheduleInfo1.mExecutionTime = getTestExecutionTime();
+  scheduleInfo1.mExpirationTime = getTestExpirationTime();
+  scheduleInfo1.mScheduledTransaction = getTestSchedulableTransaction();
+  scheduleInfo1.mMemo = getTestMemo();
+  scheduleInfo1.mAdminKey = getTestAdminKey();
+  scheduleInfo1.mSignatories = getTestSigners();
+  scheduleInfo1.mCreatorAccountId = getTestCreatorAccountId();
+  scheduleInfo1.mPayerAccountId = getTestPayerAccountId();
+  scheduleInfo1.mScheduledTransactionId = getTestScheduledTransactionId();
+  scheduleInfo1.mLedgerId = getTestLedgerId();
+  scheduleInfo1.mWaitForExpiry = getTestWaitForExpiry();
+
+  ScheduleInfo scheduleInfo2 = scheduleInfo1;
+  scheduleInfo2.mMemo = "different memo";
+
+  // Then
+  EXPECT_FALSE(scheduleInfo1 == scheduleInfo2);
+
+  // Given
+  scheduleInfo2 = scheduleInfo1;
+  scheduleInfo2.mAdminKey = nullptr;
+
+  // Then
+  EXPECT_FALSE(scheduleInfo1 == scheduleInfo2);
+}
