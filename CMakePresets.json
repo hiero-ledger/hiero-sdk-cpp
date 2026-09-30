@@ -36,10 +36,21 @@
         }
       }
     },
+
     {
-      "name": "linux-x64-release",
+      "name": "linux-x64-gcc-release",
       "inherits": ["vcpkg-base"],
+      "displayName": "Linux x64 Release (GCC)",
+      "description": "Linux x64 Release build using GCC",
       "cacheVariables": {
+        "CMAKE_C_COMPILER": {
+          "type": "STRING",
+          "value": "gcc"
+        },
+        "CMAKE_CXX_COMPILER": {
+          "type": "STRING",
+          "value": "g++"
+        },
         "VCPKG_TARGET_TRIPLET": {
           "type": "STRING",
           "value": "x64-linux"
@@ -51,9 +62,19 @@
       }
     },
     {
-      "name": "linux-x64-debug",
+      "name": "linux-x64-gcc-debug",
       "inherits": ["vcpkg-base"],
+      "displayName": "Linux x64 Debug (GCC)",
+      "description": "Linux x64 Debug build using GCC",
       "cacheVariables": {
+        "CMAKE_C_COMPILER": {
+          "type": "STRING",
+          "value": "gcc"
+        },
+        "CMAKE_CXX_COMPILER": {
+          "type": "STRING",
+          "value": "g++"
+        },
         "VCPKG_TARGET_TRIPLET": {
           "type": "STRING",
           "value": "x64-linux"
@@ -64,6 +85,20 @@
         }
       }
     },
+
+    {
+      "name": "linux-x64-release",
+      "inherits": ["linux-x64-gcc-release"],
+      "displayName": "Linux x64 Release — defaults to GCC",
+      "description": "Alias of linux-x64-gcc-release (recommended for local development)"
+    },
+    {
+      "name": "linux-x64-debug",
+      "inherits": ["linux-x64-gcc-debug"],
+      "displayName": "Linux x64 Debug — defaults to GCC",
+      "description": "Alias of linux-x64-gcc-debug (recommended for local development)"
+    },
+
     {
       "name": "macos-x64-release",
       "inherits": ["vcpkg-base"],
@@ -151,6 +186,23 @@
   ],
   "buildPresets": [
     {
+      "name": "linux-x64-gcc-release",
+      "configurePreset": "linux-x64-gcc-release",
+      "displayName": "Build ninja-multi-vcpkg",
+      "description": "Build ninja-multi-vcpkg Configurations",
+      "configuration": "Release",
+      "targets": ["install"]
+    },
+    {
+      "name": "linux-x64-gcc-debug",
+      "configurePreset": "linux-x64-gcc-debug",
+      "displayName": "Build ninja-multi-vcpkg",
+      "description": "Build ninja-multi-vcpkg Configurations",
+      "configuration": "Debug",
+      "targets": ["install"]
+    },
+
+    {
       "name": "linux-x64-release",
       "configurePreset": "linux-x64-release",
       "displayName": "Build ninja-multi-vcpkg",
@@ -166,6 +218,7 @@
       "configuration": "Debug",
       "targets": ["install"]
     },
+
     {
       "name": "macos-x64-release",
       "configurePreset": "macos-x64-release",
@@ -215,7 +268,5 @@
       "targets": ["install"]
     }
   ],
-  "testPresets": [
-
-  ]
+  "testPresets": []
 }
