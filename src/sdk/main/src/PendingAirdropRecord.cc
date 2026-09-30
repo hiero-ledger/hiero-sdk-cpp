@@ -46,4 +46,10 @@ std::string PendingAirdropRecord::toString() const
   return mPendingAirdropId.toString() + " " + std::to_string(mAmount);
 }
 
+//-----
+bool PendingAirdropRecord::operator==(const PendingAirdropRecord& rhs) const
+{
+  return mPendingAirdropId == rhs.mPendingAirdropId && mAmount == rhs.mAmount;
+}
+
 } // namespace Hiero
