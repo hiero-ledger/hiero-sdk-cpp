@@ -4,6 +4,7 @@
 #include "Defaults.h"
 #include "ED25519PrivateKey.h"
 #include "Hbar.h"
+#include "exceptions/UninitializedException.h"
 
 #include <gtest/gtest.h>
 
@@ -45,6 +46,16 @@ TEST_F(ClientUnitTests, ConstructClient)
   EXPECT_EQ(client.getOperatorPublicKey(), nullptr);
   EXPECT_FALSE(client.getMaxTransactionFee());
   EXPECT_EQ(client.getRequestTimeout(), std::chrono::minutes(2));
+}
+
+//-----
+TEST_F(ClientUnitTests, PingWithoutNetworkThrows)
+{
+  // Given
+  Client client;
+
+  // When / Then
+  EXPECT_THROW(client.ping(getTestAccountId()), UninitializedException);
 }
 
 //-----
