@@ -14,7 +14,7 @@ const {
 } = require('./test-utils');
 const script = require('../bot-on-pr-update.js');
 const { LABELS } = require('../helpers/constants');
-const { MARKER } = require('../helpers/comments');
+const { PR_HELPER_MARKER } = require('../helpers/markers');
 
 // =============================================================================
 // SYNCHRONIZE TRIGGER TESTS
@@ -299,7 +299,7 @@ const syncScenarios = [
       commits: passingCommits(2),
       mergeable: true,
       comments: [
-        { id: 999, body: `${MARKER}\nOld content with DCO fail` },
+        { id: 999, body: `${PR_HELPER_MARKER}\nOld content with DCO fail` },
       ],
       prLabels: [{ name: LABELS.NEEDS_REVISION }],
       prUser: { login: 'henry', type: 'User' },
@@ -356,7 +356,7 @@ const syncScenarios = [
       commits: passingCommits(),
       mergeable: true,
       comments: [
-        { id: 111, body: `${MARKER}\nPrevious bot comment` },
+        { id: 111, body: `${PR_HELPER_MARKER}\nPrevious bot comment` },
       ],
       prLabels: [],
       prUser: { login: 'jane', type: 'User' },
@@ -732,7 +732,7 @@ const editScenarios = [
       issues: { 42: { title: 'Bug', assignees: [{ login: 'contributor' }] } },
       graphqlClosingIssues: [],
       existingComments: [
-        { id: 999, body: `${MARKER}\n\nOld comment content` },
+        { id: 999, body: `${PR_HELPER_MARKER}\n\nOld comment content` },
       ],
     },
     expect: {

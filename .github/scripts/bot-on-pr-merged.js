@@ -13,10 +13,11 @@ const {
   getBotComment, 
   runAllChecksAndComment, 
   swapStatusLabel,
-  postComment 
+  postComment,
 } = require('./helpers');
 const { checkMergeConflict } = require('./helpers/checks');
-const { MARKER, buildMergeConflictNotificationComment } = require('./helpers/comments');
+const { buildMergeConflictNotificationComment } = require('./bot-pr-helper-comments');
+const { PR_HELPER_MARKER } = require('./helpers/markers');
 
 const logger = createLogger('on-pr-merged');
 
@@ -44,7 +45,7 @@ async function checkSiblingConflictsOnMerge(globalBotContext) {
     const actuallyHasConflict = !mergeResult.passed;
 
     // Determine current dashboard status shown to the user
-    const existingComment = await getBotComment(prContext, MARKER);
+    const existingComment = await getBotComment(prContext, PR_HELPER_MARKER);
     const currentlyShowsConflict = existingComment
       ? existingComment.body.includes(':x: **Merge Conflicts**')
       : false;

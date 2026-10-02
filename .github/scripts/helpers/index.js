@@ -3,14 +3,14 @@
 // helpers/index.js
 //
 // Single entry point for bot helpers. Re-exports constants, logger, validation,
-// API, checks, and comments.
+// API, checks, and markers.
 
 const constants = require('./constants');
 const logger = require('./logger');
 const validation = require('./validation');
 const api = require('./api');
 const checks = require('./checks');
-const comments = require('./comments');
+const markers = require('./markers');
 
 module.exports = {
   ...constants,
@@ -18,5 +18,5 @@ module.exports = {
   ...validation,
   ...api,
   ...checks,
-  ...comments,
+  ...markers,
 };
