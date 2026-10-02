@@ -6,7 +6,6 @@
 // Run with: node .github/scripts/tests/test-bot-pr-helper-comments.js
 
 const { runTestSuite } = require('./test-utils');
-const { PR_HELPER_MARKER } = require('../helpers/markers');
 const {
   buildBotComment,
   buildChecksSection,
@@ -98,7 +97,7 @@ const unitTests = [
     name: 'Comment starts with PR_HELPER_MARKER',
     test: () => {
       const { body } = buildBotComment({ prAuthor: 'dave', ...allPassing() });
-      return body.startsWith(PR_HELPER_MARKER);
+      return body.startsWith('<!-- bot:pr-helper -->');
     },
   },
   {

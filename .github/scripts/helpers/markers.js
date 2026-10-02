@@ -5,7 +5,7 @@
 // Shared HTML comment markers used for bot comment
 // discovery, deduplication, and updates.
 
-const PR_HELPER_MARKER = '<!-- pr-helper-dashboard -->';
+const PR_HELPER_MARKER = '<!-- bot:pr-helper -->';
 
 module.exports = {
   PR_HELPER_MARKER,
