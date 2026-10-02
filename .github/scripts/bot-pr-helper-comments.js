@@ -177,7 +177,7 @@ function allChecksPassed({ dco, gpg, merge, issueLink }) {
 
 /**
  * Builds the full unified bot comment.
- * @param {{ prAuthor: string, dco: object, gpg: object, merge: object, issueLink: object, ci?: object }} params
+ * @param {{ prAuthor: string, dco: object, gpg: object, merge: object, issueLink: object }} params
  * @returns {{ body: string, allPassed: boolean }}
  */
 function buildBotComment({ prAuthor, dco, gpg, merge, issueLink }) {
